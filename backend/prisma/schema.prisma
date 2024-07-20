@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Anime {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  mal_id Int @unique
+  title String
+  type String
+  source String
+  episodes Int
+  status String
+  airing Boolean
+  rating String
+  score Float
+  personal_rating Float
+  rank Int
+  popularity Int
+  synopsis String
+  season String
+  images Json
+  genres String[]
+  themes String[]
+  relations Json[]
+}
+
