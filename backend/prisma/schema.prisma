@@ -11,21 +11,28 @@ model Anime {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   mal_id Int @unique
   title String
+  title_japanese String
+  title_synonyms String[]
   type String
-  source String
-  episodes Int
   status String
   airing Boolean
-  rating String
-  score Float
-  personal_rating Float
-  rank Int
-  popularity Int
-  synopsis String
-  season String
-  images Json
+  aired_from DateTime?
+  aired_to DateTime?
+  duration String
+  episodes Int?
   genres String[]
+  images Json
+  rating String
+  score Float?
+  season String?
+  studios String[]
   themes String[]
-  relations Json[]
+  synopsis String
+  trailer String?
+  mal_url String
+  personal_score Float?
+  personal_review String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
