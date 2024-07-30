@@ -70,6 +70,14 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out"
+      },
+      gridTemplateColumns: {
+        "4-auto": "repeat(4, minmax(0, auto))"
+      },
+      screens: {
+        "3xs": "320px",
+        "2xs": "400px",
+        xs: "480px"
       }
     }
   },

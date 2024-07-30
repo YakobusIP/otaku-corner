@@ -47,7 +47,7 @@ export default function Home() {
     <div className="flex flex-col min-h-[100dvh]">
       <header className="bg-primary text-primary-foreground py-12 md:py-16 lg:py-20">
         <div className="container">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
             <div className="flex flex-col gap-4">
               <h1 className="max-w-[650px]">
                 Track My Anime, Manga, and Light Novels
@@ -56,15 +56,15 @@ export default function Home() {
                 This platform provides reviews and ratings for anime, manga, and
                 light novels that I've consumed.
               </h4>
-              <div className="flex flex-col md:flex-row items-center gap-4">
+              <div className="flex flex-col lg:flex-row items-center gap-4">
                 {exploreRoutes.map((route) => {
                   return (
                     <Link
                       key={route.id}
                       to={route.path}
-                      className="w-full md:w-fit"
+                      className="w-full lg:w-fit"
                     >
-                      <Button variant="secondary" className="w-full md:w-fit">
+                      <Button variant="secondary" className="w-full lg:w-fit">
                         {route.text}
                       </Button>
                     </Link>
@@ -96,7 +96,7 @@ export default function Home() {
       <footer className="bg-muted py-6 text-muted-foreground">
         <div className="container flex items-center justify-between">
           <p className="text-sm">
-            &copy; {new Date().getFullYear()} Anime Tracker
+            &copy; {new Date().getFullYear()} Otaku Corner
           </p>
         </div>
       </footer>

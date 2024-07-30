@@ -83,3 +83,10 @@
     @apply scroll-m-20 text-xl font-semibold tracking-tight;
   }
 }
+
+@layer utilities {
+  .popover-content-width-full {
+    width: var(--radix-popover-trigger-width);
+    max-height: var(--radix-popover-content-available-height);
+  }
+}

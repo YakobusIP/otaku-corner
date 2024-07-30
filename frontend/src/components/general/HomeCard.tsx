@@ -26,14 +26,13 @@ export default function HomeCard({
       <h2>{cardTitle}</h2>
       <p className="text-muted-foreground">
         <span className="text-4xl font-bold">{amount}</span>{" "}
-        {type.toLowerCase()}
-        {type === MediaType.ANIME ? " watched" : " read"}
+        {type.toLowerCase()}s{type === MediaType.ANIME ? " watched" : " read"}
       </p>
       <Link
         to={path}
         className="inline-flex items-center hover:underline hover:underline-offset-4"
       >
-        View {type.toLowerCase()}
+        View {type.toLowerCase()}s
         <ChevronRightIcon className="h-4 w-4" />
       </Link>
       <img

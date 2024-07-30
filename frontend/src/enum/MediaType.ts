@@ -1,5 +1,5 @@
 export enum MediaType {
-  ANIME = "Animes",
-  MANGA = "Mangas",
-  LIGHT_NOVEL = "Light novels"
+  ANIME = "Anime",
+  MANGA = "Manga",
+  LIGHT_NOVEL = "Light novel"
 }
