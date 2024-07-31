@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 
 import { useState, Dispatch, SetStateAction } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Plus, ExternalLink, Star, Loader2 } from "lucide-react";
 import { Anime } from "@tutkli/jikan-ts";
 import SearchAnimeJikan from "@/components/admin/add-anime/SearchAnimeJikan";
@@ -25,11 +25,13 @@ import { AnimePostRequest } from "@/types/anime.type";
 type Props = {
   openAddAnimeDialog: boolean;
   setOpenAddAnimeDialog: Dispatch<SetStateAction<boolean>>;
+  fetchAnimeList: () => Promise<void>;
 };
 
 export default function AddAnimeDialog({
   openAddAnimeDialog,
-  setOpenAddAnimeDialog
+  setOpenAddAnimeDialog,
+  fetchAnimeList
 }: Props) {
   const [isLoadingChosenAnime, setIsLoadingChosenAnime] = useState(false);
   const [chosenAnime, setChosenAnime] = useState<Anime>();
@@ -49,6 +51,9 @@ export default function AddAnimeDialog({
         mal_id: data.mal_id,
         title: data.title,
         title_japanese: data.title_japanese,
+        title_synonyms: data.title_synonyms
+          .map((synonym) => synonym.toLowerCase())
+          .join(" "),
         type: data.type,
         status: data.status,
         airing: data.airing,
@@ -92,11 +97,20 @@ export default function AddAnimeDialog({
         setOpenAddAnimeDialog(false);
       }
     } catch (error) {
-      toast.toast({
-        title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
-      });
+      if (!(error instanceof AxiosError)) return;
+      if (error.response?.status === 409) {
+        toast.toast({
+          title: "Uh oh! Something went wrong",
+          description: error.response.data.error
+        });
+      } else {
+        toast.toast({
+          title: "Uh oh! Something went wrong",
+          description: "There was a problem with your request."
+        });
+      }
     } finally {
+      fetchAnimeList();
       setIsLoadingAddAnime(false);
     }
   };

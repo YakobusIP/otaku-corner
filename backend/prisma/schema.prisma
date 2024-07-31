@@ -12,7 +12,7 @@ model Anime {
   mal_id Int @unique
   title String
   title_japanese String
-  title_synonyms String[]
+  title_synonyms String
   type String
   status String
   airing Boolean

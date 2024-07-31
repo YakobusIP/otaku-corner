@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
 
-export const columns: ColumnDef<AnimeList>[] = [
+export const animeColumns: ColumnDef<AnimeList>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -47,7 +47,7 @@ export const columns: ColumnDef<AnimeList>[] = [
 
       return (
         <div className="flex gap-2 items-center">
-          <img src={image_url ?? undefined} />
+          <img src={image_url ?? undefined} width="50" height="74" />
           <div className="flex flex-col">
             <p className="font-bold">{title}</p>
             <p className="text-muted-foreground">{title_japanese}</p>

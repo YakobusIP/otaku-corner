@@ -3,6 +3,7 @@ import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  RowSelectionState,
   useReactTable
 } from "@tanstack/react-table";
 
@@ -14,25 +15,37 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
-import { AnimeList } from "@/types/anime.type";
-
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+import { Loader2, Trash2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+interface Identifiable {
+  id: string;
 }
 
-export default function DataTable<TData, TValue>({
-  columns,
-  data
-}: DataTableProps<TData, TValue>) {
-  const [rowSelection, setRowSelection] = useState({});
+interface DataTableProps<TData extends Identifiable, TValue> {
+  title: string;
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  rowSelection: RowSelectionState;
+  setRowSelection: Dispatch<SetStateAction<RowSelectionState>>;
+  deleteData: () => Promise<void>;
+  isLoadingDeleteData: boolean;
+}
 
+export default function DataTable<TData extends Identifiable, TValue>({
+  title,
+  columns,
+  data,
+  rowSelection,
+  setRowSelection,
+  deleteData,
+  isLoadingDeleteData
+}: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
-    getRowId: (row) => (row as AnimeList).id,
+    getRowId: (row) => row.id,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection,
@@ -43,6 +56,24 @@ export default function DataTable<TData, TValue>({
 
   return (
     <div>
+      <div className="flex flex-col gap-2 mb-2">
+        <div className="flex justify-between items-center">
+          <h2>{title}</h2>
+          <Button
+            variant="destructive"
+            className="flex items-center gap-2 place-self-end"
+            onClick={() => deleteData()}
+            disabled={Object.keys(rowSelection).length === 0}
+          >
+            {!isLoadingDeleteData && <Trash2 className="w-4 h-4" />}
+            {isLoadingDeleteData && (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
+            Delete
+          </Button>
+        </div>
+        <Separator />
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

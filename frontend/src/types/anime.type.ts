@@ -2,6 +2,7 @@ type AnimePostRequest = {
   mal_id: number;
   title: string;
   title_japanese: string;
+  title_synonyms: string;
   type: string;
   status: string;
   airing: boolean;

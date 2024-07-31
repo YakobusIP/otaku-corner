@@ -88,8 +88,13 @@ export default function SearchAnimeJikan({
           filter={(value, search) => {
             const parsedValue: Anime = JSON.parse(value);
             if (
-              parsedValue.title.toLowerCase().includes(search) ||
-              parsedValue.title_english?.toLocaleLowerCase().includes(search)
+              parsedValue.title.toLowerCase().includes(search.toLowerCase()) ||
+              parsedValue.title_english
+                ?.toLocaleLowerCase()
+                .includes(search.toLowerCase()) ||
+              parsedValue.title_synonyms.some((synonym) =>
+                synonym.toLowerCase().includes(search.toLowerCase())
+              )
             )
               return 1;
             return 0;

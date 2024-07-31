@@ -2,12 +2,30 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 
 export class AnimeService {
-  async getAllAnimes() {
+  async getAllAnimes(query: string) {
+    const lowerCaseQuery = query.toLowerCase();
     return prisma.anime.findMany({
+      where: {
+        OR: [
+          {
+            title: {
+              contains: lowerCaseQuery,
+              mode: "insensitive",
+            },
+          },
+          {
+            title_synonyms: {
+              contains: lowerCaseQuery,
+              mode: "insensitive",
+            },
+          },
+        ],
+      },
       select: {
         id: true,
         title: true,
         title_japanese: true,
+        title_synonyms: true,
         images: true,
         status: true,
         type: true,

@@ -9,9 +9,10 @@ export class AnimeController {
     this.animeService = animeService;
   }
 
-  getAllAnimes = async (_: Request, res: Response): Promise<void> => {
+  getAllAnimes = async (req: Request, res: Response): Promise<void> => {
     try {
-      const animes = await this.animeService.getAllAnimes();
+      const query = (req.query.q as string) || "";
+      const animes = await this.animeService.getAllAnimes(query);
       res.json({ data: animes });
     } catch (error) {
       res.status(500).json({ error });
