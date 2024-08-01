@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Home from "@/pages/general/Home.tsx";
 import Dashboard from "@/pages/admin/Dashboard";
 import axios from "axios";
+import AnimeDetail from "./pages/admin/AnimeDetail";
 
 const router = createBrowserRouter([
   {
@@ -16,6 +17,10 @@ const router = createBrowserRouter([
   {
     path: "/admin",
     element: <Dashboard />
+  },
+  {
+    path: "/admin/anime/:animeId",
+    element: <AnimeDetail />
   }
 ]);
 

@@ -10,21 +10,21 @@ datasource db {
 model Anime {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   mal_id Int @unique
+  type String
+  status String
+  rating String
+  season String?
   title String
   title_japanese String
   title_synonyms String
-  type String
-  status String
-  airing Boolean
-  aired_from DateTime?
-  aired_to DateTime?
-  duration String
+  source String
+  aired String
+  broadcast String
   episodes Int?
-  genres String[]
-  images Json
-  rating String
+  duration String
   score Float?
-  season String?
+  images Json
+  genres String[]
   studios String[]
   themes String[]
   synopsis String

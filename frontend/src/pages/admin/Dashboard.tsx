@@ -12,12 +12,15 @@ import { FilterIcon, Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import AddAnimeDialog from "@/components/admin/add-anime/AddAnimeDialog";
-import axios from "axios";
 import { useToast } from "@/components/ui/use-toast";
 import { AnimeList } from "@/types/anime.type";
 import DataTable from "@/components/admin/data-table/DataTable";
 import { animeColumns } from "@/components/admin/data-table/AnimeTableColumns";
 import { useDebounce } from "use-debounce";
+import {
+  fetchAllAnimeService,
+  deleteAnimeService
+} from "@/services/anime.service";
 
 export default function Dashboard() {
   const [addedAnimeList, setAddedAnimeList] = useState<Array<AnimeList>>([]);
@@ -33,44 +36,31 @@ export default function Dashboard() {
 
   const fetchAnimeList = useCallback(async () => {
     setIsLoadingDeleteAnime(true);
-    try {
-      const response = await axios.get("/api/anime", {
-        params: { q: debouncedSearch }
-      });
-
-      if (response.status === 200) {
-        setAddedAnimeList(response.data.data);
-      }
-    } catch (error) {
+    const response = await fetchAllAnimeService(debouncedSearch);
+    if (response.success) {
+      setAddedAnimeList(response.data);
+    } else {
       toastRef.current({
         title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
+        description: response.error
       });
-    } finally {
-      setIsLoadingDeleteAnime(false);
     }
+    setIsLoadingDeleteAnime(false);
   }, [debouncedSearch]);
 
   const deleteAnime = async () => {
     setIsLoadingDeleteAnime(true);
-    try {
-      const response = await axios.delete("/api/anime", {
-        data: { ids: Object.keys(selectedAnimeRows) }
-      });
-
-      if (response.status === 204) {
-        fetchAnimeList();
-      }
-    } catch (error) {
-      console.error(error);
+    const response = await deleteAnimeService(Object.keys(selectedAnimeRows));
+    if (response.success) {
+      fetchAnimeList();
+    } else {
       toast.toast({
         title: "Uh oh! Something went wrong",
         description: "There was a problem with your request."
       });
-    } finally {
-      setSelectedAnimeRows({});
-      setIsLoadingDeleteAnime(false);
     }
+    setSelectedAnimeRows({});
+    setIsLoadingDeleteAnime(false);
   };
 
   useEffect(() => {

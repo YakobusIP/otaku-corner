@@ -16,11 +16,11 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 
 import { useState, Dispatch, SetStateAction } from "react";
-import axios, { AxiosError } from "axios";
 import { Plus, ExternalLink, Star, Loader2 } from "lucide-react";
 import { Anime } from "@tutkli/jikan-ts";
 import SearchAnimeJikan from "@/components/admin/add-anime/SearchAnimeJikan";
 import { AnimePostRequest } from "@/types/anime.type";
+import { addAnimeService } from "@/services/anime.service";
 
 type Props = {
   openAddAnimeDialog: boolean;
@@ -46,73 +46,75 @@ export default function AddAnimeDialog({
 
   const addAnime = async (data: Anime) => {
     setIsLoadingAddAnime(true);
-    try {
-      const anime: AnimePostRequest = {
-        mal_id: data.mal_id,
-        title: data.title,
-        title_japanese: data.title_japanese,
-        title_synonyms: data.title_synonyms
-          .map((synonym) => synonym.toLowerCase())
-          .join(" "),
-        type: data.type,
-        status: data.status,
-        airing: data.airing,
-        aired_from: data.aired.from,
-        aired_to: data.aired.to,
-        duration: data.duration,
-        episodes: data.episodes,
-        genres: data.genres.map((genre) => genre.name),
-        images: {
-          image_url: data.images.webp
-            ? data.images.webp.image_url
-            : data.images.jpg.image_url,
-          large_image_url: data.images.webp
-            ? data.images.webp.large_image_url
-            : data.images.jpg.large_image_url,
-          small_image_url: data.images.webp
-            ? data.images.webp.small_image_url
-            : data.images.jpg.small_image_url
-        },
-        rating: data.rating,
-        score: data.score,
-        season: data.season
-          ? `${data.season.toUpperCase()} ${data.year}`
-          : null,
-        studios: data.studios.map((studio) => studio.name),
-        themes: data.themes.map((theme) => theme.name),
-        synopsis: data.synopsis,
-        trailer: embedURL,
-        mal_url: data.url
-      };
+    const anime: AnimePostRequest = {
+      mal_id: data.mal_id,
+      type: data.type,
+      status: data.status,
+      rating: data.rating,
+      season: data.season ? `${data.season.toUpperCase()} ${data.year}` : null,
+      title: data.title,
+      title_japanese: data.title_japanese,
+      title_synonyms: data.title_synonyms
+        .map((synonym) => synonym.toLowerCase())
+        .join(" "),
+      source: data.source,
+      aired:
+        data.status === "Not yet aired"
+          ? data.status
+          : `${new Date(data.aired.from).toLocaleDateString("en-US", {
+              day: "numeric",
+              month: "short",
+              year: "numeric"
+            })} to ${
+              data.aired.to
+                ? new Date(data.aired.to).toLocaleDateString("en-US", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric"
+                  })
+                : "?"
+            }`,
+      broadcast: data.broadcast.string,
+      episodes: data.episodes,
+      duration: data.duration,
+      score: data.score,
+      images: {
+        image_url: data.images.webp
+          ? data.images.webp.image_url
+          : data.images.jpg.image_url,
+        large_image_url: data.images.webp
+          ? data.images.webp.large_image_url
+          : data.images.jpg.large_image_url,
+        small_image_url: data.images.webp
+          ? data.images.webp.small_image_url
+          : data.images.jpg.small_image_url
+      },
 
-      const response = await axios.post("/api/anime", anime);
+      genres: data.genres.map((genre) => genre.name),
+      studios: data.studios.map((studio) => studio.name),
+      themes: data.themes.map((theme) => theme.name),
+      synopsis: data.synopsis,
+      trailer: embedURL,
+      mal_url: data.url
+    };
 
-      if (response.status === 201) {
-        toast.toast({
-          title: "All set!",
-          description: response.data.message
-        });
+    const response = await addAnimeService(anime);
+    if (response.success) {
+      toast.toast({
+        title: "All set!",
+        description: response.data.message
+      });
 
-        setChosenAnime(undefined);
-        setOpenAddAnimeDialog(false);
-      }
-    } catch (error) {
-      if (!(error instanceof AxiosError)) return;
-      if (error.response?.status === 409) {
-        toast.toast({
-          title: "Uh oh! Something went wrong",
-          description: error.response.data.error
-        });
-      } else {
-        toast.toast({
-          title: "Uh oh! Something went wrong",
-          description: "There was a problem with your request."
-        });
-      }
-    } finally {
+      setChosenAnime(undefined);
       fetchAnimeList();
-      setIsLoadingAddAnime(false);
+      setOpenAddAnimeDialog(false);
+    } else {
+      toast.toast({
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
     }
+    setIsLoadingAddAnime(false);
   };
 
   return (
@@ -162,6 +164,7 @@ export default function AddAnimeDialog({
                   <div className="flex items-center gap-2">
                     <Badge>{chosenAnime.type}</Badge>
                     <Badge>{chosenAnime.status}</Badge>
+                    <Badge>{chosenAnime.rating}</Badge>
                     {chosenAnime.season && (
                       <Badge>
                         {chosenAnime.season.toUpperCase()} {chosenAnime.year}
@@ -180,59 +183,52 @@ export default function AddAnimeDialog({
                       </p>
                     </div>
                     <div className="flex flex-col">
-                      <Label>Rating</Label>
-                      <p>{chosenAnime.rating}</p>
+                      <Label>Source</Label>
+                      <p>{chosenAnime.source}</p>
                     </div>
                     <div className="flex flex-col">
-                      <Label>Aired from</Label>
+                      <Label>Aired</Label>
                       <p>
-                        {chosenAnime.aired.from
-                          ? new Date(chosenAnime.aired.from).toLocaleDateString(
-                              "en-GB",
-                              {
-                                day: "2-digit",
-                                month: "long",
-                                year: "numeric"
-                              }
-                            )
-                          : "Not yet aired"}
+                        {chosenAnime.status === "Not yet aired"
+                          ? chosenAnime.status
+                          : `${new Date(
+                              chosenAnime.aired.from
+                            ).toLocaleDateString("en-US", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric"
+                            })} to ${
+                              chosenAnime.aired.to
+                                ? new Date(
+                                    chosenAnime.aired.to
+                                  ).toLocaleDateString("en-US", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric"
+                                  })
+                                : "?"
+                            }`}
                       </p>
                     </div>
                     <div className="flex flex-col">
-                      <Label>Aired to</Label>
-                      <p>
-                        {chosenAnime.aired.to && !chosenAnime.airing
-                          ? new Date(chosenAnime.aired.to).toLocaleDateString(
-                              "en-GB",
-                              {
-                                day: "2-digit",
-                                month: "long",
-                                year: "numeric"
-                              }
-                            )
-                          : chosenAnime.airing
-                          ? "Currently airing"
-                          : "Not yet aired"}
-                      </p>
+                      <Label>Broadcast</Label>
+                      <p>{chosenAnime.broadcast.string}</p>
                     </div>
-                    {chosenAnime.episodes && (
-                      <div className="flex flex-col">
-                        <Label>Episodes</Label>
-                        <p>{chosenAnime.episodes}</p>
-                      </div>
-                    )}
+                    <div className="flex flex-col">
+                      <Label>Episodes</Label>
+                      <p>{chosenAnime.episodes ?? "Unknown"}</p>
+                    </div>
                     <div className="flex flex-col">
                       <Label>Duration</Label>
                       <p>{chosenAnime.duration}</p>
                     </div>
-                    {chosenAnime.score && (
-                      <div className="flex flex-col">
-                        <Label>MAL Score</Label>
-                        <span className="inline-flex items-center gap-1">
-                          <Star className="w-4 h-4" /> {chosenAnime.score}
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex flex-col">
+                      <Label>MAL Score</Label>
+                      <span className="inline-flex items-center gap-1">
+                        <Star className="w-4 h-4" />
+                        {chosenAnime.score ?? "N/A"}
+                      </span>
+                    </div>
                     <div className="flex flex-col">
                       <Label>MAL Entry</Label>
                       <a
