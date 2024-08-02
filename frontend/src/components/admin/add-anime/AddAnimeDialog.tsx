@@ -17,7 +17,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 import { useState, Dispatch, SetStateAction } from "react";
 import { Plus, ExternalLink, Star, Loader2 } from "lucide-react";
-import { Anime } from "@tutkli/jikan-ts";
+import { Anime, AnimeEpisode } from "@tutkli/jikan-ts";
 import SearchAnimeJikan from "@/components/admin/add-anime/SearchAnimeJikan";
 import { AnimePostRequest } from "@/types/anime.type";
 import { addAnimeService } from "@/services/anime.service";
@@ -35,6 +35,9 @@ export default function AddAnimeDialog({
 }: Props) {
   const [isLoadingChosenAnime, setIsLoadingChosenAnime] = useState(false);
   const [chosenAnime, setChosenAnime] = useState<Anime>();
+  const [chosenAnimeEpisode, setChosenAnimeEpisode] = useState<
+    Array<AnimeEpisode>
+  >([]);
   const [isLoadingAddAnime, setIsLoadingAddAnime] = useState(false);
 
   const toast = useToast();
@@ -47,14 +50,14 @@ export default function AddAnimeDialog({
   const addAnime = async (data: Anime) => {
     setIsLoadingAddAnime(true);
     const anime: AnimePostRequest = {
-      mal_id: data.mal_id,
+      malId: data.mal_id,
       type: data.type,
       status: data.status,
       rating: data.rating,
       season: data.season ? `${data.season.toUpperCase()} ${data.year}` : null,
       title: data.title,
-      title_japanese: data.title_japanese,
-      title_synonyms: data.title_synonyms
+      titleJapanese: data.title_japanese,
+      titleSynonyms: data.title_synonyms
         .map((synonym) => synonym.toLowerCase())
         .join(" "),
       source: data.source,
@@ -75,7 +78,7 @@ export default function AddAnimeDialog({
                 : "?"
             }`,
       broadcast: data.broadcast.string,
-      episodes: data.episodes,
+      episodesCount: data.episodes,
       duration: data.duration,
       score: data.score,
       images: {
@@ -93,9 +96,20 @@ export default function AddAnimeDialog({
       genres: data.genres.map((genre) => genre.name),
       studios: data.studios.map((studio) => studio.name),
       themes: data.themes.map((theme) => theme.name),
+      episodes: chosenAnimeEpisode.map((episode) => ({
+        aired: new Date(episode.aired).toLocaleDateString("en-US", {
+          day: "numeric",
+          month: "short",
+          year: "numeric"
+        }),
+        number: episode.mal_id,
+        title: episode.title,
+        titleJapanese: episode.title_japanese,
+        titleRomaji: episode.title_romanji
+      })),
       synopsis: data.synopsis,
       trailer: embedURL,
-      mal_url: data.url
+      malUrl: data.url
     };
 
     const response = await addAnimeService(anime);
@@ -137,6 +151,7 @@ export default function AddAnimeDialog({
           <SearchAnimeJikan
             chosenAnime={chosenAnime}
             setChosenAnime={setChosenAnime}
+            setChosenAnimeEpisode={setChosenAnimeEpisode}
             setIsLoadingChosenAnime={setIsLoadingChosenAnime}
           />
         </div>

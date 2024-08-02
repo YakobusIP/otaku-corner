@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Home from "@/pages/general/Home.tsx";
 import Dashboard from "@/pages/admin/Dashboard";
 import axios from "axios";
-import AnimeDetail from "./pages/admin/AnimeDetail";
+import AnimeDetail from "@/pages/admin/AnimeDetail";
 
 const router = createBrowserRouter([
   {

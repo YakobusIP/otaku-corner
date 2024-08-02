@@ -25,6 +25,7 @@ import {
 export default function Dashboard() {
   const [addedAnimeList, setAddedAnimeList] = useState<Array<AnimeList>>([]);
   const [openAddAnimeDialog, setOpenAddAnimeDialog] = useState(false);
+  const [isLoadingAnime, setIsLoadingAnime] = useState(false);
   const [isLoadingDeleteAnime, setIsLoadingDeleteAnime] = useState(false);
   const [selectedAnimeRows, setSelectedAnimeRows] = useState({});
   const [searchMedia, setSearchMedia] = useState("");
@@ -35,7 +36,7 @@ export default function Dashboard() {
   const toastRef = useRef(toast.toast);
 
   const fetchAnimeList = useCallback(async () => {
-    setIsLoadingDeleteAnime(true);
+    setIsLoadingAnime(true);
     const response = await fetchAllAnimeService(debouncedSearch);
     if (response.success) {
       setAddedAnimeList(response.data);
@@ -45,7 +46,7 @@ export default function Dashboard() {
         description: response.error
       });
     }
-    setIsLoadingDeleteAnime(false);
+    setIsLoadingAnime(false);
   }, [debouncedSearch]);
 
   const deleteAnime = async () => {
@@ -113,6 +114,7 @@ export default function Dashboard() {
               rowSelection={selectedAnimeRows}
               setRowSelection={setSelectedAnimeRows}
               deleteData={deleteAnime}
+              isLoadingData={isLoadingAnime}
               isLoadingDeleteData={isLoadingDeleteAnime}
             />
           </div>

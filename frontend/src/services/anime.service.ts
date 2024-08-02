@@ -29,7 +29,8 @@ const fetchAllAnimeService = async (
     return {
       success: false,
       error:
-        error instanceof AxiosError
+        error instanceof AxiosError &&
+        error.response?.data.error instanceof String
           ? error.response?.data.error
           : "There was a problem with your request."
     };
@@ -46,7 +47,8 @@ const fetchAnimeByIdService = async (
     return {
       success: false,
       error:
-        error instanceof AxiosError
+        error instanceof AxiosError &&
+        error.response?.data.error instanceof String
           ? error.response?.data.error
           : "There was a problem with your request."
     };
@@ -63,7 +65,8 @@ const addAnimeService = async (
     return {
       success: false,
       error:
-        error instanceof AxiosError
+        error instanceof AxiosError &&
+        error.response?.data.error instanceof String
           ? error.response?.data.error
           : "There was a problem with your request."
     };

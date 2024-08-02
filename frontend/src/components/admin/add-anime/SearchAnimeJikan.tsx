@@ -15,19 +15,26 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Anime, AnimeClient, JikanResponse } from "@tutkli/jikan-ts";
+import {
+  Anime,
+  AnimeClient,
+  AnimeEpisode,
+  JikanResponse
+} from "@tutkli/jikan-ts";
 import { useEffect, useState, Dispatch, SetStateAction } from "react";
 import { useDebounce } from "use-debounce";
 
 type Props = {
   chosenAnime?: Anime;
   setChosenAnime: Dispatch<SetStateAction<Anime | undefined>>;
+  setChosenAnimeEpisode: Dispatch<SetStateAction<Array<AnimeEpisode>>>;
   setIsLoadingChosenAnime: Dispatch<SetStateAction<boolean>>;
 };
 
 export default function SearchAnimeJikan({
   chosenAnime,
   setChosenAnime,
+  setChosenAnimeEpisode,
   setIsLoadingChosenAnime
 }: Props) {
   const [openAnimeList, setOpenAnimeList] = useState(false);
@@ -56,6 +63,12 @@ export default function SearchAnimeJikan({
       .getAnimeById(parseInt(id))
       .then((response: JikanResponse<Anime>) => {
         setChosenAnime(response.data);
+
+        animeClient
+          .getAnimeEpisodes(response.data.mal_id)
+          .then((response: JikanResponse<AnimeEpisode[]>) => {
+            setChosenAnimeEpisode(response.data);
+          });
       })
       .finally(() => {
         setIsLoadingChosenAnime(false);

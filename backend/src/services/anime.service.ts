@@ -1,6 +1,16 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 
+type CustomAnimeCreateInput = Omit<Prisma.AnimeCreateInput, "episodes"> & {
+  episodes: {
+    aired: string;
+    number: number;
+    title: string;
+    titleJapanese: string;
+    titleRomaji: string;
+  }[];
+};
+
 export class AnimeService {
   async getAllAnimes(query: string) {
     const lowerCaseQuery = query.toLowerCase();
@@ -14,7 +24,7 @@ export class AnimeService {
             },
           },
           {
-            title_synonyms: {
+            titleSynonyms: {
               contains: lowerCaseQuery,
               mode: "insensitive",
             },
@@ -24,8 +34,8 @@ export class AnimeService {
       select: {
         id: true,
         title: true,
-        title_japanese: true,
-        title_synonyms: true,
+        titleJapanese: true,
+        titleSynonyms: true,
         images: true,
         status: true,
         type: true,
@@ -36,11 +46,16 @@ export class AnimeService {
   }
 
   async getAnimeById(id: string) {
-    return prisma.anime.findUnique({ where: { id } });
+    return prisma.anime.findUnique({
+      where: { id },
+      include: { episodes: { orderBy: { number: "asc" } } },
+    });
   }
 
-  async createAnime(data: Prisma.AnimeCreateInput) {
-    return prisma.anime.create({ data });
+  async createAnime(data: CustomAnimeCreateInput) {
+    return prisma.anime.create({
+      data: { ...data, episodes: { createMany: { data: data.episodes } } },
+    });
   }
 
   async updateAnime(id: string, data: Prisma.AnimeUpdateInput) {

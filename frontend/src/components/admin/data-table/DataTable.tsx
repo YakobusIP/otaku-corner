@@ -30,6 +30,7 @@ interface DataTableProps<TData extends Identifiable, TValue> {
   rowSelection: RowSelectionState;
   setRowSelection: Dispatch<SetStateAction<RowSelectionState>>;
   deleteData: () => Promise<void>;
+  isLoadingData: boolean;
   isLoadingDeleteData: boolean;
 }
 
@@ -40,6 +41,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
   rowSelection,
   setRowSelection,
   deleteData,
+  isLoadingData,
   isLoadingDeleteData
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
@@ -123,6 +125,17 @@ export default function DataTable<TData extends Identifiable, TValue>({
                   ))}
                 </TableRow>
               ))
+            ) : isLoadingData ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  <div className="inline-flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Loading...
+                  </div>
+                </TableCell>
+              </TableRow>
             ) : (
               <TableRow>
                 <TableCell

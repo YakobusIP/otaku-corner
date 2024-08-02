@@ -1,16 +1,16 @@
 type AnimePostRequest = {
-  mal_id: number;
+  malId: number;
   type: string;
   status: string;
   rating: string;
   season?: string | null;
   title: string;
-  title_japanese: string;
-  title_synonyms: string;
+  titleJapanese: string;
+  titleSynonyms: string;
   source: string;
   aired: string;
   broadcast: string;
-  episodes?: number | null;
+  episodesCount?: number | null;
   duration: string;
   score: number;
   images: {
@@ -21,15 +21,16 @@ type AnimePostRequest = {
   genres: Array<string>;
   studios: Array<string>;
   themes: Array<string>;
+  episodes: Array<AnimeEpisode>;
   synopsis: string;
   trailer?: string | null;
-  mal_url: string;
+  malUrl: string;
 };
 
 type AnimeList = {
   id: string;
   title: string;
-  title_japanese: string;
+  titleJapanese: string;
   type: string;
   status: string;
   images: {
@@ -39,6 +40,15 @@ type AnimeList = {
   };
   rating: string;
   score: number;
+};
+
+type AnimeEpisode = {
+  id?: string;
+  aired: string;
+  number: number;
+  title: string;
+  titleJapanese: string;
+  titleRomaji: string;
 };
 
 export { type AnimePostRequest, type AnimeList };

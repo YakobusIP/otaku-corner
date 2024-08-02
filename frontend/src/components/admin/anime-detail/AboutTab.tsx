@@ -11,7 +11,7 @@ type Props = {
 export default function AboutTab({ animeDetail }: Props) {
   return (
     <TabsContent value="about">
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 pt-4">
         <h2>About</h2>
         <div className="flex items-center gap-2">
           <Badge>{animeDetail.type}</Badge>
@@ -26,7 +26,7 @@ export default function AboutTab({ animeDetail }: Props) {
           </div>
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground">Title (Japanese)</Label>
-            <p className="break-words">{animeDetail.title_japanese}</p>
+            <p className="break-words">{animeDetail.titleJapanese}</p>
           </div>
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground">Source</Label>
@@ -42,7 +42,7 @@ export default function AboutTab({ animeDetail }: Props) {
           </div>
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground">Episodes</Label>
-            <p>{animeDetail.episodes ?? "Unknown"}</p>
+            <p>{animeDetail.episodesCount ?? "Unknown"}</p>
           </div>
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground">Duration</Label>
@@ -57,7 +57,7 @@ export default function AboutTab({ animeDetail }: Props) {
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground">MAL Entry</Label>
             <a
-              href={animeDetail.mal_url}
+              href={animeDetail.malUrl}
               className="inline-flex items-center gap-1 hover:underline hover:underline-offset-4"
               target="_blank"
             >

@@ -7,6 +7,7 @@ import { Link, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import AboutTab from "@/components/admin/anime-detail/AboutTab";
+import EpisodeTab from "@/components/admin/anime-detail/EpisodeTab";
 
 export default function AnimeDetail() {
   const [animeDetail, setAnimeDetail] = useState<AnimePostRequest>();
@@ -62,9 +63,11 @@ export default function AnimeDetail() {
         <Tabs defaultValue="about">
           <TabsList>
             <TabsTrigger value="about">About</TabsTrigger>
+            <TabsTrigger value="episodes">Episodes</TabsTrigger>
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
           </TabsList>
           <AboutTab animeDetail={animeDetail} />
+          <EpisodeTab animeDetail={animeDetail} />
         </Tabs>
       </main>
     </div>
