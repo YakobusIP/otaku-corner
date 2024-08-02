@@ -6,8 +6,8 @@ type CustomAnimeCreateInput = Omit<Prisma.AnimeCreateInput, "episodes"> & {
     aired: string;
     number: number;
     title: string;
-    titleJapanese: string;
-    titleRomaji: string;
+    titleJapanese?: string;
+    titleRomaji?: string;
   }[];
 };
 
@@ -53,9 +53,15 @@ export class AnimeService {
   }
 
   async createAnime(data: CustomAnimeCreateInput) {
-    return prisma.anime.create({
-      data: { ...data, episodes: { createMany: { data: data.episodes } } },
-    });
+    const animeData: Prisma.AnimeCreateInput = { ...data, episodes: undefined };
+
+    if (data.episodes && data.episodes.length > 0) {
+      return prisma.anime.create({
+        data: { ...data, episodes: { createMany: { data: data.episodes } } },
+      });
+    } else {
+      return prisma.anime.create({ data: animeData });
+    }
   }
 
   async updateAnime(id: string, data: Prisma.AnimeUpdateInput) {

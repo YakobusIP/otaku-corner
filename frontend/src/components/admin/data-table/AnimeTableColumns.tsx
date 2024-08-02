@@ -41,9 +41,9 @@ export const animeColumns: ColumnDef<AnimeList>[] = [
     header: "Title",
     cell: ({ row }) => {
       const data = row.original;
-      const image_url = data.images.small_image_url;
+      const image_url = data.images.image_url;
       const title = data.title;
-      const title_japanese = data.title_japanese;
+      const title_japanese = data.titleJapanese;
 
       return (
         <div className="flex gap-2 items-center">

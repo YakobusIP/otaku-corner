@@ -53,7 +53,7 @@ export default function AddAnimeDialog({
       malId: data.mal_id,
       type: data.type,
       status: data.status,
-      rating: data.rating,
+      rating: data.rating ?? "Unrated",
       season: data.season ? `${data.season.toUpperCase()} ${data.year}` : null,
       title: data.title,
       titleJapanese: data.title_japanese,
@@ -62,22 +62,28 @@ export default function AddAnimeDialog({
         .join(" "),
       source: data.source,
       aired:
-        data.status === "Not yet aired"
-          ? data.status
+        data.type === "TV"
+          ? data.status === "Not yet aired"
+            ? data.status
+            : `${new Date(data.aired.from).toLocaleDateString("en-US", {
+                day: "numeric",
+                month: "short",
+                year: "numeric"
+              })} to ${
+                data.aired.to
+                  ? new Date(data.aired.to).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric"
+                    })
+                  : "?"
+              }`
           : `${new Date(data.aired.from).toLocaleDateString("en-US", {
               day: "numeric",
               month: "short",
               year: "numeric"
-            })} to ${
-              data.aired.to
-                ? new Date(data.aired.to).toLocaleDateString("en-US", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric"
-                  })
-                : "?"
-            }`,
-      broadcast: data.broadcast.string,
+            })}`,
+      broadcast: data.broadcast.string ?? "N/A",
       episodesCount: data.episodes,
       duration: data.duration,
       score: data.score,
@@ -97,11 +103,13 @@ export default function AddAnimeDialog({
       studios: data.studios.map((studio) => studio.name),
       themes: data.themes.map((theme) => theme.name),
       episodes: chosenAnimeEpisode.map((episode) => ({
-        aired: new Date(episode.aired).toLocaleDateString("en-US", {
-          day: "numeric",
-          month: "short",
-          year: "numeric"
-        }),
+        aired: episode.aired
+          ? new Date(episode.aired).toLocaleDateString("en-US", {
+              day: "numeric",
+              month: "short",
+              year: "numeric"
+            })
+          : "N/A",
         number: episode.mal_id,
         title: episode.title,
         titleJapanese: episode.title_japanese,
@@ -179,7 +187,7 @@ export default function AddAnimeDialog({
                   <div className="flex items-center gap-2">
                     <Badge>{chosenAnime.type}</Badge>
                     <Badge>{chosenAnime.status}</Badge>
-                    <Badge>{chosenAnime.rating}</Badge>
+                    <Badge>{chosenAnime.rating ?? "Unrated"}</Badge>
                     {chosenAnime.season && (
                       <Badge>
                         {chosenAnime.season.toUpperCase()} {chosenAnime.year}
@@ -204,30 +212,39 @@ export default function AddAnimeDialog({
                     <div className="flex flex-col">
                       <Label>Aired</Label>
                       <p>
-                        {chosenAnime.status === "Not yet aired"
-                          ? chosenAnime.status
-                          : `${new Date(
-                              chosenAnime.aired.from
-                            ).toLocaleDateString("en-US", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric"
-                            })} to ${
-                              chosenAnime.aired.to
-                                ? new Date(
-                                    chosenAnime.aired.to
-                                  ).toLocaleDateString("en-US", {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "numeric"
-                                  })
-                                : "?"
-                            }`}
+                        {chosenAnime.type === "TV"
+                          ? chosenAnime.status === "Not yet aired"
+                            ? chosenAnime.status
+                            : `${new Date(
+                                chosenAnime.aired.from
+                              ).toLocaleDateString("en-US", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric"
+                              })} to ${
+                                chosenAnime.aired.to
+                                  ? new Date(
+                                      chosenAnime.aired.to
+                                    ).toLocaleDateString("en-US", {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric"
+                                    })
+                                  : "?"
+                              }`
+                          : new Date(chosenAnime.aired.from).toLocaleDateString(
+                              "en-US",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric"
+                              }
+                            )}
                       </p>
                     </div>
                     <div className="flex flex-col">
                       <Label>Broadcast</Label>
-                      <p>{chosenAnime.broadcast.string}</p>
+                      <p>{chosenAnime.broadcast.string ?? "N/A"}</p>
                     </div>
                     <div className="flex flex-col">
                       <Label>Episodes</Label>

@@ -40,8 +40,8 @@ model AnimeEpisode {
   aired         String
   number        Int
   title         String
-  titleJapanese String
-  titleRomaji   String
+  titleJapanese String?
+  titleRomaji   String?
   anime         Anime  @relation(fields: [animeId], references: [id])
   animeId       String @db.ObjectId
 }

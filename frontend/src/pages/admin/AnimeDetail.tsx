@@ -63,11 +63,15 @@ export default function AnimeDetail() {
         <Tabs defaultValue="about">
           <TabsList>
             <TabsTrigger value="about">About</TabsTrigger>
-            <TabsTrigger value="episodes">Episodes</TabsTrigger>
+            {animeDetail.type !== "Movie" && (
+              <TabsTrigger value="episodes">Episodes</TabsTrigger>
+            )}
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
           </TabsList>
           <AboutTab animeDetail={animeDetail} />
-          <EpisodeTab animeDetail={animeDetail} />
+          {animeDetail.type !== "Movie" && (
+            <EpisodeTab animeDetail={animeDetail} />
+          )}
         </Tabs>
       </main>
     </div>
