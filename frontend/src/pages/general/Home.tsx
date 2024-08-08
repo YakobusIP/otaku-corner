@@ -1,6 +1,6 @@
 import HomeCard from "@/components/general/HomeCard";
 import { Button } from "@/components/ui/button";
-import { MediaType } from "@/enum/MediaType";
+import { MediaType } from "@/enum/general.enum";
 import { Link } from "react-router-dom";
 
 export default function Home() {

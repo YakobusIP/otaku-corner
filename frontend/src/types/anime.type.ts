@@ -43,6 +43,7 @@ type AnimeList = {
   };
   rating: string;
   score: number;
+  personalScore: number | null;
 };
 
 type AnimeEpisode = {

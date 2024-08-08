@@ -8,11 +8,16 @@ import Home from "@/pages/general/Home.tsx";
 import Dashboard from "@/pages/admin/Dashboard";
 import axios from "axios";
 import AnimeDetail from "@/pages/admin/AnimeDetail";
+import AnimeList from "@/pages/general/anime/AnimeList";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Home />
+  },
+  {
+    path: "/anime",
+    element: <AnimeList />
   },
   {
     path: "/admin",

@@ -1,4 +1,4 @@
-import { MediaType } from "@/enum/MediaType";
+import { MediaType } from "@/enum/general.enum";
 import { ChevronRightIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 

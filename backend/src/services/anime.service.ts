@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
+import { AnimeReview } from "../../type/anime.type";
 
 type CustomAnimeCreateInput = Omit<Prisma.AnimeCreateInput, "episodes"> & {
   episodes: {
@@ -14,7 +15,7 @@ type CustomAnimeCreateInput = Omit<Prisma.AnimeCreateInput, "episodes"> & {
 export class AnimeService {
   async getAllAnimes(query: string) {
     const lowerCaseQuery = query.toLowerCase();
-    return prisma.anime.findMany({
+    const animes = await prisma.anime.findMany({
       where: {
         OR: [
           {
@@ -35,14 +36,33 @@ export class AnimeService {
         id: true,
         title: true,
         titleJapanese: true,
-        titleSynonyms: true,
         images: true,
         status: true,
         type: true,
         score: true,
         rating: true,
+        review: true,
       },
     });
+
+    const processedAnimes = animes.map((anime) => {
+      let averageRating = null;
+      if (anime.review) {
+        const review = anime.review as AnimeReview;
+        const ratings = [
+          review.storylineRating,
+          review.qualityRating,
+          review.voiceActingRating,
+          review.enjoymentRating,
+        ];
+        averageRating =
+          ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+      }
+
+      return { ...anime, personalScore: averageRating };
+    });
+
+    return processedAnimes;
   }
 
   async getAnimeById(id: string) {
