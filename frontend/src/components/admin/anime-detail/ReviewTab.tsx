@@ -42,10 +42,18 @@ export default function ReviewTab({ animeDetail }: Props) {
   const toast = useToast();
 
   const [review, setReview] = useState("");
-  const [storylineRating, setStorylineRating] = useState(10);
-  const [qualityRating, setQualityRating] = useState(10);
-  const [voiceActingRating, setVoiceActingRating] = useState(10);
-  const [enjoymentRating, setEnjoymentRating] = useState(10);
+  const [storylineRating, setStorylineRating] = useState(
+    animeDetail.review?.storylineRating || 10
+  );
+  const [qualityRating, setQualityRating] = useState(
+    animeDetail.review?.qualityRating || 10
+  );
+  const [voiceActingRating, setVoiceActingRating] = useState(
+    animeDetail.review?.voiceActingRating || 10
+  );
+  const [enjoymentRating, setEnjoymentRating] = useState(
+    animeDetail.review?.enjoymentRating || 10
+  );
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
   const ratingDescriptions: { [key: number]: string } = {
     0: "Abysmal",
@@ -197,7 +205,7 @@ export default function ReviewTab({ animeDetail }: Props) {
             <Label>Storyline</Label>
             <Select
               defaultValue="10"
-              value={animeDetail.review?.storylineRating.toString()}
+              value={storylineRating.toString()}
               onValueChange={(value) => setStorylineRating(parseInt(value, 10))}
             >
               <SelectTrigger>
@@ -221,7 +229,7 @@ export default function ReviewTab({ animeDetail }: Props) {
             <Label>Animation Quality</Label>
             <Select
               defaultValue="10"
-              value={animeDetail.review?.qualityRating.toString()}
+              value={qualityRating.toString()}
               onValueChange={(value) => setQualityRating(parseInt(value, 10))}
             >
               <SelectTrigger>
@@ -245,7 +253,7 @@ export default function ReviewTab({ animeDetail }: Props) {
             <Label>Voice Acting</Label>
             <Select
               defaultValue="10"
-              value={animeDetail.review?.voiceActingRating.toString()}
+              value={voiceActingRating.toString()}
               onValueChange={(value) =>
                 setVoiceActingRating(parseInt(value, 10))
               }
@@ -271,7 +279,7 @@ export default function ReviewTab({ animeDetail }: Props) {
             <Label>Enjoyment</Label>
             <Select
               defaultValue="10"
-              value={animeDetail.review?.enjoymentRating.toString()}
+              value={enjoymentRating.toString()}
               onValueChange={(value) => setEnjoymentRating(parseInt(value, 10))}
             >
               <SelectTrigger>
