@@ -41,7 +41,7 @@ export default function ReviewTab({ animeDetail }: Props) {
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   const toast = useToast();
 
-  const [review, setReview] = useState("");
+  const [review, setReview] = useState(animeDetail.review?.review || "");
   const [storylineRating, setStorylineRating] = useState(
     animeDetail.review?.storylineRating || 10
   );
