@@ -68,6 +68,10 @@ export class AnimeService {
     return prisma.anime.update({ where: { id }, data });
   }
 
+  async updateAnimeReview(id: string, data: Prisma.InputJsonValue) {
+    return prisma.anime.update({ where: { id }, data: { review: data } });
+  }
+
   async deleteAnime(id: string) {
     return prisma.anime.delete({ where: { id } });
   }

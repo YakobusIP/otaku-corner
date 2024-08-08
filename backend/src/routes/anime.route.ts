@@ -11,6 +11,7 @@ router.get("/", animeController.getAllAnimes);
 router.get("/:id", animeController.getAnimeById);
 router.post("/", animeController.createAnime);
 router.put("/:id", animeController.updateAnime);
+router.put("/review/:id", animeController.updateAnimeReview);
 router.delete("/", animeController.deleteMultipleAnime);
 router.delete("/:id", animeController.deleteAnime);
 

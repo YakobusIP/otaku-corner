@@ -1,4 +1,9 @@
-import { AnimeList, AnimePostRequest } from "@/types/anime.type";
+import {
+  AnimeDetail,
+  AnimeList,
+  AnimePostRequest,
+  AnimeReview
+} from "@/types/anime.type";
 import axios, { AxiosError } from "axios";
 
 const BASE_ANIME_URL = "/api/anime";
@@ -39,7 +44,7 @@ const fetchAllAnimeService = async (
 
 const fetchAnimeByIdService = async (
   id: string
-): Promise<ApiResponse<AnimePostRequest>> => {
+): Promise<ApiResponse<AnimeDetail>> => {
   try {
     const response = await axios.get(`${BASE_ANIME_URL}/${id}`);
     return { success: true, data: response.data.data };
@@ -60,6 +65,25 @@ const addAnimeService = async (
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
     const response = await axios.post(BASE_ANIME_URL, data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError &&
+        error.response?.data.error instanceof String
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
+const updateAnimeReviewService = async (
+  id: string,
+  data: AnimeReview
+): Promise<ApiResponse<MessageResponse>> => {
+  try {
+    const response = await axios.put(`${BASE_ANIME_URL}/review/${id}`, data);
     return { success: true, data: response.data };
   } catch (error) {
     return {
@@ -94,5 +118,6 @@ export {
   fetchAllAnimeService,
   fetchAnimeByIdService,
   addAnimeService,
+  updateAnimeReviewService,
   deleteAnimeService
 };

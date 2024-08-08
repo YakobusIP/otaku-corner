@@ -21,11 +21,14 @@ type AnimePostRequest = {
   genres: Array<string>;
   studios: Array<string>;
   themes: Array<string>;
+  review?: AnimeReview;
   episodes: Array<AnimeEpisode>;
   synopsis: string;
   trailer?: string | null;
   malUrl: string;
 };
+
+type AnimeDetail = AnimePostRequest & { id: string };
 
 type AnimeList = {
   id: string;
@@ -51,4 +54,17 @@ type AnimeEpisode = {
   titleRomaji: string;
 };
 
-export { type AnimePostRequest, type AnimeList };
+type AnimeReview = {
+  review: string;
+  storylineRating: number;
+  qualityRating: number;
+  voiceActingRating: number;
+  enjoymentRating: number;
+};
+
+export {
+  type AnimePostRequest,
+  type AnimeDetail,
+  type AnimeList,
+  type AnimeReview
+};

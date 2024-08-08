@@ -1,11 +1,11 @@
-import { AnimePostRequest } from "@/types/anime.type";
+import { AnimeDetail } from "@/types/anime.type";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
 import { Star, ExternalLink } from "lucide-react";
 
 type Props = {
-  animeDetail: AnimePostRequest;
+  animeDetail: AnimeDetail;
 };
 
 export default function AboutTab({ animeDetail }: Props) {
@@ -13,7 +13,7 @@ export default function AboutTab({ animeDetail }: Props) {
     <TabsContent value="about">
       <div className="flex flex-col gap-4 pt-4">
         <h2>About</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge>{animeDetail.type}</Badge>
           <Badge>{animeDetail.status}</Badge>
           <Badge>{animeDetail.rating}</Badge>

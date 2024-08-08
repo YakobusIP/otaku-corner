@@ -1,6 +1,6 @@
 import { useToast } from "@/components/ui/use-toast";
 import { fetchAnimeByIdService } from "@/services/anime.service";
-import { AnimePostRequest } from "@/types/anime.type";
+import { type AnimeDetail } from "@/types/anime.type";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -8,9 +8,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import AboutTab from "@/components/admin/anime-detail/AboutTab";
 import EpisodeTab from "@/components/admin/anime-detail/EpisodeTab";
+import ReviewTab from "@/components/admin/anime-detail/ReviewTab";
 
 export default function AnimeDetail() {
-  const [animeDetail, setAnimeDetail] = useState<AnimePostRequest>();
+  const [animeDetail, setAnimeDetail] = useState<AnimeDetail>();
   const [isLoadingAnimeDetail, setIsLoadingAnimeDetail] = useState(false);
   const { animeId } = useParams();
 
@@ -72,13 +73,14 @@ export default function AnimeDetail() {
           {animeDetail.type !== "Movie" && (
             <EpisodeTab animeDetail={animeDetail} />
           )}
+          <ReviewTab animeDetail={animeDetail} />
         </Tabs>
       </main>
     </div>
   ) : (
     <div className="flex flex-col min-h-[100dvh] items-center justify-center gap-4">
       <img src="/loading.gif" className="w-32 h-32 rounded-xl" />
-      <div className="flex items-center justify-center gap-4">
+      <div className="flex items-center justify-center gap-2 lg:gap-4">
         <Loader2 className="w-8 h-8 lg:w-16 lg:h-16 animate-spin" />
         <h2>Fetching anime details...</h2>
       </div>

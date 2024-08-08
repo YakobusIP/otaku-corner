@@ -1,4 +1,4 @@
-import { AnimePostRequest } from "@/types/anime.type";
+import { AnimeDetail } from "@/types/anime.type";
 import { TabsContent } from "@/components/ui/tabs";
 import {
   Table,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 
 type Props = {
-  animeDetail: AnimePostRequest;
+  animeDetail: AnimeDetail;
 };
 
 export default function EpisodeTab({ animeDetail }: Props) {
@@ -24,7 +24,9 @@ export default function EpisodeTab({ animeDetail }: Props) {
           <TableCaption>{animeDetail.title}'s list of episodes</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px]">Episode number</TableHead>
+              <TableHead className="w-[80px] lg:w-[200px]">
+                Episode number
+              </TableHead>
               <TableHead>Title</TableHead>
               <TableHead className="text-center">Airing Date</TableHead>
             </TableRow>
@@ -42,7 +44,8 @@ export default function EpisodeTab({ animeDetail }: Props) {
                       {episode.titleRomaji && (
                         <p className="text-muted-foreground">
                           {episode.titleRomaji}{" "}
-                          {episode.titleJapanese && `${episode.titleJapanese}`}
+                          {episode.titleJapanese &&
+                            `(${episode.titleJapanese})`}
                         </p>
                       )}
                     </div>
@@ -59,19 +62,22 @@ export default function EpisodeTab({ animeDetail }: Props) {
             )}
           </TableBody>
           <TableFooter>
-            <TableCell
-              colSpan={3}
-              className={`text-center ${
-                animeDetail.episodes.length === 0 || !animeDetail.episodesCount
-                  ? "text-destructive"
-                  : animeDetail.episodes.length < animeDetail.episodesCount
-                  ? "text-yellow-400"
-                  : "text-green-700"
-              }`}
-            >
-              Season episode progress: {animeDetail.episodes.length} /{" "}
-              {animeDetail.episodesCount ?? 0}
-            </TableCell>
+            <TableRow>
+              <TableCell
+                colSpan={3}
+                className={`text-center ${
+                  animeDetail.episodes.length === 0 ||
+                  !animeDetail.episodesCount
+                    ? "text-destructive"
+                    : animeDetail.episodes.length < animeDetail.episodesCount
+                    ? "text-yellow-400"
+                    : "text-green-700"
+                }`}
+              >
+                Season episode progress: {animeDetail.episodes.length} /{" "}
+                {animeDetail.episodesCount ?? 0}
+              </TableCell>
+            </TableRow>
           </TableFooter>
         </Table>
       </div>

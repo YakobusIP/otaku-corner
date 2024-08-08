@@ -30,6 +30,7 @@ model Anime {
   synopsis      String
   trailer       String?
   malUrl        String
+  review        Json?
   episodes      AnimeEpisode[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
