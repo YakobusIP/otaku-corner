@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AnimeService } from "../services/anime.service";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { Prisma } from "@prisma/client";
 
 export class AnimeController {
   private animeService: AnimeService;
@@ -11,8 +12,20 @@ export class AnimeController {
 
   getAllAnimes = async (req: Request, res: Response): Promise<void> => {
     try {
-      const query = (req.query.q as string) || "";
-      const animes = await this.animeService.getAllAnimes(query);
+      const query = req.query.q as string;
+      const sortBy = req.query.sortBy as string;
+      const sortOrder = req.query.sortOrder as Prisma.SortOrder;
+      const filterGenre = req.query.filterGenre as string;
+      const filterScore = req.query.filterScore as string;
+      const filterType = req.query.filterType as string;
+      const animes = await this.animeService.getAllAnimes(
+        query,
+        sortBy,
+        sortOrder,
+        filterGenre,
+        filterScore,
+        filterType
+      );
       res.json({ data: animes });
     } catch (error) {
       res.status(500).json({ error });

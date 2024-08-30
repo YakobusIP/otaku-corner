@@ -1,3 +1,4 @@
+import { SortOrder } from "@/enum/general.enum";
 import {
   AnimeDetail,
   AnimeList,
@@ -25,10 +26,24 @@ type MessageResponse = {
 };
 
 const fetchAllAnimeService = async (
-  query: string
+  query?: string,
+  sortBy?: string,
+  sortOrder?: SortOrder,
+  filterGenre?: string,
+  filterScore?: string,
+  filterType?: string
 ): Promise<ApiResponse<Array<AnimeList>>> => {
   try {
-    const response = await axios.get(BASE_ANIME_URL, { params: { q: query } });
+    const response = await axios.get(BASE_ANIME_URL, {
+      params: {
+        q: query,
+        sortBy,
+        sortOrder,
+        filterGenre,
+        filterScore,
+        filterType
+      }
+    });
     return { success: true, data: response.data.data };
   } catch (error) {
     return {

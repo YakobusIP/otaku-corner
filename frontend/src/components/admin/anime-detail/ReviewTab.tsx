@@ -41,18 +41,18 @@ export default function ReviewTab({ animeDetail }: Props) {
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   const toast = useToast();
 
-  const [review, setReview] = useState(animeDetail.review?.review || "");
+  const [review, setReview] = useState(animeDetail.review || "");
   const [storylineRating, setStorylineRating] = useState(
-    animeDetail.review?.storylineRating || 10
+    animeDetail.storylineRating || 10
   );
   const [qualityRating, setQualityRating] = useState(
-    animeDetail.review?.qualityRating || 10
+    animeDetail.qualityRating || 10
   );
   const [voiceActingRating, setVoiceActingRating] = useState(
-    animeDetail.review?.voiceActingRating || 10
+    animeDetail.voiceActingRating || 10
   );
   const [enjoymentRating, setEnjoymentRating] = useState(
-    animeDetail.review?.enjoymentRating || 10
+    animeDetail.enjoymentRating || 10
   );
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
   const ratingDescriptions: { [key: number]: string } = {
@@ -179,7 +179,13 @@ export default function ReviewTab({ animeDetail }: Props) {
       storylineRating,
       qualityRating,
       voiceActingRating,
-      enjoymentRating
+      enjoymentRating,
+      personalScore:
+        (storylineRating +
+          qualityRating +
+          voiceActingRating +
+          enjoymentRating) /
+        4
     };
     const response = await updateAnimeReviewService(animeDetail.id, data);
     if (response.success) {
@@ -306,7 +312,7 @@ export default function ReviewTab({ animeDetail }: Props) {
             animeDetail.review
               ? (deserialize(
                   new DOMParser().parseFromString(
-                    animeDetail.review.review,
+                    animeDetail.review,
                     "text/html"
                   ).body
                 ) as Descendant[])

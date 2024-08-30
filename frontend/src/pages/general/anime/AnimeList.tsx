@@ -1,16 +1,16 @@
 import { Input } from "@/components/ui/input";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SortOrder } from "@/enum/general.enum";
-import SortDirection from "@/components/general/anime/SortDirection";
-import FilterGenre from "@/components/general/anime/FilterGenre";
-import FilterScore from "@/components/general/anime/FilterScore";
+import SortDirection from "@/components/general/anime/anime-list/SortDirection";
+import FilterGenre from "@/components/general/anime/anime-list/FilterGenre";
+import FilterScore from "@/components/general/anime/anime-list/FilterScore";
+import AnimeCard from "@/components/general/anime/anime-list/AnimeCard";
+import FilterType from "@/components/general/anime/anime-list/FilterType";
 import { useToast } from "@/components/ui/use-toast";
 import { fetchAllAnimeService } from "@/services/anime.service";
 import { useDebounce } from "use-debounce";
 import { type AnimeList } from "@/types/anime.type";
 import { Loader2 } from "lucide-react";
-import AnimeCard from "@/components/general/anime/AnimeCard";
-import FilterType from "@/components/general/anime/FilterType";
 
 export default function AnimeList() {
   const [animeList, setAnimeList] = useState<Array<AnimeList>>([]);
@@ -54,7 +54,14 @@ export default function AnimeList() {
 
   const fetchAnimeList = useCallback(async () => {
     setIsLoadingAnime(true);
-    const response = await fetchAllAnimeService(debouncedSearch);
+    const response = await fetchAllAnimeService(
+      debouncedSearch,
+      sortBy,
+      sortOrder,
+      filterGenre,
+      filterScore,
+      filterType
+    );
     if (response.success) {
       setAnimeList(response.data);
     } else {
@@ -64,7 +71,14 @@ export default function AnimeList() {
       });
     }
     setIsLoadingAnime(false);
-  }, [debouncedSearch]);
+  }, [
+    debouncedSearch,
+    sortBy,
+    sortOrder,
+    filterGenre,
+    filterScore,
+    filterType
+  ]);
 
   useEffect(() => {
     fetchAnimeList();
@@ -113,7 +127,7 @@ export default function AnimeList() {
           </div>
         </section>
         {isLoadingAnime && (
-          <div className="flex items-center justify-center gap-2 lg:gap-4">
+          <div className="flex items-center justify-center gap-2 lg:gap-4 mt-4">
             <Loader2 className="w-8 h-8 lg:w-16 lg:h-16 animate-spin" />
             <h2>Fetching animes...</h2>
           </div>

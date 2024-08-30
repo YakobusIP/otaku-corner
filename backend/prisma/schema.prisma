@@ -8,41 +8,46 @@ datasource db {
 }
 
 model Anime {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  malId         Int            @unique
-  type          String
-  status        String
-  rating        String
-  season        String?
-  title         String
-  titleJapanese String
-  titleSynonyms String
-  source        String
-  aired         String
-  broadcast     String
-  episodesCount Int?
-  duration      String
-  score         Float?
-  images        Json
-  genres        String[]
-  studios       String[]
-  themes        String[]
-  synopsis      String
-  trailer       String?
-  malUrl        String
-  review        Json?
-  episodes      AnimeEpisode[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  malId             Int            @unique
+  type              String
+  status            String
+  rating            String
+  season            String?
+  title             String
+  titleJapanese     String
+  titleSynonyms     String
+  source            String
+  aired             String
+  broadcast         String
+  episodesCount     Int?
+  duration          String
+  score             Float?
+  images            Json
+  genres            String[]
+  studios           String[]
+  themes            String[]
+  synopsis          String
+  trailer           String?
+  malUrl            String
+  review            String?
+  storylineRating   Int?
+  qualityRating     Int?
+  voiceActingRating Int?
+  enjoymentRating   Int?
+  personalScore     Int?
+  episodes          AnimeEpisode[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 }
 
 model AnimeEpisode {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
   aired         String
   number        Int
   title         String
   titleJapanese String?
   titleRomaji   String?
-  anime         Anime  @relation(fields: [animeId], references: [id])
-  animeId       String @db.ObjectId
+  anime         Anime   @relation(fields: [animeId], references: [id])
+  animeId       String  @db.ObjectId
 }

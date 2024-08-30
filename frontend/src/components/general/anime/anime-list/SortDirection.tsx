@@ -23,7 +23,7 @@ export default function SortDirection({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm">
-          Sort by: {sortBy === "title" ? "Title" : "Rating"}
+          Sort by: {sortBy === "title" ? "Title" : "MAL Score"}
           {sortOrder === SortOrder.ASCENDING ? (
             <ArrowUp className="ml-2 w-4 h-4" />
           ) : (
@@ -44,9 +44,9 @@ export default function SortDirection({
             </span>
           )}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleSort("rating")}>
-          Rating
-          {sortBy === "rating" && (
+        <DropdownMenuItem onClick={() => handleSort("score")}>
+          MAL Score
+          {sortBy === "score" && (
             <span className="ml-1">
               {sortOrder === SortOrder.ASCENDING ? (
                 <ArrowUp className="w-4 h-4" />

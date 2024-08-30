@@ -1,6 +1,5 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
-import { AnimeReview } from "../../type/anime.type";
 
 type CustomAnimeCreateInput = Omit<Prisma.AnimeCreateInput, "episodes"> & {
   episodes: {
@@ -12,24 +11,61 @@ type CustomAnimeCreateInput = Omit<Prisma.AnimeCreateInput, "episodes"> & {
   }[];
 };
 
+type CustomAnimeReviewUpdateInput = Pick<
+  Prisma.AnimeUpdateInput,
+  | "review"
+  | "storylineRating"
+  | "qualityRating"
+  | "voiceActingRating"
+  | "enjoymentRating"
+  | "personalScore"
+>;
+
 export class AnimeService {
-  async getAllAnimes(query: string) {
-    const lowerCaseQuery = query.toLowerCase();
-    const animes = await prisma.anime.findMany({
+  async getAllAnimes(
+    query?: string,
+    sortBy?: string,
+    sortOrder?: Prisma.SortOrder,
+    filterGenre?: string,
+    filterScore?: string,
+    filterType?: string
+  ) {
+    const lowerCaseQuery = query && query.toLowerCase();
+    const scoreRanges: Record<string, { min: number; max: number }> = {
+      poor: { min: 1, max: 3 },
+      average: { min: 4, max: 6 },
+      good: { min: 7, max: 8 },
+      excellent: { min: 9, max: 10 },
+    };
+    return prisma.anime.findMany({
       where: {
-        OR: [
+        AND: [
           {
-            title: {
-              contains: lowerCaseQuery,
-              mode: "insensitive",
-            },
+            OR: [
+              {
+                title: {
+                  contains: lowerCaseQuery,
+                  mode: "insensitive",
+                },
+              },
+              {
+                titleSynonyms: {
+                  contains: lowerCaseQuery,
+                  mode: "insensitive",
+                },
+              },
+            ],
           },
-          {
-            titleSynonyms: {
-              contains: lowerCaseQuery,
-              mode: "insensitive",
-            },
-          },
+          filterGenre ? { genres: { has: filterGenre } } : {},
+          filterScore
+            ? {
+                personalScore: {
+                  gte: scoreRanges[filterScore].min,
+                  lte: scoreRanges[filterScore].max,
+                },
+              }
+            : {},
+          filterType ? { type: { equals: filterType } } : {},
         ],
       },
       select: {
@@ -41,28 +77,13 @@ export class AnimeService {
         type: true,
         score: true,
         rating: true,
-        review: true,
+        personalScore: true,
+      },
+      orderBy: {
+        title: sortBy === "title" ? sortOrder : undefined,
+        score: sortBy === "score" ? sortOrder : undefined,
       },
     });
-
-    const processedAnimes = animes.map((anime) => {
-      let averageRating = null;
-      if (anime.review) {
-        const review = anime.review as AnimeReview;
-        const ratings = [
-          review.storylineRating,
-          review.qualityRating,
-          review.voiceActingRating,
-          review.enjoymentRating,
-        ];
-        averageRating =
-          ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
-      }
-
-      return { ...anime, personalScore: averageRating };
-    });
-
-    return processedAnimes;
   }
 
   async getAnimeById(id: string) {
@@ -88,8 +109,8 @@ export class AnimeService {
     return prisma.anime.update({ where: { id }, data });
   }
 
-  async updateAnimeReview(id: string, data: Prisma.InputJsonValue) {
-    return prisma.anime.update({ where: { id }, data: { review: data } });
+  async updateAnimeReview(id: string, data: CustomAnimeReviewUpdateInput) {
+    return prisma.anime.update({ where: { id }, data });
   }
 
   async deleteAnime(id: string) {
