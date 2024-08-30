@@ -71,7 +71,7 @@ export default function AboutTab({ animeDetail }: Props) {
                 <Label className="text-muted-foreground">Genres</Label>
                 <div className="flex flex-wrap gap-2 items-center">
                   {animeDetail.genres.map((genre) => {
-                    return <Badge key={genre}>{genre}</Badge>;
+                    return <Badge key={genre.id}>{genre.name}</Badge>;
                   })}
                 </div>
               </div>
@@ -81,7 +81,7 @@ export default function AboutTab({ animeDetail }: Props) {
                 <Label className="text-muted-foreground">Themes</Label>
                 <div className="flex flex-wrap gap-2 items-center">
                   {animeDetail.themes.map((theme) => {
-                    return <Badge key={theme}>{theme}</Badge>;
+                    return <Badge key={theme.id}>{theme.name}</Badge>;
                   })}
                 </div>
               </div>
@@ -91,7 +91,7 @@ export default function AboutTab({ animeDetail }: Props) {
                 <Label className="text-muted-foreground">Studios</Label>
                 <div className="flex flex-wrap gap-2 items-center">
                   {animeDetail.studios.map((studio) => {
-                    return <Badge key={studio}>{studio}</Badge>;
+                    return <Badge key={studio.id}>{studio.name}</Badge>;
                   })}
                 </div>
               </div>

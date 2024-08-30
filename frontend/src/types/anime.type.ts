@@ -1,3 +1,5 @@
+import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
+
 type AnimePostRequest = {
   malId: number;
   type: string;
@@ -18,22 +20,27 @@ type AnimePostRequest = {
     large_image_url?: string | null;
     small_image_url?: string | null;
   };
-  genres: Array<string>;
-  studios: Array<string>;
-  themes: Array<string>;
-  episodes: Array<AnimeEpisode>;
+  genres: string[];
+  studios: string[];
+  themes: string[];
+  episodes: AnimeEpisode[];
   synopsis: string;
   trailer?: string | null;
   malUrl: string;
-  review: string | null;
-  storylineRating: number | null;
-  qualityRating: number | null;
-  voiceActingRating: number | null;
-  enjoymentRating: number | null;
-  personalScore: number | null;
+  review?: string | null;
+  storylineRating?: number | null;
+  qualityRating?: number | null;
+  voiceActingRating?: number | null;
+  enjoymentRating?: number | null;
+  personalScore?: number | null;
 };
 
-type AnimeDetail = AnimePostRequest & { id: string };
+type AnimeDetail = Omit<AnimePostRequest, "genres" | "studios" | "themes"> & {
+  id: string;
+  genres: GenreEntity[];
+  studios: StudioEntity[];
+  themes: ThemeEntity[];
+};
 
 type AnimeList = {
   id: string;
@@ -70,9 +77,4 @@ type AnimeReview = Pick<
   | "personalScore"
 >;
 
-export {
-  type AnimePostRequest,
-  type AnimeDetail,
-  type AnimeList,
-  type AnimeReview
-};
+export type { AnimePostRequest, AnimeDetail, AnimeList, AnimeReview };

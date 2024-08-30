@@ -104,7 +104,12 @@ export class AnimeService {
   async getAnimeById(id: number) {
     return prisma.anime.findUnique({
       where: { id },
-      include: { episodes: { orderBy: { number: "asc" } } },
+      include: {
+        genres: { select: { id: true, name: true } },
+        studios: { select: { id: true, name: true } },
+        themes: { select: { id: true, name: true } },
+        episodes: { orderBy: { number: "asc" } },
+      },
     });
   }
 
