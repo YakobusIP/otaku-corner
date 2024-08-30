@@ -3,12 +3,13 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Anime {
-  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  id                Int            @id @default(autoincrement())
   malId             Int            @unique
   type              String
   status            String
@@ -23,10 +24,10 @@ model Anime {
   episodesCount     Int?
   duration          String
   score             Float?
-  images            Json
-  genres            String[]
-  studios           String[]
-  themes            String[]
+  images            AnimeImages?
+  genres            Genre[]        @relation("AnimeGenres")
+  studios           Studio[]
+  themes            Theme[]        @relation("AnimeThemes")
   synopsis          String
   trailer           String?
   malUrl            String
@@ -42,12 +43,45 @@ model Anime {
 }
 
 model AnimeEpisode {
-  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  id            Int     @id @default(autoincrement())
   aired         String
   number        Int
   title         String
   titleJapanese String?
   titleRomaji   String?
   anime         Anime   @relation(fields: [animeId], references: [id])
-  animeId       String  @db.ObjectId
+  animeId       Int
+}
+
+model AnimeImages {
+  id            Int     @id @default(autoincrement())
+  imageUrl      String
+  largeImageUrl String?
+  smallImageUrl String?
+  anime         Anime   @relation(fields: [animeId], references: [id])
+  animeId       Int     @unique
+}
+
+model Genre {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  animes    Anime[]  @relation("AnimeGenres")
+}
+
+model Studio {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  anime     Anime[]
+}
+
+model Theme {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  anime     Anime[]  @relation("AnimeThemes")
 }

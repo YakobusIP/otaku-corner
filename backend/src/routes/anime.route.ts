@@ -1,10 +1,17 @@
 import { Router } from "express";
 import { AnimeService } from "../services/anime.service";
 import { AnimeController } from "../controllers/anime.controller";
+import { GenreService } from "../services/genre.service";
+import { StudioService } from "../services/studio.service";
+import { ThemeService } from "../services/theme.service";
 
 const router = Router();
 
-const animeService = new AnimeService();
+const animeService = new AnimeService(
+  new GenreService(),
+  new StudioService(),
+  new ThemeService()
+);
 const animeController = new AnimeController(animeService);
 
 router.get("/", animeController.getAllAnimes);

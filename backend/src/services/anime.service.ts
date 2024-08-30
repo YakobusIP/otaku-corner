@@ -1,7 +1,13 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
+import { GenreService } from "./genre.service";
+import { StudioService } from "./studio.service";
+import { ThemeService } from "./theme.service";
 
-type CustomAnimeCreateInput = Omit<Prisma.AnimeCreateInput, "episodes"> & {
+type CustomAnimeCreateInput = Omit<
+  Prisma.AnimeCreateInput,
+  "episodes" | "genres" | "studios" | "themes"
+> & {
   episodes: {
     aired: string;
     number: number;
@@ -9,6 +15,9 @@ type CustomAnimeCreateInput = Omit<Prisma.AnimeCreateInput, "episodes"> & {
     titleJapanese?: string;
     titleRomaji?: string;
   }[];
+  genres: string[];
+  studios: string[];
+  themes: string[];
 };
 
 type CustomAnimeReviewUpdateInput = Pick<
@@ -22,11 +31,17 @@ type CustomAnimeReviewUpdateInput = Pick<
 >;
 
 export class AnimeService {
+  constructor(
+    private readonly genreService: GenreService,
+    private readonly studioService: StudioService,
+    private readonly themeService: ThemeService
+  ) {}
+
   async getAllAnimes(
     query?: string,
     sortBy?: string,
     sortOrder?: Prisma.SortOrder,
-    filterGenre?: string,
+    filterGenre?: number,
     filterScore?: string,
     filterType?: string
   ) {
@@ -56,7 +71,7 @@ export class AnimeService {
               },
             ],
           },
-          filterGenre ? { genres: { has: filterGenre } } : {},
+          filterGenre ? { genres: { some: { id: filterGenre } } } : {},
           filterScore
             ? {
                 personalScore: {
@@ -86,7 +101,7 @@ export class AnimeService {
     });
   }
 
-  async getAnimeById(id: string) {
+  async getAnimeById(id: number) {
     return prisma.anime.findUnique({
       where: { id },
       include: { episodes: { orderBy: { number: "asc" } } },
@@ -94,30 +109,58 @@ export class AnimeService {
   }
 
   async createAnime(data: CustomAnimeCreateInput) {
-    const animeData: Prisma.AnimeCreateInput = { ...data, episodes: undefined };
+    const genreIds = await Promise.all(
+      data.genres.map(async (name) => {
+        const id = await this.genreService.getOrCreateGenre(name);
+        return { id } as Prisma.GenreWhereUniqueInput;
+      })
+    );
+    const studioIds = await Promise.all(
+      data.studios.map(async (name) => {
+        const id = await this.studioService.getOrCreateStudio(name);
+        return { id } as Prisma.StudioWhereUniqueInput;
+      })
+    );
+    const themeIds = await Promise.all(
+      data.themes.map(async (name) => {
+        const id = await this.themeService.getOrCreateTheme(name);
+        return { id } as Prisma.ThemeWhereUniqueInput;
+      })
+    );
+
+    const animeData: Prisma.AnimeCreateInput = {
+      ...data,
+      genres: { connect: genreIds },
+      studios: { connect: studioIds },
+      themes: { connect: themeIds },
+      episodes: undefined,
+    };
 
     if (data.episodes && data.episodes.length > 0) {
       return prisma.anime.create({
-        data: { ...data, episodes: { createMany: { data: data.episodes } } },
+        data: {
+          ...animeData,
+          episodes: { createMany: { data: data.episodes } },
+        },
       });
     } else {
       return prisma.anime.create({ data: animeData });
     }
   }
 
-  async updateAnime(id: string, data: Prisma.AnimeUpdateInput) {
+  async updateAnime(id: number, data: Prisma.AnimeUpdateInput) {
     return prisma.anime.update({ where: { id }, data });
   }
 
-  async updateAnimeReview(id: string, data: CustomAnimeReviewUpdateInput) {
+  async updateAnimeReview(id: number, data: CustomAnimeReviewUpdateInput) {
     return prisma.anime.update({ where: { id }, data });
   }
 
-  async deleteAnime(id: string) {
+  async deleteAnime(id: number) {
     return prisma.anime.delete({ where: { id } });
   }
 
-  async deleteMultipleAnime(ids: Array<string>) {
+  async deleteMultipleAnime(ids: Array<number>) {
     return prisma.anime.deleteMany({ where: { id: { in: ids } } });
   }
 }

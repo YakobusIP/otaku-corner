@@ -4,11 +4,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
 
 export class AnimeController {
-  private animeService: AnimeService;
-
-  constructor(animeService: AnimeService) {
-    this.animeService = animeService;
-  }
+  constructor(private readonly animeService: AnimeService) {}
 
   getAllAnimes = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -22,7 +18,7 @@ export class AnimeController {
         query,
         sortBy,
         sortOrder,
-        filterGenre,
+        parseInt(filterGenre),
         filterScore,
         filterType
       );
@@ -34,7 +30,9 @@ export class AnimeController {
 
   getAnimeById = async (req: Request, res: Response): Promise<void> => {
     try {
-      const anime = await this.animeService.getAnimeById(req.params.id);
+      const anime = await this.animeService.getAnimeById(
+        parseInt(req.params.id)
+      );
       if (anime) {
         res.json({ data: anime });
       } else {
@@ -61,7 +59,7 @@ export class AnimeController {
   updateAnime = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedAnime = await this.animeService.updateAnime(
-        req.params.id,
+        parseInt(req.params.id),
         req.body
       );
       if (updatedAnime) {
@@ -77,7 +75,7 @@ export class AnimeController {
   updateAnimeReview = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedAnime = await this.animeService.updateAnimeReview(
-        req.params.id,
+        parseInt(req.params.id),
         req.body
       );
       if (updatedAnime) {
@@ -92,7 +90,9 @@ export class AnimeController {
 
   deleteAnime = async (req: Request, res: Response): Promise<void> => {
     try {
-      const deletedAnime = await this.animeService.deleteAnime(req.params.id);
+      const deletedAnime = await this.animeService.deleteAnime(
+        parseInt(req.params.id)
+      );
       if (deletedAnime) {
         res.status(204).end();
       } else {
