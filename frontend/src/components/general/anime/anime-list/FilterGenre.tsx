@@ -30,12 +30,7 @@ export default function FilterGenre({
     <DropdownMenu onOpenChange={(value) => setIsFilterGenreOpen(value)}>
       <DropdownMenuTrigger asChild>
         {isLoadingGenre ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full lg:w-fit"
-            disabled
-          >
+          <Button variant="outline" size="sm" className="w-full" disabled>
             <div className="flex items-center justify-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
               Fetching genres...
@@ -43,7 +38,7 @@ export default function FilterGenre({
             <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
           </Button>
         ) : (
-          <Button variant="outline" size="sm" className="w-full lg:w-fit">
+          <Button variant="outline" size="sm" className="w-full">
             Filter by:{" "}
             {genreList.find((genre) => genre.id === filterGenre)?.name ||
               "Genre"}

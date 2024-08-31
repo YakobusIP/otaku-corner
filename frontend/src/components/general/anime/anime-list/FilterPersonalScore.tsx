@@ -36,7 +36,7 @@ export default function FilterPersonalScore({
   return (
     <DropdownMenu onOpenChange={(value) => setIsFilterPersonalScoreOpen(value)}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full lg:w-fit">
+        <Button variant="outline" size="sm" className="w-full">
           Filter by:{" "}
           {selectedFilterPersonalScore
             ? selectedFilterPersonalScore.label

@@ -22,7 +22,7 @@ export default function SortDirection({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full lg:w-fit">
+        <Button variant="outline" size="sm" className="w-full">
           Sort by: {sortBy === "title" ? "Title" : "MAL Score"}
           {sortOrder === SortOrder.ASCENDING ? (
             <ArrowUp className="ml-2 w-4 h-4" />

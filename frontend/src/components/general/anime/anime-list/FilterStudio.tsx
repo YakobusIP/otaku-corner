@@ -30,12 +30,7 @@ export default function FilterStudio({
     <DropdownMenu onOpenChange={(value) => setIsFilterStudioOpen(value)}>
       <DropdownMenuTrigger asChild>
         {isLoadingStudio ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full lg:w-fit"
-            disabled
-          >
+          <Button variant="outline" size="sm" className="w-full" disabled>
             <div className="flex items-center justify-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
               Fetching studios...
@@ -43,7 +38,7 @@ export default function FilterStudio({
             <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
           </Button>
         ) : (
-          <Button variant="outline" size="sm" className="w-full lg:w-fit">
+          <Button variant="outline" size="sm" className="w-full">
             Filter by:{" "}
             {studioList.find((studio) => studio.id === filterStudio)?.name ||
               "Studio"}

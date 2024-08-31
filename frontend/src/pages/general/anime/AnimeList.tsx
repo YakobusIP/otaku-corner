@@ -26,6 +26,7 @@ import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
 import FilterStudio from "@/components/general/anime/anime-list/FilterStudio";
 import FilterTheme from "@/components/general/anime/anime-list/FilterTheme";
 import FilterPersonalScore from "@/components/general/anime/anime-list/FilterPersonalScore";
+import { Button } from "@/components/ui/button";
 
 export default function AnimeList() {
   const [animeList, setAnimeList] = useState<AnimeList[]>([]);
@@ -89,6 +90,23 @@ export default function AnimeList() {
 
   const handleFilterType = (key?: string) => {
     setFilterType(key);
+  };
+
+  const enableClearAllFilter =
+    !filterGenre &&
+    !filterStudio &&
+    !filterTheme &&
+    !filterMALScore &&
+    !filterPersonalScore &&
+    !filterType;
+
+  const handleClearAllFilter = () => {
+    setFilterGenre(undefined);
+    setFilterStudio(undefined);
+    setFilterTheme(undefined);
+    setFilterMALScore(undefined);
+    setFilterPersonalScore(undefined);
+    setFilterType(undefined);
   };
 
   const fetchAnimeList = useCallback(async () => {
@@ -208,7 +226,7 @@ export default function AnimeList() {
                 </span>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="flex flex-col lg:flex-row items-center gap-4">
+                <div className="grid grid-cols-1 grid-rows-8 lg:grid-cols-4 lg:grid-rows-2 gap-4">
                   <SortDirection
                     sortBy={sortBy}
                     sortOrder={sortOrder}
@@ -244,20 +262,35 @@ export default function AnimeList() {
                     filterType={filterType}
                     handleFilterType={handleFilterType}
                   />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
+                    disabled={enableClearAllFilter}
+                    onClick={handleClearAllFilter}
+                  >
+                    Clear All
+                  </Button>
                 </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
         </section>
-        {isLoadingAnime && (
+        {isLoadingAnime ? (
           <section className="flex flex-col items-center justify-center flex-1">
             <div className="flex items-center justify-center gap-2 lg:gap-4">
               <Loader2 className="w-8 h-8 lg:w-16 lg:h-16 animate-spin" />
               <h2>Fetching animes...</h2>
             </div>
           </section>
-        )}
-        {!isLoadingAnime && (
+        ) : animeList.length === 0 ? (
+          <section className="flex flex-col items-center justify-center flex-1">
+            <div className="flex flex-col items-center justify-center gap-2">
+              <img src="/loading.gif" className="w-32 h-32 rounded-xl" />
+              <h2>No results.</h2>
+            </div>
+          </section>
+        ) : (
           <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {animeList.map((anime) => {
               return <AnimeCard key={anime.id} anime={anime} />;
