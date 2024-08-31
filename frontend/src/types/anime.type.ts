@@ -1,4 +1,8 @@
-import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
+import {
+  GenreEntityPartial,
+  StudioEntityPartial,
+  ThemeEntityPartial
+} from "@/types/entity.type";
 
 type AnimePostRequest = {
   malId: number;
@@ -37,9 +41,9 @@ type AnimePostRequest = {
 
 type AnimeDetail = Omit<AnimePostRequest, "genres" | "studios" | "themes"> & {
   id: string;
-  genres: GenreEntity[];
-  studios: StudioEntity[];
-  themes: ThemeEntity[];
+  genres: GenreEntityPartial[];
+  studios: StudioEntityPartial[];
+  themes: ThemeEntityPartial[];
 };
 
 type AnimeList = {

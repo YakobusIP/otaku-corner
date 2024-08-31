@@ -5,25 +5,10 @@ import {
   AnimePostRequest,
   AnimeReview
 } from "@/types/anime.type";
+import { ApiResponse, MessageResponse } from "@/types/api.type";
 import axios, { AxiosError } from "axios";
 
 const BASE_ANIME_URL = "/api/anime";
-
-export interface ApiResponseSuccess<T> {
-  success: true;
-  data: T;
-}
-
-export interface ApiResponseError {
-  success: false;
-  error: string;
-}
-
-export type ApiResponse<T> = ApiResponseSuccess<T> | ApiResponseError;
-
-type MessageResponse = {
-  message: string;
-};
 
 const fetchAllAnimeService = async (
   query?: string,
@@ -32,7 +17,7 @@ const fetchAllAnimeService = async (
   filterGenre?: string,
   filterScore?: string,
   filterType?: string
-): Promise<ApiResponse<Array<AnimeList>>> => {
+): Promise<ApiResponse<AnimeList[]>> => {
   try {
     const response = await axios.get(BASE_ANIME_URL, {
       params: {
@@ -49,8 +34,7 @@ const fetchAllAnimeService = async (
     return {
       success: false,
       error:
-        error instanceof AxiosError &&
-        error.response?.data.error instanceof String
+        error instanceof AxiosError && error.response?.data.error
           ? error.response?.data.error
           : "There was a problem with your request."
     };
@@ -67,8 +51,7 @@ const fetchAnimeByIdService = async (
     return {
       success: false,
       error:
-        error instanceof AxiosError &&
-        error.response?.data.error instanceof String
+        error instanceof AxiosError && error.response?.data.error
           ? error.response?.data.error
           : "There was a problem with your request."
     };
@@ -85,8 +68,7 @@ const addAnimeService = async (
     return {
       success: false,
       error:
-        error instanceof AxiosError &&
-        error.response?.data.error instanceof String
+        error instanceof AxiosError && error.response?.data.error
           ? error.response?.data.error
           : "There was a problem with your request."
     };
@@ -104,8 +86,7 @@ const updateAnimeReviewService = async (
     return {
       success: false,
       error:
-        error instanceof AxiosError &&
-        error.response?.data.error instanceof String
+        error instanceof AxiosError && error.response?.data.error
           ? error.response?.data.error
           : "There was a problem with your request."
     };
