@@ -14,8 +14,11 @@ const fetchAllAnimeService = async (
   query?: string,
   sortBy?: string,
   sortOrder?: SortOrder,
-  filterGenre?: string,
-  filterScore?: string,
+  filterGenre?: number,
+  filterStudio?: number,
+  filterTheme?: number,
+  filterMALScore?: string,
+  filterPersonalScore?: string,
   filterType?: string
 ): Promise<ApiResponse<AnimeList[]>> => {
   try {
@@ -25,7 +28,10 @@ const fetchAllAnimeService = async (
         sortBy,
         sortOrder,
         filterGenre,
-        filterScore,
+        filterStudio,
+        filterTheme,
+        filterMALScore,
+        filterPersonalScore,
         filterType
       }
     });

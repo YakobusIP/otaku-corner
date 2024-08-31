@@ -11,12 +11,15 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 type Props = {
-  filterScore: string;
-  handleFilterScore: (key: string) => void;
+  filterMALScore?: string;
+  handleFilterMALScore: (key?: string) => void;
 };
 
-export default function FilterScore({ filterScore, handleFilterScore }: Props) {
-  const [isFilterScoreOpen, setIsFilterScoreOpen] = useState(false);
+export default function FilterMALScore({
+  filterMALScore,
+  handleFilterMALScore
+}: Props) {
+  const [isFilterMALScoreOpen, setIsFilterMALScoreOpen] = useState(false);
 
   const scoreFilters = [
     { key: "poor", label: "Poor (1 - 3)" },
@@ -25,16 +28,17 @@ export default function FilterScore({ filterScore, handleFilterScore }: Props) {
     { key: "excellent", label: "Excellent (9 - 10)" }
   ];
 
-  const selectedFilterScore = scoreFilters.find(
-    (filter) => filter.key === filterScore
+  const selectedFilterMALScore = scoreFilters.find(
+    (filter) => filter.key === filterMALScore
   );
 
   return (
-    <DropdownMenu onOpenChange={(value) => setIsFilterScoreOpen(value)}>
+    <DropdownMenu onOpenChange={(value) => setIsFilterMALScoreOpen(value)}>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm">
-          Filter by: {selectedFilterScore ? selectedFilterScore.label : "Score"}
-          {isFilterScoreOpen ? (
+          Filter by:{" "}
+          {selectedFilterMALScore ? selectedFilterMALScore.label : "MAL Score"}
+          {isFilterMALScoreOpen ? (
             <ChevronUp className="ml-2 h-4 w-4 shrink-0" />
           ) : (
             <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
@@ -42,20 +46,20 @@ export default function FilterScore({ filterScore, handleFilterScore }: Props) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => handleFilterScore("")}>
-          All Scores
+        <DropdownMenuItem onClick={() => handleFilterMALScore(undefined)}>
+          All MAL Scores
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {scoreFilters.map((filter) => {
           return (
             <DropdownMenuItem
               key={filter.key}
-              onClick={() => handleFilterScore(filter.key)}
+              onClick={() => handleFilterMALScore(filter.key)}
             >
               <Check
                 className={cn(
                   "mr-2 h-4 w-4",
-                  filterScore === filter.key ? "opacity-100" : "opacity-0"
+                  filterMALScore === filter.key ? "opacity-100" : "opacity-0"
                 )}
               />
               {filter.label}

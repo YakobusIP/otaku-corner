@@ -12,14 +12,20 @@ export class AnimeController {
       const sortBy = req.query.sortBy as string;
       const sortOrder = req.query.sortOrder as Prisma.SortOrder;
       const filterGenre = req.query.filterGenre as string;
-      const filterScore = req.query.filterScore as string;
+      const filterStudio = req.query.filterStudio as string;
+      const filterTheme = req.query.filterTheme as string;
+      const filterMALScore = req.query.filterMALScore as string;
+      const filterPersonalScore = req.query.filterPersonalScore as string;
       const filterType = req.query.filterType as string;
       const animes = await this.animeService.getAllAnimes(
         query,
         sortBy,
         sortOrder,
         parseInt(filterGenre),
-        filterScore,
+        parseInt(filterStudio),
+        parseInt(filterTheme),
+        filterMALScore,
+        filterPersonalScore,
         filterType
       );
       res.json({ data: animes });

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { SortOrder } from "@/enum/general.enum";
 import SortDirection from "@/components/general/anime/anime-list/SortDirection";
 import FilterGenre from "@/components/general/anime/anime-list/FilterGenre";
-import FilterScore from "@/components/general/anime/anime-list/FilterScore";
+import FilterMALScore from "@/components/general/anime/anime-list/FilterMALScore";
 import AnimeCard from "@/components/general/anime/anime-list/AnimeCard";
 import FilterType from "@/components/general/anime/anime-list/FilterType";
 import { useToast } from "@/components/ui/use-toast";
@@ -11,15 +11,36 @@ import { fetchAllAnimeService } from "@/services/anime.service";
 import { useDebounce } from "use-debounce";
 import { type AnimeList } from "@/types/anime.type";
 import { Loader2 } from "lucide-react";
+import {
+  fetchAllGenreService,
+  fetchAllStudioService,
+  fetchAllThemeService
+} from "@/services/entity.service";
+import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
+import FilterStudio from "@/components/general/anime/anime-list/FilterStudio";
+import FilterTheme from "@/components/general/anime/anime-list/FilterTheme";
+import FilterPersonalScore from "@/components/general/anime/anime-list/FilterPersonalScore";
 
 export default function AnimeList() {
-  const [animeList, setAnimeList] = useState<Array<AnimeList>>([]);
+  const [animeList, setAnimeList] = useState<AnimeList[]>([]);
+  const [genreList, setGenreList] = useState<GenreEntity[]>([]);
+  const [studioList, setStudioList] = useState<StudioEntity[]>([]);
+  const [themeList, setThemeList] = useState<ThemeEntity[]>([]);
+
   const [sortBy, setSortBy] = useState("title");
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.ASCENDING);
-  const [filterGenre, setFilterGenre] = useState("");
-  const [filterScore, setFilterScore] = useState("");
-  const [filterType, setFilterType] = useState("");
+  const [filterGenre, setFilterGenre] = useState<number>();
+  const [filterStudio, setFilterStudio] = useState<number>();
+  const [filterTheme, setFilterTheme] = useState<number>();
+  const [filterMALScore, setFilterMALScore] = useState<string>();
+  const [filterPersonalScore, setFilterPersonalScore] = useState<string>();
+  const [filterType, setFilterType] = useState<string>();
+
   const [isLoadingAnime, setIsLoadingAnime] = useState(false);
+  const [isLoadingGenre, setIsLoadingGenre] = useState(false);
+  const [isLoadingStudio, setIsLoadingStudio] = useState(false);
+  const [isLoadingTheme, setIsLoadingTheme] = useState(false);
+
   const [searchAnime, setSearchAnime] = useState("");
   const [debouncedSearch] = useDebounce(searchAnime, 1000);
 
@@ -40,15 +61,27 @@ export default function AnimeList() {
     }
   };
 
-  const handleFilterGenre = (key: string) => {
+  const handleFilterGenre = (key?: number) => {
     setFilterGenre(key);
   };
 
-  const handleFilterScore = (key: string) => {
-    setFilterScore(key);
+  const handleFilterStudio = (key?: number) => {
+    setFilterStudio(key);
   };
 
-  const handleFilterType = (key: string) => {
+  const handleFilterTheme = (key?: number) => {
+    setFilterTheme(key);
+  };
+
+  const handleFilterMALScore = (key?: string) => {
+    setFilterMALScore(key);
+  };
+
+  const handleFilterPersonalScore = (key?: string) => {
+    setFilterPersonalScore(key);
+  };
+
+  const handleFilterType = (key?: string) => {
     setFilterType(key);
   };
 
@@ -59,7 +92,10 @@ export default function AnimeList() {
       sortBy,
       sortOrder,
       filterGenre,
-      filterScore,
+      filterStudio,
+      filterTheme,
+      filterMALScore,
+      filterPersonalScore,
       filterType
     );
     if (response.success) {
@@ -76,13 +112,64 @@ export default function AnimeList() {
     sortBy,
     sortOrder,
     filterGenre,
-    filterScore,
+    filterStudio,
+    filterTheme,
+    filterMALScore,
+    filterPersonalScore,
     filterType
   ]);
 
+  const fetchGenreList = useCallback(async () => {
+    setIsLoadingGenre(true);
+    const response = await fetchAllGenreService();
+    if (response.success) {
+      setGenreList(response.data);
+    } else {
+      toastRef.current({
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
+    }
+    setIsLoadingGenre(false);
+  }, []);
+
+  const fetchStudioList = useCallback(async () => {
+    setIsLoadingStudio(true);
+    const response = await fetchAllStudioService();
+    if (response.success) {
+      setStudioList(response.data);
+    } else {
+      toastRef.current({
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
+    }
+    setIsLoadingStudio(false);
+  }, []);
+
+  const fetchThemeList = useCallback(async () => {
+    setIsLoadingTheme(true);
+    const response = await fetchAllThemeService();
+    if (response.success) {
+      setThemeList(response.data);
+    } else {
+      toastRef.current({
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
+    }
+    setIsLoadingTheme(false);
+  }, []);
+
   useEffect(() => {
     fetchAnimeList();
-  }, [fetchAnimeList]);
+  }, [fetchAnimeList, fetchGenreList, fetchStudioList, fetchThemeList]);
+
+  useEffect(() => {
+    fetchGenreList();
+    fetchStudioList();
+    fetchThemeList();
+  }, [fetchGenreList, fetchStudioList, fetchThemeList]);
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
@@ -104,7 +191,7 @@ export default function AnimeList() {
           </div>
         </div>
       </header>
-      <main className="container py-12 px-4 md:px-6">
+      <main className="container py-12 px-4 md:px-6 flex flex-col flex-1">
         <section className="mb-4">
           <div className="grid grid-cols-2 grid-rows-2 lg:flex items-center gap-4">
             <SortDirection
@@ -113,12 +200,30 @@ export default function AnimeList() {
               handleSort={handleSort}
             />
             <FilterGenre
+              genreList={genreList}
+              isLoadingGenre={isLoadingGenre}
               filterGenre={filterGenre}
               handleFilterGenre={handleFilterGenre}
             />
-            <FilterScore
-              filterScore={filterScore}
-              handleFilterScore={handleFilterScore}
+            <FilterStudio
+              studioList={studioList}
+              isLoadingStudio={isLoadingStudio}
+              filterStudio={filterStudio}
+              handleFilterStudio={handleFilterStudio}
+            />
+            <FilterTheme
+              themeList={themeList}
+              isLoadingTheme={isLoadingTheme}
+              filterTheme={filterTheme}
+              handleFilterTheme={handleFilterTheme}
+            />
+            <FilterMALScore
+              filterMALScore={filterMALScore}
+              handleFilterMALScore={handleFilterMALScore}
+            />
+            <FilterPersonalScore
+              filterPersonalScore={filterPersonalScore}
+              handleFilterPersonalScore={handleFilterPersonalScore}
             />
             <FilterType
               filterType={filterType}
@@ -127,10 +232,12 @@ export default function AnimeList() {
           </div>
         </section>
         {isLoadingAnime && (
-          <div className="flex items-center justify-center gap-2 lg:gap-4 mt-4">
-            <Loader2 className="w-8 h-8 lg:w-16 lg:h-16 animate-spin" />
-            <h2>Fetching animes...</h2>
-          </div>
+          <section className="flex flex-col items-center justify-center flex-1">
+            <div className="flex items-center justify-center gap-2 lg:gap-4">
+              <Loader2 className="w-8 h-8 lg:w-16 lg:h-16 animate-spin" />
+              <h2>Fetching animes...</h2>
+            </div>
+          </section>
         )}
         {!isLoadingAnime && (
           <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

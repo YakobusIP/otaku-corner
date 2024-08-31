@@ -42,16 +42,21 @@ export class AnimeService {
     sortBy?: string,
     sortOrder?: Prisma.SortOrder,
     filterGenre?: number,
-    filterScore?: string,
+    filterStudio?: number,
+    filterTheme?: number,
+    filterMALScore?: string,
+    filterPersonalScore?: string,
     filterType?: string
   ) {
     const lowerCaseQuery = query && query.toLowerCase();
     const scoreRanges: Record<string, { min: number; max: number }> = {
-      poor: { min: 1, max: 3 },
-      average: { min: 4, max: 6 },
-      good: { min: 7, max: 8 },
+      poor: { min: 1, max: 3.99 },
+      average: { min: 4, max: 6.99 },
+      good: { min: 7, max: 8.99 },
       excellent: { min: 9, max: 10 },
     };
+
+    console.log(filterMALScore && scoreRanges[filterMALScore]);
     return prisma.anime.findMany({
       where: {
         AND: [
@@ -71,16 +76,32 @@ export class AnimeService {
               },
             ],
           },
-          filterGenre ? { genres: { some: { id: filterGenre } } } : {},
-          filterScore
-            ? {
-                personalScore: {
-                  gte: scoreRanges[filterScore].min,
-                  lte: scoreRanges[filterScore].max,
+          ...(filterGenre ? [{ genres: { some: { id: filterGenre } } }] : []),
+          ...(filterStudio
+            ? [{ studios: { some: { id: filterStudio } } }]
+            : []),
+          ...(filterTheme ? [{ themes: { some: { id: filterTheme } } }] : []),
+          ...(filterMALScore
+            ? [
+                {
+                  score: {
+                    gte: scoreRanges[filterMALScore].min,
+                    lte: scoreRanges[filterMALScore].max,
+                  },
                 },
-              }
-            : {},
-          filterType ? { type: { equals: filterType } } : {},
+              ]
+            : []),
+          ...(filterPersonalScore
+            ? [
+                {
+                  personalScore: {
+                    gte: scoreRanges[filterPersonalScore].min,
+                    lte: scoreRanges[filterPersonalScore].max,
+                  },
+                },
+              ]
+            : []),
+          ...(filterType ? [{ type: { equals: filterType } }] : []),
         ],
       },
       select: {

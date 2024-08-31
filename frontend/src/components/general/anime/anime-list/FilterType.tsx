@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 type Props = {
-  filterType: string;
-  handleFilterType: (key: string) => void;
+  filterType?: string;
+  handleFilterType: (key?: string) => void;
 };
 
 export default function FilterType({ filterType, handleFilterType }: Props) {
@@ -36,7 +36,7 @@ export default function FilterType({ filterType, handleFilterType }: Props) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => handleFilterType("")}>
+        <DropdownMenuItem onClick={() => handleFilterType(undefined)}>
           All Types
         </DropdownMenuItem>
         <DropdownMenuSeparator />

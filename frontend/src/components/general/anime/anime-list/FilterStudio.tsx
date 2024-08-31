@@ -9,40 +9,40 @@ import { Button } from "@/components/ui/button";
 import { Check, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { GenreEntity } from "@/types/entity.type";
+import { StudioEntity } from "@/types/entity.type";
 
 type Props = {
-  genreList: GenreEntity[];
-  isLoadingGenre: boolean;
-  filterGenre?: number;
-  handleFilterGenre: (key?: number) => void;
+  studioList: StudioEntity[];
+  isLoadingStudio: boolean;
+  filterStudio?: number;
+  handleFilterStudio: (key?: number) => void;
 };
 
-export default function FilterGenre({
-  genreList,
-  isLoadingGenre,
-  filterGenre,
-  handleFilterGenre
+export default function FilterStudio({
+  studioList,
+  isLoadingStudio,
+  filterStudio,
+  handleFilterStudio
 }: Props) {
-  const [isFilterGenreOpen, setIsFilterGenreOpen] = useState(false);
+  const [isFilterStudioOpen, setIsFilterStudioOpen] = useState(false);
 
   return (
-    <DropdownMenu onOpenChange={(value) => setIsFilterGenreOpen(value)}>
+    <DropdownMenu onOpenChange={(value) => setIsFilterStudioOpen(value)}>
       <DropdownMenuTrigger asChild>
-        {isLoadingGenre ? (
+        {isLoadingStudio ? (
           <Button variant="outline" size="sm" disabled>
             <div className="flex items-center justify-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
-              Fetching genres...
+              Fetching studios...
             </div>
             <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
           </Button>
         ) : (
           <Button variant="outline" size="sm">
             Filter by:{" "}
-            {genreList.find((genre) => genre.id === filterGenre)?.name ||
-              "Genre"}
-            {isFilterGenreOpen ? (
+            {studioList.find((studio) => studio.id === filterStudio)?.name ||
+              "Studio"}
+            {isFilterStudioOpen ? (
               <ChevronUp className="ml-2 h-4 w-4 shrink-0" />
             ) : (
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
@@ -51,23 +51,23 @@ export default function FilterGenre({
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => handleFilterGenre(undefined)}>
-          All Genres
+        <DropdownMenuItem onClick={() => handleFilterStudio(undefined)}>
+          All Studios
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {genreList.map((genre) => {
+        {studioList.map((studio) => {
           return (
             <DropdownMenuItem
-              key={genre.id}
-              onClick={() => handleFilterGenre(genre.id)}
+              key={studio.id}
+              onClick={() => handleFilterStudio(studio.id)}
             >
               <Check
                 className={cn(
                   "mr-2 h-4 w-4",
-                  filterGenre === genre.id ? "opacity-100" : "opacity-0"
+                  filterStudio === studio.id ? "opacity-100" : "opacity-0"
                 )}
               />
-              {genre.name}
+              {studio.name}
             </DropdownMenuItem>
           );
         })}
