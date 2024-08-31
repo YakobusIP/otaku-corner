@@ -1,4 +1,10 @@
 import { Input } from "@/components/ui/input";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from "@/components/ui/accordion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SortOrder } from "@/enum/general.enum";
 import SortDirection from "@/components/general/anime/anime-list/SortDirection";
@@ -10,7 +16,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { fetchAllAnimeService } from "@/services/anime.service";
 import { useDebounce } from "use-debounce";
 import { type AnimeList } from "@/types/anime.type";
-import { Loader2 } from "lucide-react";
+import { Filter, Loader2 } from "lucide-react";
 import {
   fetchAllGenreService,
   fetchAllStudioService,
@@ -191,45 +197,57 @@ export default function AnimeList() {
           </div>
         </div>
       </header>
-      <main className="container py-12 px-4 md:px-6 flex flex-col flex-1">
+      <main className="container py-4 lg:py-12 px-4 md:px-6 flex flex-col flex-1">
         <section className="mb-4">
-          <div className="grid grid-cols-2 grid-rows-2 lg:flex items-center gap-4">
-            <SortDirection
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              handleSort={handleSort}
-            />
-            <FilterGenre
-              genreList={genreList}
-              isLoadingGenre={isLoadingGenre}
-              filterGenre={filterGenre}
-              handleFilterGenre={handleFilterGenre}
-            />
-            <FilterStudio
-              studioList={studioList}
-              isLoadingStudio={isLoadingStudio}
-              filterStudio={filterStudio}
-              handleFilterStudio={handleFilterStudio}
-            />
-            <FilterTheme
-              themeList={themeList}
-              isLoadingTheme={isLoadingTheme}
-              filterTheme={filterTheme}
-              handleFilterTheme={handleFilterTheme}
-            />
-            <FilterMALScore
-              filterMALScore={filterMALScore}
-              handleFilterMALScore={handleFilterMALScore}
-            />
-            <FilterPersonalScore
-              filterPersonalScore={filterPersonalScore}
-              handleFilterPersonalScore={handleFilterPersonalScore}
-            />
-            <FilterType
-              filterType={filterType}
-              handleFilterType={handleFilterType}
-            />
-          </div>
+          <Accordion type="single" collapsible>
+            <AccordionItem value="filter-and-sort">
+              <AccordionTrigger className="hover:no-underline text-lg">
+                <span className="flex items-center justify-center gap-2">
+                  <Filter />
+                  Filter & Sort
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="flex flex-col lg:flex-row items-center gap-4">
+                  <SortDirection
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    handleSort={handleSort}
+                  />
+                  <FilterGenre
+                    genreList={genreList}
+                    isLoadingGenre={isLoadingGenre}
+                    filterGenre={filterGenre}
+                    handleFilterGenre={handleFilterGenre}
+                  />
+                  <FilterStudio
+                    studioList={studioList}
+                    isLoadingStudio={isLoadingStudio}
+                    filterStudio={filterStudio}
+                    handleFilterStudio={handleFilterStudio}
+                  />
+                  <FilterTheme
+                    themeList={themeList}
+                    isLoadingTheme={isLoadingTheme}
+                    filterTheme={filterTheme}
+                    handleFilterTheme={handleFilterTheme}
+                  />
+                  <FilterMALScore
+                    filterMALScore={filterMALScore}
+                    handleFilterMALScore={handleFilterMALScore}
+                  />
+                  <FilterPersonalScore
+                    filterPersonalScore={filterPersonalScore}
+                    handleFilterPersonalScore={handleFilterPersonalScore}
+                  />
+                  <FilterType
+                    filterType={filterType}
+                    handleFilterType={handleFilterType}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </section>
         {isLoadingAnime && (
           <section className="flex flex-col items-center justify-center flex-1">

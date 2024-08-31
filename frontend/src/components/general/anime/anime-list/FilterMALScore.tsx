@@ -35,7 +35,7 @@ export default function FilterMALScore({
   return (
     <DropdownMenu onOpenChange={(value) => setIsFilterMALScoreOpen(value)}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="w-full lg:w-fit">
           Filter by:{" "}
           {selectedFilterMALScore ? selectedFilterMALScore.label : "MAL Score"}
           {isFilterMALScoreOpen ? (

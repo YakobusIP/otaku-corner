@@ -26,7 +26,7 @@ export default function FilterType({ filterType, handleFilterType }: Props) {
   return (
     <DropdownMenu onOpenChange={(value) => setIsFilterTypeOpen(value)}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="w-full lg:w-fit">
           Filter by: {filterType || "Type"}
           {isFilterTypeOpen ? (
             <ChevronUp className="ml-2 h-4 w-4 shrink-0" />
