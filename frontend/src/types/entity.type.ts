@@ -5,7 +5,7 @@ type GenreEntity = {
   updatedAt: Date;
 };
 
-type GenreEntityPartial = Pick<GenreEntity, "id" & "name">;
+type GenreEntityPartial = Pick<GenreEntity, "id" | "name">;
 
 type StudioEntity = {
   id: number;
@@ -14,7 +14,7 @@ type StudioEntity = {
   updatedAt: Date;
 };
 
-type StudioEntityPartial = Pick<GenreEntity, "id" & "name">;
+type StudioEntityPartial = Pick<StudioEntity, "id" | "name">;
 
 type ThemeEntity = {
   id: number;
@@ -23,7 +23,7 @@ type ThemeEntity = {
   updatedAt: Date;
 };
 
-type ThemeEntityPartial = Pick<GenreEntity, "id" & "name">;
+type ThemeEntityPartial = Pick<ThemeEntity, "id" | "name">;
 
 export type {
   GenreEntity,

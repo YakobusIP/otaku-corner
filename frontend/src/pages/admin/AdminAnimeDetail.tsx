@@ -10,7 +10,7 @@ import AboutTab from "@/components/admin/anime-detail/AboutTab";
 import EpisodeTab from "@/components/admin/anime-detail/EpisodeTab";
 import ReviewTab from "@/components/admin/anime-detail/ReviewTab";
 
-export default function AnimeDetail() {
+export default function AdminAnimeDetail() {
   const [animeDetail, setAnimeDetail] = useState<AnimeDetail>();
   const [isLoadingAnimeDetail, setIsLoadingAnimeDetail] = useState(false);
   const { animeId } = useParams();

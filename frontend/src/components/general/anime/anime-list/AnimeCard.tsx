@@ -10,7 +10,7 @@ type Props = {
 
 export default function AnimeCard({ anime }: Props) {
   return (
-    <Link to={"detail/" + anime.id}>
+    <Link to={`/anime/${anime.id}`}>
       <Card>
         <div className="relative">
           <img
