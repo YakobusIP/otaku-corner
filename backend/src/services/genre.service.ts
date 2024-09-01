@@ -8,7 +8,7 @@ export class GenreService {
 
   async getGenre(name: string) {
     return prisma.genre.findFirst({
-      where: { name: { equals: name, mode: "insensitive" } },
+      where: { name: { equals: name, mode: "insensitive" } }
     });
   }
 

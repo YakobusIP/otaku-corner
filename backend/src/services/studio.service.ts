@@ -8,7 +8,7 @@ export class StudioService {
 
   async getStudio(name: string) {
     return prisma.studio.findFirst({
-      where: { name: { equals: name, mode: "insensitive" } },
+      where: { name: { equals: name, mode: "insensitive" } }
     });
   }
 

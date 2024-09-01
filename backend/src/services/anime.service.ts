@@ -38,6 +38,8 @@ export class AnimeService {
   ) {}
 
   async getAllAnimes(
+    currentPage: number,
+    limitPerPage: number,
     query?: string,
     sortBy?: string,
     sortOrder?: Prisma.SortOrder,
@@ -53,57 +55,62 @@ export class AnimeService {
       poor: { min: 1, max: 3.99 },
       average: { min: 4, max: 6.99 },
       good: { min: 7, max: 8.99 },
-      excellent: { min: 9, max: 10 },
+      excellent: { min: 9, max: 10 }
     };
 
-    console.log(filterMALScore && scoreRanges[filterMALScore]);
-    return prisma.anime.findMany({
-      where: {
-        AND: [
-          {
-            OR: [
+    const filterCriteria: Prisma.AnimeWhereInput = {
+      AND: [
+        {
+          OR: [
+            {
+              title: {
+                contains: lowerCaseQuery,
+                mode: "insensitive"
+              }
+            },
+            {
+              titleSynonyms: {
+                contains: lowerCaseQuery,
+                mode: "insensitive"
+              }
+            }
+          ]
+        },
+        ...(filterGenre ? [{ genres: { some: { id: filterGenre } } }] : []),
+        ...(filterStudio ? [{ studios: { some: { id: filterStudio } } }] : []),
+        ...(filterTheme ? [{ themes: { some: { id: filterTheme } } }] : []),
+        ...(filterMALScore
+          ? [
               {
-                title: {
-                  contains: lowerCaseQuery,
-                  mode: "insensitive",
-                },
-              },
+                score: {
+                  gte: scoreRanges[filterMALScore].min,
+                  lte: scoreRanges[filterMALScore].max
+                }
+              }
+            ]
+          : []),
+        ...(filterPersonalScore
+          ? [
               {
-                titleSynonyms: {
-                  contains: lowerCaseQuery,
-                  mode: "insensitive",
-                },
-              },
-            ],
-          },
-          ...(filterGenre ? [{ genres: { some: { id: filterGenre } } }] : []),
-          ...(filterStudio
-            ? [{ studios: { some: { id: filterStudio } } }]
-            : []),
-          ...(filterTheme ? [{ themes: { some: { id: filterTheme } } }] : []),
-          ...(filterMALScore
-            ? [
-                {
-                  score: {
-                    gte: scoreRanges[filterMALScore].min,
-                    lte: scoreRanges[filterMALScore].max,
-                  },
-                },
-              ]
-            : []),
-          ...(filterPersonalScore
-            ? [
-                {
-                  personalScore: {
-                    gte: scoreRanges[filterPersonalScore].min,
-                    lte: scoreRanges[filterPersonalScore].max,
-                  },
-                },
-              ]
-            : []),
-          ...(filterType ? [{ type: { equals: filterType } }] : []),
-        ],
-      },
+                personalScore: {
+                  gte: scoreRanges[filterPersonalScore].min,
+                  lte: scoreRanges[filterPersonalScore].max
+                }
+              }
+            ]
+          : []),
+        ...(filterType ? [{ type: { equals: filterType } }] : [])
+      ]
+    };
+
+    const itemCount = await prisma.anime.count({
+      where: filterCriteria
+    });
+
+    const pageCount = Math.ceil(itemCount / limitPerPage);
+
+    const data = await prisma.anime.findMany({
+      where: filterCriteria,
       select: {
         id: true,
         title: true,
@@ -113,13 +120,25 @@ export class AnimeService {
         type: true,
         score: true,
         rating: true,
-        personalScore: true,
+        personalScore: true
       },
       orderBy: {
         title: sortBy === "title" ? sortOrder : undefined,
-        score: sortBy === "score" ? sortOrder : undefined,
+        score: sortBy === "score" ? sortOrder : undefined
       },
+      take: limitPerPage,
+      skip: (currentPage - 1) * limitPerPage
     });
+
+    return {
+      data,
+      metadata: {
+        currentPage,
+        limitPerPage,
+        pageCount,
+        itemCount
+      }
+    };
   }
 
   async getAnimeById(id: number) {
@@ -129,8 +148,8 @@ export class AnimeService {
         genres: { select: { id: true, name: true } },
         studios: { select: { id: true, name: true } },
         themes: { select: { id: true, name: true } },
-        episodes: { orderBy: { number: "asc" } },
-      },
+        episodes: { orderBy: { number: "asc" } }
+      }
     });
   }
 
@@ -159,15 +178,15 @@ export class AnimeService {
       genres: { connect: genreIds },
       studios: { connect: studioIds },
       themes: { connect: themeIds },
-      episodes: undefined,
+      episodes: undefined
     };
 
     if (data.episodes && data.episodes.length > 0) {
       return prisma.anime.create({
         data: {
           ...animeData,
-          episodes: { createMany: { data: data.episodes } },
-        },
+          episodes: { createMany: { data: data.episodes } }
+        }
       });
     } else {
       return prisma.anime.create({ data: animeData });

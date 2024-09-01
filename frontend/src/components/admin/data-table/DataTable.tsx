@@ -2,7 +2,6 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
   RowSelectionState,
   useReactTable
 } from "@tanstack/react-table";
@@ -19,6 +18,7 @@ import { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { MetadataResponse } from "@/types/api.type";
 interface Identifiable {
   id: string;
 }
@@ -32,6 +32,9 @@ interface DataTableProps<TData extends Identifiable, TValue> {
   deleteData: () => Promise<void>;
   isLoadingData: boolean;
   isLoadingDeleteData: boolean;
+  page: number;
+  setPage: Dispatch<SetStateAction<number>>;
+  metadata?: MetadataResponse;
 }
 
 export default function DataTable<TData extends Identifiable, TValue>({
@@ -42,18 +45,27 @@ export default function DataTable<TData extends Identifiable, TValue>({
   setRowSelection,
   deleteData,
   isLoadingData,
-  isLoadingDeleteData
+  isLoadingDeleteData,
+  page,
+  setPage,
+  metadata
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
     getRowId: (row) => row.id,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection,
     state: {
-      rowSelection
-    }
+      rowSelection,
+      pagination: {
+        pageIndex: page - 1,
+        pageSize: metadata?.limitPerPage || 10
+      }
+    },
+    manualPagination: true,
+    pageCount: metadata?.pageCount || 0,
+    rowCount: metadata?.itemCount || 0
   });
 
   return (
@@ -151,14 +163,14 @@ export default function DataTable<TData extends Identifiable, TValue>({
       </div>
       <div className="flex items-center justify-between">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {Object.keys(rowSelection).length} of {metadata?.itemCount} row(s)
+          selected.
         </div>
         <div className="flex items-center space-x-2 py-4">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
+            onClick={() => setPage((prev) => prev - 1)}
             disabled={!table.getCanPreviousPage()}
           >
             Previous
@@ -166,7 +178,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
+            onClick={() => setPage((prev) => prev + 1)}
             disabled={!table.getCanNextPage()}
           >
             Next

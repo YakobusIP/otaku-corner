@@ -21,13 +21,18 @@ import {
   fetchAllAnimeService,
   deleteAnimeService
 } from "@/services/anime.service";
+import { MetadataResponse } from "@/types/api.type";
+
+const PAGINATION_SIZE = 10;
 
 export default function Dashboard() {
   const [addedAnimeList, setAddedAnimeList] = useState<Array<AnimeList>>([]);
+  const [animeMetadata, setAnimeMetadata] = useState<MetadataResponse>();
   const [openAddAnimeDialog, setOpenAddAnimeDialog] = useState(false);
   const [isLoadingAnime, setIsLoadingAnime] = useState(false);
   const [isLoadingDeleteAnime, setIsLoadingDeleteAnime] = useState(false);
   const [selectedAnimeRows, setSelectedAnimeRows] = useState({});
+  const [animeListPage, setAnimeListPage] = useState(1);
   const [searchMedia, setSearchMedia] = useState("");
   const [debouncedSearch] = useDebounce(searchMedia, 1000);
 
@@ -37,9 +42,14 @@ export default function Dashboard() {
 
   const fetchAnimeList = useCallback(async () => {
     setIsLoadingAnime(true);
-    const response = await fetchAllAnimeService(debouncedSearch);
+    const response = await fetchAllAnimeService(
+      animeListPage,
+      PAGINATION_SIZE,
+      debouncedSearch
+    );
     if (response.success) {
-      setAddedAnimeList(response.data);
+      setAddedAnimeList(response.data.data);
+      setAnimeMetadata(response.data.metadata);
     } else {
       toastRef.current({
         title: "Uh oh! Something went wrong",
@@ -47,7 +57,7 @@ export default function Dashboard() {
       });
     }
     setIsLoadingAnime(false);
-  }, [debouncedSearch]);
+  }, [animeListPage, debouncedSearch]);
 
   const deleteAnime = async () => {
     setIsLoadingDeleteAnime(true);
@@ -116,6 +126,9 @@ export default function Dashboard() {
               deleteData={deleteAnime}
               isLoadingData={isLoadingAnime}
               isLoadingDeleteData={isLoadingDeleteAnime}
+              page={animeListPage}
+              setPage={setAnimeListPage}
+              metadata={animeMetadata}
             />
           </div>
         </section>

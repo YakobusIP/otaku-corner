@@ -8,7 +8,7 @@ export class ThemeService {
 
   async getTheme(name: string) {
     return prisma.theme.findFirst({
-      where: { name: { equals: name, mode: "insensitive" } },
+      where: { name: { equals: name, mode: "insensitive" } }
     });
   }
 

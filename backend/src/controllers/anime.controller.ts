@@ -8,6 +8,13 @@ export class AnimeController {
 
   getAllAnimes = async (req: Request, res: Response): Promise<void> => {
     try {
+      const currentPage = req.query.currentPage as string;
+      const limitPerPage = req.query.limitPerPage as string;
+
+      if (!currentPage || !limitPerPage) {
+        res.status(422).json({ error: "Pagination query params missing" });
+        return;
+      }
       const query = req.query.q as string;
       const sortBy = req.query.sortBy as string;
       const sortOrder = req.query.sortOrder as Prisma.SortOrder;
@@ -18,6 +25,8 @@ export class AnimeController {
       const filterPersonalScore = req.query.filterPersonalScore as string;
       const filterType = req.query.filterType as string;
       const animes = await this.animeService.getAllAnimes(
+        parseInt(currentPage),
+        parseInt(limitPerPage),
         query,
         sortBy,
         sortOrder,

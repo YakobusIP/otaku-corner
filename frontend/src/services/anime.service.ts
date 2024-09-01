@@ -5,12 +5,18 @@ import {
   AnimePostRequest,
   AnimeReview
 } from "@/types/anime.type";
-import { ApiResponse, MessageResponse } from "@/types/api.type";
+import {
+  ApiResponse,
+  ApiResponseList,
+  MessageResponse
+} from "@/types/api.type";
 import axios, { AxiosError } from "axios";
 
 const BASE_ANIME_URL = "/api/anime";
 
 const fetchAllAnimeService = async (
+  currentPage: number,
+  limitPerPage: number,
   query?: string,
   sortBy?: string,
   sortOrder?: SortOrder,
@@ -20,10 +26,12 @@ const fetchAllAnimeService = async (
   filterMALScore?: string,
   filterPersonalScore?: string,
   filterType?: string
-): Promise<ApiResponse<AnimeList[]>> => {
+): Promise<ApiResponseList<AnimeList[]>> => {
   try {
     const response = await axios.get(BASE_ANIME_URL, {
       params: {
+        currentPage,
+        limitPerPage,
         q: query,
         sortBy,
         sortOrder,
