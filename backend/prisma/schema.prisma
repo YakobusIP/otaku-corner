@@ -49,7 +49,7 @@ model AnimeEpisode {
   title         String
   titleJapanese String?
   titleRomaji   String?
-  anime         Anime   @relation(fields: [animeId], references: [id])
+  anime         Anime   @relation(fields: [animeId], references: [id], onDelete: Cascade)
   animeId       Int
 }
 

@@ -1,53 +1,41 @@
 import { Input } from "@/components/ui/input";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from "@/components/ui/accordion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SortOrder } from "@/enum/general.enum";
-import SortDirection from "@/components/general/anime/anime-list/SortDirection";
-import FilterGenre from "@/components/general/anime/anime-list/FilterGenre";
-import FilterMALScore from "@/components/general/anime/anime-list/FilterMALScore";
 import AnimeCard from "@/components/general/anime/anime-list/AnimeCard";
-import FilterType from "@/components/general/anime/anime-list/FilterType";
+import AnimeFilterSortAccordion from "@/components/global/AnimeFilterSortAccordion";
 import { useToast } from "@/components/ui/use-toast";
 import { fetchAllAnimeService } from "@/services/anime.service";
 import { useDebounce } from "use-debounce";
-import { type AnimeList } from "@/types/anime.type";
-import { Filter, Loader2 } from "lucide-react";
+import type { AnimeFilterSort, AnimeList } from "@/types/anime.type";
+import { Loader2 } from "lucide-react";
 import {
   fetchAllGenreService,
   fetchAllStudioService,
   fetchAllThemeService
 } from "@/services/entity.service";
 import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
-import FilterStudio from "@/components/general/anime/anime-list/FilterStudio";
-import FilterTheme from "@/components/general/anime/anime-list/FilterTheme";
-import FilterPersonalScore from "@/components/general/anime/anime-list/FilterPersonalScore";
-import { Button } from "@/components/ui/button";
+import { MetadataResponse } from "@/types/api.type";
+
+const PAGINATION_SIZE = 10;
 
 export default function AnimeList() {
   const [animeList, setAnimeList] = useState<AnimeList[]>([]);
+  const [animeMetadata, setAnimeMetadata] = useState<MetadataResponse>();
   const [genreList, setGenreList] = useState<GenreEntity[]>([]);
   const [studioList, setStudioList] = useState<StudioEntity[]>([]);
   const [themeList, setThemeList] = useState<ThemeEntity[]>([]);
 
-  const [sortBy, setSortBy] = useState("title");
-  const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.ASCENDING);
-  const [filterGenre, setFilterGenre] = useState<number>();
-  const [filterStudio, setFilterStudio] = useState<number>();
-  const [filterTheme, setFilterTheme] = useState<number>();
-  const [filterMALScore, setFilterMALScore] = useState<string>();
-  const [filterPersonalScore, setFilterPersonalScore] = useState<string>();
-  const [filterType, setFilterType] = useState<string>();
+  const [animeFilterSort, setAnimeFilterSort] = useState<AnimeFilterSort>({
+    sortBy: "title",
+    sortOrder: SortOrder.ASCENDING
+  });
 
   const [isLoadingAnime, setIsLoadingAnime] = useState(false);
   const [isLoadingGenre, setIsLoadingGenre] = useState(false);
   const [isLoadingStudio, setIsLoadingStudio] = useState(false);
   const [isLoadingTheme, setIsLoadingTheme] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchAnime, setSearchAnime] = useState("");
   const [debouncedSearch] = useDebounce(searchAnime, 1000);
 
@@ -55,75 +43,24 @@ export default function AnimeList() {
 
   const toastRef = useRef(toast.toast);
 
-  const handleSort = (key: string) => {
-    if (sortBy === key) {
-      setSortOrder(
-        sortOrder === SortOrder.ASCENDING
-          ? SortOrder.DESCENDING
-          : SortOrder.ASCENDING
-      );
-    } else {
-      setSortBy(key);
-      setSortOrder(SortOrder.ASCENDING);
-    }
-  };
-
-  const handleFilterGenre = (key?: number) => {
-    setFilterGenre(key);
-  };
-
-  const handleFilterStudio = (key?: number) => {
-    setFilterStudio(key);
-  };
-
-  const handleFilterTheme = (key?: number) => {
-    setFilterTheme(key);
-  };
-
-  const handleFilterMALScore = (key?: string) => {
-    setFilterMALScore(key);
-  };
-
-  const handleFilterPersonalScore = (key?: string) => {
-    setFilterPersonalScore(key);
-  };
-
-  const handleFilterType = (key?: string) => {
-    setFilterType(key);
-  };
-
-  const enableClearAllFilter =
-    !filterGenre &&
-    !filterStudio &&
-    !filterTheme &&
-    !filterMALScore &&
-    !filterPersonalScore &&
-    !filterType;
-
-  const handleClearAllFilter = () => {
-    setFilterGenre(undefined);
-    setFilterStudio(undefined);
-    setFilterTheme(undefined);
-    setFilterMALScore(undefined);
-    setFilterPersonalScore(undefined);
-    setFilterType(undefined);
-  };
-
   const fetchAnimeList = useCallback(async () => {
     setIsLoadingAnime(true);
     const response = await fetchAllAnimeService(
+      currentPage,
+      PAGINATION_SIZE,
       debouncedSearch,
-      sortBy,
-      sortOrder,
-      filterGenre,
-      filterStudio,
-      filterTheme,
-      filterMALScore,
-      filterPersonalScore,
-      filterType
+      animeFilterSort.sortBy,
+      animeFilterSort.sortOrder,
+      animeFilterSort.filterGenre,
+      animeFilterSort.filterStudio,
+      animeFilterSort.filterTheme,
+      animeFilterSort.filterMALScore,
+      animeFilterSort.filterPersonalScore,
+      animeFilterSort.filterType
     );
     if (response.success) {
-      setAnimeList(response.data);
+      setAnimeList(response.data.data);
+      setAnimeMetadata(response.data.metadata);
     } else {
       toastRef.current({
         title: "Uh oh! Something went wrong",
@@ -131,17 +68,7 @@ export default function AnimeList() {
       });
     }
     setIsLoadingAnime(false);
-  }, [
-    debouncedSearch,
-    sortBy,
-    sortOrder,
-    filterGenre,
-    filterStudio,
-    filterTheme,
-    filterMALScore,
-    filterPersonalScore,
-    filterType
-  ]);
+  }, [currentPage, debouncedSearch, animeFilterSort]);
 
   const fetchGenreList = useCallback(async () => {
     setIsLoadingGenre(true);
@@ -187,7 +114,7 @@ export default function AnimeList() {
 
   useEffect(() => {
     fetchAnimeList();
-  }, [fetchAnimeList, fetchGenreList, fetchStudioList, fetchThemeList]);
+  }, [fetchAnimeList]);
 
   useEffect(() => {
     fetchGenreList();
@@ -216,66 +143,16 @@ export default function AnimeList() {
         </div>
       </header>
       <main className="container py-4 lg:py-12 px-4 md:px-6 flex flex-col flex-1">
-        <section className="mb-4">
-          <Accordion type="single" collapsible>
-            <AccordionItem value="filter-and-sort">
-              <AccordionTrigger className="hover:no-underline text-lg">
-                <span className="flex items-center justify-center gap-2">
-                  <Filter />
-                  Filter & Sort
-                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="grid grid-cols-1 grid-rows-8 lg:grid-cols-4 lg:grid-rows-2 gap-4">
-                  <SortDirection
-                    sortBy={sortBy}
-                    sortOrder={sortOrder}
-                    handleSort={handleSort}
-                  />
-                  <FilterGenre
-                    genreList={genreList}
-                    isLoadingGenre={isLoadingGenre}
-                    filterGenre={filterGenre}
-                    handleFilterGenre={handleFilterGenre}
-                  />
-                  <FilterStudio
-                    studioList={studioList}
-                    isLoadingStudio={isLoadingStudio}
-                    filterStudio={filterStudio}
-                    handleFilterStudio={handleFilterStudio}
-                  />
-                  <FilterTheme
-                    themeList={themeList}
-                    isLoadingTheme={isLoadingTheme}
-                    filterTheme={filterTheme}
-                    handleFilterTheme={handleFilterTheme}
-                  />
-                  <FilterMALScore
-                    filterMALScore={filterMALScore}
-                    handleFilterMALScore={handleFilterMALScore}
-                  />
-                  <FilterPersonalScore
-                    filterPersonalScore={filterPersonalScore}
-                    handleFilterPersonalScore={handleFilterPersonalScore}
-                  />
-                  <FilterType
-                    filterType={filterType}
-                    handleFilterType={handleFilterType}
-                  />
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full"
-                    disabled={enableClearAllFilter}
-                    onClick={handleClearAllFilter}
-                  >
-                    Clear All
-                  </Button>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </section>
+        <AnimeFilterSortAccordion
+          animeFilterSort={animeFilterSort}
+          setAnimeFilterSort={setAnimeFilterSort}
+          genreList={genreList}
+          isLoadingGenre={isLoadingGenre}
+          studioList={studioList}
+          isLoadingStudio={isLoadingStudio}
+          themeList={themeList}
+          isLoadingTheme={isLoadingTheme}
+        />
         {isLoadingAnime ? (
           <section className="flex flex-col items-center justify-center flex-1">
             <div className="flex items-center justify-center gap-2 lg:gap-4">

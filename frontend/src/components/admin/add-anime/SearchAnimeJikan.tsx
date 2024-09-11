@@ -27,7 +27,7 @@ import { useDebounce } from "use-debounce";
 type Props = {
   chosenAnime?: Anime;
   setChosenAnime: Dispatch<SetStateAction<Anime | undefined>>;
-  setChosenAnimeEpisode: Dispatch<SetStateAction<Array<AnimeEpisode>>>;
+  setChosenAnimeEpisode: Dispatch<SetStateAction<AnimeEpisode[]>>;
   setIsLoadingChosenAnime: Dispatch<SetStateAction<boolean>>;
 };
 

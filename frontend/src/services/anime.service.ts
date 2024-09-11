@@ -108,7 +108,7 @@ const updateAnimeReviewService = async (
 };
 
 const deleteAnimeService = async (
-  ids: Array<string>
+  ids: number[]
 ): Promise<ApiResponse<void>> => {
   try {
     await axios.delete(BASE_ANIME_URL, { data: { ids } });

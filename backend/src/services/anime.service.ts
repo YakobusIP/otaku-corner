@@ -205,7 +205,7 @@ export class AnimeService {
     return prisma.anime.delete({ where: { id } });
   }
 
-  async deleteMultipleAnime(ids: Array<number>) {
+  async deleteMultipleAnime(ids: number[]) {
     return prisma.anime.deleteMany({ where: { id: { in: ids } } });
   }
 }

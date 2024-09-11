@@ -13,7 +13,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import AddAnimeDialog from "@/components/admin/add-anime/AddAnimeDialog";
 import { useToast } from "@/components/ui/use-toast";
-import { AnimeList } from "@/types/anime.type";
+import { AnimeFilterSort, AnimeList } from "@/types/anime.type";
 import DataTable from "@/components/admin/data-table/DataTable";
 import { animeColumns } from "@/components/admin/data-table/AnimeTableColumns";
 import { useDebounce } from "use-debounce";
@@ -22,17 +22,39 @@ import {
   deleteAnimeService
 } from "@/services/anime.service";
 import { MetadataResponse } from "@/types/api.type";
+import { SortOrder } from "@/enum/general.enum";
+import AnimeFilterSortAccordion from "@/components/global/AnimeFilterSortAccordion";
+import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
+import {
+  fetchAllGenreService,
+  fetchAllStudioService,
+  fetchAllThemeService
+} from "@/services/entity.service";
 
 const PAGINATION_SIZE = 10;
 
 export default function Dashboard() {
-  const [addedAnimeList, setAddedAnimeList] = useState<Array<AnimeList>>([]);
+  const [addedAnimeList, setAddedAnimeList] = useState<AnimeList[]>([]);
   const [animeMetadata, setAnimeMetadata] = useState<MetadataResponse>();
+  const [genreList, setGenreList] = useState<GenreEntity[]>([]);
+  const [studioList, setStudioList] = useState<StudioEntity[]>([]);
+  const [themeList, setThemeList] = useState<ThemeEntity[]>([]);
+
   const [openAddAnimeDialog, setOpenAddAnimeDialog] = useState(false);
+
   const [isLoadingAnime, setIsLoadingAnime] = useState(false);
+  const [isLoadingGenre, setIsLoadingGenre] = useState(false);
+  const [isLoadingStudio, setIsLoadingStudio] = useState(false);
+  const [isLoadingTheme, setIsLoadingTheme] = useState(false);
   const [isLoadingDeleteAnime, setIsLoadingDeleteAnime] = useState(false);
+
   const [selectedAnimeRows, setSelectedAnimeRows] = useState({});
   const [animeListPage, setAnimeListPage] = useState(1);
+  const [animeFilterSort, setAnimeFilterSort] = useState<AnimeFilterSort>({
+    sortBy: "title",
+    sortOrder: SortOrder.ASCENDING
+  });
+
   const [searchMedia, setSearchMedia] = useState("");
   const [debouncedSearch] = useDebounce(searchMedia, 1000);
 
@@ -45,7 +67,15 @@ export default function Dashboard() {
     const response = await fetchAllAnimeService(
       animeListPage,
       PAGINATION_SIZE,
-      debouncedSearch
+      debouncedSearch,
+      animeFilterSort.sortBy,
+      animeFilterSort.sortOrder,
+      animeFilterSort.filterGenre,
+      animeFilterSort.filterStudio,
+      animeFilterSort.filterTheme,
+      animeFilterSort.filterMALScore,
+      animeFilterSort.filterPersonalScore,
+      animeFilterSort.filterType
     );
     if (response.success) {
       setAddedAnimeList(response.data.data);
@@ -57,13 +87,62 @@ export default function Dashboard() {
       });
     }
     setIsLoadingAnime(false);
-  }, [animeListPage, debouncedSearch]);
+  }, [animeListPage, debouncedSearch, animeFilterSort]);
+
+  const fetchGenreList = useCallback(async () => {
+    setIsLoadingGenre(true);
+    const response = await fetchAllGenreService();
+    if (response.success) {
+      setGenreList(response.data);
+    } else {
+      toastRef.current({
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
+    }
+    setIsLoadingGenre(false);
+  }, []);
+
+  const fetchStudioList = useCallback(async () => {
+    setIsLoadingStudio(true);
+    const response = await fetchAllStudioService();
+    if (response.success) {
+      setStudioList(response.data);
+    } else {
+      toastRef.current({
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
+    }
+    setIsLoadingStudio(false);
+  }, []);
+
+  const fetchThemeList = useCallback(async () => {
+    setIsLoadingTheme(true);
+    const response = await fetchAllThemeService();
+    if (response.success) {
+      setThemeList(response.data);
+    } else {
+      toastRef.current({
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
+    }
+    setIsLoadingTheme(false);
+  }, []);
 
   const deleteAnime = async () => {
     setIsLoadingDeleteAnime(true);
-    const response = await deleteAnimeService(Object.keys(selectedAnimeRows));
+    const deletedIds = Object.keys(selectedAnimeRows).map((selected) =>
+      parseInt(selected)
+    );
+    const response = await deleteAnimeService(deletedIds);
     if (response.success) {
       fetchAnimeList();
+      toast.toast({
+        title: "All set!",
+        description: `${deletedIds.length} anime(s) deleted successfully`
+      });
     } else {
       toast.toast({
         title: "Uh oh! Something went wrong",
@@ -74,9 +153,16 @@ export default function Dashboard() {
     setIsLoadingDeleteAnime(false);
   };
 
+  const resetParent = useCallback(async () => {
+    await fetchAnimeList();
+    await fetchGenreList();
+    await fetchStudioList();
+    await fetchThemeList();
+  }, [fetchAnimeList, fetchGenreList, fetchStudioList, fetchThemeList]);
+
   useEffect(() => {
-    fetchAnimeList();
-  }, [fetchAnimeList]);
+    resetParent();
+  }, [resetParent]);
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
@@ -109,7 +195,7 @@ export default function Dashboard() {
           <AddAnimeDialog
             openAddAnimeDialog={openAddAnimeDialog}
             setOpenAddAnimeDialog={setOpenAddAnimeDialog}
-            fetchAnimeList={fetchAnimeList}
+            resetParent={resetParent}
           />
         </div>
       </header>
@@ -129,6 +215,18 @@ export default function Dashboard() {
               page={animeListPage}
               setPage={setAnimeListPage}
               metadata={animeMetadata}
+              filterSortComponent={
+                <AnimeFilterSortAccordion
+                  animeFilterSort={animeFilterSort}
+                  setAnimeFilterSort={setAnimeFilterSort}
+                  genreList={genreList}
+                  isLoadingGenre={isLoadingGenre}
+                  studioList={studioList}
+                  isLoadingStudio={isLoadingStudio}
+                  themeList={themeList}
+                  isLoadingTheme={isLoadingTheme}
+                />
+              }
             />
           </div>
         </section>

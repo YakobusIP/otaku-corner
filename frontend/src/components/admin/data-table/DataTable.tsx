@@ -14,10 +14,9 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, ReactNode, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash2 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
 import { MetadataResponse } from "@/types/api.type";
 interface Identifiable {
   id: string;
@@ -25,6 +24,7 @@ interface Identifiable {
 
 interface DataTableProps<TData extends Identifiable, TValue> {
   title: string;
+  filterSortComponent?: ReactNode;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   rowSelection: RowSelectionState;
@@ -39,6 +39,7 @@ interface DataTableProps<TData extends Identifiable, TValue> {
 
 export default function DataTable<TData extends Identifiable, TValue>({
   title,
+  filterSortComponent,
   columns,
   data,
   rowSelection,
@@ -70,7 +71,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
 
   return (
     <div>
-      <div className="flex flex-col gap-2 mb-2">
+      <div className="flex flex-col">
         <div className="flex justify-between items-center">
           <h2>{title}</h2>
           <Button
@@ -86,7 +87,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
             Delete
           </Button>
         </div>
-        <Separator />
+        {filterSortComponent}
       </div>
       <div className="rounded-md border">
         <Table>

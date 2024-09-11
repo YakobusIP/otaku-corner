@@ -25,19 +25,19 @@ import { addAnimeService } from "@/services/anime.service";
 type Props = {
   openAddAnimeDialog: boolean;
   setOpenAddAnimeDialog: Dispatch<SetStateAction<boolean>>;
-  fetchAnimeList: () => Promise<void>;
+  resetParent: () => Promise<void>;
 };
 
 export default function AddAnimeDialog({
   openAddAnimeDialog,
   setOpenAddAnimeDialog,
-  fetchAnimeList
+  resetParent
 }: Props) {
   const [isLoadingChosenAnime, setIsLoadingChosenAnime] = useState(false);
   const [chosenAnime, setChosenAnime] = useState<Anime>();
-  const [chosenAnimeEpisode, setChosenAnimeEpisode] = useState<
-    Array<AnimeEpisode>
-  >([]);
+  const [chosenAnimeEpisode, setChosenAnimeEpisode] = useState<AnimeEpisode[]>(
+    []
+  );
   const [isLoadingAddAnime, setIsLoadingAddAnime] = useState(false);
 
   const toast = useToast();
@@ -128,7 +128,7 @@ export default function AddAnimeDialog({
       });
 
       setChosenAnime(undefined);
-      fetchAnimeList();
+      resetParent();
       setOpenAddAnimeDialog(false);
     } else {
       toast.toast({

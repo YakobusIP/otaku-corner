@@ -1,3 +1,4 @@
+import { SortOrder } from "@/enum/general.enum";
 import {
   GenreEntityPartial,
   StudioEntityPartial,
@@ -81,4 +82,21 @@ type AnimeReview = Pick<
   | "personalScore"
 >;
 
-export type { AnimePostRequest, AnimeDetail, AnimeList, AnimeReview };
+type AnimeFilterSort = {
+  sortBy: string;
+  sortOrder: SortOrder;
+  filterGenre?: number;
+  filterStudio?: number;
+  filterTheme?: number;
+  filterMALScore?: string;
+  filterPersonalScore?: string;
+  filterType?: string;
+};
+
+export type {
+  AnimePostRequest,
+  AnimeDetail,
+  AnimeList,
+  AnimeReview,
+  AnimeFilterSort
+};
