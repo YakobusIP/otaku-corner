@@ -29,6 +29,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function GeneralAnimeDetail() {
   const [animeDetail, setAnimeDetail] = useState<AnimeDetail>();
   const [isLoadingAnimeDetail, setIsLoadingAnimeDetail] = useState(false);
+
+  const calculateEpisodeNumberTitle = () => {
+    if (window.innerWidth < 1024) return "No";
+    else return "Episode Number";
+  };
+
+  const [episodeNumberTitle, setEpisodeNumberTitle] = useState(
+    calculateEpisodeNumberTitle()
+  );
   const { animeId } = useParams();
 
   const embedURL = animeDetail?.trailer?.replace(
@@ -57,11 +66,23 @@ export default function GeneralAnimeDetail() {
     fetchAnimeById();
   }, [fetchAnimeById]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setEpisodeNumberTitle(calculateEpisodeNumberTitle());
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return !isLoadingAnimeDetail && animeDetail ? (
-    <div className="text-foreground">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 lg:gap-12">
-          <div className="flex flex-col gap-16">
+    <div className="text-foreground space-y-8 pb-8">
+      <header className="bg-primary text-primary-foreground py-12">
+        <div className="container flex flex-col-reverse lg:flex-row items-center justify-center gap-16">
+          <div className="flex flex-col gap-4 lg:gap-16 w-full lg:w-4/5">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-3xl sm:text-4xl font-bold">
@@ -71,7 +92,7 @@ export default function GeneralAnimeDetail() {
                   ({animeDetail.titleJapanese})
                 </h2>
               </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground mt-2">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm mt-2">
                 <div>
                   Studio:{" "}
                   {animeDetail.studios.map((studio) => studio.name).join(", ")}
@@ -83,7 +104,9 @@ export default function GeneralAnimeDetail() {
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
                 {animeDetail.genres.map((genre) => (
-                  <Badge key={genre.id}>{genre.name}</Badge>
+                  <Badge key={genre.id} variant="secondary">
+                    {genre.name}
+                  </Badge>
                 ))}
                 {animeDetail.themes.map((theme) => (
                   <Badge key={theme.id} variant="secondary">
@@ -99,7 +122,7 @@ export default function GeneralAnimeDetail() {
                     key={i}
                     className={`w-5 h-5 ${
                       i < Math.round(animeDetail.score / 2)
-                        ? "text-primary"
+                        ? "text-primary-foreground"
                         : "text-muted-foreground"
                     }`}
                   />
@@ -114,9 +137,9 @@ export default function GeneralAnimeDetail() {
               </p>
             </div>
           </div>
-          <div className="grid gap-8">
-            <Card>
-              <CardContent className="p-0">
+          <Card>
+            <CardContent className="p-0">
+              <div className="aspect-[3/4] overflow-hidden">
                 <img
                   src={
                     animeDetail.images.large_image_url ||
@@ -125,52 +148,57 @@ export default function GeneralAnimeDetail() {
                   alt={animeDetail.title}
                   className="w-full h-auto rounded-t-lg object-cover"
                 />
-                <div className="p-6">
-                  <div className="grid gap-4">
-                    <div className="flex items-center gap-2">
-                      <FilmIcon className="w-5 h-5" />
-                      <div className="text-lg font-semibold">12 Episodes</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <ClockIcon className="w-5 h-5" />
-                      <div>24 min per ep</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CalendarIcon className="w-5 h-5" />
-                      <div>Apr 9, 2022 to Jun 25, 2022</div>
-                    </div>
+              </div>
+              <Separator />
+              <div className="p-6">
+                <div className="grid gap-4">
+                  <div className="flex items-center gap-2">
+                    <FilmIcon className="w-5 h-5" />
+                    <div className="text-lg font-semibold">12 Episodes</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ClockIcon className="w-5 h-5" />
+                    <div>24 min per ep</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="w-5 h-5" />
+                    <div>Apr 9, 2022 to Jun 25, 2022</div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Trailer</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="aspect-video">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src={embedURL}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title="Anime Trailer"
-                  ></iframe>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <Separator className="my-4 lg:my-8" />
+      </header>
+      <section className="container flex items-center justify-center">
+        <Card className="w-full lg:w-2/5">
+          <CardHeader>
+            <CardTitle>Trailer</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="aspect-video">
+              <iframe
+                width="100%"
+                height="100%"
+                src={embedURL}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="Anime Trailer"
+              ></iframe>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+      <div className="container">
+        <Separator className="mb-4" />
         <div className="flex flex-col gap-4">
           <h3>Episodes</h3>
           <Table>
             <TableCaption>{animeDetail.title}'s list of episodes</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px] lg:w-[150px]">
-                  Episode number
+                <TableHead className="w-[40px] lg:w-[150px]">
+                  {episodeNumberTitle}
                 </TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead className="text-center">Airing Date</TableHead>

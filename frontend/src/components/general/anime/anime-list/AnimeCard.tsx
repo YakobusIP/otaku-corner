@@ -12,7 +12,7 @@ type Props = {
 export default function AnimeCard({ anime }: Props) {
   return (
     <Link to={`/anime/${anime.id}`}>
-      <Card>
+      <Card className="hover:drop-shadow-xl">
         <div className="relative">
           <div className="relative aspect-[3/4] overflow-hidden">
             <img
