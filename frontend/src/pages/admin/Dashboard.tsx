@@ -30,17 +30,17 @@ import {
   fetchAllStudioService,
   fetchAllThemeService
 } from "@/services/entity.service";
+import AddMangaDialog from "@/components/admin/add-manga/AddMangaDialog";
 
 const PAGINATION_SIZE = 10;
 
 export default function Dashboard() {
+  const [openAddAnimeDialog, setOpenAddAnimeDialog] = useState(false);
   const [addedAnimeList, setAddedAnimeList] = useState<AnimeList[]>([]);
   const [animeMetadata, setAnimeMetadata] = useState<MetadataResponse>();
   const [genreList, setGenreList] = useState<GenreEntity[]>([]);
   const [studioList, setStudioList] = useState<StudioEntity[]>([]);
   const [themeList, setThemeList] = useState<ThemeEntity[]>([]);
-
-  const [openAddAnimeDialog, setOpenAddAnimeDialog] = useState(false);
 
   const [isLoadingAnime, setIsLoadingAnime] = useState(false);
   const [isLoadingGenre, setIsLoadingGenre] = useState(false);
@@ -54,6 +54,8 @@ export default function Dashboard() {
     sortBy: "title",
     sortOrder: SortOrder.ASCENDING
   });
+
+  const [openAddMangaDialog, setOpenAddMangaDialog] = useState(false);
 
   const [searchMedia, setSearchMedia] = useState("");
   const [debouncedSearch] = useDebounce(searchMedia, 1000);
@@ -195,6 +197,11 @@ export default function Dashboard() {
           <AddAnimeDialog
             openAddAnimeDialog={openAddAnimeDialog}
             setOpenAddAnimeDialog={setOpenAddAnimeDialog}
+            resetParent={resetParent}
+          />
+          <AddMangaDialog
+            openAddMangaDialog={openAddMangaDialog}
+            setOpenAddMangaDialog={setOpenAddMangaDialog}
             resetParent={resetParent}
           />
         </div>

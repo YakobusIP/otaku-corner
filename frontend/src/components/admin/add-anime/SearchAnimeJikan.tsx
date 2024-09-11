@@ -75,8 +75,6 @@ export default function SearchAnimeJikan({
       });
   };
 
-  // TODO: Fix overflowing popover trigger on long anime titles
-
   return (
     <Popover open={openAnimeList} onOpenChange={setOpenAnimeList}>
       <PopoverTrigger asChild>

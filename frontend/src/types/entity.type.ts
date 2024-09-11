@@ -25,11 +25,22 @@ type ThemeEntity = {
 
 type ThemeEntityPartial = Pick<ThemeEntity, "id" | "name">;
 
+type AuthorEntity = {
+  id: number;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type AuthorEntityPartial = Pick<AuthorEntity, "id" | "name">;
+
 export type {
   GenreEntity,
   GenreEntityPartial,
   StudioEntity,
   StudioEntityPartial,
   ThemeEntity,
-  ThemeEntityPartial
+  ThemeEntityPartial,
+  AuthorEntity,
+  AuthorEntityPartial
 };
