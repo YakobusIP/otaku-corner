@@ -10,6 +10,7 @@ import { Check, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { GenreEntity } from "@/types/entity.type";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Props = {
   genreList: GenreEntity[];
@@ -55,22 +56,24 @@ export default function FilterGenre({
           All Genres
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {genreList.map((genre) => {
-          return (
-            <DropdownMenuItem
-              key={genre.id}
-              onClick={() => handleFilterGenre(genre.id)}
-            >
-              <Check
-                className={cn(
-                  "mr-2 h-4 w-4",
-                  filterGenre === genre.id ? "opacity-100" : "opacity-0"
-                )}
-              />
-              {genre.name}
-            </DropdownMenuItem>
-          );
-        })}
+        <ScrollArea className="h-[200px]">
+          {genreList.map((genre) => {
+            return (
+              <DropdownMenuItem
+                key={genre.id}
+                onClick={() => handleFilterGenre(genre.id)}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    filterGenre === genre.id ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                {genre.name}
+              </DropdownMenuItem>
+            );
+          })}
+        </ScrollArea>
       </DropdownMenuContent>
     </DropdownMenu>
   );

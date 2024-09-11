@@ -15,8 +15,7 @@ import {
 } from "@/services/entity.service";
 import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
 import { MetadataResponse } from "@/types/api.type";
-
-const PAGINATION_SIZE = 10;
+import GlobalPagination from "@/components/global/GlobalPagination";
 
 export default function AnimeList() {
   const [animeList, setAnimeList] = useState<AnimeList[]>([]);
@@ -35,7 +34,16 @@ export default function AnimeList() {
   const [isLoadingStudio, setIsLoadingStudio] = useState(false);
   const [isLoadingTheme, setIsLoadingTheme] = useState(false);
 
+  const calculateLimitPerPage = () => {
+    if (window.innerWidth < 640) return 10;
+    else if (window.innerWidth >= 640 && window.innerWidth < 768) return 10;
+    else if (window.innerWidth >= 768 && window.innerWidth < 1024) return 9;
+    else if (window.innerWidth >= 1024 && window.innerWidth < 1280) return 8;
+    else return 10;
+  };
+
   const [currentPage, setCurrentPage] = useState(1);
+  const [limitPerPage, setLimitPerPage] = useState(calculateLimitPerPage());
   const [searchAnime, setSearchAnime] = useState("");
   const [debouncedSearch] = useDebounce(searchAnime, 1000);
 
@@ -47,7 +55,7 @@ export default function AnimeList() {
     setIsLoadingAnime(true);
     const response = await fetchAllAnimeService(
       currentPage,
-      PAGINATION_SIZE,
+      limitPerPage,
       debouncedSearch,
       animeFilterSort.sortBy,
       animeFilterSort.sortOrder,
@@ -68,7 +76,7 @@ export default function AnimeList() {
       });
     }
     setIsLoadingAnime(false);
-  }, [currentPage, debouncedSearch, animeFilterSort]);
+  }, [currentPage, limitPerPage, debouncedSearch, animeFilterSort]);
 
   const fetchGenreList = useCallback(async () => {
     setIsLoadingGenre(true);
@@ -114,13 +122,22 @@ export default function AnimeList() {
 
   useEffect(() => {
     fetchAnimeList();
-  }, [fetchAnimeList]);
-
-  useEffect(() => {
     fetchGenreList();
     fetchStudioList();
     fetchThemeList();
-  }, [fetchGenreList, fetchStudioList, fetchThemeList]);
+  }, [fetchAnimeList, fetchGenreList, fetchStudioList, fetchThemeList]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setLimitPerPage(calculateLimitPerPage());
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
@@ -168,10 +185,19 @@ export default function AnimeList() {
             </div>
           </section>
         ) : (
-          <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {animeList.map((anime) => {
-              return <AnimeCard key={anime.id} anime={anime} />;
-            })}
+          <section className="flex flex-col items-center justify-center gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {animeList.map((anime) => {
+                return <AnimeCard key={anime.id} anime={anime} />;
+              })}
+            </div>
+            {animeMetadata && (
+              <GlobalPagination
+                metadata={animeMetadata}
+                page={currentPage}
+                setPage={setCurrentPage}
+              />
+            )}
           </section>
         )}
       </main>

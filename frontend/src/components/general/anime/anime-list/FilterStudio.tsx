@@ -10,6 +10,7 @@ import { Check, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { StudioEntity } from "@/types/entity.type";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Props = {
   studioList: StudioEntity[];
@@ -55,22 +56,24 @@ export default function FilterStudio({
           All Studios
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {studioList.map((studio) => {
-          return (
-            <DropdownMenuItem
-              key={studio.id}
-              onClick={() => handleFilterStudio(studio.id)}
-            >
-              <Check
-                className={cn(
-                  "mr-2 h-4 w-4",
-                  filterStudio === studio.id ? "opacity-100" : "opacity-0"
-                )}
-              />
-              {studio.name}
-            </DropdownMenuItem>
-          );
-        })}
+        <ScrollArea className="h-[200px]">
+          {studioList.map((studio) => {
+            return (
+              <DropdownMenuItem
+                key={studio.id}
+                onClick={() => handleFilterStudio(studio.id)}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    filterStudio === studio.id ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                {studio.name}
+              </DropdownMenuItem>
+            );
+          })}
+        </ScrollArea>
       </DropdownMenuContent>
     </DropdownMenu>
   );

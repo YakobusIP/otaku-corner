@@ -10,6 +10,7 @@ import { Check, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { ThemeEntity } from "@/types/entity.type";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Props = {
   themeList: ThemeEntity[];
@@ -55,22 +56,24 @@ export default function FilterTheme({
           All Themes
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {themeList.map((theme) => {
-          return (
-            <DropdownMenuItem
-              key={theme.id}
-              onClick={() => handleFilterTheme(theme.id)}
-            >
-              <Check
-                className={cn(
-                  "mr-2 h-4 w-4",
-                  filterTheme === theme.id ? "opacity-100" : "opacity-0"
-                )}
-              />
-              {theme.name}
-            </DropdownMenuItem>
-          );
-        })}
+        <ScrollArea className="h-[200px]">
+          {themeList.map((theme) => {
+            return (
+              <DropdownMenuItem
+                key={theme.id}
+                onClick={() => handleFilterTheme(theme.id)}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    filterTheme === theme.id ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                {theme.name}
+              </DropdownMenuItem>
+            );
+          })}
+        </ScrollArea>
       </DropdownMenuContent>
     </DropdownMenu>
   );
