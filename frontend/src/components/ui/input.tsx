@@ -5,16 +5,17 @@ import { LucideIcon } from "lucide-react";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
+  parentClassName?: string;
   startIcon?: LucideIcon;
   endIcon?: LucideIcon;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, startIcon, endIcon, ...props }, ref) => {
+  ({ className, type, parentClassName, startIcon, endIcon, ...props }, ref) => {
     const StartIcon = startIcon;
     const EndIcon = endIcon;
     return startIcon || endIcon ? (
-      <div className="w-full relative">
+      <div className={cn("relative", parentClassName)}>
         {StartIcon && (
           <div className="absolute left-1.5 top-1/2 transform -translate-y-1/2">
             <StartIcon size={18} className="text-muted-foreground" />

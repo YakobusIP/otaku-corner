@@ -20,8 +20,8 @@ const fetchAllMangaService = async (
   query?: string,
   sortBy?: string,
   sortOrder?: SortOrder,
+  filterAuthor?: number,
   filterGenre?: number,
-  filterStudio?: number,
   filterTheme?: number,
   filterMALScore?: string,
   filterPersonalScore?: string
@@ -34,8 +34,8 @@ const fetchAllMangaService = async (
         q: query,
         sortBy,
         sortOrder,
+        filterAuthor,
         filterGenre,
-        filterStudio,
         filterTheme,
         filterMALScore,
         filterPersonalScore

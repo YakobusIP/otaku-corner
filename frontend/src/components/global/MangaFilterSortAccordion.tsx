@@ -9,38 +9,37 @@ import { Filter } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { SortOrder } from "@/enum/general.enum";
 import SortDirection from "@/components/global/sort-and-filters/SortDirection";
+import FilterAuthor from "@/components/global/sort-and-filters/FilterAuthor";
 import FilterGenre from "@/components/global/sort-and-filters/FilterGenre";
-import FilterStudio from "@/components/global/sort-and-filters/FilterStudio";
 import FilterTheme from "@/components/global/sort-and-filters/FilterTheme";
 import FilterMALScore from "@/components/global/sort-and-filters/FilterMALScore";
 import FilterPersonalScore from "@/components/global/sort-and-filters/FilterPersonalScore";
-import FilterType from "@/components/global/sort-and-filters/FilterType";
-import { AnimeFilterSort } from "@/types/anime.type";
-import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
+import { MangaFilterSort } from "@/types/manga.type";
+import { GenreEntity, AuthorEntity, ThemeEntity } from "@/types/entity.type";
 
 type Props = {
-  animeFilterSort: AnimeFilterSort;
-  setAnimeFilterSort: Dispatch<SetStateAction<AnimeFilterSort>>;
+  mangaFilterSort: MangaFilterSort;
+  setMangaFilterSort: Dispatch<SetStateAction<MangaFilterSort>>;
   genreList: GenreEntity[];
   isLoadingGenre: boolean;
-  studioList: StudioEntity[];
-  isLoadingStudio: boolean;
+  authorList: AuthorEntity[];
+  isLoadingAuthor: boolean;
   themeList: ThemeEntity[];
   isLoadingTheme: boolean;
 };
 
-export default function AnimeFilterSortAccordion({
-  animeFilterSort,
-  setAnimeFilterSort,
+export default function MangaFilterSortAccordion({
+  mangaFilterSort,
+  setMangaFilterSort,
   genreList,
   isLoadingGenre,
-  studioList,
-  isLoadingStudio,
+  authorList,
+  isLoadingAuthor,
   themeList,
   isLoadingTheme
 }: Props) {
   const handleSort = (key: string) => {
-    setAnimeFilterSort((prev) => ({
+    setMangaFilterSort((prev) => ({
       ...prev,
       sortBy: key,
       sortOrder:
@@ -52,65 +51,56 @@ export default function AnimeFilterSortAccordion({
     }));
   };
 
+  const handleFilterAuthor = (key?: number) => {
+    setMangaFilterSort((prev) => ({
+      ...prev,
+      filterAuthor: key
+    }));
+  };
+
   const handleFilterGenre = (key?: number) => {
-    setAnimeFilterSort((prev) => ({
+    setMangaFilterSort((prev) => ({
       ...prev,
       filterGenre: key
     }));
   };
 
-  const handleFilterStudio = (key?: number) => {
-    setAnimeFilterSort((prev) => ({
-      ...prev,
-      filterStudio: key
-    }));
-  };
-
   const handleFilterTheme = (key?: number) => {
-    setAnimeFilterSort((prev) => ({
+    setMangaFilterSort((prev) => ({
       ...prev,
       filterTheme: key
     }));
   };
 
   const handleFilterMALScore = (key?: string) => {
-    setAnimeFilterSort((prev) => ({
+    setMangaFilterSort((prev) => ({
       ...prev,
       filterMALScore: key
     }));
   };
 
   const handleFilterPersonalScore = (key?: string) => {
-    setAnimeFilterSort((prev) => ({
+    setMangaFilterSort((prev) => ({
       ...prev,
       filterPersonalScore: key
     }));
   };
 
-  const handleFilterType = (key?: string) => {
-    setAnimeFilterSort((prev) => ({
-      ...prev,
-      filterType: key
-    }));
-  };
-
   const enableClearAllFilter =
-    !animeFilterSort.filterGenre &&
-    !animeFilterSort.filterStudio &&
-    !animeFilterSort.filterTheme &&
-    !animeFilterSort.filterMALScore &&
-    !animeFilterSort.filterPersonalScore &&
-    !animeFilterSort.filterType;
+    !mangaFilterSort.filterAuthor &&
+    !mangaFilterSort.filterGenre &&
+    !mangaFilterSort.filterTheme &&
+    !mangaFilterSort.filterMALScore &&
+    !mangaFilterSort.filterPersonalScore;
 
   const handleClearAllFilter = () => {
-    setAnimeFilterSort((prev) => ({
+    setMangaFilterSort((prev) => ({
       ...prev,
+      filterAuthor: undefined,
       filterGenre: undefined,
-      filterStudio: undefined,
       filterTheme: undefined,
       filterMALScore: undefined,
-      filterPersonalScore: undefined,
-      filterType: undefined
+      filterPersonalScore: undefined
     }));
   };
 
@@ -129,39 +119,35 @@ export default function AnimeFilterSortAccordion({
           <AccordionContent>
             <div className="grid grid-cols-1 grid-rows-8 lg:grid-cols-4 lg:grid-rows-2 gap-4">
               <SortDirection
-                sortBy={animeFilterSort.sortBy}
-                sortOrder={animeFilterSort.sortOrder}
+                sortBy={mangaFilterSort.sortBy}
+                sortOrder={mangaFilterSort.sortOrder}
                 handleSort={handleSort}
+              />
+              <FilterAuthor
+                authorList={authorList}
+                isLoadingAuthor={isLoadingAuthor}
+                filterAuthor={mangaFilterSort.filterAuthor}
+                handleFilterAuthor={handleFilterAuthor}
               />
               <FilterGenre
                 genreList={genreList}
                 isLoadingGenre={isLoadingGenre}
-                filterGenre={animeFilterSort.filterGenre}
+                filterGenre={mangaFilterSort.filterGenre}
                 handleFilterGenre={handleFilterGenre}
-              />
-              <FilterStudio
-                studioList={studioList}
-                isLoadingStudio={isLoadingStudio}
-                filterStudio={animeFilterSort.filterStudio}
-                handleFilterStudio={handleFilterStudio}
               />
               <FilterTheme
                 themeList={themeList}
                 isLoadingTheme={isLoadingTheme}
-                filterTheme={animeFilterSort.filterTheme}
+                filterTheme={mangaFilterSort.filterTheme}
                 handleFilterTheme={handleFilterTheme}
               />
               <FilterMALScore
-                filterMALScore={animeFilterSort.filterMALScore}
+                filterMALScore={mangaFilterSort.filterMALScore}
                 handleFilterMALScore={handleFilterMALScore}
               />
               <FilterPersonalScore
-                filterPersonalScore={animeFilterSort.filterPersonalScore}
+                filterPersonalScore={mangaFilterSort.filterPersonalScore}
                 handleFilterPersonalScore={handleFilterPersonalScore}
-              />
-              <FilterType
-                filterType={animeFilterSort.filterType}
-                handleFilterType={handleFilterType}
               />
               <Button
                 variant="destructive"

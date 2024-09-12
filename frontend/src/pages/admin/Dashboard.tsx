@@ -1,52 +1,73 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { FilterIcon, Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/input";
+import { DropdownChecked } from "@/components/ui/dropdown-menu";
+import { Search } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import AddAnimeDialog from "@/components/admin/add-anime/AddAnimeDialog";
-import { useToast } from "@/components/ui/use-toast";
-import { AnimeFilterSort, AnimeList } from "@/types/anime.type";
+import AddMangaDialog from "@/components/admin/add-manga/AddMangaDialog";
 import DataTable from "@/components/admin/data-table/DataTable";
 import { animeColumns } from "@/components/admin/data-table/AnimeTableColumns";
+import { mangaColumns } from "@/components/admin/data-table/MangaTableColumns";
 import { useDebounce } from "use-debounce";
 import {
   fetchAllAnimeService,
   deleteAnimeService
 } from "@/services/anime.service";
-import { MetadataResponse } from "@/types/api.type";
-import { SortOrder } from "@/enum/general.enum";
-import AnimeFilterSortAccordion from "@/components/global/AnimeFilterSortAccordion";
-import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
+import { AnimeFilterSort, AnimeList } from "@/types/anime.type";
 import {
+  deleteMangaService,
+  fetchAllMangaService
+} from "@/services/manga.service";
+import { MangaFilterSort, MangaList } from "@/types/manga.type";
+import {
+  fetchAllAuthorService,
   fetchAllGenreService,
   fetchAllStudioService,
   fetchAllThemeService
 } from "@/services/entity.service";
-import AddMangaDialog from "@/components/admin/add-manga/AddMangaDialog";
+import {
+  AuthorEntity,
+  GenreEntity,
+  StudioEntity,
+  ThemeEntity
+} from "@/types/entity.type";
+import { MetadataResponse } from "@/types/api.type";
+import { SortOrder } from "@/enum/general.enum";
+import AnimeFilterSortAccordion from "@/components/global/AnimeFilterSortAccordion";
+import MangaFilterSortAccordion from "@/components/global/MangaFilterSortAccordion";
+import MediaFilter from "@/components/admin/MediaFilter";
 
-const PAGINATION_SIZE = 10;
+const PAGINATION_SIZE = 5;
 
 export default function Dashboard() {
+  const [mediaFilters, setMediaFilters] = useState<DropdownChecked[]>([
+    true,
+    true,
+    true
+  ]);
+
   const [openAddAnimeDialog, setOpenAddAnimeDialog] = useState(false);
   const [addedAnimeList, setAddedAnimeList] = useState<AnimeList[]>([]);
   const [animeMetadata, setAnimeMetadata] = useState<MetadataResponse>();
+
+  const [openAddMangaDialog, setOpenAddMangaDialog] = useState(false);
+  const [addedMangaList, setAddedMangaList] = useState<MangaList[]>([]);
+  const [mangaMetadata, setMangaMetadata] = useState<MetadataResponse>();
+
   const [genreList, setGenreList] = useState<GenreEntity[]>([]);
   const [studioList, setStudioList] = useState<StudioEntity[]>([]);
   const [themeList, setThemeList] = useState<ThemeEntity[]>([]);
+  const [authorList, setAuthorList] = useState<AuthorEntity[]>([]);
 
   const [isLoadingAnime, setIsLoadingAnime] = useState(false);
+  const [isLoadingManga, setIsLoadingManga] = useState(false);
   const [isLoadingGenre, setIsLoadingGenre] = useState(false);
   const [isLoadingStudio, setIsLoadingStudio] = useState(false);
   const [isLoadingTheme, setIsLoadingTheme] = useState(false);
+  const [isLoadingAuthor, setIsLoadingAuthor] = useState(false);
   const [isLoadingDeleteAnime, setIsLoadingDeleteAnime] = useState(false);
+  const [isLoadingDeleteManga, setIsLoadingDeleteManga] = useState(false);
 
   const [selectedAnimeRows, setSelectedAnimeRows] = useState({});
   const [animeListPage, setAnimeListPage] = useState(1);
@@ -55,7 +76,12 @@ export default function Dashboard() {
     sortOrder: SortOrder.ASCENDING
   });
 
-  const [openAddMangaDialog, setOpenAddMangaDialog] = useState(false);
+  const [selectedMangaRows, setSelectedMangaRows] = useState({});
+  const [mangaListPage, setMangaListPage] = useState(1);
+  const [mangaFilterSort, setMangaFilterSort] = useState<MangaFilterSort>({
+    sortBy: "title",
+    sortOrder: SortOrder.ASCENDING
+  });
 
   const [searchMedia, setSearchMedia] = useState("");
   const [debouncedSearch] = useDebounce(searchMedia, 1000);
@@ -64,7 +90,14 @@ export default function Dashboard() {
 
   const toastRef = useRef(toast.toast);
 
+  const handleMediaFilters = (index: number, checked: DropdownChecked) => {
+    setMediaFilters((prevFilters) =>
+      prevFilters.map((state, i) => (i === index ? checked : state))
+    );
+  };
+
   const fetchAnimeList = useCallback(async () => {
+    if (!mediaFilters[0]) return;
     setIsLoadingAnime(true);
     const response = await fetchAllAnimeService(
       animeListPage,
@@ -89,7 +122,34 @@ export default function Dashboard() {
       });
     }
     setIsLoadingAnime(false);
-  }, [animeListPage, debouncedSearch, animeFilterSort]);
+  }, [mediaFilters, animeListPage, debouncedSearch, animeFilterSort]);
+
+  const fetchMangaList = useCallback(async () => {
+    if (!mediaFilters[1]) return;
+    setIsLoadingManga(true);
+    const response = await fetchAllMangaService(
+      mangaListPage,
+      PAGINATION_SIZE,
+      debouncedSearch,
+      mangaFilterSort.sortBy,
+      mangaFilterSort.sortOrder,
+      mangaFilterSort.filterAuthor,
+      mangaFilterSort.filterGenre,
+      mangaFilterSort.filterTheme,
+      mangaFilterSort.filterMALScore,
+      mangaFilterSort.filterPersonalScore
+    );
+    if (response.success) {
+      setAddedMangaList(response.data.data);
+      setMangaMetadata(response.data.metadata);
+    } else {
+      toastRef.current({
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
+    }
+    setIsLoadingManga(false);
+  }, [mediaFilters, mangaListPage, debouncedSearch, mangaFilterSort]);
 
   const fetchGenreList = useCallback(async () => {
     setIsLoadingGenre(true);
@@ -117,6 +177,20 @@ export default function Dashboard() {
       });
     }
     setIsLoadingStudio(false);
+  }, []);
+
+  const fetchAuthorList = useCallback(async () => {
+    setIsLoadingAuthor(true);
+    const response = await fetchAllAuthorService();
+    if (response.success) {
+      setAuthorList(response.data);
+    } else {
+      toastRef.current({
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
+    }
+    setIsLoadingAuthor(false);
   }, []);
 
   const fetchThemeList = useCallback(async () => {
@@ -155,86 +229,147 @@ export default function Dashboard() {
     setIsLoadingDeleteAnime(false);
   };
 
-  const resetParent = useCallback(async () => {
+  const deleteManga = async () => {
+    setIsLoadingDeleteManga(true);
+    const deletedIds = Object.keys(selectedMangaRows).map((selected) =>
+      parseInt(selected)
+    );
+    const response = await deleteMangaService(deletedIds);
+    if (response.success) {
+      fetchMangaList();
+      toast.toast({
+        title: "All set!",
+        description: `${deletedIds.length} manga(s) deleted successfully`
+      });
+    } else {
+      toast.toast({
+        title: "Uh oh! Something went wrong",
+        description: "There was a problem with your request."
+      });
+    }
+    setSelectedMangaRows({});
+    setIsLoadingDeleteManga(false);
+  };
+
+  const resetFilter = useCallback(async () => {
+    await fetchGenreList();
+    await fetchStudioList();
+    await fetchThemeList();
+    await fetchAuthorList();
+  }, [fetchGenreList, fetchStudioList, fetchThemeList, fetchAuthorList]);
+
+  const resetAnimeParent = useCallback(async () => {
     await fetchAnimeList();
     await fetchGenreList();
     await fetchStudioList();
     await fetchThemeList();
   }, [fetchAnimeList, fetchGenreList, fetchStudioList, fetchThemeList]);
 
+  const resetMangaParent = useCallback(async () => {
+    await fetchMangaList();
+    await fetchAuthorList();
+    await fetchGenreList();
+    await fetchThemeList();
+  }, [fetchMangaList, fetchAuthorList, fetchGenreList, fetchThemeList]);
+
   useEffect(() => {
-    resetParent();
-  }, [resetParent]);
+    if (mediaFilters[0]) fetchAnimeList();
+    if (mediaFilters[1]) fetchMangaList();
+  }, [mediaFilters, fetchAnimeList, fetchMangaList]);
+
+  useEffect(() => {
+    resetFilter();
+  }, [resetFilter]);
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <header className="bg-background border-b px-4 py-3 lg:px-6 lg:py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Input
-            type="text"
-            placeholder="Search"
-            startIcon={Search}
-            className="w-full lg:w-[300px]"
-            onChange={(e) => setSearchMedia(e.target.value)}
-          />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                <FilterIcon className="w-4 h-4" />
-                <span className="sr-only lg:not-sr-only lg:whitespace-nowrap">
-                  Filter
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuCheckboxItem>Anime</DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem>Manga</DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem>Light Novels</DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      <header className="bg-background border-b px-4 py-3 lg:px-6 lg:py-4">
+        <div className="flex flex-col lg:flex-row items-center w-full gap-4">
+          <div className="flex w-full lg:w-fit gap-4">
+            <Input
+              type="text"
+              placeholder="Search"
+              startIcon={Search}
+              parentClassName="w-full lg:w-fit"
+              className="w-full lg:w-[300px]"
+              onChange={(e) => setSearchMedia(e.target.value)}
+            />
+            <MediaFilter
+              mediaFilters={mediaFilters}
+              handleMediaFilters={handleMediaFilters}
+            />
+          </div>
           <AddAnimeDialog
             openAddAnimeDialog={openAddAnimeDialog}
             setOpenAddAnimeDialog={setOpenAddAnimeDialog}
-            resetParent={resetParent}
+            resetParent={resetAnimeParent}
           />
           <AddMangaDialog
             openAddMangaDialog={openAddMangaDialog}
             setOpenAddMangaDialog={setOpenAddMangaDialog}
-            resetParent={resetParent}
+            resetParent={resetMangaParent}
           />
         </div>
       </header>
       <Separator />
       <main className="flex-1">
         <section className="py-12 md:py-16 lg:py-20">
-          <div className="container space-y-2">
-            <DataTable
-              title="Anime"
-              columns={animeColumns}
-              data={addedAnimeList}
-              rowSelection={selectedAnimeRows}
-              setRowSelection={setSelectedAnimeRows}
-              deleteData={deleteAnime}
-              isLoadingData={isLoadingAnime}
-              isLoadingDeleteData={isLoadingDeleteAnime}
-              page={animeListPage}
-              setPage={setAnimeListPage}
-              metadata={animeMetadata}
-              filterSortComponent={
-                <AnimeFilterSortAccordion
-                  animeFilterSort={animeFilterSort}
-                  setAnimeFilterSort={setAnimeFilterSort}
-                  genreList={genreList}
-                  isLoadingGenre={isLoadingGenre}
-                  studioList={studioList}
-                  isLoadingStudio={isLoadingStudio}
-                  themeList={themeList}
-                  isLoadingTheme={isLoadingTheme}
-                />
-              }
-            />
+          <div className="container space-y-4">
+            {mediaFilters[0] && (
+              <DataTable
+                title="Anime"
+                columns={animeColumns}
+                data={addedAnimeList}
+                rowSelection={selectedAnimeRows}
+                setRowSelection={setSelectedAnimeRows}
+                deleteData={deleteAnime}
+                isLoadingData={isLoadingAnime}
+                isLoadingDeleteData={isLoadingDeleteAnime}
+                page={animeListPage}
+                setPage={setAnimeListPage}
+                metadata={animeMetadata}
+                filterSortComponent={
+                  <AnimeFilterSortAccordion
+                    animeFilterSort={animeFilterSort}
+                    setAnimeFilterSort={setAnimeFilterSort}
+                    genreList={genreList}
+                    isLoadingGenre={isLoadingGenre}
+                    studioList={studioList}
+                    isLoadingStudio={isLoadingStudio}
+                    themeList={themeList}
+                    isLoadingTheme={isLoadingTheme}
+                  />
+                }
+              />
+            )}
+            {mediaFilters[0] && mediaFilters[1] && <Separator />}
+            {mediaFilters[1] && (
+              <DataTable
+                title="Manga"
+                columns={mangaColumns}
+                data={addedMangaList}
+                rowSelection={selectedMangaRows}
+                setRowSelection={setSelectedMangaRows}
+                deleteData={deleteManga}
+                isLoadingData={isLoadingManga}
+                isLoadingDeleteData={isLoadingDeleteManga}
+                page={mangaListPage}
+                setPage={setMangaListPage}
+                metadata={mangaMetadata}
+                filterSortComponent={
+                  <MangaFilterSortAccordion
+                    mangaFilterSort={mangaFilterSort}
+                    setMangaFilterSort={setMangaFilterSort}
+                    authorList={authorList}
+                    isLoadingAuthor={isLoadingAuthor}
+                    genreList={genreList}
+                    isLoadingGenre={isLoadingGenre}
+                    themeList={themeList}
+                    isLoadingTheme={isLoadingTheme}
+                  />
+                }
+              />
+            )}
           </div>
         </section>
       </main>

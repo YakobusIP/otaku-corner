@@ -108,7 +108,7 @@ export default function AddMangaDialog({
   return (
     <Dialog open={openAddMangaDialog} onOpenChange={setOpenAddMangaDialog}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="w-full lg:w-fit">
           <Plus className="mr-2 w-4 h-4" />
           Add Manga
         </Button>

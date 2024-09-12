@@ -142,7 +142,7 @@ export default function AddAnimeDialog({
   return (
     <Dialog open={openAddAnimeDialog} onOpenChange={setOpenAddAnimeDialog}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="w-full lg:w-fit">
           <Plus className="mr-2 w-4 h-4" />
           Add Anime
         </Button>
