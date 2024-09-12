@@ -7,9 +7,11 @@ import { Toaster } from "@/components/ui/toaster";
 import Home from "@/pages/general/Home.tsx";
 import Dashboard from "@/pages/admin/Dashboard";
 import axios from "axios";
-import AdminAnimeDetail from "@/pages/admin/AdminAnimeDetail";
 import AnimeList from "@/pages/general/anime/AnimeList";
+import MangaList from "@/pages/general/manga/MangaList";
 import GeneralAnimeDetail from "@/pages/general/anime/GeneralAnimeDetail";
+import GeneralMangaDetail from "@/pages/general/manga/GeneralMangaDetail";
+import AdminAnimeDetail from "@/pages/admin/AdminAnimeDetail";
 import AdminMangaDetail from "@/pages/admin/AdminMangaDetail";
 
 const router = createBrowserRouter([
@@ -22,8 +24,16 @@ const router = createBrowserRouter([
     element: <AnimeList />
   },
   {
+    path: "/manga",
+    element: <MangaList />
+  },
+  {
     path: "/anime/:animeId",
     element: <GeneralAnimeDetail />
+  },
+  {
+    path: "/manga/:mangaId",
+    element: <GeneralMangaDetail />
   },
   {
     path: "/admin",

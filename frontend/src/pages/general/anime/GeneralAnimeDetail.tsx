@@ -154,15 +154,17 @@ export default function GeneralAnimeDetail() {
                 <div className="grid gap-4">
                   <div className="flex items-center gap-2">
                     <FilmIcon className="w-5 h-5" />
-                    <div className="text-lg font-semibold">12 Episodes</div>
+                    <div className="text-lg font-semibold">
+                      {animeDetail.episodes.length} Episodes
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <ClockIcon className="w-5 h-5" />
-                    <div>24 min per ep</div>
+                    <div>{animeDetail.duration}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <CalendarIcon className="w-5 h-5" />
-                    <div>Apr 9, 2022 to Jun 25, 2022</div>
+                    <div>{animeDetail.aired}</div>
                   </div>
                 </div>
               </div>

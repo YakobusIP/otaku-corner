@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SortOrder } from "@/enum/general.enum";
-import AnimeCard from "@/components/general/anime/anime-list/AnimeCard";
+import AnimeCard from "@/components/general/AnimeCard";
 import AnimeFilterSortAccordion from "@/components/global/AnimeFilterSortAccordion";
 import { useToast } from "@/components/ui/use-toast";
 import { fetchAllAnimeService } from "@/services/anime.service";
