@@ -15,6 +15,7 @@ import { Link, useParams } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import GeneralFooter from "@/components/general/GeneralFooter";
 
 export default function GeneralMangaDetail() {
   const [mangaDetail, setMangaDetail] = useState<MangaDetail>();
@@ -43,9 +44,9 @@ export default function GeneralMangaDetail() {
   }, [fetchMangaById]);
 
   return !isLoadingMangaDetail && mangaDetail ? (
-    <div className="text-foreground space-y-8 pb-8">
-      <header className="bg-primary text-primary-foreground py-12">
-        <div className="container flex flex-col-reverse lg:flex-row items-center justify-center gap-16">
+    <div className="text-foreground space-y-8">
+      <header className="bg-primary bg-gradient-to-b from-primary to-muted-foreground text-primary-foreground py-12">
+        <div className="container flex flex-col-reverse lg:flex-row items-center justify-center gap-4 lg:gap-16">
           <div className="flex flex-col gap-4 lg:gap-16 w-full lg:w-4/5">
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -150,6 +151,7 @@ export default function GeneralMangaDetail() {
           </Link>
         </div>
       </div>
+      <GeneralFooter />
     </div>
   ) : (
     <div className="flex flex-col min-h-[100dvh] items-center justify-center gap-4">
@@ -158,6 +160,7 @@ export default function GeneralMangaDetail() {
         <Loader2 className="w-8 h-8 lg:w-16 lg:h-16 animate-spin" />
         <h2>Fetching manga details...</h2>
       </div>
+      <GeneralFooter />
     </div>
   );
 }

@@ -1,6 +1,5 @@
-import { Input } from "@/components/ui/input";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { SortOrder } from "@/enum/general.enum";
+import { MediaType, SortOrder } from "@/enum/general.enum";
 import AnimeCard from "@/components/general/AnimeCard";
 import AnimeFilterSortAccordion from "@/components/global/AnimeFilterSortAccordion";
 import { useToast } from "@/components/ui/use-toast";
@@ -16,6 +15,8 @@ import {
 import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
 import { MetadataResponse } from "@/types/api.type";
 import GlobalPagination from "@/components/global/GlobalPagination";
+import ListHeader from "@/components/general/ListHeader";
+import GeneralFooter from "@/components/general/GeneralFooter";
 
 export default function AnimeList() {
   const [animeList, setAnimeList] = useState<AnimeList[]>([]);
@@ -141,24 +142,7 @@ export default function AnimeList() {
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <header className="bg-primary text-primary-foreground py-8 px-4 md:px-6">
-        <div className="container">
-          <div className="flex flex-col gap-4">
-            <h1 className="max-w-[650px]">Anime Watchlist</h1>
-            <h4 className="text-primary-foreground/80 max-w-[650px]">
-              Discover my watched animes
-            </h4>
-            <div className="mt-6">
-              <Input
-                type="text"
-                placeholder="Search for an anime..."
-                className="w-full max-w-md bg-primary-foreground/10 border-none focus:ring-0 focus:border-none"
-                onChange={(e) => setSearchAnime(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-      </header>
+      <ListHeader type={MediaType.ANIME} setSearchMedia={setSearchAnime} />
       <main className="container py-4 lg:py-12 px-4 md:px-6 flex flex-col flex-1">
         <AnimeFilterSortAccordion
           animeFilterSort={animeFilterSort}
@@ -201,13 +185,7 @@ export default function AnimeList() {
           </section>
         )}
       </main>
-      <footer className="bg-muted py-6 text-muted-foreground">
-        <div className="container flex items-center justify-between">
-          <p className="text-sm">
-            &copy; {new Date().getFullYear()} Otaku Corner
-          </p>
-        </div>
-      </footer>
+      <GeneralFooter />
     </div>
   );
 }
