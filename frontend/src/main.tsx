@@ -10,6 +10,7 @@ import axios from "axios";
 import AdminAnimeDetail from "@/pages/admin/AdminAnimeDetail";
 import AnimeList from "@/pages/general/anime/AnimeList";
 import GeneralAnimeDetail from "@/pages/general/anime/GeneralAnimeDetail";
+import AdminMangaDetail from "@/pages/admin/AdminMangaDetail";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
   {
     path: "/admin/anime/:animeId",
     element: <AdminAnimeDetail />
+  },
+  {
+    path: "/admin/manga/:mangaId",
+    element: <AdminMangaDetail />
   }
 ]);
 
