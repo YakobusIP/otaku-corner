@@ -9,10 +9,13 @@ import Dashboard from "@/pages/admin/Dashboard";
 import axios from "axios";
 import AnimeList from "@/pages/general/anime/AnimeList";
 import MangaList from "@/pages/general/manga/MangaList";
+import LightNovelList from "@/pages/general/lightnovels/LightNovelList";
 import GeneralAnimeDetail from "@/pages/general/anime/GeneralAnimeDetail";
 import GeneralMangaDetail from "@/pages/general/manga/GeneralMangaDetail";
+import GeneralLightNovelDetail from "@/pages/general/lightnovels/GeneralLightNovelDetail";
 import AdminAnimeDetail from "@/pages/admin/AdminAnimeDetail";
 import AdminMangaDetail from "@/pages/admin/AdminMangaDetail";
+import AdminLightNovelDetail from "@/pages/admin/AdminLightNovelDetail";
 
 const router = createBrowserRouter([
   {
@@ -28,12 +31,20 @@ const router = createBrowserRouter([
     element: <MangaList />
   },
   {
+    path: "/lightnovel",
+    element: <LightNovelList />
+  },
+  {
     path: "/anime/:animeId",
     element: <GeneralAnimeDetail />
   },
   {
     path: "/manga/:mangaId",
     element: <GeneralMangaDetail />
+  },
+  {
+    path: "/lightnovel/:lightNovelId",
+    element: <GeneralLightNovelDetail />
   },
   {
     path: "/admin",
@@ -46,6 +57,10 @@ const router = createBrowserRouter([
   {
     path: "/admin/manga/:mangaId",
     element: <AdminMangaDetail />
+  },
+  {
+    path: "/admin/lightnovel/:lightNovelId",
+    element: <AdminLightNovelDetail />
   }
 ]);
 

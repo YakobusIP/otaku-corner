@@ -113,6 +113,50 @@ async def create_manga(session, manga_data):
         failure_count += 1
         failed_ids.append(manga_data["mal_id"])
 
+async def create_lightnovel(session, lightnovel_data):
+    global success_count, failure_count, failed_ids
+
+    lightnovel_payload = {
+        "malId": lightnovel_data["mal_id"],
+        "status": lightnovel_data["status"],
+        "title": lightnovel_data["title"],
+        "titleJapanese": lightnovel_data["title_japanese"],
+        "titleSynonyms": " ".join([synonym.lower() for synonym in lightnovel_data["title_synonyms"]]) if lightnovel_data["title_synonyms"] else "",
+        "published": (f"{datetime.strptime(lightnovel_data['published']['from'], '%Y-%m-%dT%H:%M:%S%z').strftime('%b %d, %Y')} to "
+                      f"{datetime.strptime(lightnovel_data['published']['to'], '%Y-%m-%dT%H:%M:%S%z').strftime('%b %d, %Y') if lightnovel_data['published']['to'] else '?'}")
+                     if lightnovel_data["status"] != "Upcoming" else lightnovel_data["status"],
+        "chaptersCount": lightnovel_data["chapters"],
+        "volumesCount": lightnovel_data["volumes"],
+        "score": lightnovel_data["score"],
+        "images": {
+            "image_url": lightnovel_data["images"]["webp"]["image_url"] if lightnovel_data["images"]["webp"] else lightnovel_data["images"]["jpg"]["image_url"],
+            "large_image_url": lightnovel_data["images"]["webp"]["large_image_url"] if lightnovel_data["images"]["webp"] else lightnovel_data["images"]["jpg"]["large_image_url"],
+            "small_image_url": lightnovel_data["images"]["webp"]["small_image_url"] if lightnovel_data["images"]["webp"] else lightnovel_data["images"]["jpg"]["small_image_url"]
+        },
+        "authors": [author["name"] for author in lightnovel_data["authors"]],
+        "genres": [genre["name"] for genre in lightnovel_data["genres"]],
+        "themes": [theme["name"] for theme in lightnovel_data["themes"]],
+        "synopsis": lightnovel_data["synopsis"],
+        "malUrl": lightnovel_data["url"]
+    }
+
+    backend_url = "http://localhost:3000/api/lightnovel"
+
+    try:
+        async with session.post(backend_url, json=lightnovel_payload) as response:
+            if response.status == 201:
+                console.print(f"Light Novel [bold]{lightnovel_data['title']}[/bold] created successfully!", style="green")
+                success_count += 1
+            else:
+                console.print(f"Failed to create light novel {lightnovel_data['title']}: {response.status}", style="red")
+                failure_count += 1
+                failed_ids.append(lightnovel_data["mal_id"])
+                pprint(lightnovel_payload)
+    except Exception as e:
+        console.print(f"Error while creating anime {lightnovel_data['title']}: {str(e)}", style="red")
+        failure_count += 1
+        failed_ids.append(lightnovel_data["mal_id"])
+
 async def main():
     global success_count, failure_count, failed_ids
     # anime_ids = [
@@ -127,9 +171,13 @@ async def main():
     #     12549, 50265, 47194, 50594, 50739, 16782, 47159, 54234, 51916, 33036,
     #     38101, 39783, 48548, 50593, 49776, 52305, 41389, 4224, 34822, 34902]
     
-    manga_ids = [
-        123602, 156291, 133352, 112589, 147082, 130633, 142815, 164769, 143031, 147528,
-        45143, 152087, 115848, 139073, 128634, 125052, 152117, 121433, 160983, 108407
+    # manga_ids = [
+    #     123602, 156291, 112589, 147082, 130633, 142815, 164769, 143031, 147528, 45143, 
+    #     152087, 115848, 139073, 128634, 125052, 152117, 121433, 160983, 108407
+    # ]
+
+    lightnovel_ids = [
+        133757, 133352, 102702, 135688, 132505, 25409, 123649
     ]
 
     async with AioJikan() as aio_jikan, aiohttp.ClientSession() as session:
@@ -156,19 +204,35 @@ async def main():
 
         #     await asyncio.sleep(3)
 
-        for manga_id in manga_ids:
-            try:
-                # Fetch manga data
-                manga_data = await aio_jikan.manga(manga_id)
-                manga_data = manga_data["data"]
-                console.print(f"Processing [bold]{manga_data["title"]}[/bold]...", style="blue")
+        # for manga_id in manga_ids:
+        #     try:
+        #         # Fetch manga data
+        #         manga_data = await aio_jikan.manga(manga_id)
+        #         manga_data = manga_data["data"]
+        #         console.print(f"Processing [bold]{manga_data["title"]}[/bold]...", style="blue")
 
-                # Create manga in the backend
-                await create_manga(session, manga_data)
+        #         # Create manga in the backend
+        #         await create_manga(session, manga_data)
+        #     except Exception as e:
+        #         console.print(f"Error fetching or processing manga ID [bold]{manga_id}[/bold]: {str(e)}", style="red")
+        #         failure_count += 1
+        #         failed_ids.append(manga_id)
+
+        #     await asyncio.sleep(3)
+
+        for lightnovel_id in lightnovel_ids:
+            try:
+                # Fetch lightnovel data
+                lightnovel_data = await aio_jikan.manga(lightnovel_id)
+                lightnovel_data = lightnovel_data["data"]
+                console.print(f"Processing [bold]{lightnovel_data["title"]}[/bold]...", style="blue")
+
+                # Create lightnovel in the backend
+                await create_lightnovel(session, lightnovel_data)
             except Exception as e:
-                console.print(f"Error fetching or processing manga ID [bold]{manga_id}[/bold]: {str(e)}", style="red")
+                console.print(f"Error fetching or processing light novel ID [bold]{lightnovel_id}[/bold]: {str(e)}", style="red")
                 failure_count += 1
-                failed_ids.append(manga_id)
+                failed_ids.append(lightnovel_id)
 
             await asyncio.sleep(3)
 

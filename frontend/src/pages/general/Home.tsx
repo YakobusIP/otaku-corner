@@ -7,7 +7,7 @@ export default function Home() {
   const exploreRoutes = [
     { id: 1, path: "/anime", text: "Explore Anime" },
     { id: 2, path: "/manga", text: "Explore Manga" },
-    { id: 3, path: "/light-novels", text: "Explore Light Novels" }
+    { id: 3, path: "/lightnovel", text: "Explore Light Novels" }
   ];
 
   const topMedias = [
@@ -36,7 +36,7 @@ export default function Home() {
       cardTitle: "Light Novels Read This Year",
       amount: 42,
       type: MediaType.LIGHT_NOVEL,
-      path: "/light-novel",
+      path: "/lightnovel",
       image: "/placeholder.webp",
       mediaTitle: "Gimai Seikatsu",
       rating: 8.5

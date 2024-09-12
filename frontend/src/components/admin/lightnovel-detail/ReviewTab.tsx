@@ -1,4 +1,4 @@
-import { MangaDetail, MangaReview } from "@/types/manga.type";
+import { LightNovelDetail, LightNovelReview } from "@/types/lightnovel.type";
 import { TabsContent } from "@/components/ui/tabs";
 import { useState, KeyboardEvent, useCallback, useMemo } from "react";
 import { createEditor, Descendant } from "slate";
@@ -21,13 +21,13 @@ import { CustomEditor } from "@/lib/custom-editor";
 import ReviewToolbar from "./ReviewToolbar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { updateMangaReviewService } from "@/services/manga.service";
+import { updateLightNovelReviewService } from "@/services/lightnovel.service";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { serializeNodes, deserialize } from "@/lib/html-serializer";
 
 type Props = {
-  mangaDetail: MangaDetail;
+  lightNovelDetail: LightNovelDetail;
 };
 
 const initialValue: Descendant[] = [
@@ -37,22 +37,22 @@ const initialValue: Descendant[] = [
   }
 ];
 
-export default function ReviewTab({ mangaDetail }: Props) {
+export default function ReviewTab({ lightNovelDetail }: Props) {
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   const toast = useToast();
 
-  const [review, setReview] = useState(mangaDetail.review || "");
+  const [review, setReview] = useState(lightNovelDetail.review || "");
   const [storylineRating, setStorylineRating] = useState(
-    mangaDetail.storylineRating || 10
+    lightNovelDetail.storylineRating || 10
   );
-  const [qualityRating, setQualityRating] = useState(
-    mangaDetail.qualityRating || 10
+  const [worldBuildingRating, setWorldBuildingRating] = useState(
+    lightNovelDetail.worldBuildingRating || 10
   );
-  const [characterizationRating, setCharacterizationRating] = useState(
-    mangaDetail.characterizationRating || 10
+  const [illustrationRating, setIllustrationRating] = useState(
+    lightNovelDetail.illustrationRating || 10
   );
   const [enjoymentRating, setEnjoymentRating] = useState(
-    mangaDetail.enjoymentRating || 10
+    lightNovelDetail.enjoymentRating || 10
   );
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
   const ratingDescriptions: { [key: number]: string } = {
@@ -174,14 +174,23 @@ export default function ReviewTab({ mangaDetail }: Props) {
 
   const onSubmit = async () => {
     setIsLoadingUpdateReview(true);
-    const data: MangaReview = {
+    const data: LightNovelReview = {
       review,
       storylineRating,
-      qualityRating,
+      worldBuildingRating,
+      illustrationRating,
       enjoymentRating,
-      personalScore: (storylineRating + qualityRating + enjoymentRating) / 4
+      personalScore:
+        (storylineRating +
+          worldBuildingRating +
+          illustrationRating +
+          enjoymentRating) /
+        4
     };
-    const response = await updateMangaReviewService(mangaDetail.id, data);
+    const response = await updateLightNovelReviewService(
+      lightNovelDetail.id,
+      data
+    );
     if (response.success) {
       toast.toast({
         title: "All set!",
@@ -226,11 +235,13 @@ export default function ReviewTab({ mangaDetail }: Props) {
             </Select>
           </div>
           <div className="flex flex-col gap-2 w-full">
-            <Label>Drawing Quality</Label>
+            <Label>World Building</Label>
             <Select
               defaultValue="10"
-              value={qualityRating.toString()}
-              onValueChange={(value) => setQualityRating(parseInt(value, 10))}
+              value={worldBuildingRating.toString()}
+              onValueChange={(value) =>
+                setWorldBuildingRating(parseInt(value, 10))
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -250,12 +261,12 @@ export default function ReviewTab({ mangaDetail }: Props) {
             </Select>
           </div>
           <div className="flex flex-col gap-2 w-full">
-            <Label>Characterization</Label>
+            <Label>Illustration</Label>
             <Select
               defaultValue="10"
-              value={characterizationRating.toString()}
+              value={illustrationRating.toString()}
               onValueChange={(value) =>
-                setCharacterizationRating(parseInt(value, 10))
+                setIllustrationRating(parseInt(value, 10))
               }
             >
               <SelectTrigger>
@@ -303,10 +314,10 @@ export default function ReviewTab({ mangaDetail }: Props) {
         <Slate
           editor={editor}
           initialValue={
-            mangaDetail.review
+            lightNovelDetail.review
               ? (deserialize(
                   new DOMParser().parseFromString(
-                    mangaDetail.review,
+                    lightNovelDetail.review,
                     "text/html"
                   ).body
                 ) as Descendant[])

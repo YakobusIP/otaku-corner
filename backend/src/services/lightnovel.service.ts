@@ -4,8 +4,8 @@ import { AuthorService } from "./author.service";
 import { GenreService } from "./genre.service";
 import { ThemeService } from "./theme.service";
 
-type CustomMangaCreateInput = Omit<
-  Prisma.MangaCreateInput,
+type CustomLightNovelCreateInput = Omit<
+  Prisma.LightNovelCreateInput,
   "authors" | "genres" | "themes"
 > & {
   authors: string[];
@@ -13,24 +13,24 @@ type CustomMangaCreateInput = Omit<
   themes: string[];
 };
 
-type CustomMangaReviewUpdateInput = Pick<
-  Prisma.MangaUpdateInput,
+type CustomLightNovelReviewUpdateInput = Pick<
+  Prisma.LightNovelUpdateInput,
   | "review"
   | "storylineRating"
-  | "qualityRating"
-  | "characterizationRating"
+  | "worldBuildingRating"
+  | "illustrationRating"
   | "enjoymentRating"
   | "personalScore"
 >;
 
-export class MangaService {
+export class LightNovelService {
   constructor(
     private readonly authorService: AuthorService,
     private readonly genreService: GenreService,
     private readonly themeService: ThemeService
   ) {}
 
-  async getAllMangas(
+  async getAllLightNovels(
     currentPage: number,
     limitPerPage: number,
     query?: string,
@@ -50,7 +50,7 @@ export class MangaService {
       excellent: { min: 9, max: 10 }
     };
 
-    const filterCriteria: Prisma.MangaWhereInput = {
+    const filterCriteria: Prisma.LightNovelWhereInput = {
       AND: [
         {
           OR: [
@@ -94,13 +94,13 @@ export class MangaService {
       ]
     };
 
-    const itemCount = await prisma.manga.count({
+    const itemCount = await prisma.lightNovel.count({
       where: filterCriteria
     });
 
     const pageCount = Math.ceil(itemCount / limitPerPage);
 
-    const data = await prisma.manga.findMany({
+    const data = await prisma.lightNovel.findMany({
       where: filterCriteria,
       select: {
         id: true,
@@ -130,8 +130,8 @@ export class MangaService {
     };
   }
 
-  async getMangaById(id: number) {
-    return prisma.manga.findUnique({
+  async getLightNovelById(id: number) {
+    return prisma.lightNovel.findUnique({
       where: { id },
       include: {
         authors: { select: { id: true, name: true } },
@@ -141,7 +141,7 @@ export class MangaService {
     });
   }
 
-  async createManga(data: CustomMangaCreateInput) {
+  async createLightNovel(data: CustomLightNovelCreateInput) {
     const authorIds = await Promise.all(
       data.authors.map(async (name) => {
         const id = await this.authorService.getOrCreateAuthor(name);
@@ -161,29 +161,32 @@ export class MangaService {
       })
     );
 
-    const mangaData: Prisma.MangaCreateInput = {
+    const lightNovelData: Prisma.LightNovelCreateInput = {
       ...data,
       authors: { connect: authorIds },
       genres: { connect: genreIds },
       themes: { connect: themeIds }
     };
 
-    return prisma.manga.create({ data: mangaData });
+    return prisma.lightNovel.create({ data: lightNovelData });
   }
 
-  async updateManga(id: number, data: Prisma.MangaUpdateInput) {
-    return prisma.manga.update({ where: { id }, data });
+  async updateLightNovel(id: number, data: Prisma.LightNovelUpdateInput) {
+    return prisma.lightNovel.update({ where: { id }, data });
   }
 
-  async updateMangaReview(id: number, data: CustomMangaReviewUpdateInput) {
-    return prisma.manga.update({ where: { id }, data });
+  async updateLightNovelReview(
+    id: number,
+    data: CustomLightNovelReviewUpdateInput
+  ) {
+    return prisma.lightNovel.update({ where: { id }, data });
   }
 
-  async deleteManga(id: number) {
-    return prisma.manga.delete({ where: { id } });
+  async deleteLightNovel(id: number) {
+    return prisma.lightNovel.delete({ where: { id } });
   }
 
-  async deleteMultipleManga(ids: number[]) {
-    return prisma.manga.deleteMany({ where: { id: { in: ids } } });
+  async deleteMultipleLightNovel(ids: number[]) {
+    return prisma.lightNovel.deleteMany({ where: { id: { in: ids } } });
   }
 }

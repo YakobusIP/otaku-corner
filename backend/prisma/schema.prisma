@@ -54,38 +54,67 @@ model AnimeEpisode {
 }
 
 model Manga {
-  id              Int      @id @default(autoincrement())
-  malId           Int      @unique
-  status          String
-  title           String
-  titleJapanese   String
-  titleSynonyms   String
-  published       String
-  chaptersCount   Int?
-  volumesCount    Int?
-  score           Float?
-  images          Json
-  authors         Author[] @relation("MangaAuthors")
-  genres          Genre[]  @relation("MangaGenres")
-  themes          Theme[]  @relation("MangaThemes")
-  synopsis        String
-  malUrl          String
-  review          String?
-  storylineRating Int?
-  qualityRating   Int?
-  enjoymentRating Int?
-  personalScore   Int?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                     Int      @id @default(autoincrement())
+  malId                  Int      @unique
+  status                 String
+  title                  String
+  titleJapanese          String
+  titleSynonyms          String
+  published              String
+  chaptersCount          Int?
+  volumesCount           Int?
+  score                  Float?
+  images                 Json
+  authors                Author[] @relation("MangaAuthors")
+  genres                 Genre[]  @relation("MangaGenres")
+  themes                 Theme[]  @relation("MangaThemes")
+  synopsis               String
+  malUrl                 String
+  review                 String?
+  storylineRating        Int?
+  qualityRating          Int?
+  characterizationRating Int?
+  enjoymentRating        Int?
+  personalScore          Int?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model LightNovel {
+  id                  Int      @id @default(autoincrement())
+  malId               Int      @unique
+  status              String
+  title               String
+  titleJapanese       String
+  titleSynonyms       String
+  published           String
+  chaptersCount       Int?
+  volumesCount        Int?
+  score               Float?
+  images              Json
+  authors             Author[] @relation("LightNovelAuthors")
+  genres              Genre[]  @relation("LightNovelGenres")
+  themes              Theme[]  @relation("LightNovelThemes")
+  synopsis            String
+  malUrl              String
+  review              String?
+  storylineRating     Int?
+  worldBuildingRating Int?
+  illustrationRating  Int?
+  enjoymentRating     Int?
+  personalScore       Int?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model Genre {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  anime     Anime[]  @relation("AnimeGenres")
-  manga     Manga[]  @relation("MangaGenres")
+  id         Int          @id @default(autoincrement())
+  name       String       @unique
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  anime      Anime[]      @relation("AnimeGenres")
+  manga      Manga[]      @relation("MangaGenres")
+  lightNovel LightNovel[] @relation("LightNovelGenres")
 }
 
 model Studio {
@@ -97,18 +126,20 @@ model Studio {
 }
 
 model Theme {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  anime     Anime[]  @relation("AnimeThemes")
-  manga     Manga[]  @relation("MangaThemes")
+  id         Int          @id @default(autoincrement())
+  name       String       @unique
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  anime      Anime[]      @relation("AnimeThemes")
+  manga      Manga[]      @relation("MangaThemes")
+  lightNovel LightNovel[] @relation("LightNovelThemes")
 }
 
 model Author {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  manga     Manga[]  @relation("MangaAuthors")
+  id         Int          @id @default(autoincrement())
+  name       String       @unique
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  manga      Manga[]      @relation("MangaAuthors")
+  lightNovel LightNovel[] @relation("LightNovelAuthors")
 }

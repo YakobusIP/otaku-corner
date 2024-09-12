@@ -5,7 +5,7 @@ import {
   ThemeEntityPartial
 } from "@/types/entity.type";
 
-type MangaPostRequest = {
+type LightNovelPostRequest = {
   malId: number;
   status: string;
   title: string;
@@ -27,20 +27,23 @@ type MangaPostRequest = {
   malUrl: string;
   review?: string | null;
   storylineRating?: number | null;
-  qualityRating?: number | null;
-  characterizationRating?: number | null;
+  worldBuildingRating?: number | null;
+  illustrationRating?: number | null;
   enjoymentRating?: number | null;
   personalScore?: number | null;
 };
 
-type MangaDetail = Omit<MangaPostRequest, "authors" | "genres" | "themes"> & {
+type LightNovelDetail = Omit<
+  LightNovelPostRequest,
+  "authors" | "genres" | "themes"
+> & {
   id: string;
   authors: AuthorEntityPartial[];
   genres: GenreEntityPartial[];
   themes: ThemeEntityPartial[];
 };
 
-type MangaList = {
+type LightNovelList = {
   id: string;
   title: string;
   titleJapanese: string;
@@ -54,17 +57,17 @@ type MangaList = {
   personalScore: number | null;
 };
 
-type MangaReview = Pick<
-  MangaPostRequest,
+type LightNovelReview = Pick<
+  LightNovelPostRequest,
   | "review"
   | "storylineRating"
-  | "qualityRating"
-  | "characterizationRating"
+  | "worldBuildingRating"
+  | "illustrationRating"
   | "enjoymentRating"
   | "personalScore"
 >;
 
-type MangaFilterSort = {
+type LightNovelFilterSort = {
   sortBy: string;
   sortOrder: SortOrder;
   filterAuthor?: number;
@@ -75,9 +78,9 @@ type MangaFilterSort = {
 };
 
 export type {
-  MangaPostRequest,
-  MangaDetail,
-  MangaList,
-  MangaReview,
-  MangaFilterSort
+  LightNovelPostRequest,
+  LightNovelDetail,
+  LightNovelList,
+  LightNovelReview,
+  LightNovelFilterSort
 };
