@@ -41,14 +41,14 @@ type AnimePostRequest = {
 };
 
 type AnimeDetail = Omit<AnimePostRequest, "genres" | "studios" | "themes"> & {
-  id: string;
+  id: number;
   genres: GenreEntityPartial[];
   studios: StudioEntityPartial[];
   themes: ThemeEntityPartial[];
 };
 
 type AnimeList = {
-  id: string;
+  id: number;
   title: string;
   titleJapanese: string;
   type: string;
@@ -64,7 +64,7 @@ type AnimeList = {
 };
 
 type AnimeEpisode = {
-  id?: string;
+  id?: number;
   aired: string;
   number: number;
   title: string;

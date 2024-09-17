@@ -27,7 +27,7 @@ class MangaRouter {
     this.router.post("/", this.mangaController.createManga);
     this.router.put("/:id", this.mangaController.updateManga);
     this.router.put("/review/:id", this.mangaController.updateMangaReview);
-    this.router.delete("/", this.mangaController.deleteMultipleManga);
+    this.router.delete("/", this.mangaController.deleteMultipleMangas);
     this.router.delete("/:id", this.mangaController.deleteManga);
   }
 }

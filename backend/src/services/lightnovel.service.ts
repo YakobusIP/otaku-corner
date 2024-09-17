@@ -186,7 +186,7 @@ export class LightNovelService {
     return prisma.lightNovel.delete({ where: { id } });
   }
 
-  async deleteMultipleLightNovel(ids: number[]) {
+  async deleteMultipleLightNovels(ids: number[]) {
     return prisma.lightNovel.deleteMany({ where: { id: { in: ids } } });
   }
 }

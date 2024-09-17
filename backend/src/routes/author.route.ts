@@ -16,6 +16,10 @@ class AuthorRouter {
 
   private initializeRoutes() {
     this.router.get("/", this.authorController.getAllAuthors);
+    this.router.post("/", this.authorController.createAuthor);
+    this.router.put("/:id", this.authorController.updateAuthor);
+    this.router.delete("/", this.authorController.deleteMultipleAuthors);
+    this.router.delete("/:id", this.authorController.deleteAuthor);
   }
 }
 

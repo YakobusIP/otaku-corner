@@ -27,7 +27,7 @@ class AnimeRouter {
     this.router.post("/", this.animeController.createAnime);
     this.router.put("/:id", this.animeController.updateAnime);
     this.router.put("/review/:id", this.animeController.updateAnimeReview);
-    this.router.delete("/", this.animeController.deleteMultipleAnime);
+    this.router.delete("/", this.animeController.deleteMultipleAnimes);
     this.router.delete("/:id", this.animeController.deleteAnime);
   }
 }

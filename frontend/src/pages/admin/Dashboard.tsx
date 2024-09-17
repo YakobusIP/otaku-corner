@@ -21,10 +21,10 @@ import {
 } from "@/services/manga.service";
 import { MangaFilterSort, MangaList } from "@/types/manga.type";
 import {
-  fetchAllAuthorService,
-  fetchAllGenreService,
-  fetchAllStudioService,
-  fetchAllThemeService
+  genreService,
+  studioService,
+  themeService,
+  authorService
 } from "@/services/entity.service";
 import {
   AuthorEntity,
@@ -45,6 +45,7 @@ import {
 import { lightNovelColumns } from "@/components/admin/data-table/LightNovelTableColumns";
 import LightNovelFilterSortAccordion from "@/components/global/LightNovelFilterSortAccordion";
 import AddLightNovelDialog from "@/components/admin/add-lightnovel/AddLightNovelDialog";
+import EntityManagement from "@/components/admin/entity-management/EntityManagement";
 
 const PAGINATION_SIZE = 5;
 
@@ -69,6 +70,9 @@ export default function Dashboard() {
   >([]);
   const [lightNovelMetadata, setLightNovelMetadata] =
     useState<MetadataResponse>();
+
+  const [openEntityManagementDialog, setOpenEntityManagementDialog] =
+    useState(false);
 
   const [genreList, setGenreList] = useState<GenreEntity[]>([]);
   const [studioList, setStudioList] = useState<StudioEntity[]>([]);
@@ -110,7 +114,7 @@ export default function Dashboard() {
     });
 
   const [searchMedia, setSearchMedia] = useState("");
-  const [debouncedSearch] = useDebounce(searchMedia, 1100);
+  const [debouncedSearch] = useDebounce(searchMedia, 1000);
 
   const toast = useToast();
 
@@ -206,7 +210,7 @@ export default function Dashboard() {
 
   const fetchGenreList = useCallback(async () => {
     setIsLoadingGenre(true);
-    const response = await fetchAllGenreService();
+    const response = await genreService.fetchAll<GenreEntity[]>();
     if (response.success) {
       setGenreList(response.data);
     } else {
@@ -220,7 +224,7 @@ export default function Dashboard() {
 
   const fetchStudioList = useCallback(async () => {
     setIsLoadingStudio(true);
-    const response = await fetchAllStudioService();
+    const response = await studioService.fetchAll<StudioEntity[]>();
     if (response.success) {
       setStudioList(response.data);
     } else {
@@ -232,23 +236,9 @@ export default function Dashboard() {
     setIsLoadingStudio(false);
   }, []);
 
-  const fetchAuthorList = useCallback(async () => {
-    setIsLoadingAuthor(true);
-    const response = await fetchAllAuthorService();
-    if (response.success) {
-      setAuthorList(response.data);
-    } else {
-      toastRef.current({
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingAuthor(false);
-  }, []);
-
   const fetchThemeList = useCallback(async () => {
     setIsLoadingTheme(true);
-    const response = await fetchAllThemeService();
+    const response = await themeService.fetchAll<ThemeEntity[]>();
     if (response.success) {
       setThemeList(response.data);
     } else {
@@ -258,6 +248,20 @@ export default function Dashboard() {
       });
     }
     setIsLoadingTheme(false);
+  }, []);
+
+  const fetchAuthorList = useCallback(async () => {
+    setIsLoadingAuthor(true);
+    const response = await authorService.fetchAll<AuthorEntity[]>();
+    if (response.success) {
+      setAuthorList(response.data);
+    } else {
+      toastRef.current({
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
+    }
+    setIsLoadingAuthor(false);
   }, []);
 
   const deleteAnime = async () => {
@@ -356,9 +360,15 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (mediaFilters[0]) fetchAnimeList();
+  }, [mediaFilters, fetchAnimeList]);
+
+  useEffect(() => {
     if (mediaFilters[1]) fetchMangaList();
+  }, [mediaFilters, fetchMangaList]);
+
+  useEffect(() => {
     if (mediaFilters[2]) fetchLightNovelList();
-  }, [mediaFilters, fetchAnimeList, fetchMangaList, fetchLightNovelList]);
+  }, [mediaFilters, fetchLightNovelList]);
 
   useEffect(() => {
     resetFilter();
@@ -383,19 +393,27 @@ export default function Dashboard() {
             />
           </div>
           <AddAnimeDialog
-            openAddAnimeDialog={openAddAnimeDialog}
-            setOpenAddAnimeDialog={setOpenAddAnimeDialog}
+            openDialog={openAddAnimeDialog}
+            setOpenDialog={setOpenAddAnimeDialog}
             resetParent={resetAnimeParent}
           />
           <AddMangaDialog
-            openAddMangaDialog={openAddMangaDialog}
-            setOpenAddMangaDialog={setOpenAddMangaDialog}
+            openDialog={openAddMangaDialog}
+            setOpenDialog={setOpenAddMangaDialog}
             resetParent={resetMangaParent}
           />
           <AddLightNovelDialog
-            openAddLightNovelDialog={openAddLightNovelDialog}
-            setOpenAddLightNovelDialog={setOpenAddLightNovelDialog}
+            openDialog={openAddLightNovelDialog}
+            setOpenDialog={setOpenAddLightNovelDialog}
             resetParent={resetLightNovelParent}
+          />
+          <EntityManagement
+            openDialog={openEntityManagementDialog}
+            setOpenDialog={setOpenEntityManagementDialog}
+            resetAuthor={fetchAuthorList}
+            resetGenre={fetchGenreList}
+            resetStudio={fetchStudioList}
+            resetTheme={fetchThemeList}
           />
         </div>
       </header>
@@ -430,7 +448,6 @@ export default function Dashboard() {
                 }
               />
             )}
-            {mediaFilters[0] && mediaFilters[1] && <Separator />}
             {mediaFilters[1] && (
               <DataTable
                 title="Manga"
@@ -458,8 +475,6 @@ export default function Dashboard() {
                 }
               />
             )}
-            {mediaFilters[0] && mediaFilters[2] && <Separator />}
-            {mediaFilters[1] && mediaFilters[2] && <Separator />}
             {mediaFilters[2] && (
               <DataTable
                 title="Light Novel"

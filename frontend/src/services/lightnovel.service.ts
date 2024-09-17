@@ -54,7 +54,7 @@ const fetchAllLightNovelService = async (
 };
 
 const fetchLightNovelByIdService = async (
-  id: string
+  id: number
 ): Promise<ApiResponse<LightNovelDetail>> => {
   try {
     const response = await axios.get(`${BASE_LIGHTNOVEL_URL}/${id}`);
@@ -88,7 +88,7 @@ const addLightNovelService = async (
 };
 
 const updateLightNovelReviewService = async (
-  id: string,
+  id: number,
   data: LightNovelReview
 ): Promise<ApiResponse<MessageResponse>> => {
   try {

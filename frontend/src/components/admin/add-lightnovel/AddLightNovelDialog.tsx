@@ -23,14 +23,14 @@ import { LightNovelPostRequest } from "@/types/lightnovel.type";
 import { addLightNovelService } from "@/services/lightnovel.service";
 
 type Props = {
-  openAddLightNovelDialog: boolean;
-  setOpenAddLightNovelDialog: Dispatch<SetStateAction<boolean>>;
+  openDialog: boolean;
+  setOpenDialog: Dispatch<SetStateAction<boolean>>;
   resetParent: () => Promise<void>;
 };
 
 export default function AddLightNovelDialog({
-  openAddLightNovelDialog,
-  setOpenAddLightNovelDialog,
+  openDialog,
+  setOpenDialog,
   resetParent
 }: Props) {
   const [isLoadingChosenLightNovel, setIsLoadingChosenLightNovel] =
@@ -96,7 +96,7 @@ export default function AddLightNovelDialog({
 
       setChosenLightNovel(undefined);
       resetParent();
-      setOpenAddLightNovelDialog(false);
+      setOpenDialog(false);
     } else {
       toast.toast({
         title: "Uh oh! Something went wrong",
@@ -107,10 +107,7 @@ export default function AddLightNovelDialog({
   };
 
   return (
-    <Dialog
-      open={openAddLightNovelDialog}
-      onOpenChange={setOpenAddLightNovelDialog}
-    >
+    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
         <Button className="w-full lg:w-fit">
           <Plus className="mr-2 w-4 h-4" />

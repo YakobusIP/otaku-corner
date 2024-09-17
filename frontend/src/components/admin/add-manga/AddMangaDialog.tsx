@@ -23,14 +23,14 @@ import { MangaPostRequest } from "@/types/manga.type";
 import { addMangaService } from "@/services/manga.service";
 
 type Props = {
-  openAddMangaDialog: boolean;
-  setOpenAddMangaDialog: Dispatch<SetStateAction<boolean>>;
+  openDialog: boolean;
+  setOpenDialog: Dispatch<SetStateAction<boolean>>;
   resetParent: () => Promise<void>;
 };
 
 export default function AddMangaDialog({
-  openAddMangaDialog,
-  setOpenAddMangaDialog,
+  openDialog,
+  setOpenDialog,
   resetParent
 }: Props) {
   const [isLoadingChosenManga, setIsLoadingChosenManga] = useState(false);
@@ -95,7 +95,7 @@ export default function AddMangaDialog({
 
       setChosenManga(undefined);
       resetParent();
-      setOpenAddMangaDialog(false);
+      setOpenDialog(false);
     } else {
       toast.toast({
         title: "Uh oh! Something went wrong",
@@ -106,7 +106,7 @@ export default function AddMangaDialog({
   };
 
   return (
-    <Dialog open={openAddMangaDialog} onOpenChange={setOpenAddMangaDialog}>
+    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
         <Button className="w-full lg:w-fit">
           <Plus className="mr-2 w-4 h-4" />

@@ -54,7 +54,7 @@ const fetchAllMangaService = async (
 };
 
 const fetchMangaByIdService = async (
-  id: string
+  id: number
 ): Promise<ApiResponse<MangaDetail>> => {
   try {
     const response = await axios.get(`${BASE_MANGA_URL}/${id}`);
@@ -88,7 +88,7 @@ const addMangaService = async (
 };
 
 const updateMangaReviewService = async (
-  id: string,
+  id: number,
   data: MangaReview
 ): Promise<ApiResponse<MessageResponse>> => {
   try {

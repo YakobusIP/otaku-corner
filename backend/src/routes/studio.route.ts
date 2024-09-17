@@ -16,6 +16,10 @@ class StudioRouter {
 
   private initializeRoutes() {
     this.router.get("/", this.studioController.getAllStudios);
+    this.router.post("/", this.studioController.createStudio);
+    this.router.put("/:id", this.studioController.updateStudio);
+    this.router.delete("/", this.studioController.deleteMultipleStudios);
+    this.router.delete("/:id", this.studioController.deleteStudio);
   }
 }
 

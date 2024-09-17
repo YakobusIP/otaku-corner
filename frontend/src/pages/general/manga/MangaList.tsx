@@ -8,9 +8,9 @@ import { useDebounce } from "use-debounce";
 import type { MangaFilterSort, MangaList } from "@/types/manga.type";
 import { Loader2 } from "lucide-react";
 import {
-  fetchAllGenreService,
-  fetchAllAuthorService,
-  fetchAllThemeService
+  genreService,
+  authorService,
+  themeService
 } from "@/services/entity.service";
 import { GenreEntity, AuthorEntity, ThemeEntity } from "@/types/entity.type";
 import { MetadataResponse } from "@/types/api.type";
@@ -80,7 +80,7 @@ export default function MangaList() {
 
   const fetchAuthorList = useCallback(async () => {
     setIsLoadingAuthor(true);
-    const response = await fetchAllAuthorService();
+    const response = await authorService.fetchAll<AuthorEntity[]>();
     if (response.success) {
       setAuthorList(response.data);
     } else {
@@ -94,7 +94,7 @@ export default function MangaList() {
 
   const fetchGenreList = useCallback(async () => {
     setIsLoadingGenre(true);
-    const response = await fetchAllGenreService();
+    const response = await genreService.fetchAll<GenreEntity[]>();
     if (response.success) {
       setGenreList(response.data);
     } else {
@@ -108,7 +108,7 @@ export default function MangaList() {
 
   const fetchThemeList = useCallback(async () => {
     setIsLoadingTheme(true);
-    const response = await fetchAllThemeService();
+    const response = await themeService.fetchAll<ThemeEntity[]>();
     if (response.success) {
       setThemeList(response.data);
     } else {

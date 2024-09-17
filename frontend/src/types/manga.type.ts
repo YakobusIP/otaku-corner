@@ -34,14 +34,14 @@ type MangaPostRequest = {
 };
 
 type MangaDetail = Omit<MangaPostRequest, "authors" | "genres" | "themes"> & {
-  id: string;
+  id: number;
   authors: AuthorEntityPartial[];
   genres: GenreEntityPartial[];
   themes: ThemeEntityPartial[];
 };
 
 type MangaList = {
-  id: string;
+  id: number;
   title: string;
   titleJapanese: string;
   status: string;

@@ -183,7 +183,7 @@ export class MangaService {
     return prisma.manga.delete({ where: { id } });
   }
 
-  async deleteMultipleManga(ids: number[]) {
+  async deleteMultipleMangas(ids: number[]) {
     return prisma.manga.deleteMany({ where: { id: { in: ids } } });
   }
 }

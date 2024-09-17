@@ -16,6 +16,10 @@ class GenreRouter {
 
   private initializeRoutes() {
     this.router.get("/", this.genreController.getAllGenres);
+    this.router.post("/", this.genreController.createGenre);
+    this.router.put("/:id", this.genreController.updateGenre);
+    this.router.delete("/", this.genreController.deleteMultipleGenres);
+    this.router.delete("/:id", this.genreController.deleteGenre);
   }
 }
 

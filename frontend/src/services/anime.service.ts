@@ -56,7 +56,7 @@ const fetchAllAnimeService = async (
 };
 
 const fetchAnimeByIdService = async (
-  id: string
+  id: number
 ): Promise<ApiResponse<AnimeDetail>> => {
   try {
     const response = await axios.get(`${BASE_ANIME_URL}/${id}`);
@@ -90,7 +90,7 @@ const addAnimeService = async (
 };
 
 const updateAnimeReviewService = async (
-  id: string,
+  id: number,
   data: AnimeReview
 ): Promise<ApiResponse<MessageResponse>> => {
   try {

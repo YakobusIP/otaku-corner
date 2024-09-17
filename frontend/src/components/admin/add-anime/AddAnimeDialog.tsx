@@ -23,14 +23,14 @@ import { AnimePostRequest } from "@/types/anime.type";
 import { addAnimeService } from "@/services/anime.service";
 
 type Props = {
-  openAddAnimeDialog: boolean;
-  setOpenAddAnimeDialog: Dispatch<SetStateAction<boolean>>;
+  openDialog: boolean;
+  setOpenDialog: Dispatch<SetStateAction<boolean>>;
   resetParent: () => Promise<void>;
 };
 
 export default function AddAnimeDialog({
-  openAddAnimeDialog,
-  setOpenAddAnimeDialog,
+  openDialog,
+  setOpenDialog,
   resetParent
 }: Props) {
   const [isLoadingChosenAnime, setIsLoadingChosenAnime] = useState(false);
@@ -129,7 +129,7 @@ export default function AddAnimeDialog({
 
       setChosenAnime(undefined);
       resetParent();
-      setOpenAddAnimeDialog(false);
+      setOpenDialog(false);
     } else {
       toast.toast({
         title: "Uh oh! Something went wrong",
@@ -140,7 +140,7 @@ export default function AddAnimeDialog({
   };
 
   return (
-    <Dialog open={openAddAnimeDialog} onOpenChange={setOpenAddAnimeDialog}>
+    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
         <Button className="w-full lg:w-fit">
           <Plus className="mr-2 w-4 h-4" />

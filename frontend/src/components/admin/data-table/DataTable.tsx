@@ -19,11 +19,13 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Trash2 } from "lucide-react";
 import { MetadataResponse } from "@/types/api.type";
 interface Identifiable {
-  id: string;
+  id: number;
 }
 
 interface DataTableProps<TData extends Identifiable, TValue> {
-  title: string;
+  title?: string;
+  searchComponent?: ReactNode;
+  addNewDataComponent?: ReactNode;
   filterSortComponent?: ReactNode;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -39,6 +41,8 @@ interface DataTableProps<TData extends Identifiable, TValue> {
 
 export default function DataTable<TData extends Identifiable, TValue>({
   title,
+  searchComponent,
+  addNewDataComponent,
   filterSortComponent,
   columns,
   data,
@@ -54,7 +58,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
   const table = useReactTable({
     data,
     columns,
-    getRowId: (row) => row.id,
+    getRowId: (row) => row.id.toString(),
     getCoreRowModel: getCoreRowModel(),
     onRowSelectionChange: setRowSelection,
     state: {
@@ -71,22 +75,46 @@ export default function DataTable<TData extends Identifiable, TValue>({
 
   return (
     <div>
-      <div className="flex flex-col">
-        <div className="flex justify-between items-center">
-          <h2>{title}</h2>
-          <Button
-            variant="destructive"
-            className="flex items-center gap-2 place-self-end"
-            onClick={() => deleteData()}
-            disabled={Object.keys(rowSelection).length === 0}
-          >
-            {!isLoadingDeleteData && <Trash2 className="w-4 h-4" />}
-            {isLoadingDeleteData && (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            )}
-            Delete
-          </Button>
-        </div>
+      <div className="flex flex-col mb-2">
+        {searchComponent ? (
+          <>
+            <h2>{title}</h2>
+            <div className="flex flex-col lg:flex-row justify-between items-center gap-2">
+              <div className="flex flex-col lg:flex-row items-center gap-2 w-full lg:w-fit">
+                {searchComponent}
+                {addNewDataComponent}
+              </div>
+              <Button
+                variant="destructive"
+                className="flex items-center gap-2 place-self-end w-full lg:w-fit"
+                onClick={() => deleteData()}
+                disabled={Object.keys(rowSelection).length === 0}
+              >
+                {!isLoadingDeleteData && <Trash2 className="w-4 h-4" />}
+                {isLoadingDeleteData && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
+                Delete
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-2">
+            <h2>{title}</h2>
+            <Button
+              variant="destructive"
+              className="flex items-center gap-2 place-self-end w-full lg:w-fit"
+              onClick={() => deleteData()}
+              disabled={Object.keys(rowSelection).length === 0}
+            >
+              {!isLoadingDeleteData && <Trash2 className="w-4 h-4" />}
+              {isLoadingDeleteData && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              Delete
+            </Button>
+          </div>
+        )}
         {filterSortComponent}
       </div>
       <div className="rounded-md border">

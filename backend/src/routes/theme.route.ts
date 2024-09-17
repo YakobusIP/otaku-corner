@@ -16,6 +16,10 @@ class ThemeRouter {
 
   private initializeRoutes() {
     this.router.get("/", this.themeController.getAllThemes);
+    this.router.post("/", this.themeController.createTheme);
+    this.router.put("/:id", this.themeController.updateTheme);
+    this.router.delete("/", this.themeController.deleteMultipleThemes);
+    this.router.delete("/:id", this.themeController.deleteTheme);
   }
 }
 

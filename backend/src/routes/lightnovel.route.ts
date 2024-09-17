@@ -32,7 +32,10 @@ class LightNovelRouter {
       "/review/:id",
       this.lightNovelController.updateLightNovelReview
     );
-    this.router.delete("/", this.lightNovelController.deleteMultipleLightNovel);
+    this.router.delete(
+      "/",
+      this.lightNovelController.deleteMultipleLightNovels
+    );
     this.router.delete("/:id", this.lightNovelController.deleteLightNovel);
   }
 }

@@ -8,9 +8,9 @@ import { useDebounce } from "use-debounce";
 import type { AnimeFilterSort, AnimeList } from "@/types/anime.type";
 import { Loader2 } from "lucide-react";
 import {
-  fetchAllGenreService,
-  fetchAllStudioService,
-  fetchAllThemeService
+  genreService,
+  studioService,
+  themeService
 } from "@/services/entity.service";
 import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
 import { MetadataResponse } from "@/types/api.type";
@@ -81,7 +81,7 @@ export default function AnimeList() {
 
   const fetchGenreList = useCallback(async () => {
     setIsLoadingGenre(true);
-    const response = await fetchAllGenreService();
+    const response = await genreService.fetchAll<GenreEntity[]>();
     if (response.success) {
       setGenreList(response.data);
     } else {
@@ -95,7 +95,7 @@ export default function AnimeList() {
 
   const fetchStudioList = useCallback(async () => {
     setIsLoadingStudio(true);
-    const response = await fetchAllStudioService();
+    const response = await studioService.fetchAll<StudioEntity[]>();
     if (response.success) {
       setStudioList(response.data);
     } else {
@@ -109,7 +109,7 @@ export default function AnimeList() {
 
   const fetchThemeList = useCallback(async () => {
     setIsLoadingTheme(true);
-    const response = await fetchAllThemeService();
+    const response = await themeService.fetchAll<ThemeEntity[]>();
     if (response.success) {
       setThemeList(response.data);
     } else {

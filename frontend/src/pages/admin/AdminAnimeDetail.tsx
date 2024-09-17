@@ -20,7 +20,7 @@ export default function AdminAnimeDetail() {
 
   const fetchAnimeById = useCallback(async () => {
     setIsLoadingAnimeDetail(true);
-    const response = await fetchAnimeByIdService(animeId as string);
+    const response = await fetchAnimeByIdService(parseInt(animeId as string));
     if (response.success) {
       setAnimeDetail(response.data);
     } else {
