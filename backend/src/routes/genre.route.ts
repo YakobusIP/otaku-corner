@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { GenreService } from "../services/genre.service";
 import { GenreController } from "../controllers/genre.controller";
+import { authMiddleware } from "../middleware/auth.middleware";
 
 class GenreRouter {
   public router: Router;
@@ -16,10 +17,18 @@ class GenreRouter {
 
   private initializeRoutes() {
     this.router.get("/", this.genreController.getAllGenres);
-    this.router.post("/", this.genreController.createGenre);
-    this.router.put("/:id", this.genreController.updateGenre);
-    this.router.delete("/", this.genreController.deleteMultipleGenres);
-    this.router.delete("/:id", this.genreController.deleteGenre);
+    this.router.post("/", authMiddleware, this.genreController.createGenre);
+    this.router.put("/:id", authMiddleware, this.genreController.updateGenre);
+    this.router.delete(
+      "/",
+      authMiddleware,
+      this.genreController.deleteMultipleGenres
+    );
+    this.router.delete(
+      "/:id",
+      authMiddleware,
+      this.genreController.deleteGenre
+    );
   }
 }
 

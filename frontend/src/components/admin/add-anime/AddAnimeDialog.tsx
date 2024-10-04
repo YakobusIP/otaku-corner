@@ -132,6 +132,7 @@ export default function AddAnimeDialog({
       setOpenDialog(false);
     } else {
       toast.toast({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -142,12 +143,12 @@ export default function AddAnimeDialog({
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button className="w-full lg:w-fit">
+        <Button className="w-full xl:w-fit">
           <Plus className="mr-2 w-4 h-4" />
           Add Anime
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full lg:w-3/5">
+      <DialogContent className="w-full xl:w-3/5">
         <DialogHeader>
           <DialogTitle>Add new anime entry</DialogTitle>
           <DialogDescription>
@@ -171,18 +172,18 @@ export default function AddAnimeDialog({
         )}
         {!isLoadingChosenAnime && chosenAnime && (
           <>
-            <div className="flex flex-col lg:flex-row w-full space-x-0 lg:space-x-4 items-center">
+            <div className="flex flex-col xl:flex-row w-full space-x-0 xl:space-x-4 items-center">
               <img
                 src={
                   chosenAnime.images.webp
                     ? chosenAnime.images.webp.image_url
                     : chosenAnime.images.jpg.image_url
                 }
-                className="object-cover rounded-lg h-fit w-[100px] lg:w-[300px]"
+                className="object-cover rounded-xl h-fit w-[100px] xl:w-[300px]"
               />
-              <Separator orientation="vertical" className="hidden lg:block" />
-              <ScrollArea className="h-full lg:h-[400px] w-full p-0 lg:p-2">
-                <div className="flex flex-col space-y-4 w-full p-0 lg:p-2">
+              <Separator orientation="vertical" className="hidden xl:block" />
+              <ScrollArea className="h-full xl:h-[400px] w-full p-0 xl:p-2">
+                <div className="flex flex-col space-y-4 w-full p-0 xl:p-2">
                   <h4>Anime Details</h4>
                   <div className="flex items-center gap-2">
                     <Badge>{chosenAnime.type}</Badge>
@@ -194,7 +195,7 @@ export default function AddAnimeDialog({
                       </Badge>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-center w-full">
+                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-center w-full">
                     <div className="flex flex-col">
                       <Label>Title</Label>
                       <p className="break-words">{chosenAnime.title}</p>
@@ -272,7 +273,7 @@ export default function AddAnimeDialog({
                         <ExternalLink className="w-4 h-4" />
                       </a>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 col-span-1 lg:col-span-3 gap-4">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 col-span-1 xl:col-span-3 gap-4">
                       {chosenAnime.genres.length > 0 && (
                         <div className="flex flex-col gap-1">
                           <Label>Genres</Label>
@@ -310,7 +311,7 @@ export default function AddAnimeDialog({
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-col gap-1 col-span-1 lg:col-span-3">
+                    <div className="flex flex-col gap-1 col-span-1 xl:col-span-3">
                       <Label>Synopsis</Label>
                       <Textarea
                         rows={7}
@@ -327,7 +328,7 @@ export default function AddAnimeDialog({
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
                           title="Anime Trailer"
-                          className="w-fit lg:w-[500px] h-[200px] lg:h-[300px]"
+                          className="w-fit xl:w-[500px] h-[200px] xl:h-[300px]"
                         ></iframe>
                       </div>
                     )}

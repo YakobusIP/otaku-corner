@@ -27,11 +27,12 @@ export default function GeneralMangaDetail() {
 
   const fetchMangaById = useCallback(async () => {
     setIsLoadingMangaDetail(true);
-    const response = await fetchMangaByIdService(mangaId as string);
+    const response = await fetchMangaByIdService(parseInt(mangaId as string));
     if (response.success) {
       setMangaDetail(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -46,8 +47,8 @@ export default function GeneralMangaDetail() {
   return !isLoadingMangaDetail && mangaDetail ? (
     <div className="text-foreground space-y-8">
       <header className="bg-primary bg-gradient-to-b from-primary to-muted-foreground text-primary-foreground py-12">
-        <div className="container flex flex-col-reverse lg:flex-row items-center justify-center gap-4 lg:gap-16">
-          <div className="flex flex-col gap-4 lg:gap-16 w-full lg:w-4/5">
+        <div className="container flex flex-col-reverse xl:flex-row items-center justify-center gap-4 xl:gap-16">
+          <div className="flex flex-col gap-4 xl:gap-16 w-full xl:w-4/5">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-3xl sm:text-4xl font-bold">
@@ -156,8 +157,8 @@ export default function GeneralMangaDetail() {
   ) : (
     <div className="flex flex-col min-h-[100dvh] items-center justify-center gap-4">
       <img src="/loading.gif" className="w-32 h-32 rounded-xl" />
-      <div className="flex items-center justify-center gap-2 lg:gap-4">
-        <Loader2 className="w-8 h-8 lg:w-16 lg:h-16 animate-spin" />
+      <div className="flex items-center justify-center gap-2 xl:gap-4">
+        <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
         <h2>Fetching manga details...</h2>
       </div>
       <GeneralFooter />

@@ -51,11 +51,12 @@ export default function GeneralAnimeDetail() {
 
   const fetchAnimeById = useCallback(async () => {
     setIsLoadingAnimeDetail(true);
-    const response = await fetchAnimeByIdService(animeId as string);
+    const response = await fetchAnimeByIdService(parseInt(animeId as string));
     if (response.success) {
       setAnimeDetail(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -82,8 +83,8 @@ export default function GeneralAnimeDetail() {
   return !isLoadingAnimeDetail && animeDetail ? (
     <div className="text-foreground space-y-8">
       <header className="bg-primary bg-gradient-to-b from-primary to-muted-foreground text-primary-foreground py-12">
-        <div className="container flex flex-col-reverse lg:flex-row items-center justify-center gap-4 lg:gap-16">
-          <div className="flex flex-col gap-4 lg:gap-16 w-full lg:w-4/5">
+        <div className="container flex flex-col-reverse xl:flex-row items-center justify-center gap-4 xl:gap-16">
+          <div className="flex flex-col gap-4 xl:gap-16 w-full xl:w-4/5">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-3xl sm:text-4xl font-bold">
@@ -174,7 +175,7 @@ export default function GeneralAnimeDetail() {
         </div>
       </header>
       <section className="container flex items-center justify-center">
-        <Card className="w-full lg:w-2/5">
+        <Card className="w-full xl:w-2/5">
           <CardHeader>
             <CardTitle>Trailer</CardTitle>
           </CardHeader>
@@ -200,7 +201,7 @@ export default function GeneralAnimeDetail() {
             <TableCaption>{animeDetail.title}'s list of episodes</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[40px] lg:w-[150px]">
+                <TableHead className="w-[40px] xl:w-[150px]">
                   {episodeNumberTitle}
                 </TableHead>
                 <TableHead>Title</TableHead>
@@ -274,8 +275,8 @@ export default function GeneralAnimeDetail() {
   ) : (
     <div className="flex flex-col min-h-[100dvh] items-center justify-center gap-4">
       <img src="/loading.gif" className="w-32 h-32 rounded-xl" />
-      <div className="flex items-center justify-center gap-2 lg:gap-4">
-        <Loader2 className="w-8 h-8 lg:w-16 lg:h-16 animate-spin" />
+      <div className="flex items-center justify-center gap-2 xl:gap-4">
+        <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
         <h2>Fetching anime details...</h2>
       </div>
       <GeneralFooter />

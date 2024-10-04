@@ -198,6 +198,7 @@ export default function ReviewTab({ lightNovelDetail }: Props) {
       });
     } else {
       toast.toast({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -209,7 +210,7 @@ export default function ReviewTab({ lightNovelDetail }: Props) {
     <TabsContent value="reviews">
       <div className="flex flex-col pt-4">
         <h2 className="mb-4">Reviews</h2>
-        <div className="flex flex-col lg:flex-row items-center gap-4 mb-4">
+        <div className="flex flex-col xl:flex-row items-center gap-4 mb-4">
           <div className="flex flex-col gap-2 w-full">
             <Label>Storyline</Label>
             <Select

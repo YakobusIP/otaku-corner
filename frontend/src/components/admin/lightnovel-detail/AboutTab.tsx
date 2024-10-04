@@ -13,7 +13,7 @@ export default function AboutTab({ lightNovelDetail }: Props) {
     <TabsContent value="about">
       <div className="flex flex-col gap-4 pt-4">
         <h2>About</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground">Title</Label>
             <p className="break-words">{lightNovelDetail.title}</p>
@@ -51,7 +51,7 @@ export default function AboutTab({ lightNovelDetail }: Props) {
               <ExternalLink className="w-4 h-4" />
             </a>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 col-span-1 lg:col-span-3 gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-3 col-span-1 xl:col-span-3 gap-8">
             {lightNovelDetail.authors.length > 0 && (
               <div className="flex flex-col gap-1">
                 <Label className="text-muted-foreground">Authors</Label>

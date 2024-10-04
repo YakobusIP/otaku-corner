@@ -72,6 +72,7 @@ export default function AnimeList() {
       setAnimeMetadata(response.data.metadata);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -86,6 +87,7 @@ export default function AnimeList() {
       setGenreList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -100,6 +102,7 @@ export default function AnimeList() {
       setStudioList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -114,6 +117,7 @@ export default function AnimeList() {
       setThemeList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -143,7 +147,7 @@ export default function AnimeList() {
   return (
     <div className="flex flex-col min-h-[100dvh]">
       <ListHeader type={MediaType.ANIME} setSearchMedia={setSearchAnime} />
-      <main className="container py-4 lg:py-12 px-4 md:px-6 flex flex-col flex-1">
+      <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
         <AnimeFilterSortAccordion
           animeFilterSort={animeFilterSort}
           setAnimeFilterSort={setAnimeFilterSort}
@@ -156,8 +160,8 @@ export default function AnimeList() {
         />
         {isLoadingAnime ? (
           <section className="flex flex-col items-center justify-center flex-1">
-            <div className="flex items-center justify-center gap-2 lg:gap-4">
-              <Loader2 className="w-8 h-8 lg:w-16 lg:h-16 animate-spin" />
+            <div className="flex items-center justify-center gap-2 xl:gap-4">
+              <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
               <h2>Fetching animes...</h2>
             </div>
           </section>
@@ -170,7 +174,7 @@ export default function AnimeList() {
           </section>
         ) : (
           <section className="flex flex-col items-center justify-center gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 xl:grid-cols-5 gap-6">
               {animeList.map((anime) => {
                 return <AnimeCard key={anime.id} anime={anime} />;
               })}

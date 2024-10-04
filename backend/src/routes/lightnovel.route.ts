@@ -4,6 +4,7 @@ import { LightNovelController } from "../controllers/lightnovel.controller";
 import { AuthorService } from "../services/author.service";
 import { GenreService } from "../services/genre.service";
 import { ThemeService } from "../services/theme.service";
+import { authMiddleware } from "../middleware/auth.middleware";
 
 class LightNovelRouter {
   public router: Router;
@@ -26,17 +27,31 @@ class LightNovelRouter {
   private initializeRoutes() {
     this.router.get("/", this.lightNovelController.getAllLightNovels);
     this.router.get("/:id", this.lightNovelController.getLightNovelById);
-    this.router.post("/", this.lightNovelController.createLightNovel);
-    this.router.put("/:id", this.lightNovelController.updateLightNovel);
+    this.router.post(
+      "/",
+      authMiddleware,
+      this.lightNovelController.createLightNovel
+    );
+    this.router.put(
+      "/:id",
+      authMiddleware,
+      this.lightNovelController.updateLightNovel
+    );
     this.router.put(
       "/review/:id",
+      authMiddleware,
       this.lightNovelController.updateLightNovelReview
     );
     this.router.delete(
       "/",
+      authMiddleware,
       this.lightNovelController.deleteMultipleLightNovels
     );
-    this.router.delete("/:id", this.lightNovelController.deleteLightNovel);
+    this.router.delete(
+      "/:id",
+      authMiddleware,
+      this.lightNovelController.deleteLightNovel
+    );
   }
 }
 

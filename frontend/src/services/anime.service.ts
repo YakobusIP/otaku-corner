@@ -1,4 +1,5 @@
 import { SortOrder } from "@/enum/general.enum";
+import interceptedAxios from "@/lib/axios";
 import {
   AnimeDetail,
   AnimeList,
@@ -10,7 +11,7 @@ import {
   ApiResponseList,
   MessageResponse
 } from "@/types/api.type";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 
 const BASE_ANIME_URL = "/api/anime";
 
@@ -28,7 +29,7 @@ const fetchAllAnimeService = async (
   filterType?: string
 ): Promise<ApiResponseList<AnimeList[]>> => {
   try {
-    const response = await axios.get(BASE_ANIME_URL, {
+    const response = await interceptedAxios.get(BASE_ANIME_URL, {
       params: {
         currentPage,
         limitPerPage,
@@ -59,7 +60,7 @@ const fetchAnimeByIdService = async (
   id: number
 ): Promise<ApiResponse<AnimeDetail>> => {
   try {
-    const response = await axios.get(`${BASE_ANIME_URL}/${id}`);
+    const response = await interceptedAxios.get(`${BASE_ANIME_URL}/${id}`);
     return { success: true, data: response.data.data };
   } catch (error) {
     return {
@@ -76,7 +77,7 @@ const addAnimeService = async (
   data: AnimePostRequest
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
-    const response = await axios.post(BASE_ANIME_URL, data);
+    const response = await interceptedAxios.post(BASE_ANIME_URL, data);
     return { success: true, data: response.data };
   } catch (error) {
     return {
@@ -94,7 +95,10 @@ const updateAnimeReviewService = async (
   data: AnimeReview
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
-    const response = await axios.put(`${BASE_ANIME_URL}/review/${id}`, data);
+    const response = await interceptedAxios.put(
+      `${BASE_ANIME_URL}/review/${id}`,
+      data
+    );
     return { success: true, data: response.data };
   } catch (error) {
     return {
@@ -111,7 +115,7 @@ const deleteAnimeService = async (
   ids: number[]
 ): Promise<ApiResponse<void>> => {
   try {
-    await axios.delete(BASE_ANIME_URL, { data: { ids } });
+    await interceptedAxios.delete(BASE_ANIME_URL, { data: { ids } });
     return { success: true, data: undefined };
   } catch (error) {
     return {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { DropdownChecked } from "@/components/ui/dropdown-menu";
-import { Search } from "lucide-react";
+import { Loader2, LogOut, Search } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import AddAnimeDialog from "@/components/admin/add-anime/AddAnimeDialog";
 import AddMangaDialog from "@/components/admin/add-manga/AddMangaDialog";
@@ -46,6 +46,11 @@ import { lightNovelColumns } from "@/components/admin/data-table/LightNovelTable
 import LightNovelFilterSortAccordion from "@/components/global/LightNovelFilterSortAccordion";
 import AddLightNovelDialog from "@/components/admin/add-lightnovel/AddLightNovelDialog";
 import EntityManagement from "@/components/admin/entity-management/EntityManagement";
+import { Button } from "@/components/ui/button";
+import useWideScreen from "@/hooks/useWideScreen";
+import { useNavigate } from "react-router-dom";
+import { logout } from "@/services/auth.service";
+import { setAccessToken } from "@/lib/axios";
 
 const PAGINATION_SIZE = 5;
 
@@ -116,7 +121,11 @@ export default function Dashboard() {
   const [searchMedia, setSearchMedia] = useState("");
   const [debouncedSearch] = useDebounce(searchMedia, 1000);
 
+  const [isLoadingLogout, setIsLoadingLogout] = useState(false);
+
   const toast = useToast();
+  const navigate = useNavigate();
+  const isWideScreen = useWideScreen();
 
   const toastRef = useRef(toast.toast);
 
@@ -147,6 +156,7 @@ export default function Dashboard() {
       setAnimeMetadata(response.data.metadata);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -174,6 +184,7 @@ export default function Dashboard() {
       setMangaMetadata(response.data.metadata);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -201,6 +212,7 @@ export default function Dashboard() {
       setLightNovelMetadata(response.data.metadata);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -215,6 +227,7 @@ export default function Dashboard() {
       setGenreList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -229,6 +242,7 @@ export default function Dashboard() {
       setStudioList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -243,6 +257,7 @@ export default function Dashboard() {
       setThemeList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -257,6 +272,7 @@ export default function Dashboard() {
       setAuthorList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -278,6 +294,7 @@ export default function Dashboard() {
       });
     } else {
       toast.toast({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: "There was a problem with your request."
       });
@@ -300,6 +317,7 @@ export default function Dashboard() {
       });
     } else {
       toast.toast({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: "There was a problem with your request."
       });
@@ -322,12 +340,33 @@ export default function Dashboard() {
       });
     } else {
       toast.toast({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: "There was a problem with your request."
       });
     }
     setSelectedLightNovelRows({});
     setIsLoadingDeleteLightNovel(false);
+  };
+
+  const handleLogout = async () => {
+    setIsLoadingLogout(true);
+    const response = await logout();
+    if (response.success) {
+      setAccessToken(null);
+      navigate("/");
+      toast.toast({
+        title: "All set!",
+        description: response.data.message
+      });
+    } else {
+      toast.toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
+    }
+    setIsLoadingLogout(false);
   };
 
   const resetFilter = useCallback(async () => {
@@ -376,50 +415,71 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <header className="bg-background border-b px-4 py-3 lg:px-6 lg:py-4">
-        <div className="flex flex-col lg:flex-row items-center w-full gap-4">
-          <div className="flex w-full lg:w-fit gap-4">
-            <Input
-              type="text"
-              placeholder="Search"
-              startIcon={Search}
-              parentClassName="w-full lg:w-fit"
-              className="w-full lg:w-[300px]"
-              onChange={(e) => setSearchMedia(e.target.value)}
+      <header className="bg-background border-b px-4 py-3 xl:px-6 xl:py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col xl:flex-row items-center w-full gap-4">
+            <div className="flex w-full xl:w-fit gap-2 xl:gap-4">
+              <Input
+                type="text"
+                placeholder="Search"
+                startIcon={Search}
+                parentClassName="w-full xl:w-fit"
+                className="w-full xl:w-[300px]"
+                onChange={(e) => setSearchMedia(e.target.value)}
+              />
+              <MediaFilter
+                mediaFilters={mediaFilters}
+                handleMediaFilters={handleMediaFilters}
+              />
+              {!isWideScreen && (
+                <Button variant="outline" onClick={handleLogout}>
+                  {isLoadingLogout ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <LogOut className="w-4 h-4" />
+                  )}
+                </Button>
+              )}
+            </div>
+            <AddAnimeDialog
+              openDialog={openAddAnimeDialog}
+              setOpenDialog={setOpenAddAnimeDialog}
+              resetParent={resetAnimeParent}
             />
-            <MediaFilter
-              mediaFilters={mediaFilters}
-              handleMediaFilters={handleMediaFilters}
+            <AddMangaDialog
+              openDialog={openAddMangaDialog}
+              setOpenDialog={setOpenAddMangaDialog}
+              resetParent={resetMangaParent}
+            />
+            <AddLightNovelDialog
+              openDialog={openAddLightNovelDialog}
+              setOpenDialog={setOpenAddLightNovelDialog}
+              resetParent={resetLightNovelParent}
+            />
+            <EntityManagement
+              openDialog={openEntityManagementDialog}
+              setOpenDialog={setOpenEntityManagementDialog}
+              resetAuthor={fetchAuthorList}
+              resetGenre={fetchGenreList}
+              resetStudio={fetchStudioList}
+              resetTheme={fetchThemeList}
             />
           </div>
-          <AddAnimeDialog
-            openDialog={openAddAnimeDialog}
-            setOpenDialog={setOpenAddAnimeDialog}
-            resetParent={resetAnimeParent}
-          />
-          <AddMangaDialog
-            openDialog={openAddMangaDialog}
-            setOpenDialog={setOpenAddMangaDialog}
-            resetParent={resetMangaParent}
-          />
-          <AddLightNovelDialog
-            openDialog={openAddLightNovelDialog}
-            setOpenDialog={setOpenAddLightNovelDialog}
-            resetParent={resetLightNovelParent}
-          />
-          <EntityManagement
-            openDialog={openEntityManagementDialog}
-            setOpenDialog={setOpenEntityManagementDialog}
-            resetAuthor={fetchAuthorList}
-            resetGenre={fetchGenreList}
-            resetStudio={fetchStudioList}
-            resetTheme={fetchThemeList}
-          />
+          {isWideScreen && (
+            <Button variant="outline" onClick={handleLogout}>
+              {isLoadingLogout ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <LogOut className="mr-2 w-4 h-4" />
+              )}
+              Logout
+            </Button>
+          )}
         </div>
       </header>
       <Separator />
       <main className="flex-1">
-        <section className="py-12 md:py-16 lg:py-20">
+        <section className="py-12 md:py-16 xl:py-20">
           <div className="container space-y-4">
             {mediaFilters[0] && (
               <DataTable

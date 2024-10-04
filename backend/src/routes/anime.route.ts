@@ -4,6 +4,7 @@ import { AnimeController } from "../controllers/anime.controller";
 import { GenreService } from "../services/genre.service";
 import { StudioService } from "../services/studio.service";
 import { ThemeService } from "../services/theme.service";
+import { authMiddleware } from "../middleware/auth.middleware";
 
 class AnimeRouter {
   public router: Router;
@@ -24,11 +25,23 @@ class AnimeRouter {
   private initializeRoutes() {
     this.router.get("/", this.animeController.getAllAnimes);
     this.router.get("/:id", this.animeController.getAnimeById);
-    this.router.post("/", this.animeController.createAnime);
-    this.router.put("/:id", this.animeController.updateAnime);
-    this.router.put("/review/:id", this.animeController.updateAnimeReview);
-    this.router.delete("/", this.animeController.deleteMultipleAnimes);
-    this.router.delete("/:id", this.animeController.deleteAnime);
+    this.router.post("/", authMiddleware, this.animeController.createAnime);
+    this.router.put("/:id", authMiddleware, this.animeController.updateAnime);
+    this.router.put(
+      "/review/:id",
+      authMiddleware,
+      this.animeController.updateAnimeReview
+    );
+    this.router.delete(
+      "/",
+      authMiddleware,
+      this.animeController.deleteMultipleAnimes
+    );
+    this.router.delete(
+      "/:id",
+      authMiddleware,
+      this.animeController.deleteAnime
+    );
   }
 }
 

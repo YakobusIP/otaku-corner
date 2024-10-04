@@ -76,6 +76,7 @@ export default function LightNovelList() {
       setLightNovelMetadata(response.data.metadata);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -90,6 +91,7 @@ export default function LightNovelList() {
       setAuthorList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -104,6 +106,7 @@ export default function LightNovelList() {
       setGenreList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -118,6 +121,7 @@ export default function LightNovelList() {
       setThemeList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -150,7 +154,7 @@ export default function LightNovelList() {
         type={MediaType.LIGHT_NOVEL}
         setSearchMedia={setSearchLightNovel}
       />
-      <main className="container py-4 lg:py-12 px-4 md:px-6 flex flex-col flex-1">
+      <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
         <LightNovelFilterSortAccordion
           lightNovelFilterSort={lightNovelFilterSort}
           setLightNovelFilterSort={setLightNovelFilterSort}
@@ -163,8 +167,8 @@ export default function LightNovelList() {
         />
         {isLoadingLightNovel ? (
           <section className="flex flex-col items-center justify-center flex-1">
-            <div className="flex items-center justify-center gap-2 lg:gap-4">
-              <Loader2 className="w-8 h-8 lg:w-16 lg:h-16 animate-spin" />
+            <div className="flex items-center justify-center gap-2 xl:gap-4">
+              <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
               <h2>Fetching light novels...</h2>
             </div>
           </section>
@@ -177,7 +181,7 @@ export default function LightNovelList() {
           </section>
         ) : (
           <section className="flex flex-col items-center justify-center gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 xl:grid-cols-5 gap-6">
               {lightNovelList.map((lightNovel) => {
                 return (
                   <LightNovelCard key={lightNovel.id} lightNovel={lightNovel} />

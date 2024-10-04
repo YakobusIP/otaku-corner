@@ -1,9 +1,10 @@
+import interceptedAxios from "@/lib/axios";
 import {
   ApiResponse,
   ApiResponseList,
   MessageResponse
 } from "@/types/api.type";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 
 const BASE_GENRE_URL = "/api/genre";
 const BASE_STUDIO_URL = "/api/studio";
@@ -13,7 +14,7 @@ const BASE_AUTHOR_URL = "/api/author";
 const createEntityService = (baseUrl: string) => {
   const fetchAll = async <T>(): Promise<ApiResponse<T>> => {
     try {
-      const response = await axios.get(baseUrl);
+      const response = await interceptedAxios.get(baseUrl);
       return { success: true, data: response.data.data };
     } catch (error) {
       return {
@@ -32,7 +33,7 @@ const createEntityService = (baseUrl: string) => {
     query?: string
   ): Promise<ApiResponseList<T>> => {
     try {
-      const response = await axios.get(baseUrl, {
+      const response = await interceptedAxios.get(baseUrl, {
         params: { connected_media: true, currentPage, limitPerPage, q: query }
       });
       return { success: true, data: response.data.data };
@@ -51,7 +52,7 @@ const createEntityService = (baseUrl: string) => {
     entity: string
   ): Promise<ApiResponse<MessageResponse>> => {
     try {
-      const response = await axios.post(baseUrl, { name: entity });
+      const response = await interceptedAxios.post(baseUrl, { name: entity });
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -69,7 +70,9 @@ const createEntityService = (baseUrl: string) => {
     entity: string
   ): Promise<ApiResponse<MessageResponse>> => {
     try {
-      const response = await axios.put(`${baseUrl}/${id}`, { name: entity });
+      const response = await interceptedAxios.put(`${baseUrl}/${id}`, {
+        name: entity
+      });
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -84,7 +87,7 @@ const createEntityService = (baseUrl: string) => {
 
   const deleteEntity = async (ids: number[]): Promise<ApiResponse<void>> => {
     try {
-      await axios.delete(baseUrl, { data: { ids } });
+      await interceptedAxios.delete(baseUrl, { data: { ids } });
       return { success: true, data: undefined };
     } catch (error) {
       return {

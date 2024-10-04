@@ -127,7 +127,7 @@ export default function AnimeFilterSortAccordion({
             </span>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="grid grid-cols-1 grid-rows-8 lg:grid-cols-4 lg:grid-rows-2 gap-4">
+            <div className="grid grid-cols-1 grid-rows-8 xl:grid-cols-4 xl:grid-rows-2 gap-4">
               <SortDirection
                 sortBy={animeFilterSort.sortBy}
                 sortOrder={animeFilterSort.sortOrder}

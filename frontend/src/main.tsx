@@ -6,7 +6,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import Home from "@/pages/general/Home.tsx";
 import Dashboard from "@/pages/admin/Dashboard";
-import axios from "axios";
 import AnimeList from "@/pages/general/anime/AnimeList";
 import MangaList from "@/pages/general/manga/MangaList";
 import LightNovelList from "@/pages/general/lightnovels/LightNovelList";
@@ -63,8 +62,6 @@ const router = createBrowserRouter([
     element: <AdminLightNovelDetail />
   }
 ]);
-
-axios.defaults.baseURL = import.meta.env.VITE_AXIOS_BASE_URL;
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

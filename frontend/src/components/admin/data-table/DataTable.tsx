@@ -79,14 +79,14 @@ export default function DataTable<TData extends Identifiable, TValue>({
         {searchComponent ? (
           <>
             <h2>{title}</h2>
-            <div className="flex flex-col lg:flex-row justify-between items-center gap-2">
-              <div className="flex flex-col lg:flex-row items-center gap-2 w-full lg:w-fit">
+            <div className="flex flex-col xl:flex-row justify-between items-center gap-2">
+              <div className="flex flex-col xl:flex-row items-center gap-2 w-full xl:w-fit">
                 {searchComponent}
                 {addNewDataComponent}
               </div>
               <Button
                 variant="destructive"
-                className="flex items-center gap-2 place-self-end w-full lg:w-fit"
+                className="flex items-center gap-2 place-self-end w-full xl:w-fit"
                 onClick={() => deleteData()}
                 disabled={Object.keys(rowSelection).length === 0}
               >
@@ -99,11 +99,11 @@ export default function DataTable<TData extends Identifiable, TValue>({
             </div>
           </>
         ) : (
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-2">
+          <div className="flex flex-col xl:flex-row justify-between items-center gap-2">
             <h2>{title}</h2>
             <Button
               variant="destructive"
-              className="flex items-center gap-2 place-self-end w-full lg:w-fit"
+              className="flex items-center gap-2 place-self-end w-full xl:w-fit"
               onClick={() => deleteData()}
               disabled={Object.keys(rowSelection).length === 0}
             >

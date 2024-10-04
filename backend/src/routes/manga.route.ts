@@ -4,6 +4,7 @@ import { MangaController } from "../controllers/manga.controller";
 import { AuthorService } from "../services/author.service";
 import { GenreService } from "../services/genre.service";
 import { ThemeService } from "../services/theme.service";
+import { authMiddleware } from "../middleware/auth.middleware";
 
 class MangaRouter {
   public router: Router;
@@ -24,11 +25,23 @@ class MangaRouter {
   private initializeRoutes() {
     this.router.get("/", this.mangaController.getAllMangas);
     this.router.get("/:id", this.mangaController.getMangaById);
-    this.router.post("/", this.mangaController.createManga);
-    this.router.put("/:id", this.mangaController.updateManga);
-    this.router.put("/review/:id", this.mangaController.updateMangaReview);
-    this.router.delete("/", this.mangaController.deleteMultipleMangas);
-    this.router.delete("/:id", this.mangaController.deleteManga);
+    this.router.post("/", authMiddleware, this.mangaController.createManga);
+    this.router.put("/:id", authMiddleware, this.mangaController.updateManga);
+    this.router.put(
+      "/review/:id",
+      authMiddleware,
+      this.mangaController.updateMangaReview
+    );
+    this.router.delete(
+      "/",
+      authMiddleware,
+      this.mangaController.deleteMultipleMangas
+    );
+    this.router.delete(
+      "/:id",
+      authMiddleware,
+      this.mangaController.deleteManga
+    );
   }
 }
 

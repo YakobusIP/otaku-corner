@@ -99,6 +99,7 @@ export default function AddLightNovelDialog({
       setOpenDialog(false);
     } else {
       toast.toast({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -109,12 +110,12 @@ export default function AddLightNovelDialog({
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button className="w-full lg:w-fit">
+        <Button className="w-full xl:w-fit">
           <Plus className="mr-2 w-4 h-4" />
           Add Light Novel
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full lg:w-3/5">
+      <DialogContent className="w-full xl:w-3/5">
         <DialogHeader>
           <DialogTitle>Add new light novel entry</DialogTitle>
           <DialogDescription>
@@ -137,20 +138,20 @@ export default function AddLightNovelDialog({
         )}
         {!isLoadingChosenLightNovel && chosenLightNovel && (
           <>
-            <div className="flex flex-col lg:flex-row w-full space-x-0 lg:space-x-4 items-center">
+            <div className="flex flex-col xl:flex-row w-full space-x-0 xl:space-x-4 items-center">
               <img
                 src={
                   chosenLightNovel.images.webp
                     ? chosenLightNovel.images.webp.image_url
                     : chosenLightNovel.images.jpg.image_url
                 }
-                className="object-cover rounded-lg h-fit w-[100px] lg:w-[300px]"
+                className="object-cover rounded-lg h-fit w-[100px] xl:w-[300px]"
               />
-              <Separator orientation="vertical" className="hidden lg:block" />
-              <ScrollArea className="h-full lg:h-[400px] w-full p-0 lg:p-2">
-                <div className="flex flex-col space-y-4 w-full p-0 lg:p-2">
+              <Separator orientation="vertical" className="hidden xl:block" />
+              <ScrollArea className="h-full xl:h-[400px] w-full p-0 xl:p-2">
+                <div className="flex flex-col space-y-4 w-full p-0 xl:p-2">
                   <h4>Light Novel Details</h4>
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-center w-full">
+                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-center w-full">
                     <div className="flex flex-col">
                       <Label>Title</Label>
                       <p className="break-words">{chosenLightNovel.title}</p>
@@ -211,7 +212,7 @@ export default function AddLightNovelDialog({
                         <ExternalLink className="w-4 h-4" />
                       </a>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 col-span-1 lg:col-span-3 gap-4">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 col-span-1 xl:col-span-3 gap-4">
                       {chosenLightNovel.authors.length > 0 && (
                         <div className="flex flex-col gap-1">
                           <Label>Authors</Label>
@@ -249,7 +250,7 @@ export default function AddLightNovelDialog({
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-col gap-1 col-span-1 lg:col-span-3">
+                    <div className="flex flex-col gap-1 col-span-1 xl:col-span-3">
                       <Label>Synopsis</Label>
                       <Textarea
                         rows={7}

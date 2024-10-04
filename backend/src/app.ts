@@ -1,7 +1,9 @@
 import express, { Express } from "express";
 import cors from "cors";
+import cookies from "cookie-parser";
 import { json, urlencoded } from "body-parser";
 
+import AuthRouter from "./routes/auth.route";
 import AnimeRouter from "./routes/anime.route";
 import MangaRouter from "./routes/manga.route";
 import LightNovelRouter from "./routes/lightnovel.route";
@@ -12,10 +14,17 @@ import AuthorRouter from "./routes/author.route";
 
 const app: Express = express();
 
-app.use(cors());
+app.use(
+  cors({
+    credentials: true,
+    origin: ["http://localhost:5173"]
+  })
+);
 app.use(json());
 app.use(urlencoded({ extended: true }));
+app.use(cookies());
 
+app.use("/api/auth", AuthRouter);
 app.use("/api/anime", AnimeRouter);
 app.use("/api/manga", MangaRouter);
 app.use("/api/lightnovel", LightNovelRouter);

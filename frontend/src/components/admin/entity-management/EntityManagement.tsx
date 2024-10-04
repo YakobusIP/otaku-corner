@@ -35,12 +35,12 @@ export default function EntityManagement({
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button className="w-full lg:w-fit">
+        <Button className="w-full xl:w-fit">
           <Layers className="mr-2 w-4 h-4" />
           Entity Management
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full lg:w-2/5">
+      <DialogContent className="w-full xl:w-2/5">
         <DialogHeader>
           <DialogTitle>Media Entity Management</DialogTitle>
           <DialogDescription>
@@ -48,7 +48,7 @@ export default function EntityManagement({
           </DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="authors">
-          <TabsList className="w-full lg:w-fit">
+          <TabsList className="w-full xl:w-fit">
             <TabsTrigger value="authors">Authors</TabsTrigger>
             <TabsTrigger value="genres">Genres</TabsTrigger>
             <TabsTrigger value="studios">Studios</TabsTrigger>

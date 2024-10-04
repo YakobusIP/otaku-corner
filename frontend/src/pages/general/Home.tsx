@@ -1,9 +1,39 @@
+import AdminPinEntry from "@/components/general/AdminPinEntry";
 import HomeCard from "@/components/general/HomeCard";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { MediaType } from "@/enum/general.enum";
-import { Link } from "react-router-dom";
+import { setAccessToken } from "@/lib/axios";
+import { login } from "@/services/auth.service";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Home() {
+  const [isLoadingLogin, setIsLoadingLogin] = useState(false);
+
+  const toast = useToast();
+  const navigate = useNavigate();
+
+  const handleLogin = async (pin1: string, pin2: string) => {
+    setIsLoadingLogin(true);
+    const response = await login(pin1, pin2);
+    if (response.success) {
+      setAccessToken(response.data.accessToken);
+      navigate("/admin");
+      toast.toast({
+        title: "All set!",
+        description: "Login successful"
+      });
+    } else {
+      toast.toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong",
+        description: response.error
+      });
+    }
+    setIsLoadingLogin(false);
+  };
+
   const exploreRoutes = [
     { id: 1, path: "/anime", text: "Explore Anime" },
     { id: 2, path: "/manga", text: "Explore Manga" },
@@ -45,9 +75,13 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <header className="bg-primary text-primary-foreground py-12 md:py-16 lg:py-20">
+      <AdminPinEntry
+        isLoadingLogin={isLoadingLogin}
+        handleLogin={handleLogin}
+      />
+      <header className="bg-primary text-primary-foreground py-12 md:py-16 xl:py-20">
         <div className="container">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
+          <div className="flex flex-col xl:flex-row items-center justify-between gap-8 xl:gap-16">
             <div className="flex flex-col gap-4">
               <h1 className="max-w-[650px]">
                 Track My Anime, Manga, and Light Novels
@@ -56,15 +90,15 @@ export default function Home() {
                 This platform provides reviews and ratings for anime, manga, and
                 light novels that I've consumed.
               </h4>
-              <div className="flex flex-col lg:flex-row items-center gap-4">
+              <div className="flex flex-col xl:flex-row items-center gap-4">
                 {exploreRoutes.map((route) => {
                   return (
                     <Link
                       key={route.id}
                       to={route.path}
-                      className="w-full lg:w-fit"
+                      className="w-full xl:w-fit"
                     >
-                      <Button variant="secondary" className="w-full lg:w-fit">
+                      <Button variant="secondary" className="w-full xl:w-fit">
                         {route.text}
                       </Button>
                     </Link>
@@ -83,9 +117,9 @@ export default function Home() {
         </div>
       </header>
       <main className="flex-1">
-        <section className="py-12 md:py-16 lg:py-20">
+        <section className="py-12 md:py-16 xl:py-20">
           <div className="container">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {topMedias.map((media) => {
                 return <HomeCard key={media.id} {...media} />;
               })}

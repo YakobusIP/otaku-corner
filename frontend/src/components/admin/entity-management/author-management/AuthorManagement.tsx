@@ -45,6 +45,7 @@ export default function AuthorManagement({ resetParent }: Props) {
       setAuthorMetadata(response.data.metadata);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -65,6 +66,7 @@ export default function AuthorManagement({ resetParent }: Props) {
       setIsOpenAddAuthor(false);
     } else {
       toast.toast({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -84,6 +86,7 @@ export default function AuthorManagement({ resetParent }: Props) {
       resetParent();
     } else {
       toast.toast({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: "There was a problem with your request."
       });
@@ -106,6 +109,7 @@ export default function AuthorManagement({ resetParent }: Props) {
       resetParent();
     } else {
       toast.toast({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: "There was a problem with your request."
       });
@@ -136,8 +140,8 @@ export default function AuthorManagement({ resetParent }: Props) {
             type="text"
             placeholder="Search author"
             startIcon={Search}
-            parentClassName="w-full lg:w-fit"
-            className="w-full lg:w-[300px]"
+            parentClassName="w-full xl:w-fit"
+            className="w-full xl:w-[300px]"
             onChange={(e) => setSearchAuthor(e.target.value)}
           />
         }

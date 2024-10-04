@@ -22,8 +22,8 @@ export default function ListHeader({ type, setSearchMedia }: Props) {
           Back to list
         </Button>
       </Link>
-      <div className="container pt-12 lg:pt-0">
-        <div className="flex flex-col gap-4 text-center lg:text-left">
+      <div className="container pt-12 xl:pt-0">
+        <div className="flex flex-col gap-4 text-center xl:text-left">
           <h1 className="max-w-[650px]">{type} Watchlist</h1>
           <h4 className="text-primary-foreground/80 max-w-[650px]">
             Discover my watched {type.toLowerCase()}s

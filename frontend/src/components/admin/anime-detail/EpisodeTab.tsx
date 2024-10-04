@@ -24,7 +24,7 @@ export default function EpisodeTab({ animeDetail }: Props) {
           <TableCaption>{animeDetail.title}'s list of episodes</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[80px] lg:w-[200px]">
+              <TableHead className="w-[80px] xl:w-[200px]">
                 Episode number
               </TableHead>
               <TableHead>Title</TableHead>

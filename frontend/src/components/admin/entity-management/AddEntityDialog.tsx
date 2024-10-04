@@ -32,7 +32,7 @@ export default function AddEntityDialog({
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="float-right w-full lg:w-fit">
+        <Button variant="outline" className="float-right w-full xl:w-fit">
           Add {entityType}
         </Button>
       </DialogTrigger>

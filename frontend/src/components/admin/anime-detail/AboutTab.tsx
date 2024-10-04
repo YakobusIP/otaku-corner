@@ -19,7 +19,7 @@ export default function AboutTab({ animeDetail }: Props) {
           <Badge>{animeDetail.rating}</Badge>
           {animeDetail.season && <Badge>{animeDetail.season}</Badge>}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground">Title</Label>
             <p className="break-words">{animeDetail.title}</p>
@@ -65,7 +65,7 @@ export default function AboutTab({ animeDetail }: Props) {
               <ExternalLink className="w-4 h-4" />
             </a>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 col-span-1 lg:col-span-3 gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-3 col-span-1 xl:col-span-3 gap-8">
             {animeDetail.genres.length > 0 && (
               <div className="flex flex-col gap-1">
                 <Label className="text-muted-foreground">Genres</Label>

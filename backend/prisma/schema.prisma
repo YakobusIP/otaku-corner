@@ -143,3 +143,10 @@ model Author {
   manga      Manga[]      @relation("MangaAuthors")
   lightNovel LightNovel[] @relation("LightNovelAuthors")
 }
+
+model AdminPin {
+  id        Int      @id @default(autoincrement())
+  pin1      String
+  pin2      String
+  createdAt DateTime @default(now())
+}

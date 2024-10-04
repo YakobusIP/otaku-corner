@@ -24,7 +24,7 @@ export default function MediaFilter({
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
           <Eye className="w-4 h-4" />
-          <span className="sr-only lg:not-sr-only lg:whitespace-nowrap">
+          <span className="sr-only xl:not-sr-only xl:whitespace-nowrap">
             Visibility
           </span>
         </Button>

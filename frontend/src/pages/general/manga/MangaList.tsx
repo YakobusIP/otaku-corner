@@ -71,6 +71,7 @@ export default function MangaList() {
       setMangaMetadata(response.data.metadata);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -85,6 +86,7 @@ export default function MangaList() {
       setAuthorList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -99,6 +101,7 @@ export default function MangaList() {
       setGenreList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -113,6 +116,7 @@ export default function MangaList() {
       setThemeList(response.data);
     } else {
       toastRef.current({
+        variant: "destructive",
         title: "Uh oh! Something went wrong",
         description: response.error
       });
@@ -142,7 +146,7 @@ export default function MangaList() {
   return (
     <div className="flex flex-col min-h-[100dvh]">
       <ListHeader type={MediaType.MANGA} setSearchMedia={setSearchManga} />
-      <main className="container py-4 lg:py-12 px-4 md:px-6 flex flex-col flex-1">
+      <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
         <MangaFilterSortAccordion
           mangaFilterSort={mangaFilterSort}
           setMangaFilterSort={setMangaFilterSort}
@@ -155,8 +159,8 @@ export default function MangaList() {
         />
         {isLoadingManga ? (
           <section className="flex flex-col items-center justify-center flex-1">
-            <div className="flex items-center justify-center gap-2 lg:gap-4">
-              <Loader2 className="w-8 h-8 lg:w-16 lg:h-16 animate-spin" />
+            <div className="flex items-center justify-center gap-2 xl:gap-4">
+              <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
               <h2>Fetching mangas...</h2>
             </div>
           </section>
@@ -169,7 +173,7 @@ export default function MangaList() {
           </section>
         ) : (
           <section className="flex flex-col items-center justify-center gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 xl:grid-cols-5 gap-6">
               {mangaList.map((manga) => {
                 return <MangaCard key={manga.id} manga={manga} />;
               })}
