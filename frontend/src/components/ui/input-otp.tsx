@@ -34,6 +34,7 @@ const InputOTPSlot = React.forwardRef<
 >(({ index, className, ...props }, ref) => {
   const inputOTPContext = React.useContext(OTPInputContext);
   const { char, hasFakeCaret, isActive } = inputOTPContext.slots[index];
+  const [isFocused, setIsFocused] = React.useState(false);
 
   return (
     <div
@@ -45,12 +46,34 @@ const InputOTPSlot = React.forwardRef<
       )}
       {...props}
     >
-      {char}
+      <div className="relative w-full h-full flex items-center justify-center">
+        <div
+          className={cn(
+            "absolute inset-0 flex items-center justify-center transition-opacity duration-300",
+            isFocused ? "opacity-0" : "opacity-100"
+          )}
+        >
+          {char ? "•" : null}
+        </div>
+        <div
+          className={cn(
+            "absolute inset-0 flex items-center justify-center transition-opacity duration-300",
+            isFocused ? "opacity-100" : "opacity-0"
+          )}
+        >
+          {char}
+        </div>
+      </div>
       {hasFakeCaret && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="h-4 w-px animate-caret-blink bg-foreground duration-1000" />
         </div>
       )}
+      <input
+        className="sr-only"
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+      />
     </div>
   );
 });

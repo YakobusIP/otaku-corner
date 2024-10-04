@@ -28,6 +28,11 @@ export default function AdminPinEntry({ isLoadingLogin, handleLogin }: Props) {
   const [inputStep, setInputStep] = useState(1);
   const [pin1, setPin1] = useState("");
 
+  const handlePrevious = () => {
+    setInputState(pin1);
+    setInputStep(1);
+  };
+
   const handlePinInput = useCallback(() => {
     if (inputStep === 1) {
       setPin1(inputState);
@@ -113,7 +118,10 @@ export default function AdminPinEntry({ isLoadingLogin, handleLogin }: Props) {
             </InputOTPGroup>
           </InputOTP>
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-col gap-2">
+          {inputStep === 2 && (
+            <Button onClick={handlePrevious}>Previous</Button>
+          )}
           <Button onClick={handlePinInput}>
             {isLoadingLogin && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -479,7 +479,7 @@ export default function Dashboard() {
       </header>
       <Separator />
       <main className="flex-1">
-        <section className="py-12 md:py-16 xl:py-20">
+        <section className="pb-12 pt-8 md:py-16 xl:py-20">
           <div className="container space-y-4">
             {mediaFilters[0] && (
               <DataTable

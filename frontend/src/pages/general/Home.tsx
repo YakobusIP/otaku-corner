@@ -79,7 +79,7 @@ export default function Home() {
         isLoadingLogin={isLoadingLogin}
         handleLogin={handleLogin}
       />
-      <header className="bg-primary text-primary-foreground py-12 md:py-16 xl:py-20">
+      <header className="bg-primary text-primary-foreground pt-16 pb-12 md:py-16 xl:py-20">
         <div className="container">
           <div className="flex flex-col xl:flex-row items-center justify-between gap-8 xl:gap-16">
             <div className="flex flex-col gap-4">
