@@ -4,7 +4,7 @@ import { ThemeEntity } from "@/types/entity.type";
 import EditEntityDialog from "../EditEntityDialog";
 
 export const themeColumns = (
-  editEntity: (id: number, entity: string) => void,
+  editEntity: (id: string, entity: string) => void,
   isLoadingEditEntity: boolean
 ): ColumnDef<ThemeEntity>[] => [
   {

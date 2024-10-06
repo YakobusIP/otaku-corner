@@ -29,9 +29,9 @@ export class LightNovelController {
         query,
         sortBy,
         sortOrder,
-        parseInt(filterAuthor),
-        parseInt(filterGenre),
-        parseInt(filterTheme),
+        filterAuthor,
+        filterGenre,
+        filterTheme,
         filterMALScore,
         filterPersonalScore
       );
@@ -44,7 +44,7 @@ export class LightNovelController {
   getLightNovelById = async (req: Request, res: Response): Promise<void> => {
     try {
       const lightNovel = await this.lightNovelService.getLightNovelById(
-        parseInt(req.params.id)
+        req.params.id
       );
       if (lightNovel) {
         res.json({ data: lightNovel });
@@ -72,7 +72,7 @@ export class LightNovelController {
   updateLightNovel = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedLightNovel = await this.lightNovelService.updateLightNovel(
-        parseInt(req.params.id),
+        req.params.id,
         req.body
       );
       if (updatedLightNovel) {
@@ -92,7 +92,7 @@ export class LightNovelController {
     try {
       const updatedLightNovel =
         await this.lightNovelService.updateLightNovelReview(
-          parseInt(req.params.id),
+          req.params.id,
           req.body
         );
       if (updatedLightNovel) {
@@ -108,7 +108,7 @@ export class LightNovelController {
   deleteLightNovel = async (req: Request, res: Response): Promise<void> => {
     try {
       const deletedLightNovel = await this.lightNovelService.deleteLightNovel(
-        parseInt(req.params.id)
+        req.params.id
       );
       if (deletedLightNovel) {
         res.status(204).end();

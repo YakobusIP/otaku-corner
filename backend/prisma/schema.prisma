@@ -9,7 +9,7 @@ datasource db {
 }
 
 model Anime {
-  id                Int            @id @default(autoincrement())
+  id                String         @id @default(uuid())
   malId             Int            @unique
   type              String
   status            String
@@ -44,18 +44,18 @@ model Anime {
 }
 
 model AnimeEpisode {
-  id            Int     @id @default(autoincrement())
+  id            String  @id @default(uuid())
   aired         String
   number        Int
   title         String
   titleJapanese String?
   titleRomaji   String?
   anime         Anime   @relation(fields: [animeId], references: [id], onDelete: Cascade)
-  animeId       Int
+  animeId       String
 }
 
 model Manga {
-  id                     Int           @id @default(autoincrement())
+  id                     String        @id @default(uuid())
   malId                  Int           @unique
   status                 String
   title                  String
@@ -83,7 +83,7 @@ model Manga {
 }
 
 model LightNovel {
-  id                  Int           @id @default(autoincrement())
+  id                  String        @id @default(uuid())
   malId               Int           @unique
   status              String
   title               String
@@ -111,7 +111,7 @@ model LightNovel {
 }
 
 model Genre {
-  id         Int          @id @default(autoincrement())
+  id         String       @id @default(uuid())
   name       String       @unique
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
@@ -121,7 +121,7 @@ model Genre {
 }
 
 model Studio {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   name      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -129,7 +129,7 @@ model Studio {
 }
 
 model Theme {
-  id         Int          @id @default(autoincrement())
+  id         String       @id @default(uuid())
   name       String       @unique
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
@@ -139,7 +139,7 @@ model Theme {
 }
 
 model Author {
-  id         Int          @id @default(autoincrement())
+  id         String       @id @default(uuid())
   name       String       @unique
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
@@ -148,24 +148,24 @@ model Author {
 }
 
 model AdminPin {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   pin1      String
   pin2      String
   createdAt DateTime @default(now())
 }
 
 model ReviewImage {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   url       String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  anime   Anime? @relation("AnimeReviewImages", fields: [animeId], references: [id])
-  animeId Int?
+  anime   Anime?  @relation("AnimeReviewImages", fields: [animeId], references: [id])
+  animeId String?
 
-  manga   Manga? @relation("MangaReviewImages", fields: [mangaId], references: [id])
-  mangaId Int?
+  manga   Manga?  @relation("MangaReviewImages", fields: [mangaId], references: [id])
+  mangaId String?
 
   lightNovel   LightNovel? @relation("LightNovelReviewImages", fields: [lightNovelId], references: [id])
-  lightNovelId Int?
+  lightNovelId String?
 }

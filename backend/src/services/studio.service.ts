@@ -86,15 +86,15 @@ export class StudioService {
     return studio.id;
   }
 
-  async updateStudio(id: number, data: Prisma.StudioUpdateInput) {
+  async updateStudio(id: string, data: Prisma.StudioUpdateInput) {
     return prisma.studio.update({ where: { id }, data });
   }
 
-  async deleteStudio(id: number) {
+  async deleteStudio(id: string) {
     return prisma.studio.delete({ where: { id } });
   }
 
-  async deleteMultipleStudios(ids: number[]) {
+  async deleteMultipleStudios(ids: string[]) {
     return prisma.studio.deleteMany({ where: { id: { in: ids } } });
   }
 }

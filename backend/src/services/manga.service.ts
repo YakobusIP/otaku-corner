@@ -36,9 +36,9 @@ export class MangaService {
     query?: string,
     sortBy?: string,
     sortOrder?: Prisma.SortOrder,
-    filterAuthor?: number,
-    filterGenre?: number,
-    filterTheme?: number,
+    filterAuthor?: string,
+    filterGenre?: string,
+    filterTheme?: string,
     filterMALScore?: string,
     filterPersonalScore?: string
   ) {
@@ -130,7 +130,7 @@ export class MangaService {
     };
   }
 
-  async getMangaById(id: number) {
+  async getMangaById(id: string) {
     return prisma.manga.findUnique({
       where: { id },
       include: {
@@ -171,19 +171,19 @@ export class MangaService {
     return prisma.manga.create({ data: mangaData });
   }
 
-  async updateManga(id: number, data: Prisma.MangaUpdateInput) {
+  async updateManga(id: string, data: Prisma.MangaUpdateInput) {
     return prisma.manga.update({ where: { id }, data });
   }
 
-  async updateMangaReview(id: number, data: CustomMangaReviewUpdateInput) {
+  async updateMangaReview(id: string, data: CustomMangaReviewUpdateInput) {
     return prisma.manga.update({ where: { id }, data });
   }
 
-  async deleteManga(id: number) {
+  async deleteManga(id: string) {
     return prisma.manga.delete({ where: { id } });
   }
 
-  async deleteMultipleMangas(ids: number[]) {
+  async deleteMultipleMangas(ids: string[]) {
     return prisma.manga.deleteMany({ where: { id: { in: ids } } });
   }
 }

@@ -34,14 +34,14 @@ type MangaPostRequest = {
 };
 
 type MangaDetail = Omit<MangaPostRequest, "authors" | "genres" | "themes"> & {
-  id: number;
+  id: string;
   authors: AuthorEntityPartial[];
   genres: GenreEntityPartial[];
   themes: ThemeEntityPartial[];
 };
 
 type MangaList = {
-  id: number;
+  id: string;
   title: string;
   titleJapanese: string;
   status: string;
@@ -67,9 +67,9 @@ type MangaReview = Pick<
 type MangaFilterSort = {
   sortBy: string;
   SORT_ORDER: SORT_ORDER;
-  filterAuthor?: number;
-  filterGenre?: number;
-  filterTheme?: number;
+  filterAuthor?: string;
+  filterGenre?: string;
+  filterTheme?: string;
   filterMALScore?: string;
   filterPersonalScore?: string;
 };

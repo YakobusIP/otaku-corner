@@ -40,7 +40,7 @@ export class GenreController {
   updateGenre = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedGenre = await this.genreService.updateGenre(
-        parseInt(req.params.id),
+        req.params.id,
         req.body
       );
       if (updatedGenre) {
@@ -55,9 +55,7 @@ export class GenreController {
 
   deleteGenre = async (req: Request, res: Response): Promise<void> => {
     try {
-      const deletedGenre = await this.genreService.deleteGenre(
-        parseInt(req.params.id)
-      );
+      const deletedGenre = await this.genreService.deleteGenre(req.params.id);
       if (deletedGenre) {
         res.status(204).end();
       } else {

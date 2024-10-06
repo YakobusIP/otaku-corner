@@ -30,9 +30,9 @@ export class AnimeController {
         query,
         sortBy,
         sortOrder,
-        parseInt(filterGenre),
-        parseInt(filterStudio),
-        parseInt(filterTheme),
+        filterGenre,
+        filterStudio,
+        filterTheme,
         filterMALScore,
         filterPersonalScore,
         filterType
@@ -45,9 +45,7 @@ export class AnimeController {
 
   getAnimeById = async (req: Request, res: Response): Promise<void> => {
     try {
-      const anime = await this.animeService.getAnimeById(
-        parseInt(req.params.id)
-      );
+      const anime = await this.animeService.getAnimeById(req.params.id);
       if (anime) {
         res.json({ data: anime });
       } else {
@@ -74,7 +72,7 @@ export class AnimeController {
   updateAnime = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedAnime = await this.animeService.updateAnime(
-        parseInt(req.params.id),
+        req.params.id,
         req.body
       );
       if (updatedAnime) {
@@ -90,7 +88,7 @@ export class AnimeController {
   updateAnimeReview = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedAnime = await this.animeService.updateAnimeReview(
-        parseInt(req.params.id),
+        req.params.id,
         req.body
       );
       if (updatedAnime) {
@@ -105,9 +103,7 @@ export class AnimeController {
 
   deleteAnime = async (req: Request, res: Response): Promise<void> => {
     try {
-      const deletedAnime = await this.animeService.deleteAnime(
-        parseInt(req.params.id)
-      );
+      const deletedAnime = await this.animeService.deleteAnime(req.params.id);
       if (deletedAnime) {
         res.status(204).end();
       } else {

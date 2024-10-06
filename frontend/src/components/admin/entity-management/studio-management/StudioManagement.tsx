@@ -74,7 +74,7 @@ export default function StudioManagement({ resetParent }: Props) {
     setIsLoadingAddStudio(false);
   };
 
-  const editStudio = async (id: number, name: string) => {
+  const editStudio = async (id: string, name: string) => {
     setIsLoadingEditStudio(true);
     const response = await studioService.updateEntity(id, name);
     if (response.success) {
@@ -96,9 +96,7 @@ export default function StudioManagement({ resetParent }: Props) {
 
   const deleteStudio = async () => {
     setIsLoadingDeleteStudio(true);
-    const deletedIds = Object.keys(selectedStudioRows).map((selected) =>
-      parseInt(selected)
-    );
+    const deletedIds = Object.keys(selectedStudioRows);
     const response = await studioService.deleteEntity(deletedIds);
     if (response.success) {
       fetchStudioList();

@@ -98,15 +98,15 @@ export class ThemeService {
     return theme.id;
   }
 
-  async updateTheme(id: number, data: Prisma.ThemeUpdateInput) {
+  async updateTheme(id: string, data: Prisma.ThemeUpdateInput) {
     return prisma.theme.update({ where: { id }, data });
   }
 
-  async deleteTheme(id: number) {
+  async deleteTheme(id: string) {
     return prisma.theme.delete({ where: { id } });
   }
 
-  async deleteMultipleThemes(ids: number[]) {
+  async deleteMultipleThemes(ids: string[]) {
     return prisma.theme.deleteMany({ where: { id: { in: ids } } });
   }
 }

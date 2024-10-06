@@ -74,7 +74,7 @@ export default function AuthorManagement({ resetParent }: Props) {
     setIsLoadingAddAuthor(false);
   };
 
-  const editAuthor = async (id: number, name: string) => {
+  const editAuthor = async (id: string, name: string) => {
     setIsLoadingEditAuthor(true);
     const response = await authorService.updateEntity(id, name);
     if (response.success) {
@@ -96,9 +96,7 @@ export default function AuthorManagement({ resetParent }: Props) {
 
   const deleteAuthor = async () => {
     setIsLoadingDeleteAuthor(true);
-    const deletedIds = Object.keys(selectedAuthorRows).map((selected) =>
-      parseInt(selected)
-    );
+    const deletedIds = Object.keys(selectedAuthorRows);
     const response = await authorService.deleteEntity(deletedIds);
     if (response.success) {
       fetchAuthorList();

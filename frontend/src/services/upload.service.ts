@@ -8,13 +8,13 @@ const BASE_UPLOAD_URL = "/api/upload";
 const uploadImageService = async (
   file: File,
   type: string,
-  entityId: number
+  entityId: string
 ): Promise<ApiResponse<UploadImage>> => {
   try {
     const form = new FormData();
     form.append("image", file);
     form.append("type", type);
-    form.append("entityId", entityId.toString());
+    form.append("entityId", entityId);
 
     const response = await interceptedAxios.post(BASE_UPLOAD_URL, form, {
       headers: {
@@ -34,7 +34,7 @@ const uploadImageService = async (
 };
 
 const deleteImageService = async (
-  id: number
+  id: string
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
     const response = await interceptedAxios.delete(`${BASE_UPLOAD_URL}/${id}`);

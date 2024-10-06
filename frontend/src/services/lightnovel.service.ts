@@ -21,9 +21,9 @@ const fetchAllLightNovelService = async (
   query?: string,
   sortBy?: string,
   SORT_ORDER?: SORT_ORDER,
-  filterAuthor?: number,
-  filterGenre?: number,
-  filterTheme?: number,
+  filterAuthor?: string,
+  filterGenre?: string,
+  filterTheme?: string,
   filterMALScore?: string,
   filterPersonalScore?: string
 ): Promise<ApiResponseList<LightNovelList[]>> => {
@@ -55,7 +55,7 @@ const fetchAllLightNovelService = async (
 };
 
 const fetchLightNovelByIdService = async (
-  id: number
+  id: string
 ): Promise<ApiResponse<LightNovelDetail>> => {
   try {
     const response = await interceptedAxios.get(`${BASE_LIGHTNOVEL_URL}/${id}`);
@@ -89,7 +89,7 @@ const addLightNovelService = async (
 };
 
 const updateLightNovelReviewService = async (
-  id: number,
+  id: string,
   data: LightNovelReview
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
@@ -110,7 +110,7 @@ const updateLightNovelReviewService = async (
 };
 
 const deleteLightNovelService = async (
-  ids: number[]
+  ids: string[]
 ): Promise<ApiResponse<void>> => {
   try {
     await interceptedAxios.delete(BASE_LIGHTNOVEL_URL, { data: { ids } });

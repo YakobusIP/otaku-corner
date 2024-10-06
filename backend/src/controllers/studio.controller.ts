@@ -40,7 +40,7 @@ export class StudioController {
   updateStudio = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedStudio = await this.studioService.updateStudio(
-        parseInt(req.params.id),
+        req.params.id,
         req.body
       );
       if (updatedStudio) {
@@ -56,7 +56,7 @@ export class StudioController {
   deleteStudio = async (req: Request, res: Response): Promise<void> => {
     try {
       const deletedStudio = await this.studioService.deleteStudio(
-        parseInt(req.params.id)
+        req.params.id
       );
       if (deletedStudio) {
         res.status(204).end();

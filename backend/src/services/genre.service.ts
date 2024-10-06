@@ -99,15 +99,15 @@ export class GenreService {
     return genre.id;
   }
 
-  async updateGenre(id: number, data: Prisma.GenreUpdateInput) {
+  async updateGenre(id: string, data: Prisma.GenreUpdateInput) {
     return prisma.genre.update({ where: { id }, data });
   }
 
-  async deleteGenre(id: number) {
+  async deleteGenre(id: string) {
     return prisma.genre.delete({ where: { id } });
   }
 
-  async deleteMultipleGenres(ids: number[]) {
+  async deleteMultipleGenres(ids: string[]) {
     return prisma.genre.deleteMany({ where: { id: { in: ids } } });
   }
 }

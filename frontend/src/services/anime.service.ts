@@ -21,9 +21,9 @@ const fetchAllAnimeService = async (
   query?: string,
   sortBy?: string,
   SORT_ORDER?: SORT_ORDER,
-  filterGenre?: number,
-  filterStudio?: number,
-  filterTheme?: number,
+  filterGenre?: string,
+  filterStudio?: string,
+  filterTheme?: string,
   filterMALScore?: string,
   filterPersonalScore?: string,
   filterType?: string
@@ -57,7 +57,7 @@ const fetchAllAnimeService = async (
 };
 
 const fetchAnimeByIdService = async (
-  id: number
+  id: string
 ): Promise<ApiResponse<AnimeDetail>> => {
   try {
     const response = await interceptedAxios.get(`${BASE_ANIME_URL}/${id}`);
@@ -91,7 +91,7 @@ const addAnimeService = async (
 };
 
 const updateAnimeReviewService = async (
-  id: number,
+  id: string,
   data: AnimeReview
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
@@ -112,7 +112,7 @@ const updateAnimeReviewService = async (
 };
 
 const deleteAnimeService = async (
-  ids: number[]
+  ids: string[]
 ): Promise<ApiResponse<void>> => {
   try {
     await interceptedAxios.delete(BASE_ANIME_URL, { data: { ids } });

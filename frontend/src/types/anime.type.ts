@@ -41,14 +41,14 @@ type AnimePostRequest = {
 };
 
 type AnimeDetail = Omit<AnimePostRequest, "genres" | "studios" | "themes"> & {
-  id: number;
+  id: string;
   genres: GenreEntityPartial[];
   studios: StudioEntityPartial[];
   themes: ThemeEntityPartial[];
 };
 
 type AnimeList = {
-  id: number;
+  id: string;
   title: string;
   titleJapanese: string;
   type: string;
@@ -64,7 +64,7 @@ type AnimeList = {
 };
 
 type AnimeEpisode = {
-  id?: number;
+  id?: string;
   aired: string;
   number: number;
   title: string;
@@ -85,9 +85,9 @@ type AnimeReview = Pick<
 type AnimeFilterSort = {
   sortBy: string;
   SORT_ORDER: SORT_ORDER;
-  filterGenre?: number;
-  filterStudio?: number;
-  filterTheme?: number;
+  filterGenre?: string;
+  filterStudio?: string;
+  filterTheme?: string;
   filterMALScore?: string;
   filterPersonalScore?: string;
   filterType?: string;

@@ -40,7 +40,7 @@ export class ThemeController {
   updateTheme = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedTheme = await this.themeService.updateTheme(
-        parseInt(req.params.id),
+        req.params.id,
         req.body
       );
       if (updatedTheme) {
@@ -55,9 +55,7 @@ export class ThemeController {
 
   deleteTheme = async (req: Request, res: Response): Promise<void> => {
     try {
-      const deletedTheme = await this.themeService.deleteTheme(
-        parseInt(req.params.id)
-      );
+      const deletedTheme = await this.themeService.deleteTheme(req.params.id);
       if (deletedTheme) {
         res.status(204).end();
       } else {

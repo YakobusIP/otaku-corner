@@ -10,8 +10,8 @@ type Props = {
   editorState: EditorState;
   setEditorState: Dispatch<SetStateAction<EditorState>>;
   mediaType: MEDIA_TYPE;
-  mediaId: number;
-  setUploadedImages: Dispatch<SetStateAction<{ [key: string]: number }>>;
+  mediaId: string;
+  setUploadedImages: Dispatch<SetStateAction<string[]>>;
 };
 
 export default function DraftEditor({
@@ -45,7 +45,7 @@ export default function DraftEditor({
 
   const insertImage = async (
     file: File,
-    trackImage: (url: string, id: number) => void
+    trackImage: (url: string, id: string) => void
   ) => {
     const response = await uploadImageService(file, mediaType, mediaId);
     if (response.success) {

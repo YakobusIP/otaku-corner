@@ -51,21 +51,21 @@ export default function LightNovelFilterSortAccordion({
     }));
   };
 
-  const handleFilterAuthor = (key?: number) => {
+  const handleFilterAuthor = (key?: string) => {
     setLightNovelFilterSort((prev) => ({
       ...prev,
       filterAuthor: key
     }));
   };
 
-  const handleFilterGenre = (key?: number) => {
+  const handleFilterGenre = (key?: string) => {
     setLightNovelFilterSort((prev) => ({
       ...prev,
       filterGenre: key
     }));
   };
 
-  const handleFilterTheme = (key?: number) => {
+  const handleFilterTheme = (key?: string) => {
     setLightNovelFilterSort((prev) => ({
       ...prev,
       filterTheme: key

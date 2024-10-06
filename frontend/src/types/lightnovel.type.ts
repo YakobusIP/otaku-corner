@@ -37,14 +37,14 @@ type LightNovelDetail = Omit<
   LightNovelPostRequest,
   "authors" | "genres" | "themes"
 > & {
-  id: number;
+  id: string;
   authors: AuthorEntityPartial[];
   genres: GenreEntityPartial[];
   themes: ThemeEntityPartial[];
 };
 
 type LightNovelList = {
-  id: number;
+  id: string;
   title: string;
   titleJapanese: string;
   status: string;
@@ -70,9 +70,9 @@ type LightNovelReview = Pick<
 type LightNovelFilterSort = {
   sortBy: string;
   SORT_ORDER: SORT_ORDER;
-  filterAuthor?: number;
-  filterGenre?: number;
-  filterTheme?: number;
+  filterAuthor?: string;
+  filterGenre?: string;
+  filterTheme?: string;
   filterMALScore?: string;
   filterPersonalScore?: string;
 };

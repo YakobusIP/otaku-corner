@@ -31,6 +31,7 @@ export default function ReviewTab({ animeDetail }: Props) {
   const toast = useToast();
 
   let initialEditorState: EditorState;
+  const currentImageIds: string[] = [];
   if (animeDetail.review) {
     const sanitizedHTML = DOMPurify.sanitize(animeDetail.review);
     const blocksFromHtml = htmlToDraft(sanitizedHTML);
@@ -44,6 +45,24 @@ export default function ReviewTab({ animeDetail }: Props) {
         contentState,
         decorator
       );
+
+      const blocks = contentState.getBlocksAsArray();
+
+      blocks.forEach((block) => {
+        if (block.getType() === BLOCK_TYPES.IMAGE) {
+          const entityKey = block.getEntityAt(0);
+          if (entityKey) {
+            const entity = contentState.getEntity(entityKey);
+            const { src } = entity.getData();
+            const stringSrc = src as string;
+            const id = stringSrc.substring(
+              stringSrc.lastIndexOf("/") + 1,
+              stringSrc.lastIndexOf(".")
+            );
+            currentImageIds.push(id);
+          }
+        }
+      });
     } else {
       initialEditorState = EditorState.createEmpty(decorator);
     }
@@ -52,9 +71,8 @@ export default function ReviewTab({ animeDetail }: Props) {
   }
 
   const [editorState, setEditorState] = useState(initialEditorState);
-  const [uploadedImages, setUploadedImages] = useState<{
-    [key: string]: number;
-  }>({});
+  const [uploadedImages, setUploadedImages] =
+    useState<string[]>(currentImageIds);
   const [storylineRating, setStorylineRating] = useState(
     animeDetail.storylineRating || 10
   );
@@ -90,7 +108,7 @@ export default function ReviewTab({ animeDetail }: Props) {
 
     const contentState = editorState.getCurrentContent();
     const blocks = contentState.getBlocksAsArray();
-    const currentImageUrls: string[] = [];
+    const currentImageIds: string[] = [];
 
     blocks.forEach((block) => {
       if (block.getType() === BLOCK_TYPES.IMAGE) {
@@ -98,22 +116,20 @@ export default function ReviewTab({ animeDetail }: Props) {
         if (entityKey) {
           const entity = contentState.getEntity(entityKey);
           const { src } = entity.getData();
-          currentImageUrls.push(src);
+          const stringSrc = src as string;
+          const id = stringSrc.substring(
+            stringSrc.lastIndexOf("/") + 1,
+            stringSrc.lastIndexOf(".")
+          );
+          currentImageIds.push(id);
         }
       }
     });
 
     const previouslyUploadedImageIds = Object.values(uploadedImages);
-    console.log(
-      "🚀 ~ onSubmit ~ previouslyUploadedImageIds:",
-      previouslyUploadedImageIds
-    );
-    const currentImageIds = currentImageUrls.map((url) => uploadedImages[url]);
-    console.log("🚀 ~ onSubmit ~ currentImageIds:", currentImageIds);
     const removedImageIds = previouslyUploadedImageIds.filter(
       (id) => !currentImageIds.includes(id)
     );
-    console.log("🚀 ~ onSubmit ~ removedImageIds:", removedImageIds);
 
     await Promise.all(
       removedImageIds.map((id) => {
@@ -140,7 +156,7 @@ export default function ReviewTab({ animeDetail }: Props) {
         title: "All set!",
         description: response.data.message
       });
-      setUploadedImages({});
+      setUploadedImages([...currentImageIds]);
     } else {
       toast.toast({
         variant: "destructive",

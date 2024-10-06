@@ -36,9 +36,9 @@ export class LightNovelService {
     query?: string,
     sortBy?: string,
     sortOrder?: Prisma.SortOrder,
-    filterAuthor?: number,
-    filterGenre?: number,
-    filterTheme?: number,
+    filterAuthor?: string,
+    filterGenre?: string,
+    filterTheme?: string,
     filterMALScore?: string,
     filterPersonalScore?: string
   ) {
@@ -130,7 +130,7 @@ export class LightNovelService {
     };
   }
 
-  async getLightNovelById(id: number) {
+  async getLightNovelById(id: string) {
     return prisma.lightNovel.findUnique({
       where: { id },
       include: {
@@ -171,22 +171,22 @@ export class LightNovelService {
     return prisma.lightNovel.create({ data: lightNovelData });
   }
 
-  async updateLightNovel(id: number, data: Prisma.LightNovelUpdateInput) {
+  async updateLightNovel(id: string, data: Prisma.LightNovelUpdateInput) {
     return prisma.lightNovel.update({ where: { id }, data });
   }
 
   async updateLightNovelReview(
-    id: number,
+    id: string,
     data: CustomLightNovelReviewUpdateInput
   ) {
     return prisma.lightNovel.update({ where: { id }, data });
   }
 
-  async deleteLightNovel(id: number) {
+  async deleteLightNovel(id: string) {
     return prisma.lightNovel.delete({ where: { id } });
   }
 
-  async deleteMultipleLightNovels(ids: number[]) {
+  async deleteMultipleLightNovels(ids: string[]) {
     return prisma.lightNovel.deleteMany({ where: { id: { in: ids } } });
   }
 }

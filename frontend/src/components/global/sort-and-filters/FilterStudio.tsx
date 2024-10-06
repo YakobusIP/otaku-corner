@@ -15,8 +15,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 type Props = {
   studioList: StudioEntity[];
   isLoadingStudio: boolean;
-  filterStudio?: number;
-  handleFilterStudio: (key?: number) => void;
+  filterStudio?: string;
+  handleFilterStudio: (key?: string) => void;
 };
 
 export default function FilterStudio({

@@ -15,8 +15,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 type Props = {
   themeList: ThemeEntity[];
   isLoadingTheme: boolean;
-  filterTheme?: number;
-  handleFilterTheme: (key?: number) => void;
+  filterTheme?: string;
+  handleFilterTheme: (key?: string) => void;
 };
 
 export default function FilterTheme({

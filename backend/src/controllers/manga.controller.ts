@@ -29,9 +29,9 @@ export class MangaController {
         query,
         sortBy,
         sortOrder,
-        parseInt(filterAuthor),
-        parseInt(filterGenre),
-        parseInt(filterTheme),
+        filterAuthor,
+        filterGenre,
+        filterTheme,
         filterMALScore,
         filterPersonalScore
       );
@@ -43,9 +43,7 @@ export class MangaController {
 
   getMangaById = async (req: Request, res: Response): Promise<void> => {
     try {
-      const manga = await this.mangaService.getMangaById(
-        parseInt(req.params.id)
-      );
+      const manga = await this.mangaService.getMangaById(req.params.id);
       if (manga) {
         res.json({ data: manga });
       } else {
@@ -72,7 +70,7 @@ export class MangaController {
   updateManga = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedManga = await this.mangaService.updateManga(
-        parseInt(req.params.id),
+        req.params.id,
         req.body
       );
       if (updatedManga) {
@@ -88,7 +86,7 @@ export class MangaController {
   updateMangaReview = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedManga = await this.mangaService.updateMangaReview(
-        parseInt(req.params.id),
+        req.params.id,
         req.body
       );
       if (updatedManga) {
@@ -103,9 +101,7 @@ export class MangaController {
 
   deleteManga = async (req: Request, res: Response): Promise<void> => {
     try {
-      const deletedManga = await this.mangaService.deleteManga(
-        parseInt(req.params.id)
-      );
+      const deletedManga = await this.mangaService.deleteManga(req.params.id);
       if (deletedManga) {
         res.status(204).end();
       } else {

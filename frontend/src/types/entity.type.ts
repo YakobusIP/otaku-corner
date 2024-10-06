@@ -1,5 +1,5 @@
 type GenreEntity = {
-  id: number;
+  id: string;
   name: string;
   createdAt: Date;
   updatedAt: Date;
@@ -12,7 +12,7 @@ type GenreWithMediaCount = GenreEntity & {
 type GenreEntityPartial = Pick<GenreEntity, "id" | "name">;
 
 type StudioEntity = {
-  id: number;
+  id: string;
   name: string;
   createdAt: Date;
   updatedAt: Date;
@@ -25,7 +25,7 @@ type StudioWithMediaCount = StudioEntity & {
 type StudioEntityPartial = Pick<StudioEntity, "id" | "name">;
 
 type ThemeEntity = {
-  id: number;
+  id: string;
   name: string;
   createdAt: Date;
   updatedAt: Date;
@@ -38,7 +38,7 @@ type ThemeWithMediaCount = ThemeEntity & {
 type ThemeEntityPartial = Pick<ThemeEntity, "id" | "name">;
 
 type AuthorEntity = {
-  id: number;
+  id: string;
   name: string;
   createdAt: Date;
   updatedAt: Date;

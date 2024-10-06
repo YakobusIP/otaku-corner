@@ -43,9 +43,9 @@ export class AnimeService {
     query?: string,
     sortBy?: string,
     sortOrder?: Prisma.SortOrder,
-    filterGenre?: number,
-    filterStudio?: number,
-    filterTheme?: number,
+    filterGenre?: string,
+    filterStudio?: string,
+    filterTheme?: string,
     filterMALScore?: string,
     filterPersonalScore?: string,
     filterType?: string
@@ -141,7 +141,7 @@ export class AnimeService {
     };
   }
 
-  async getAnimeById(id: number) {
+  async getAnimeById(id: string) {
     return prisma.anime.findUnique({
       where: { id },
       include: {
@@ -193,19 +193,19 @@ export class AnimeService {
     }
   }
 
-  async updateAnime(id: number, data: Prisma.AnimeUpdateInput) {
+  async updateAnime(id: string, data: Prisma.AnimeUpdateInput) {
     return prisma.anime.update({ where: { id }, data });
   }
 
-  async updateAnimeReview(id: number, data: CustomAnimeReviewUpdateInput) {
+  async updateAnimeReview(id: string, data: CustomAnimeReviewUpdateInput) {
     return prisma.anime.update({ where: { id }, data });
   }
 
-  async deleteAnime(id: number) {
+  async deleteAnime(id: string) {
     return prisma.anime.delete({ where: { id } });
   }
 
-  async deleteMultipleAnimes(ids: number[]) {
+  async deleteMultipleAnimes(ids: string[]) {
     return prisma.anime.deleteMany({ where: { id: { in: ids } } });
   }
 }

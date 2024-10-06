@@ -1,11 +1,10 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
 import jwt from "jsonwebtoken";
+import { env } from "../lib/env";
 
-const ACCESS_TOKEN_SECRET =
-  process.env.ACCESS_TOKEN_SECRET || "access_token_secret";
-const REFRESH_TOKEN_SECRET =
-  process.env.REFRESH_TOKEN_SECRET || "refresh_token_secret";
+const ACCESS_TOKEN_SECRET = env.ACCESS_TOKEN_SECRET || "access_token_secret";
+const REFRESH_TOKEN_SECRET = env.REFRESH_TOKEN_SECRET || "refresh_token_secret";
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -48,7 +47,6 @@ export class AuthController {
   };
 
   refreshToken = async (req: Request, res: Response): Promise<void> => {
-    console.log(req.cookies);
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) res.status(403).json({ error: "Session timed out!" });

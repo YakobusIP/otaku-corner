@@ -21,9 +21,9 @@ const fetchAllMangaService = async (
   query?: string,
   sortBy?: string,
   SORT_ORDER?: SORT_ORDER,
-  filterAuthor?: number,
-  filterGenre?: number,
-  filterTheme?: number,
+  filterAuthor?: string,
+  filterGenre?: string,
+  filterTheme?: string,
   filterMALScore?: string,
   filterPersonalScore?: string
 ): Promise<ApiResponseList<MangaList[]>> => {
@@ -55,7 +55,7 @@ const fetchAllMangaService = async (
 };
 
 const fetchMangaByIdService = async (
-  id: number
+  id: string
 ): Promise<ApiResponse<MangaDetail>> => {
   try {
     const response = await interceptedAxios.get(`${BASE_MANGA_URL}/${id}`);
@@ -89,7 +89,7 @@ const addMangaService = async (
 };
 
 const updateMangaReviewService = async (
-  id: number,
+  id: string,
   data: MangaReview
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
@@ -110,7 +110,7 @@ const updateMangaReviewService = async (
 };
 
 const deleteMangaService = async (
-  ids: number[]
+  ids: string[]
 ): Promise<ApiResponse<void>> => {
   try {
     await interceptedAxios.delete(BASE_MANGA_URL, { data: { ids } });

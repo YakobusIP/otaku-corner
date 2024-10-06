@@ -4,11 +4,16 @@ import { z } from "zod";
 dotenv.config();
 
 const envSchema = z.object({
+  NODE_ENV: z.enum(["development", "production", "test"]),
+  SEED_MODE: z.string().transform((value) => value === "true"),
   PORT: z.string().transform((value) => {
     const parsed = parseInt(value, 10);
     if (isNaN(parsed)) throw new Error("Port must be a number");
     return parsed;
   }),
+  ACCESS_TOKEN_SECRET: z.string(),
+  REFRESH_TOKEN_SECRET: z.string(),
+
   MAX_FILE_SIZE: z.string().transform((value) => {
     const parsed = parseInt(value, 10);
     if (isNaN(parsed)) throw new Error("Max file size must be a number");
@@ -18,8 +23,7 @@ const envSchema = z.object({
   RELATIVE_LOCAL_UPLOAD_PATH: z.string(),
   GCP_PROJECT_ID: z.string(),
   GCS_BUCKET_NAME: z.string(),
-  GOOGLE_APPLICATION_CREDENTIALS: z.string(),
-  NODE_ENV: z.enum(["development", "production", "test"])
+  GOOGLE_APPLICATION_CREDENTIALS: z.string()
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

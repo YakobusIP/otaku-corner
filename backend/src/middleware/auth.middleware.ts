@@ -1,14 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { env } from "../lib/env";
 
-const ACCESS_TOKEN_SECRET =
-  process.env.ACCESS_TOKEN_SECRET || "access_token_secret";
+const ACCESS_TOKEN_SECRET = env.ACCESS_TOKEN_SECRET || "access_token_secret";
 
 export const authMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  if (env.SEED_MODE) {
+    return next();
+  }
+
   const authHeader = req.headers["authorization"];
 
   if (!authHeader) {

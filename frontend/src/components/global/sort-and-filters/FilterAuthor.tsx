@@ -15,8 +15,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 type Props = {
   authorList: AuthorEntity[];
   isLoadingAuthor: boolean;
-  filterAuthor?: number;
-  handleFilterAuthor: (key?: number) => void;
+  filterAuthor?: string;
+  handleFilterAuthor: (key?: string) => void;
 };
 
 export default function FilterAuthor({

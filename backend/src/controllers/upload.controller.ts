@@ -13,10 +13,6 @@ export class UploadController {
         return res.status(400).json({ error: "Invalid type specified!" });
       }
 
-      if (!entityId || isNaN(Number(entityId))) {
-        return res.status(400).json({ error: "Valid entityId is required!" });
-      }
-
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded!" });
       }
@@ -24,7 +20,7 @@ export class UploadController {
       const { id, url } = await this.uploadService.uploadImage(
         req.file,
         type,
-        Number(entityId)
+        entityId
       );
 
       return res.status(200).json({ data: { id, url } });
@@ -41,7 +37,7 @@ export class UploadController {
         return res.status(400).json({ error: "Image URL required!" });
       }
 
-      await this.uploadService.deleteImage(parseInt(id));
+      await this.uploadService.deleteImage(id);
 
       return res.status(200).json({ message: "Image deleted successfully!" });
     } catch (error) {

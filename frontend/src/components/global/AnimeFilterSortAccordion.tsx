@@ -52,21 +52,21 @@ export default function AnimeFilterSortAccordion({
     }));
   };
 
-  const handleFilterGenre = (key?: number) => {
+  const handleFilterGenre = (key?: string) => {
     setAnimeFilterSort((prev) => ({
       ...prev,
       filterGenre: key
     }));
   };
 
-  const handleFilterStudio = (key?: number) => {
+  const handleFilterStudio = (key?: string) => {
     setAnimeFilterSort((prev) => ({
       ...prev,
       filterStudio: key
     }));
   };
 
-  const handleFilterTheme = (key?: number) => {
+  const handleFilterTheme = (key?: string) => {
     setAnimeFilterSort((prev) => ({
       ...prev,
       filterTheme: key

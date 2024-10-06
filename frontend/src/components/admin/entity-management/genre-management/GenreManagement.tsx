@@ -74,7 +74,7 @@ export default function GenreManagement({ resetParent }: Props) {
     setIsLoadingAddGenre(false);
   };
 
-  const editGenre = async (id: number, name: string) => {
+  const editGenre = async (id: string, name: string) => {
     setIsLoadingEditGenre(true);
     const response = await genreService.updateEntity(id, name);
     if (response.success) {
@@ -96,9 +96,7 @@ export default function GenreManagement({ resetParent }: Props) {
 
   const deleteGenre = async () => {
     setIsLoadingDeleteGenre(true);
-    const deletedIds = Object.keys(selectedGenreRows).map((selected) =>
-      parseInt(selected)
-    );
+    const deletedIds = Object.keys(selectedGenreRows);
     const response = await genreService.deleteEntity(deletedIds);
     if (response.success) {
       fetchGenreList();

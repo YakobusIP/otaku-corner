@@ -13,9 +13,9 @@ import { useState } from "react";
 
 type Props = {
   entityType: string;
-  entityId: number;
+  entityId: string;
   entity: string;
-  editHandler: (id: number, entity: string) => void;
+  editHandler: (id: string, entity: string) => void;
   isLoadingEditEntity: boolean;
 };
 

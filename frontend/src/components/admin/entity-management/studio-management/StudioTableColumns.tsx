@@ -4,7 +4,7 @@ import { StudioEntity } from "@/types/entity.type";
 import EditEntityDialog from "../EditEntityDialog";
 
 export const studioColumns = (
-  editEntity: (id: number, entity: string) => void,
+  editEntity: (id: string, entity: string) => void,
   isLoadingEditEntity: boolean
 ): ColumnDef<StudioEntity>[] => [
   {

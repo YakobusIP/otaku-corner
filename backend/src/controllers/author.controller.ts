@@ -40,7 +40,7 @@ export class AuthorController {
   updateAuthor = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedAuthor = await this.authorService.updateAuthor(
-        parseInt(req.params.id),
+        req.params.id,
         req.body
       );
       if (updatedAuthor) {
@@ -56,7 +56,7 @@ export class AuthorController {
   deleteAuthor = async (req: Request, res: Response): Promise<void> => {
     try {
       const deletedAuthor = await this.authorService.deleteAuthor(
-        parseInt(req.params.id)
+        req.params.id
       );
       if (deletedAuthor) {
         res.status(204).end();

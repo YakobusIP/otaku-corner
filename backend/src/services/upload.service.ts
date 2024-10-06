@@ -4,60 +4,17 @@ import { generateFilename } from "../utils/generateFilename";
 import { bucket } from "../lib/storage";
 import { existsSync, unlinkSync, writeFileSync } from "fs";
 import { env } from "../lib/env";
-import sharp from "sharp";
 import path from "path";
 import { MEDIA_TYPE } from "../enum/general.enum";
 
 export class UploadService {
-  private static MAX_FILE_SIZE = env.MAX_FILE_SIZE;
-  private static MIN_JPEG_QUALITY = 70;
-  private static MIN_PNG_COMPRESSION = 0;
-  private static MIN_WEBP_QUALITY = 70;
-
-  private async compressImage(buffer: Buffer, mimetype: string) {
-    let compressedBuffer = buffer;
-    let quality = 90;
-    let compressionLevel = 9;
-
-    if (mimetype === "image/jpeg" || mimetype === "image/jpg") {
-      while (
-        compressedBuffer.length > UploadService.MAX_FILE_SIZE &&
-        quality >= UploadService.MIN_JPEG_QUALITY
-      ) {
-        compressedBuffer = await sharp(buffer).jpeg({ quality }).toBuffer();
-        quality -= 10;
-      }
-    } else if (mimetype === "image/png") {
-      while (
-        compressedBuffer.length > UploadService.MAX_FILE_SIZE &&
-        compressionLevel >= UploadService.MIN_PNG_COMPRESSION
-      ) {
-        compressedBuffer = await sharp(buffer)
-          .png({ compressionLevel })
-          .toBuffer();
-        compressionLevel -= 1;
-      }
-    } else if (mimetype === "image/webp") {
-      while (
-        compressedBuffer.length > UploadService.MAX_FILE_SIZE &&
-        quality >= UploadService.MIN_WEBP_QUALITY
-      ) {
-        compressedBuffer = await sharp(buffer).webp({ quality }).toBuffer();
-        quality -= 10;
-      }
-    } else {
-      throw new Error("Unsupported image format!");
-    }
-
-    return compressedBuffer;
-  }
-
   private async saveImageToDatabase(
+    uuid: string,
     url: string,
     type: MEDIA_TYPE,
-    entityId: number
+    entityId: string
   ) {
-    const data: Prisma.ReviewImageCreateInput = { url };
+    const data: Prisma.ReviewImageCreateInput = { id: uuid, url };
 
     switch (type) {
       case MEDIA_TYPE.ANIME:
@@ -79,19 +36,10 @@ export class UploadService {
   async uploadImage(
     file: Express.Multer.File,
     type: MEDIA_TYPE,
-    entityId: number
+    entityId: string
   ) {
     try {
-      const compressedBuffer = await this.compressImage(
-        file.buffer,
-        file.mimetype
-      );
-
-      if (compressedBuffer.length > UploadService.MAX_FILE_SIZE) {
-        throw new Error("Compressed file size exceeds limit enforced!");
-      }
-
-      const filename = generateFilename(file.originalname);
+      const [uuid, filename] = generateFilename(file.originalname);
       const filePath = `review-image/${filename}`;
 
       if (env.NODE_ENV === "production") {
@@ -107,17 +55,17 @@ export class UploadService {
             reject(new Error("Failed to upload image to storage"))
           );
           blobStream.on("finish", () => resolve());
-          blobStream.end(compressedBuffer);
+          blobStream.end(file.buffer);
         });
         const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
 
-        return await this.saveImageToDatabase(publicUrl, type, entityId);
+        return await this.saveImageToDatabase(uuid, publicUrl, type, entityId);
       } else {
         const localPath = path.join(__dirname, env.LOCAL_UPLOAD_PATH, filename);
-        writeFileSync(localPath, compressedBuffer);
+        writeFileSync(localPath, file.buffer);
 
         const url = `http://localhost:${env.PORT}/uploads/${filename}`;
-        return await this.saveImageToDatabase(url, type, entityId);
+        return await this.saveImageToDatabase(uuid, url, type, entityId);
       }
     } catch (error) {
       console.error("Upload image error:", error);
@@ -125,7 +73,7 @@ export class UploadService {
     }
   }
 
-  async deleteImage(id: number) {
+  async deleteImage(id: string) {
     try {
       const reviewImage = await prisma.reviewImage.findUnique({
         where: { id }

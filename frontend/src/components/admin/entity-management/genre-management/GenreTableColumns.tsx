@@ -4,7 +4,7 @@ import { GenreEntity } from "@/types/entity.type";
 import EditEntityDialog from "../EditEntityDialog";
 
 export const genreColumns = (
-  editEntity: (id: number, entity: string) => void,
+  editEntity: (id: string, entity: string) => void,
   isLoadingEditEntity: boolean
 ): ColumnDef<GenreEntity>[] => [
   {

@@ -94,15 +94,15 @@ export class AuthorService {
     return author.id;
   }
 
-  async updateAuthor(id: number, data: Prisma.AuthorUpdateInput) {
+  async updateAuthor(id: string, data: Prisma.AuthorUpdateInput) {
     return prisma.author.update({ where: { id }, data });
   }
 
-  async deleteAuthor(id: number) {
+  async deleteAuthor(id: string) {
     return prisma.author.delete({ where: { id } });
   }
 
-  async deleteMultipleAuthors(ids: number[]) {
+  async deleteMultipleAuthors(ids: string[]) {
     return prisma.author.deleteMany({ where: { id: { in: ids } } });
   }
 }

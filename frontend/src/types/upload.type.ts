@@ -1,5 +1,5 @@
 type UploadImage = {
-  id: number;
+  id: string;
   url: string;
 };
 

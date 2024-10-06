@@ -282,9 +282,7 @@ export default function Dashboard() {
 
   const deleteAnime = async () => {
     setIsLoadingDeleteAnime(true);
-    const deletedIds = Object.keys(selectedAnimeRows).map((selected) =>
-      parseInt(selected)
-    );
+    const deletedIds = Object.keys(selectedAnimeRows);
     const response = await deleteAnimeService(deletedIds);
     if (response.success) {
       fetchAnimeList();
@@ -305,9 +303,7 @@ export default function Dashboard() {
 
   const deleteManga = async () => {
     setIsLoadingDeleteManga(true);
-    const deletedIds = Object.keys(selectedMangaRows).map((selected) =>
-      parseInt(selected)
-    );
+    const deletedIds = Object.keys(selectedMangaRows);
     const response = await deleteMangaService(deletedIds);
     if (response.success) {
       fetchMangaList();
@@ -328,9 +324,7 @@ export default function Dashboard() {
 
   const deleteLightNovel = async () => {
     setIsLoadingDeleteLightNovel(true);
-    const deletedIds = Object.keys(selectedLightNovelRows).map((selected) =>
-      parseInt(selected)
-    );
+    const deletedIds = Object.keys(selectedLightNovelRows);
     const response = await deleteLightNovelService(deletedIds);
     if (response.success) {
       fetchLightNovelList();

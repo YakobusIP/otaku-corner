@@ -74,7 +74,7 @@ export default function ThemeManagement({ resetParent }: Props) {
     setIsLoadingAddTheme(false);
   };
 
-  const editTheme = async (id: number, name: string) => {
+  const editTheme = async (id: string, name: string) => {
     setIsLoadingEditTheme(true);
     const response = await themeService.updateEntity(id, name);
     if (response.success) {
@@ -96,9 +96,7 @@ export default function ThemeManagement({ resetParent }: Props) {
 
   const deleteTheme = async () => {
     setIsLoadingDeleteTheme(true);
-    const deletedIds = Object.keys(selectedThemeRows).map((selected) =>
-      parseInt(selected)
-    );
+    const deletedIds = Object.keys(selectedThemeRows);
     const response = await themeService.deleteEntity(deletedIds);
     if (response.success) {
       fetchThemeList();

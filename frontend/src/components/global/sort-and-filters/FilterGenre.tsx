@@ -15,8 +15,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 type Props = {
   genreList: GenreEntity[];
   isLoadingGenre: boolean;
-  filterGenre?: number;
-  handleFilterGenre: (key?: number) => void;
+  filterGenre?: string;
+  handleFilterGenre: (key?: string) => void;
 };
 
 export default function FilterGenre({

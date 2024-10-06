@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Trash2 } from "lucide-react";
 import { MetadataResponse } from "@/types/api.type";
 interface Identifiable {
-  id: number;
+  id: string;
 }
 
 interface DataTableProps<TData extends Identifiable, TValue> {
