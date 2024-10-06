@@ -2,7 +2,7 @@ import AdminPinEntry from "@/components/general/AdminPinEntry";
 import HomeCard from "@/components/general/HomeCard";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { MediaType } from "@/enum/general.enum";
+import { MEDIA_TYPE } from "@/lib/enums";
 import { setAccessToken } from "@/lib/axios";
 import { login } from "@/services/auth.service";
 import { useState } from "react";
@@ -45,7 +45,7 @@ export default function Home() {
       id: 1,
       cardTitle: "Anime Watched This Year",
       amount: 42,
-      type: MediaType.ANIME,
+      type: MEDIA_TYPE.ANIME,
       path: "/anime",
       image: "/placeholder.webp",
       mediaTitle: "Gimai Seikatsu",
@@ -55,7 +55,7 @@ export default function Home() {
       id: 2,
       cardTitle: "Manga Read This Year",
       amount: 42,
-      type: MediaType.MANGA,
+      type: MEDIA_TYPE.MANGA,
       path: "/manga",
       image: "/placeholder.webp",
       mediaTitle: "Gimai Seikatsu",
@@ -65,7 +65,7 @@ export default function Home() {
       id: 3,
       cardTitle: "Light Novels Read This Year",
       amount: 42,
-      type: MediaType.LIGHT_NOVEL,
+      type: MEDIA_TYPE.LIGHT_NOVEL,
       path: "/lightnovel",
       image: "/placeholder.webp",
       mediaTitle: "Gimai Seikatsu",

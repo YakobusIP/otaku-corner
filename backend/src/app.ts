@@ -1,4 +1,5 @@
 import express, { Express } from "express";
+import morgan from "morgan";
 import cors from "cors";
 import cookies from "cookie-parser";
 import { json, urlencoded } from "body-parser";
@@ -11,8 +12,15 @@ import GenreRouter from "./routes/genre.route";
 import StudioRouter from "./routes/studio.route";
 import ThemeRouter from "./routes/theme.route";
 import AuthorRouter from "./routes/author.route";
+import UploadRouter from "./routes/upload.route";
+import path from "path";
+import { env } from "./lib/env";
 
 const app: Express = express();
+
+if (env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
 
 app.use(
   cors({
@@ -24,6 +32,11 @@ app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(cookies());
 
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, env.RELATIVE_LOCAL_UPLOAD_PATH))
+);
+
 app.use("/api/auth", AuthRouter);
 app.use("/api/anime", AnimeRouter);
 app.use("/api/manga", MangaRouter);
@@ -32,5 +45,6 @@ app.use("/api/genre", GenreRouter);
 app.use("/api/studio", StudioRouter);
 app.use("/api/theme", ThemeRouter);
 app.use("/api/author", AuthorRouter);
+app.use("/api/upload", UploadRouter);
 
 export default app;

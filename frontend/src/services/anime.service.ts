@@ -1,4 +1,4 @@
-import { SortOrder } from "@/enum/general.enum";
+import { SORT_ORDER } from "@/lib/enums";
 import interceptedAxios from "@/lib/axios";
 import {
   AnimeDetail,
@@ -20,7 +20,7 @@ const fetchAllAnimeService = async (
   limitPerPage: number,
   query?: string,
   sortBy?: string,
-  sortOrder?: SortOrder,
+  SORT_ORDER?: SORT_ORDER,
   filterGenre?: number,
   filterStudio?: number,
   filterTheme?: number,
@@ -35,7 +35,7 @@ const fetchAllAnimeService = async (
         limitPerPage,
         q: query,
         sortBy,
-        sortOrder,
+        SORT_ORDER,
         filterGenre,
         filterStudio,
         filterTheme,

@@ -1,14 +1,6 @@
 import { AnimeDetail, AnimeReview } from "@/types/anime.type";
 import { TabsContent } from "@/components/ui/tabs";
-import { useState, KeyboardEvent, useCallback, useMemo } from "react";
-import { createEditor, Descendant } from "slate";
-import {
-  Slate,
-  Editable,
-  withReact,
-  RenderLeafProps,
-  RenderElementProps
-} from "slate-react";
+import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -16,32 +8,53 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { withHistory } from "slate-history";
-import { CustomEditor } from "@/lib/custom-editor";
-import ReviewToolbar from "./ReviewToolbar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { updateAnimeReviewService } from "@/services/anime.service";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
-import { serializeNodes, deserialize } from "@/lib/html-serializer";
+import { BLOCK_TYPES, MEDIA_TYPE } from "@/lib/enums";
+import "draft-js/dist/Draft.css";
+import DraftEditor from "../DraftEditor";
+import { ContentState, convertToRaw, EditorState } from "draft-js";
+import DOMPurify from "dompurify";
+import htmlToDraft from "html-to-draftjs";
+import { decorator } from "@/lib/draft-utils";
+import draftToHtml from "draftjs-to-html";
+import { deleteImageService } from "@/services/upload.service";
 
 type Props = {
   animeDetail: AnimeDetail;
 };
 
-const initialValue: Descendant[] = [
-  {
-    type: "paragraph",
-    children: [{ text: "" }]
-  }
-];
-
 export default function ReviewTab({ animeDetail }: Props) {
-  const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   const toast = useToast();
 
-  const [review, setReview] = useState(animeDetail.review || "");
+  let initialEditorState: EditorState;
+  if (animeDetail.review) {
+    const sanitizedHTML = DOMPurify.sanitize(animeDetail.review);
+    const blocksFromHtml = htmlToDraft(sanitizedHTML);
+    if (blocksFromHtml) {
+      const { contentBlocks, entityMap } = blocksFromHtml;
+      const contentState = ContentState.createFromBlockArray(
+        contentBlocks,
+        entityMap
+      );
+      initialEditorState = EditorState.createWithContent(
+        contentState,
+        decorator
+      );
+    } else {
+      initialEditorState = EditorState.createEmpty(decorator);
+    }
+  } else {
+    initialEditorState = EditorState.createEmpty(decorator);
+  }
+
+  const [editorState, setEditorState] = useState(initialEditorState);
+  const [uploadedImages, setUploadedImages] = useState<{
+    [key: string]: number;
+  }>({});
   const [storylineRating, setStorylineRating] = useState(
     animeDetail.storylineRating || 10
   );
@@ -69,113 +82,47 @@ export default function ReviewTab({ animeDetail }: Props) {
     10: "Masterpiece"
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!event.ctrlKey) {
-      switch (event.key) {
-        case "Enter": {
-          event.preventDefault();
-          CustomEditor.handleEnterKey(editor, event.nativeEvent);
-          return;
-        }
-      }
-    } else {
-      switch (event.key) {
-        case "b": {
-          event.preventDefault();
-          CustomEditor.toggleMark(editor, "bold");
-          return;
-        }
-
-        case "i": {
-          event.preventDefault();
-          CustomEditor.toggleMark(editor, "italic");
-          return;
-        }
-
-        case "u": {
-          event.preventDefault();
-          CustomEditor.toggleMark(editor, "underline");
-          return;
-        }
-      }
-    }
-  };
-
-  const renderLeaf = useCallback((props: RenderLeafProps) => {
-    const { attributes, children, leaf } = props;
-    if (leaf.bold) {
-      return <strong {...attributes}>{children}</strong>;
-    }
-
-    if (leaf.italic) {
-      return <em {...attributes}>{children}</em>;
-    }
-
-    if (leaf.underline) {
-      return <u {...attributes}>{children}</u>;
-    }
-
-    return <span {...attributes}>{props.children}</span>;
-  }, []);
-
-  const renderElement = useCallback((props: RenderElementProps) => {
-    const { element, attributes, children } = props;
-    switch (element.type) {
-      case "heading-one":
-        return (
-          <h1 {...attributes} style={{ fontSize: "24px", lineHeight: "32px" }}>
-            {children}
-          </h1>
-        );
-      case "heading-two":
-        return (
-          <h2 {...attributes} style={{ fontSize: "20px", lineHeight: "28px" }}>
-            {children}
-          </h2>
-        );
-      case "heading-three":
-        return (
-          <h3 {...attributes} style={{ fontSize: "18px", lineHeight: "28px" }}>
-            {children}
-          </h3>
-        );
-      case "list-item":
-        return <li {...attributes}>{children}</li>;
-      case "ordered-list":
-        return (
-          <ol
-            {...attributes}
-            style={{
-              listStyle: "revert",
-              listStyleType: "decimal",
-              listStylePosition: "inside"
-            }}
-          >
-            {children}
-          </ol>
-        );
-      case "unordered-list":
-        return (
-          <ul
-            {...attributes}
-            style={{
-              listStyle: "revert",
-              listStyleType: "disc",
-              listStylePosition: "inside"
-            }}
-          >
-            {children}
-          </ul>
-        );
-      default:
-        return <p {...attributes}>{children}</p>;
-    }
-  }, []);
-
   const onSubmit = async () => {
     setIsLoadingUpdateReview(true);
+
+    const rawContentState = convertToRaw(editorState.getCurrentContent());
+    const html = draftToHtml(rawContentState);
+
+    const contentState = editorState.getCurrentContent();
+    const blocks = contentState.getBlocksAsArray();
+    const currentImageUrls: string[] = [];
+
+    blocks.forEach((block) => {
+      if (block.getType() === BLOCK_TYPES.IMAGE) {
+        const entityKey = block.getEntityAt(0);
+        if (entityKey) {
+          const entity = contentState.getEntity(entityKey);
+          const { src } = entity.getData();
+          currentImageUrls.push(src);
+        }
+      }
+    });
+
+    const previouslyUploadedImageIds = Object.values(uploadedImages);
+    console.log(
+      "🚀 ~ onSubmit ~ previouslyUploadedImageIds:",
+      previouslyUploadedImageIds
+    );
+    const currentImageIds = currentImageUrls.map((url) => uploadedImages[url]);
+    console.log("🚀 ~ onSubmit ~ currentImageIds:", currentImageIds);
+    const removedImageIds = previouslyUploadedImageIds.filter(
+      (id) => !currentImageIds.includes(id)
+    );
+    console.log("🚀 ~ onSubmit ~ removedImageIds:", removedImageIds);
+
+    await Promise.all(
+      removedImageIds.map((id) => {
+        return deleteImageService(id);
+      })
+    );
+
     const data: AnimeReview = {
-      review,
+      review: html,
       storylineRating,
       qualityRating,
       voiceActingRating,
@@ -193,6 +140,7 @@ export default function ReviewTab({ animeDetail }: Props) {
         title: "All set!",
         description: response.data.message
       });
+      setUploadedImages({});
     } else {
       toast.toast({
         variant: "destructive",
@@ -307,37 +255,13 @@ export default function ReviewTab({ animeDetail }: Props) {
             </Select>
           </div>
         </div>
-        <Slate
-          editor={editor}
-          initialValue={
-            animeDetail.review
-              ? (deserialize(
-                  new DOMParser().parseFromString(
-                    animeDetail.review,
-                    "text/html"
-                  ).body
-                ) as Descendant[])
-              : initialValue
-          }
-          onChange={(value) => {
-            const isAstChange = editor.operations.some(
-              (op) => "set_selection" !== op.type
-            );
-
-            if (isAstChange) {
-              setReview(serializeNodes(value));
-            }
-          }}
-        >
-          <ReviewToolbar />
-          <Editable
-            placeholder="Enter review here..."
-            renderLeaf={renderLeaf}
-            renderElement={renderElement}
-            onKeyDown={onKeyDown}
-            className="border border-b-black border-x-black p-1 focus:outline-none"
-          />
-        </Slate>
+        <DraftEditor
+          editorState={editorState}
+          setEditorState={setEditorState}
+          mediaType={MEDIA_TYPE.ANIME}
+          mediaId={animeDetail.id}
+          setUploadedImages={setUploadedImages}
+        />
         <Button type="submit" className="mt-4" onClick={onSubmit}>
           {isLoadingUpdateReview && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

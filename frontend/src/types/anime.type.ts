@@ -1,4 +1,4 @@
-import { SortOrder } from "@/enum/general.enum";
+import { SORT_ORDER } from "@/lib/enums";
 import {
   GenreEntityPartial,
   StudioEntityPartial,
@@ -84,7 +84,7 @@ type AnimeReview = Pick<
 
 type AnimeFilterSort = {
   sortBy: string;
-  sortOrder: SortOrder;
+  SORT_ORDER: SORT_ORDER;
   filterGenre?: number;
   filterStudio?: number;
   filterTheme?: number;

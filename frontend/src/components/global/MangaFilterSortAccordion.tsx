@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
-import { SortOrder } from "@/enum/general.enum";
+import { SORT_ORDER } from "@/lib/enums";
 import SortDirection from "@/components/global/sort-and-filters/SortDirection";
 import FilterAuthor from "@/components/global/sort-and-filters/FilterAuthor";
 import FilterGenre from "@/components/global/sort-and-filters/FilterGenre";
@@ -42,12 +42,12 @@ export default function MangaFilterSortAccordion({
     setMangaFilterSort((prev) => ({
       ...prev,
       sortBy: key,
-      sortOrder:
+      SORT_ORDER:
         prev.sortBy === key
-          ? prev.sortOrder === SortOrder.ASCENDING
-            ? SortOrder.DESCENDING
-            : SortOrder.ASCENDING
-          : SortOrder.ASCENDING
+          ? prev.SORT_ORDER === SORT_ORDER.ASCENDING
+            ? SORT_ORDER.DESCENDING
+            : SORT_ORDER.ASCENDING
+          : SORT_ORDER.ASCENDING
     }));
   };
 
@@ -120,7 +120,7 @@ export default function MangaFilterSortAccordion({
             <div className="grid grid-cols-1 grid-rows-8 xl:grid-cols-4 xl:grid-rows-2 gap-4">
               <SortDirection
                 sortBy={mangaFilterSort.sortBy}
-                sortOrder={mangaFilterSort.sortOrder}
+                SORT_ORDER={mangaFilterSort.SORT_ORDER}
                 handleSort={handleSort}
               />
               <FilterAuthor

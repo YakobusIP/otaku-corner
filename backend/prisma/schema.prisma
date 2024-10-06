@@ -37,6 +37,7 @@ model Anime {
   voiceActingRating Int?
   enjoymentRating   Int?
   personalScore     Int?
+  reviewImages      ReviewImage[]  @relation("AnimeReviewImages")
   episodes          AnimeEpisode[]
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
@@ -54,8 +55,8 @@ model AnimeEpisode {
 }
 
 model Manga {
-  id                     Int      @id @default(autoincrement())
-  malId                  Int      @unique
+  id                     Int           @id @default(autoincrement())
+  malId                  Int           @unique
   status                 String
   title                  String
   titleJapanese          String
@@ -65,9 +66,9 @@ model Manga {
   volumesCount           Int?
   score                  Float?
   images                 Json
-  authors                Author[] @relation("MangaAuthors")
-  genres                 Genre[]  @relation("MangaGenres")
-  themes                 Theme[]  @relation("MangaThemes")
+  authors                Author[]      @relation("MangaAuthors")
+  genres                 Genre[]       @relation("MangaGenres")
+  themes                 Theme[]       @relation("MangaThemes")
   synopsis               String
   malUrl                 String
   review                 String?
@@ -76,13 +77,14 @@ model Manga {
   characterizationRating Int?
   enjoymentRating        Int?
   personalScore          Int?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  reviewImages           ReviewImage[] @relation("MangaReviewImages")
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
 }
 
 model LightNovel {
-  id                  Int      @id @default(autoincrement())
-  malId               Int      @unique
+  id                  Int           @id @default(autoincrement())
+  malId               Int           @unique
   status              String
   title               String
   titleJapanese       String
@@ -92,9 +94,9 @@ model LightNovel {
   volumesCount        Int?
   score               Float?
   images              Json
-  authors             Author[] @relation("LightNovelAuthors")
-  genres              Genre[]  @relation("LightNovelGenres")
-  themes              Theme[]  @relation("LightNovelThemes")
+  authors             Author[]      @relation("LightNovelAuthors")
+  genres              Genre[]       @relation("LightNovelGenres")
+  themes              Theme[]       @relation("LightNovelThemes")
   synopsis            String
   malUrl              String
   review              String?
@@ -103,8 +105,9 @@ model LightNovel {
   illustrationRating  Int?
   enjoymentRating     Int?
   personalScore       Int?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  reviewImages        ReviewImage[] @relation("LightNovelReviewImages")
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 }
 
 model Genre {
@@ -149,4 +152,20 @@ model AdminPin {
   pin1      String
   pin2      String
   createdAt DateTime @default(now())
+}
+
+model ReviewImage {
+  id        Int      @id @default(autoincrement())
+  url       String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  anime   Anime? @relation("AnimeReviewImages", fields: [animeId], references: [id])
+  animeId Int?
+
+  manga   Manga? @relation("MangaReviewImages", fields: [mangaId], references: [id])
+  mangaId Int?
+
+  lightNovel   LightNovel? @relation("LightNovelReviewImages", fields: [lightNovelId], references: [id])
+  lightNovelId Int?
 }

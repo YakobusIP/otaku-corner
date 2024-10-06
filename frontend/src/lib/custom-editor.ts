@@ -1,4 +1,10 @@
-import { Transforms, BaseEditor, Editor, Element as SlateElement } from "slate";
+import {
+  Transforms,
+  BaseEditor,
+  Editor,
+  Element as SlateElement,
+  Range
+} from "slate";
 import { ReactEditor } from "slate-react";
 
 type ParagraphElement = {
@@ -29,6 +35,23 @@ type HeadingThreeElement = {
   type: "heading-three";
   children: CustomText[];
 };
+type ImageElement = {
+  type: "image";
+  id: number;
+  url: string;
+  children: CustomText[];
+};
+
+export type {
+  ParagraphElement,
+  ListItemElement,
+  OrderedListElement,
+  UnorderedListElement,
+  HeadingOneElement,
+  HeadingTwoElement,
+  HeadingThreeElement,
+  ImageElement
+};
 
 export type CustomElement =
   | ParagraphElement
@@ -37,7 +60,8 @@ export type CustomElement =
   | UnorderedListElement
   | HeadingOneElement
   | HeadingTwoElement
-  | HeadingThreeElement;
+  | HeadingThreeElement
+  | ImageElement;
 export type CustomText = {
   text: string;
   bold?: boolean;
@@ -136,5 +160,54 @@ export const CustomEditor = {
     } else {
       Editor.insertBreak(editor);
     }
+  },
+
+  insertImage(editor: Editor, id: number, url: string) {
+    const imageElement: ImageElement = {
+      type: "image",
+      url,
+      id,
+      children: [{ text: "" }]
+    };
+
+    Transforms.insertNodes(editor, imageElement);
+    ReactEditor.focus(editor);
+  },
+
+  removeImage(editor: Editor) {
+    const { selection } = editor;
+
+    if (!selection) return;
+
+    const imageElement = Editor.above(editor, {
+      match: (n) => SlateElement.isElement(n) && n.type === "image",
+      at: selection.anchor
+    });
+
+    if (imageElement) {
+      const [node, path] = imageElement;
+      Transforms.removeNodes(editor, { at: path });
+
+      return node.id;
+    }
+
+    return null;
+  },
+
+  isImageBeforeCursor(editor: Editor) {
+    const { selection } = editor;
+
+    if (selection && Range.isCollapsed(selection)) {
+      const [node] = Editor.previous(editor, {
+        at: selection,
+        match: (n) => SlateElement.isElement(n)
+      }) || [null, null];
+
+      if (node && SlateElement.isElement(node) && node.type === "image") {
+        return true;
+      }
+    }
+
+    return false;
   }
 };

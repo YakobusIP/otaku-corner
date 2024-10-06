@@ -5,18 +5,18 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { SortOrder } from "@/enum/general.enum";
+import { SORT_ORDER } from "@/lib/enums";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
 type Props = {
   sortBy: string;
-  sortOrder: SortOrder;
+  SORT_ORDER: SORT_ORDER;
   handleSort: (key: string) => void;
 };
 
 export default function SortDirection({
   sortBy,
-  sortOrder,
+  SORT_ORDER,
   handleSort
 }: Props) {
   return (
@@ -24,7 +24,7 @@ export default function SortDirection({
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="w-full">
           Sort by: {sortBy === "title" ? "Title" : "MAL Score"}
-          {sortOrder === SortOrder.ASCENDING ? (
+          {SORT_ORDER === SORT_ORDER.ASCENDING ? (
             <ArrowUp className="ml-2 w-4 h-4" />
           ) : (
             <ArrowDown className="ml-2 w-4 h-4" />
@@ -36,7 +36,7 @@ export default function SortDirection({
           Title
           {sortBy === "title" && (
             <span className="ml-1">
-              {sortOrder === SortOrder.ASCENDING ? (
+              {SORT_ORDER === SORT_ORDER.ASCENDING ? (
                 <ArrowUp className="w-4 h-4" />
               ) : (
                 <ArrowDown className="w-4 h-4" />
@@ -48,7 +48,7 @@ export default function SortDirection({
           MAL Score
           {sortBy === "score" && (
             <span className="ml-1">
-              {sortOrder === SortOrder.ASCENDING ? (
+              {SORT_ORDER === SORT_ORDER.ASCENDING ? (
                 <ArrowUp className="w-4 h-4" />
               ) : (
                 <ArrowDown className="w-4 h-4" />

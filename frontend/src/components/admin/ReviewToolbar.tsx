@@ -31,10 +31,11 @@ export default function ReviewToolbar({
   insertImage
 }: Props) {
   const currentStyle = editorState.getCurrentInlineStyle();
-  const blockType = editorState
-    .getCurrentContent()
-    .getBlockForKey(editorState.getSelection().getStartKey())
-    .getType();
+  const selection = editorState.getSelection();
+  const blockKey = selection.getStartKey();
+  const contentState = editorState.getCurrentContent();
+  const block = contentState.getBlockForKey(blockKey);
+  const blockType = block.getType();
 
   const isBlockActive = (blockTypeToCheck: string) =>
     blockType === blockTypeToCheck;
@@ -48,10 +49,7 @@ export default function ReviewToolbar({
 
   return (
     <div className="flex flex-wrap items-center gap-2 border border-black p-1">
-      <Select
-        defaultValue={BLOCK_TYPES.PARAGRAPH}
-        onValueChange={onHeadingChange}
-      >
+      <Select value={blockType} onValueChange={onHeadingChange}>
         <SelectTrigger className="w-[200px]">
           <SelectValue />
         </SelectTrigger>

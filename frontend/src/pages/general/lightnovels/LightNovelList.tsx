@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MediaType, SortOrder } from "@/enum/general.enum";
+import { MEDIA_TYPE, SORT_ORDER } from "@/lib/enums";
 import LightNovelCard from "@/components/general/LightNovelCard";
 import LightNovelFilterSortAccordion from "@/components/global/LightNovelFilterSortAccordion";
 import { useToast } from "@/components/ui/use-toast";
@@ -32,7 +32,7 @@ export default function LightNovelList() {
   const [lightNovelFilterSort, setLightNovelFilterSort] =
     useState<LightNovelFilterSort>({
       sortBy: "title",
-      sortOrder: SortOrder.ASCENDING
+      SORT_ORDER: SORT_ORDER.ASCENDING
     });
 
   const [isLoadingLightNovel, setIsLoadingLightNovel] = useState(false);
@@ -64,7 +64,7 @@ export default function LightNovelList() {
       limitPerPage,
       debouncedSearch,
       lightNovelFilterSort.sortBy,
-      lightNovelFilterSort.sortOrder,
+      lightNovelFilterSort.SORT_ORDER,
       lightNovelFilterSort.filterAuthor,
       lightNovelFilterSort.filterGenre,
       lightNovelFilterSort.filterTheme,
@@ -151,7 +151,7 @@ export default function LightNovelList() {
   return (
     <div className="flex flex-col min-h-[100dvh]">
       <ListHeader
-        type={MediaType.LIGHT_NOVEL}
+        type={MEDIA_TYPE.LIGHT_NOVEL}
         setSearchMedia={setSearchLightNovel}
       />
       <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">

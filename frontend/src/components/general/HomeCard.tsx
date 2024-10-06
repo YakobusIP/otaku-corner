@@ -1,11 +1,11 @@
-import { MediaType } from "@/enum/general.enum";
+import { MEDIA_TYPE } from "@/lib/enums";
 import { ChevronRightIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 type Props = {
   cardTitle: string;
   amount: number;
-  type: MediaType;
+  type: MEDIA_TYPE;
   path: string;
   image: string;
   mediaTitle: string;
@@ -26,7 +26,7 @@ export default function HomeCard({
       <h2>{cardTitle}</h2>
       <p className="text-muted-foreground">
         <span className="text-4xl font-bold">{amount}</span>{" "}
-        {type.toLowerCase()}s{type === MediaType.ANIME ? " watched" : " read"}
+        {type.toLowerCase()}s{type === MEDIA_TYPE.ANIME ? " watched" : " read"}
       </p>
       <Link
         to={path}

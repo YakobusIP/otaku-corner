@@ -1,4 +1,4 @@
-import { SortOrder } from "@/enum/general.enum";
+import { SORT_ORDER } from "@/lib/enums";
 import {
   AuthorEntityPartial,
   GenreEntityPartial,
@@ -69,7 +69,7 @@ type LightNovelReview = Pick<
 
 type LightNovelFilterSort = {
   sortBy: string;
-  sortOrder: SortOrder;
+  SORT_ORDER: SORT_ORDER;
   filterAuthor?: number;
   filterGenre?: number;
   filterTheme?: number;

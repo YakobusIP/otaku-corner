@@ -1,4 +1,4 @@
-import { SortOrder } from "@/enum/general.enum";
+import { SORT_ORDER } from "@/lib/enums";
 import {
   MangaDetail,
   MangaList,
@@ -20,7 +20,7 @@ const fetchAllMangaService = async (
   limitPerPage: number,
   query?: string,
   sortBy?: string,
-  sortOrder?: SortOrder,
+  SORT_ORDER?: SORT_ORDER,
   filterAuthor?: number,
   filterGenre?: number,
   filterTheme?: number,
@@ -34,7 +34,7 @@ const fetchAllMangaService = async (
         limitPerPage,
         q: query,
         sortBy,
-        sortOrder,
+        SORT_ORDER,
         filterAuthor,
         filterGenre,
         filterTheme,

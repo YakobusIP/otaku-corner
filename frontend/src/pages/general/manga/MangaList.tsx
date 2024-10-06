@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MediaType, SortOrder } from "@/enum/general.enum";
+import { MEDIA_TYPE, SORT_ORDER } from "@/lib/enums";
 import MangaCard from "@/components/general/MangaCard";
 import MangaFilterSortAccordion from "@/components/global/MangaFilterSortAccordion";
 import { useToast } from "@/components/ui/use-toast";
@@ -27,7 +27,7 @@ export default function MangaList() {
 
   const [mangaFilterSort, setMangaFilterSort] = useState<MangaFilterSort>({
     sortBy: "title",
-    sortOrder: SortOrder.ASCENDING
+    SORT_ORDER: SORT_ORDER.ASCENDING
   });
 
   const [isLoadingManga, setIsLoadingManga] = useState(false);
@@ -59,7 +59,7 @@ export default function MangaList() {
       limitPerPage,
       debouncedSearch,
       mangaFilterSort.sortBy,
-      mangaFilterSort.sortOrder,
+      mangaFilterSort.SORT_ORDER,
       mangaFilterSort.filterAuthor,
       mangaFilterSort.filterGenre,
       mangaFilterSort.filterTheme,
@@ -145,7 +145,7 @@ export default function MangaList() {
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <ListHeader type={MediaType.MANGA} setSearchMedia={setSearchManga} />
+      <ListHeader type={MEDIA_TYPE.MANGA} setSearchMedia={setSearchManga} />
       <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
         <MangaFilterSortAccordion
           mangaFilterSort={mangaFilterSort}

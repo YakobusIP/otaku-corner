@@ -1,12 +1,12 @@
 import { Input } from "@/components/ui/input";
-import { MediaType } from "@/enum/general.enum";
+import { MEDIA_TYPE } from "@/lib/enums";
 import { Dispatch, SetStateAction } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 type Props = {
-  type: MediaType;
+  type: MEDIA_TYPE;
   setSearchMedia: Dispatch<SetStateAction<string>>;
 };
 

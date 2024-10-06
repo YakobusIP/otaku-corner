@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MediaType, SortOrder } from "@/enum/general.enum";
+import { MEDIA_TYPE, SORT_ORDER } from "@/lib/enums";
 import AnimeCard from "@/components/general/AnimeCard";
 import AnimeFilterSortAccordion from "@/components/global/AnimeFilterSortAccordion";
 import { useToast } from "@/components/ui/use-toast";
@@ -27,7 +27,7 @@ export default function AnimeList() {
 
   const [animeFilterSort, setAnimeFilterSort] = useState<AnimeFilterSort>({
     sortBy: "title",
-    sortOrder: SortOrder.ASCENDING
+    SORT_ORDER: SORT_ORDER.ASCENDING
   });
 
   const [isLoadingAnime, setIsLoadingAnime] = useState(false);
@@ -59,7 +59,7 @@ export default function AnimeList() {
       limitPerPage,
       debouncedSearch,
       animeFilterSort.sortBy,
-      animeFilterSort.sortOrder,
+      animeFilterSort.SORT_ORDER,
       animeFilterSort.filterGenre,
       animeFilterSort.filterStudio,
       animeFilterSort.filterTheme,
@@ -146,7 +146,7 @@ export default function AnimeList() {
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <ListHeader type={MediaType.ANIME} setSearchMedia={setSearchAnime} />
+      <ListHeader type={MEDIA_TYPE.ANIME} setSearchMedia={setSearchAnime} />
       <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
         <AnimeFilterSortAccordion
           animeFilterSort={animeFilterSort}
