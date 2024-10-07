@@ -26,6 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import GeneralFooter from "@/components/general/GeneralFooter";
+import DOMPurify from "dompurify";
 
 export default function GeneralAnimeDetail() {
   const [animeDetail, setAnimeDetail] = useState<AnimeDetail>();
@@ -51,7 +52,7 @@ export default function GeneralAnimeDetail() {
 
   const fetchAnimeById = useCallback(async () => {
     setIsLoadingAnimeDetail(true);
-    const response = await fetchAnimeByIdService(parseInt(animeId as string));
+    const response = await fetchAnimeByIdService(animeId as string);
     if (response.success) {
       setAnimeDetail(response.data);
     } else {
@@ -193,7 +194,7 @@ export default function GeneralAnimeDetail() {
           </CardContent>
         </Card>
       </section>
-      <div className="container">
+      <section className="container">
         <Separator className="mb-4" />
         <div className="flex flex-col gap-4">
           <h3>Episodes</h3>
@@ -260,15 +261,27 @@ export default function GeneralAnimeDetail() {
             </TableFooter>
           </Table>
         </div>
-        <div className="flex justify-center mt-12">
-          <Link
-            to="/anime"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-            Back to Home
-          </Link>
-        </div>
+      </section>
+      {animeDetail.review && (
+        <section className="container">
+          <Separator className="mb-4" />
+          <h3>My Review</h3>
+          <div
+            className="flex flex-col gap-4"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(animeDetail.review)
+            }}
+          />
+        </section>
+      )}
+      <div className="flex justify-center mt-12">
+        <Link
+          to="/anime"
+          className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          <ArrowLeftIcon className="w-4 h-4 mr-2" />
+          Back to Home
+        </Link>
       </div>
       <GeneralFooter />
     </div>
@@ -279,7 +292,6 @@ export default function GeneralAnimeDetail() {
         <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
         <h2>Fetching anime details...</h2>
       </div>
-      <GeneralFooter />
     </div>
   );
 }

@@ -84,7 +84,7 @@ type AnimeReview = Pick<
 
 type AnimeFilterSort = {
   sortBy: string;
-  SORT_ORDER: SORT_ORDER;
+  sortOrder: SORT_ORDER;
   filterGenre?: string;
   filterStudio?: string;
   filterTheme?: string;

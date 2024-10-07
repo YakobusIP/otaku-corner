@@ -100,14 +100,14 @@ export default function Dashboard() {
   const [animeListPage, setAnimeListPage] = useState(1);
   const [animeFilterSort, setAnimeFilterSort] = useState<AnimeFilterSort>({
     sortBy: "title",
-    SORT_ORDER: SORT_ORDER.ASCENDING
+    sortOrder: SORT_ORDER.ASCENDING
   });
 
   const [selectedMangaRows, setSelectedMangaRows] = useState({});
   const [mangaListPage, setMangaListPage] = useState(1);
   const [mangaFilterSort, setMangaFilterSort] = useState<MangaFilterSort>({
     sortBy: "title",
-    SORT_ORDER: SORT_ORDER.ASCENDING
+    sortOrder: SORT_ORDER.ASCENDING
   });
 
   const [selectedLightNovelRows, setSelectedLightNovelRows] = useState({});
@@ -115,7 +115,7 @@ export default function Dashboard() {
   const [lightNovelFilterSort, setLightNovelFilterSort] =
     useState<LightNovelFilterSort>({
       sortBy: "title",
-      SORT_ORDER: SORT_ORDER.ASCENDING
+      sortOrder: SORT_ORDER.ASCENDING
     });
 
   const [searchMedia, setSearchMedia] = useState("");
@@ -143,7 +143,7 @@ export default function Dashboard() {
       PAGINATION_SIZE,
       debouncedSearch,
       animeFilterSort.sortBy,
-      animeFilterSort.SORT_ORDER,
+      animeFilterSort.sortOrder,
       animeFilterSort.filterGenre,
       animeFilterSort.filterStudio,
       animeFilterSort.filterTheme,
@@ -172,7 +172,7 @@ export default function Dashboard() {
       PAGINATION_SIZE,
       debouncedSearch,
       mangaFilterSort.sortBy,
-      mangaFilterSort.SORT_ORDER,
+      mangaFilterSort.sortOrder,
       mangaFilterSort.filterAuthor,
       mangaFilterSort.filterGenre,
       mangaFilterSort.filterTheme,
@@ -200,7 +200,7 @@ export default function Dashboard() {
       PAGINATION_SIZE,
       debouncedSearch,
       lightNovelFilterSort.sortBy,
-      lightNovelFilterSort.SORT_ORDER,
+      lightNovelFilterSort.sortOrder,
       lightNovelFilterSort.filterAuthor,
       lightNovelFilterSort.filterGenre,
       lightNovelFilterSort.filterTheme,

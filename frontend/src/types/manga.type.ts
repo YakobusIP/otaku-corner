@@ -66,7 +66,7 @@ type MangaReview = Pick<
 
 type MangaFilterSort = {
   sortBy: string;
-  SORT_ORDER: SORT_ORDER;
+  sortOrder: SORT_ORDER;
   filterAuthor?: string;
   filterGenre?: string;
   filterTheme?: string;

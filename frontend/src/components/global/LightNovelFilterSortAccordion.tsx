@@ -42,9 +42,9 @@ export default function LightNovelFilterSortAccordion({
     setLightNovelFilterSort((prev) => ({
       ...prev,
       sortBy: key,
-      SORT_ORDER:
+      sortOrder:
         prev.sortBy === key
-          ? prev.SORT_ORDER === SORT_ORDER.ASCENDING
+          ? prev.sortOrder === SORT_ORDER.ASCENDING
             ? SORT_ORDER.DESCENDING
             : SORT_ORDER.ASCENDING
           : SORT_ORDER.ASCENDING
@@ -120,7 +120,7 @@ export default function LightNovelFilterSortAccordion({
             <div className="grid grid-cols-1 grid-rows-8 xl:grid-cols-4 xl:grid-rows-2 gap-4">
               <SortDirection
                 sortBy={lightNovelFilterSort.sortBy}
-                SORT_ORDER={lightNovelFilterSort.SORT_ORDER}
+                sortOrder={lightNovelFilterSort.sortOrder}
                 handleSort={handleSort}
               />
               <FilterAuthor

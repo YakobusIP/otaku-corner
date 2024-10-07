@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import GeneralFooter from "@/components/general/GeneralFooter";
+import DOMPurify from "dompurify";
 
 export default function GeneralMangaDetail() {
   const [mangaDetail, setMangaDetail] = useState<MangaDetail>();
@@ -27,7 +28,7 @@ export default function GeneralMangaDetail() {
 
   const fetchMangaById = useCallback(async () => {
     setIsLoadingMangaDetail(true);
-    const response = await fetchMangaByIdService(parseInt(mangaId as string));
+    const response = await fetchMangaByIdService(mangaId as string);
     if (response.success) {
       setMangaDetail(response.data);
     } else {
@@ -141,6 +142,17 @@ export default function GeneralMangaDetail() {
           </Card>
         </div>
       </header>
+      {mangaDetail.review && (
+        <section className="container">
+          <h3>My Review</h3>
+          <div
+            className="flex flex-col gap-4"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(mangaDetail.review)
+            }}
+          />
+        </section>
+      )}
       <div className="container">
         <div className="flex justify-center mt-12">
           <Link
@@ -161,7 +173,6 @@ export default function GeneralMangaDetail() {
         <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
         <h2>Fetching manga details...</h2>
       </div>
-      <GeneralFooter />
     </div>
   );
 }

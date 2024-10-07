@@ -27,7 +27,7 @@ export default function AnimeList() {
 
   const [animeFilterSort, setAnimeFilterSort] = useState<AnimeFilterSort>({
     sortBy: "title",
-    SORT_ORDER: SORT_ORDER.ASCENDING
+    sortOrder: SORT_ORDER.ASCENDING
   });
 
   const [isLoadingAnime, setIsLoadingAnime] = useState(false);
@@ -59,7 +59,7 @@ export default function AnimeList() {
       limitPerPage,
       debouncedSearch,
       animeFilterSort.sortBy,
-      animeFilterSort.SORT_ORDER,
+      animeFilterSort.sortOrder,
       animeFilterSort.filterGenre,
       animeFilterSort.filterStudio,
       animeFilterSort.filterTheme,
@@ -174,7 +174,7 @@ export default function AnimeList() {
           </section>
         ) : (
           <section className="flex flex-col items-center justify-center gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {animeList.map((anime) => {
                 return <AnimeCard key={anime.id} anime={anime} />;
               })}

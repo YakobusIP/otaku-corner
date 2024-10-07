@@ -32,7 +32,7 @@ export default function LightNovelList() {
   const [lightNovelFilterSort, setLightNovelFilterSort] =
     useState<LightNovelFilterSort>({
       sortBy: "title",
-      SORT_ORDER: SORT_ORDER.ASCENDING
+      sortOrder: SORT_ORDER.ASCENDING
     });
 
   const [isLoadingLightNovel, setIsLoadingLightNovel] = useState(false);
@@ -64,7 +64,7 @@ export default function LightNovelList() {
       limitPerPage,
       debouncedSearch,
       lightNovelFilterSort.sortBy,
-      lightNovelFilterSort.SORT_ORDER,
+      lightNovelFilterSort.sortOrder,
       lightNovelFilterSort.filterAuthor,
       lightNovelFilterSort.filterGenre,
       lightNovelFilterSort.filterTheme,
@@ -181,7 +181,7 @@ export default function LightNovelList() {
           </section>
         ) : (
           <section className="flex flex-col items-center justify-center gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {lightNovelList.map((lightNovel) => {
                 return (
                   <LightNovelCard key={lightNovel.id} lightNovel={lightNovel} />

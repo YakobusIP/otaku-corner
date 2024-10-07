@@ -27,7 +27,7 @@ export default function MangaList() {
 
   const [mangaFilterSort, setMangaFilterSort] = useState<MangaFilterSort>({
     sortBy: "title",
-    SORT_ORDER: SORT_ORDER.ASCENDING
+    sortOrder: SORT_ORDER.ASCENDING
   });
 
   const [isLoadingManga, setIsLoadingManga] = useState(false);
@@ -59,7 +59,7 @@ export default function MangaList() {
       limitPerPage,
       debouncedSearch,
       mangaFilterSort.sortBy,
-      mangaFilterSort.SORT_ORDER,
+      mangaFilterSort.sortOrder,
       mangaFilterSort.filterAuthor,
       mangaFilterSort.filterGenre,
       mangaFilterSort.filterTheme,
@@ -173,7 +173,7 @@ export default function MangaList() {
           </section>
         ) : (
           <section className="flex flex-col items-center justify-center gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {mangaList.map((manga) => {
                 return <MangaCard key={manga.id} manga={manga} />;
               })}

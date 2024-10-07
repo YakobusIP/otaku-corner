@@ -69,7 +69,7 @@ type LightNovelReview = Pick<
 
 type LightNovelFilterSort = {
   sortBy: string;
-  SORT_ORDER: SORT_ORDER;
+  sortOrder: SORT_ORDER;
   filterAuthor?: string;
   filterGenre?: string;
   filterTheme?: string;

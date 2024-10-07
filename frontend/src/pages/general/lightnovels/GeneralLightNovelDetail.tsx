@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import GeneralFooter from "@/components/general/GeneralFooter";
+import DOMPurify from "dompurify";
 
 export default function GeneralLightNovelDetail() {
   const [lightNovelDetail, setLightNovelDetail] = useState<LightNovelDetail>();
@@ -27,9 +28,7 @@ export default function GeneralLightNovelDetail() {
 
   const fetchLightNovelById = useCallback(async () => {
     setIsLoadingLightNovelDetail(true);
-    const response = await fetchLightNovelByIdService(
-      parseInt(lightNovelId as string)
-    );
+    const response = await fetchLightNovelByIdService(lightNovelId as string);
     if (response.success) {
       setLightNovelDetail(response.data);
     } else {
@@ -139,6 +138,17 @@ export default function GeneralLightNovelDetail() {
           </Card>
         </div>
       </header>
+      {lightNovelDetail.review && (
+        <section className="container">
+          <h3>My Review</h3>
+          <div
+            className="flex flex-col gap-4"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(lightNovelDetail.review)
+            }}
+          />
+        </section>
+      )}
       <div className="container">
         <div className="flex justify-center mt-12">
           <Link
@@ -159,7 +169,6 @@ export default function GeneralLightNovelDetail() {
         <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
         <h2>Fetching light novel details...</h2>
       </div>
-      <GeneralFooter />
     </div>
   );
 }

@@ -10,13 +10,13 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 
 type Props = {
   sortBy: string;
-  SORT_ORDER: SORT_ORDER;
+  sortOrder: SORT_ORDER;
   handleSort: (key: string) => void;
 };
 
 export default function SortDirection({
   sortBy,
-  SORT_ORDER,
+  sortOrder,
   handleSort
 }: Props) {
   return (
@@ -24,7 +24,7 @@ export default function SortDirection({
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="w-full">
           Sort by: {sortBy === "title" ? "Title" : "MAL Score"}
-          {SORT_ORDER === SORT_ORDER.ASCENDING ? (
+          {sortOrder === SORT_ORDER.ASCENDING ? (
             <ArrowUp className="ml-2 w-4 h-4" />
           ) : (
             <ArrowDown className="ml-2 w-4 h-4" />
@@ -36,7 +36,7 @@ export default function SortDirection({
           Title
           {sortBy === "title" && (
             <span className="ml-1">
-              {SORT_ORDER === SORT_ORDER.ASCENDING ? (
+              {sortOrder === SORT_ORDER.ASCENDING ? (
                 <ArrowUp className="w-4 h-4" />
               ) : (
                 <ArrowDown className="w-4 h-4" />
@@ -48,7 +48,7 @@ export default function SortDirection({
           MAL Score
           {sortBy === "score" && (
             <span className="ml-1">
-              {SORT_ORDER === SORT_ORDER.ASCENDING ? (
+              {sortOrder === SORT_ORDER.ASCENDING ? (
                 <ArrowUp className="w-4 h-4" />
               ) : (
                 <ArrowDown className="w-4 h-4" />
