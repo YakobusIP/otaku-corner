@@ -1,20 +1,20 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { AnimeService } from "../services/anime.service";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
+import { UnprocessableEntityError } from "../lib/error";
 
 export class AnimeController {
   constructor(private readonly animeService: AnimeService) {}
 
-  getAllAnimes = async (req: Request, res: Response): Promise<void> => {
+  getAllAnimes = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const currentPage = req.query.currentPage as string;
       const limitPerPage = req.query.limitPerPage as string;
 
       if (!currentPage || !limitPerPage) {
-        res.status(422).json({ error: "Pagination query params missing" });
-        return;
+        throw new UnprocessableEntityError("Pagination query params missing");
       }
+
       const query = req.query.q as string;
       const sortBy = req.query.sortBy as string;
       const sortOrder = req.query.sortOrder as Prisma.SortOrder;
@@ -37,105 +37,59 @@ export class AnimeController {
         filterPersonalScore,
         filterType
       );
-      res.json({ data: animes });
+
+      return res.json({ data: animes });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  getAnimeById = async (req: Request, res: Response): Promise<void> => {
+  getAnimeById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const anime = await this.animeService.getAnimeById(req.params.id);
-      if (anime) {
-        res.json({ data: anime });
-      } else {
-        res.status(404).json({ error: "Anime not found!" });
-      }
+      return res.json({ data: anime });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  createAnime = async (req: Request, res: Response): Promise<void> => {
+  createAnime = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.animeService.createAnime(req.body);
-      res.status(201).json({ message: "Anime created successfully!" });
+      return res.status(201).json({ message: "Anime created successfully!" });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        res.status(409).json({ error: "Anime already exists!" });
-      } else {
-        res.status(500).json({ error });
-      }
+      return next(error);
     }
   };
 
-  updateAnime = async (req: Request, res: Response): Promise<void> => {
+  updateAnime = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const updatedAnime = await this.animeService.updateAnime(
-        req.params.id,
-        req.body
-      );
-      if (updatedAnime) {
-        res.json({ data: updatedAnime });
-      } else {
-        res.status(404).json({ error: "Anime not found!" });
-      }
+      await this.animeService.updateAnime(req.params.id, req.body);
+      return res.json({ message: "Anime updated successfully!" });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  updateAnimeReview = async (req: Request, res: Response): Promise<void> => {
+  deleteAnime = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const updatedAnime = await this.animeService.updateAnimeReview(
-        req.params.id,
-        req.body
-      );
-      if (updatedAnime) {
-        res.json({ message: "Review updated successfully!" });
-      } else {
-        res.status(404).json({ error: "Anime not found!" });
-      }
+      await this.animeService.deleteAnime(req.params.id);
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  updateAnimeProgressStatus = async (req: Request, res: Response) => {
-    try {
-      const updatedAnime = await this.animeService.updateAnimeProgressStatus(
-        req.params.id,
-        req.body
-      );
-      if (updatedAnime) {
-        return res.json({ message: "Progress status updated successfully!" });
-      } else {
-        return res.status(404).json({ error: "Anime not found!" });
-      }
-    } catch (error) {
-      return res.status(500).json({ error });
-    }
-  };
-
-  deleteAnime = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const deletedAnime = await this.animeService.deleteAnime(req.params.id);
-      if (deletedAnime) {
-        res.status(204).end();
-      } else {
-        res.status(404).json({ error: "Anime not found!" });
-      }
-    } catch (error) {
-      res.status(500).json({ error });
-    }
-  };
-
-  deleteMultipleAnimes = async (req: Request, res: Response): Promise<void> => {
+  deleteMultipleAnimes = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       await this.animeService.deleteMultipleAnimes(req.body.ids);
-      res.status(204).end();
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 }

@@ -1,20 +1,20 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { MangaService } from "../services/manga.service";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
+import { UnprocessableEntityError } from "../lib/error";
 
 export class MangaController {
   constructor(private readonly mangaService: MangaService) {}
 
-  getAllMangas = async (req: Request, res: Response): Promise<void> => {
+  getAllMangas = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const currentPage = req.query.currentPage as string;
       const limitPerPage = req.query.limitPerPage as string;
 
       if (!currentPage || !limitPerPage) {
-        res.status(422).json({ error: "Pagination query params missing" });
-        return;
+        throw new UnprocessableEntityError("Pagination query params missing");
       }
+
       const query = req.query.q as string;
       const sortBy = req.query.sortBy as string;
       const sortOrder = req.query.sortOrder as Prisma.SortOrder;
@@ -35,108 +35,59 @@ export class MangaController {
         filterMALScore,
         filterPersonalScore
       );
-      res.json({ data: mangas });
+
+      return res.json({ data: mangas });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  getMangaById = async (req: Request, res: Response): Promise<void> => {
+  getMangaById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const manga = await this.mangaService.getMangaById(req.params.id);
-      if (manga) {
-        res.json({ data: manga });
-      } else {
-        res.status(404).json({ error: "Manga not found!" });
-      }
+      return res.json({ data: manga });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  createManga = async (req: Request, res: Response): Promise<void> => {
+  createManga = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.mangaService.createManga(req.body);
-      res.status(201).json({ message: "Manga created successfully!" });
+      return res.status(201).json({ message: "Manga created successfully!" });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        res.status(409).json({ error: "Manga already exists!" });
-      } else {
-        res.status(500).json({ error });
-      }
+      return next(error);
     }
   };
 
-  updateManga = async (req: Request, res: Response): Promise<void> => {
+  updateManga = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const updatedManga = await this.mangaService.updateManga(
-        req.params.id,
-        req.body
-      );
-      if (updatedManga) {
-        res.json({ data: updatedManga });
-      } else {
-        res.status(404).json({ error: "Manga not found!" });
-      }
+      await this.mangaService.updateManga(req.params.id, req.body);
+      return res.json({ message: "Manga updated successfully!" });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  updateMangaReview = async (req: Request, res: Response): Promise<void> => {
+  deleteManga = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const updatedManga = await this.mangaService.updateMangaReview(
-        req.params.id,
-        req.body
-      );
-      if (updatedManga) {
-        res.json({ message: "Review updated successfully!" });
-      } else {
-        res.status(404).json({ error: "Manga not found!" });
-      }
+      await this.mangaService.deleteManga(req.params.id);
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  updateMangaProgressStatus = async (
+  deleteMultipleMangas = async (
     req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const updatedManga = await this.mangaService.updateMangaProgressStatus(
-        req.params.id,
-        req.body
-      );
-      if (updatedManga) {
-        res.json({ message: "Progress status updated successfully!" });
-      } else {
-        res.status(404).json({ error: "Manga not found!" });
-      }
-    } catch (error) {
-      res.status(500).json({ error });
-    }
-  };
-
-  deleteManga = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const deletedManga = await this.mangaService.deleteManga(req.params.id);
-      if (deletedManga) {
-        res.status(204).end();
-      } else {
-        res.status(404).json({ error: "Manga not found!" });
-      }
-    } catch (error) {
-      res.status(500).json({ error });
-    }
-  };
-
-  deleteMultipleMangas = async (req: Request, res: Response): Promise<void> => {
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       await this.mangaService.deleteMultipleMangas(req.body.ids);
-      res.status(204).end();
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 }

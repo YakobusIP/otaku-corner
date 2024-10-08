@@ -15,6 +15,8 @@ import AuthorRouter from "./routes/author.route";
 import UploadRouter from "./routes/upload.route";
 import path from "path";
 import { env } from "./lib/env";
+import { requestLogMiddleware } from "./middleware/requestlog.middleware";
+import { errorMiddleware } from "./middleware/error.middleware";
 
 const app: Express = express();
 
@@ -32,6 +34,8 @@ app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(cookies());
 
+app.use(requestLogMiddleware);
+
 app.use(
   "/uploads",
   express.static(path.join(__dirname, env.RELATIVE_LOCAL_UPLOAD_PATH))
@@ -46,5 +50,7 @@ app.use("/api/studio", StudioRouter);
 app.use("/api/theme", ThemeRouter);
 app.use("/api/author", AuthorRouter);
 app.use("/api/upload", UploadRouter);
+
+app.use(errorMiddleware);
 
 export default app;

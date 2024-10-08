@@ -1,11 +1,13 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { StudioService } from "../services/studio.service";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 export class StudioController {
   constructor(private readonly studioService: StudioService) {}
 
-  getAllStudios = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * @todo Make currentPage and limitPerPage mandatory (changes in the FE as well)
+   */
+  getAllStudios = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const connected_media = req.query.connected_media === "true";
       const currentPage = req.query.currentPage as string;
@@ -18,65 +20,50 @@ export class StudioController {
         parseInt(limitPerPage),
         query
       );
-      res.json({ data: studios });
+
+      return res.json({ data: studios });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  createStudio = async (req: Request, res: Response): Promise<void> => {
+  createStudio = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.studioService.createStudio(req.body);
-      res.status(201).json({ message: "Studio created successfully!" });
+      return res.status(201).json({ message: "Studio created successfully!" });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        res.status(409).json({ error: "Studio already exists!" });
-      } else {
-        res.status(500).json({ error });
-      }
+      return next(error);
     }
   };
 
-  updateStudio = async (req: Request, res: Response): Promise<void> => {
+  updateStudio = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const updatedStudio = await this.studioService.updateStudio(
-        req.params.id,
-        req.body
-      );
-      if (updatedStudio) {
-        res.json({ message: "Studio updated successfully!" });
-      } else {
-        res.status(404).json({ error: "Studio not found!" });
-      }
+      await this.studioService.updateStudio(req.params.id, req.body);
+      return res.json({ message: "Studio updated successfully!" });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  deleteStudio = async (req: Request, res: Response): Promise<void> => {
+  deleteStudio = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const deletedStudio = await this.studioService.deleteStudio(
-        req.params.id
-      );
-      if (deletedStudio) {
-        res.status(204).end();
-      } else {
-        res.status(404).json({ error: "Studio not found!" });
-      }
+      await this.studioService.deleteStudio(req.params.id);
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
   deleteMultipleStudios = async (
     req: Request,
-    res: Response
-  ): Promise<void> => {
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       await this.studioService.deleteMultipleStudios(req.body.ids);
-      res.status(204).end();
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 }

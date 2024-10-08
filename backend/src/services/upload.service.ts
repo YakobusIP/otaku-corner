@@ -6,6 +6,13 @@ import { existsSync, unlinkSync, writeFileSync } from "fs";
 import { env } from "../lib/env";
 import path from "path";
 import { MEDIA_TYPE } from "../enum/general.enum";
+import {
+  BadRequestError,
+  FileStorageError,
+  InternalServerError,
+  NotFoundError,
+  PrismaUniqueError
+} from "../lib/error";
 
 export class UploadService {
   private async saveImageToDatabase(
@@ -14,23 +21,38 @@ export class UploadService {
     type: MEDIA_TYPE,
     entityId: string
   ) {
-    const data: Prisma.ReviewImageCreateInput = { id: uuid, url };
+    try {
+      const data: Prisma.ReviewImageCreateInput = { id: uuid, url };
 
-    switch (type) {
-      case MEDIA_TYPE.ANIME:
-        data.anime = { connect: { id: entityId } };
-        break;
-      case MEDIA_TYPE.MANGA:
-        data.manga = { connect: { id: entityId } };
-        break;
-      case MEDIA_TYPE.LIGHT_NOVEL:
-        data.lightNovel = { connect: { id: entityId } };
-        break;
-      default:
-        break;
+      switch (type) {
+        case MEDIA_TYPE.ANIME:
+          data.anime = { connect: { id: entityId } };
+          break;
+        case MEDIA_TYPE.MANGA:
+          data.manga = { connect: { id: entityId } };
+          break;
+        case MEDIA_TYPE.LIGHT_NOVEL:
+          data.lightNovel = { connect: { id: entityId } };
+          break;
+        default:
+          throw new BadRequestError("Invalid media type!");
+      }
+
+      return await prisma.reviewImage.create({ data });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new PrismaUniqueError("URL already exists!");
+      }
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request body!");
+      }
+
+      throw new InternalServerError((error as Error).message);
     }
-
-    return await prisma.reviewImage.create({ data });
   }
 
   async uploadImage(
@@ -51,8 +73,8 @@ export class UploadService {
         });
 
         await new Promise<void>((resolve, reject) => {
-          blobStream.on("error", () =>
-            reject(new Error("Failed to upload image to storage"))
+          blobStream.on("error", (error) =>
+            reject(new FileStorageError(error.message))
           );
           blobStream.on("finish", () => resolve());
           blobStream.end(file.buffer);
@@ -62,14 +84,25 @@ export class UploadService {
         return await this.saveImageToDatabase(uuid, publicUrl, type, entityId);
       } else {
         const localPath = path.join(__dirname, env.LOCAL_UPLOAD_PATH, filename);
-        writeFileSync(localPath, file.buffer);
+
+        try {
+          writeFileSync(localPath, file.buffer);
+        } catch (error) {
+          throw new FileStorageError((error as Error).message);
+        }
 
         const url = `http://localhost:${env.PORT}/uploads/${filename}`;
         return await this.saveImageToDatabase(uuid, url, type, entityId);
       }
     } catch (error) {
-      console.error("Upload image error:", error);
-      throw new Error("Failed to upload image and save the record");
+      if (
+        error instanceof BadRequestError ||
+        error instanceof FileStorageError
+      ) {
+        throw error;
+      }
+
+      throw new InternalServerError((error as Error).message);
     }
   }
 
@@ -80,7 +113,7 @@ export class UploadService {
       });
 
       if (!reviewImage) {
-        throw new Error("Image not found!");
+        throw new NotFoundError("Image not found!");
       }
 
       const urlParts = reviewImage.url.split("/");
@@ -91,7 +124,7 @@ export class UploadService {
         try {
           await file.delete();
         } catch (error) {
-          console.warn("Google Cloud Storage deletion error:", error);
+          throw new FileStorageError((error as Error).message);
         }
       } else {
         const localPath = path.join(__dirname, env.LOCAL_UPLOAD_PATH, filename);
@@ -99,17 +132,27 @@ export class UploadService {
           if (existsSync(localPath)) {
             unlinkSync(localPath);
           } else {
-            console.warn("Local image file not found");
+            await prisma.errorLog.create({
+              data: {
+                message: "Local image file not found",
+                type: "WARN",
+                route: "UploadService.deleteImage",
+                timestamp: new Date()
+              }
+            });
           }
         } catch (error) {
-          console.warn("Local image deletion error:", error);
+          throw new FileStorageError((error as Error).message);
         }
       }
 
       await prisma.reviewImage.delete({ where: { id } });
     } catch (error) {
-      console.error("Deletion image error:", error);
-      throw new Error("Failed to delete image");
+      if (error instanceof NotFoundError || error instanceof FileStorageError) {
+        throw error;
+      }
+
+      throw new InternalServerError((error as Error).message);
     }
   }
 }

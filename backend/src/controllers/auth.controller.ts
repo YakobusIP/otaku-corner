@@ -1,7 +1,13 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../services/auth.service";
 import jwt from "jsonwebtoken";
 import { env } from "../lib/env";
+import {
+  BadRequestError,
+  ForbiddenError,
+  InternalServerError,
+  UnauthorizedError
+} from "../lib/error";
 
 const ACCESS_TOKEN_SECRET = env.ACCESS_TOKEN_SECRET || "access_token_secret";
 const REFRESH_TOKEN_SECRET = env.REFRESH_TOKEN_SECRET || "refresh_token_secret";
@@ -9,9 +15,13 @@ const REFRESH_TOKEN_SECRET = env.REFRESH_TOKEN_SECRET || "refresh_token_secret";
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  login = async (req: Request, res: Response): Promise<void> => {
+  login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { pin1, pin2 } = req.body;
+
+      if (!pin1 || !pin2) {
+        throw new BadRequestError("Invalid request body!");
+      }
 
       if (await this.authService.verifyPin(pin1, pin2)) {
         const accessToken = jwt.sign({ role: "admin" }, ACCESS_TOKEN_SECRET, {
@@ -30,35 +40,50 @@ export class AuthController {
 
         res.status(200).json({ accessToken });
       } else {
-        res.status(401).json({ error: "Invalid pins!" });
+        throw new UnauthorizedError("Invalid pins!");
       }
     } catch (error) {
-      res.status(500).json({ error });
+      if (
+        error instanceof BadRequestError ||
+        error instanceof UnauthorizedError ||
+        error instanceof InternalServerError
+      ) {
+        return next(error);
+      }
+
+      return next(new InternalServerError((error as Error).message));
     }
   };
 
-  logout = async (_: Request, res: Response): Promise<void> => {
+  logout = async (_: Request, res: Response) => {
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: true,
       sameSite: "strict"
     });
-    res.status(200).json({ message: "Logged out successfully!" });
+    return res.status(200).json({ message: "Logged out successfully!" });
   };
 
-  refreshToken = async (req: Request, res: Response): Promise<void> => {
-    const refreshToken = req.cookies.refreshToken;
+  refreshToken = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const refreshToken = req.cookies.refreshToken;
 
-    if (!refreshToken) res.status(403).json({ error: "Session timed out!" });
+      if (!refreshToken) throw new ForbiddenError("Session timed out!");
 
-    jwt.verify(refreshToken as string, REFRESH_TOKEN_SECRET, (err, _) => {
-      if (err) return res.status(403).json({ error: "Invalid token!" });
+      jwt.verify(refreshToken as string, REFRESH_TOKEN_SECRET, (err, _) => {
+        if (err) return next(new ForbiddenError("Invalid token!"));
 
-      const accessToken = jwt.sign({ role: "admin" }, ACCESS_TOKEN_SECRET, {
-        expiresIn: "15m"
+        const accessToken = jwt.sign({ role: "admin" }, ACCESS_TOKEN_SECRET, {
+          expiresIn: "15m"
+        });
+
+        return res.status(200).json({ accessToken });
       });
-
-      res.status(200).json({ accessToken });
-    });
+    } catch (error) {
+      if (error instanceof ForbiddenError) {
+        return next(error);
+      }
+      return next(new InternalServerError((error as Error).message));
+    }
   };
 }

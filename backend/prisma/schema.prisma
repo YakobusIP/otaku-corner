@@ -16,6 +16,11 @@ enum ProgressStatus {
   DROPPED
 }
 
+enum ErrorType {
+  WARN
+  ERROR
+}
+
 model Anime {
   id                    String         @id @default(uuid())
   malId                 Int            @unique
@@ -182,4 +187,27 @@ model ReviewImage {
 
   lightNovel   LightNovel? @relation("LightNovelReviewImages", fields: [lightNovelId], references: [id])
   lightNovelId String?
+}
+
+model RequestLog {
+  id        String   @id @default(uuid())
+  hostname  String
+  ip        String?
+  method    String
+  url       String
+  headers   Json
+  body      Json
+  status    Int
+  response  Json?
+  timestamp DateTime @default(now())
+}
+
+model ErrorLog {
+  id         String    @id @default(uuid())
+  message    String
+  type       ErrorType
+  statusCode Int?
+  stack      String?
+  route      String
+  timestamp  DateTime  @default(now())
 }

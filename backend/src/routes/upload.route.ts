@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { UploadService } from "../services/upload.service";
 import { UploadController } from "../controllers/upload.controller";
-import upload from "../middleware/multer";
+import { uploadMiddleware } from "../middleware/multer.middleware";
 
 class UploadRouter {
   public router: Router;
@@ -20,7 +20,7 @@ class UploadRouter {
     this.router.post(
       "/",
       authMiddleware,
-      upload.single("image"),
+      uploadMiddleware.single("image"),
       this.uploadController.uploadImage
     );
     this.router.delete(

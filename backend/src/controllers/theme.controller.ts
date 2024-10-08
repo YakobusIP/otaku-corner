@@ -1,11 +1,13 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { ThemeService } from "../services/theme.service";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 export class ThemeController {
   constructor(private readonly themeService: ThemeService) {}
 
-  getAllThemes = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * @todo Make currentPage and limitPerPage mandatory (changes in the FE as well)
+   */
+  getAllThemes = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const connected_media = req.query.connected_media === "true";
       const currentPage = req.query.currentPage as string;
@@ -18,60 +20,50 @@ export class ThemeController {
         parseInt(limitPerPage),
         query
       );
-      res.json({ data: themes });
+
+      return res.json({ data: themes });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  createTheme = async (req: Request, res: Response): Promise<void> => {
+  createTheme = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.themeService.createTheme(req.body);
-      res.status(201).json({ message: "Theme created successfully!" });
+      return res.status(201).json({ message: "Theme created successfully!" });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        res.status(409).json({ error: "Theme already exists!" });
-      } else {
-        res.status(500).json({ error });
-      }
+      return next(error);
     }
   };
 
-  updateTheme = async (req: Request, res: Response): Promise<void> => {
+  updateTheme = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const updatedTheme = await this.themeService.updateTheme(
-        req.params.id,
-        req.body
-      );
-      if (updatedTheme) {
-        res.json({ message: "Theme updated successfully!" });
-      } else {
-        res.status(404).json({ error: "Theme not found!" });
-      }
+      await this.themeService.updateTheme(req.params.id, req.body);
+      return res.json({ message: "Theme updated successfully!" });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  deleteTheme = async (req: Request, res: Response): Promise<void> => {
+  deleteTheme = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const deletedTheme = await this.themeService.deleteTheme(req.params.id);
-      if (deletedTheme) {
-        res.status(204).end();
-      } else {
-        res.status(404).json({ error: "Theme not found!" });
-      }
+      await this.themeService.deleteTheme(req.params.id);
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  deleteMultipleThemes = async (req: Request, res: Response): Promise<void> => {
+  deleteMultipleThemes = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       await this.themeService.deleteMultipleThemes(req.body.ids);
-      res.status(204).end();
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 }

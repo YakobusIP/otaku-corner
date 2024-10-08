@@ -1,11 +1,13 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { GenreService } from "../services/genre.service";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 export class GenreController {
   constructor(private readonly genreService: GenreService) {}
 
-  getAllGenres = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * @todo Make currentPage and limitPerPage mandatory (changes in the FE as well)
+   */
+  getAllGenres = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const connected_media = req.query.connected_media === "true";
       const currentPage = req.query.currentPage as string;
@@ -18,60 +20,50 @@ export class GenreController {
         parseInt(limitPerPage),
         query
       );
-      res.json({ data: genres });
+
+      return res.json({ data: genres });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  createGenre = async (req: Request, res: Response): Promise<void> => {
+  createGenre = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.genreService.createGenre(req.body);
-      res.status(201).json({ message: "Genre created successfully!" });
+      return res.status(201).json({ message: "Genre created successfully!" });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        res.status(409).json({ error: "Genre already exists!" });
-      } else {
-        res.status(500).json({ error });
-      }
+      return next(error);
     }
   };
 
-  updateGenre = async (req: Request, res: Response): Promise<void> => {
+  updateGenre = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const updatedGenre = await this.genreService.updateGenre(
-        req.params.id,
-        req.body
-      );
-      if (updatedGenre) {
-        res.json({ message: "Genre updated successfully!" });
-      } else {
-        res.status(404).json({ error: "Genre not found!" });
-      }
+      await this.genreService.updateGenre(req.params.id, req.body);
+      return res.json({ message: "Genre updated successfully!" });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  deleteGenre = async (req: Request, res: Response): Promise<void> => {
+  deleteGenre = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const deletedGenre = await this.genreService.deleteGenre(req.params.id);
-      if (deletedGenre) {
-        res.status(204).end();
-      } else {
-        res.status(404).json({ error: "Genre not found!" });
-      }
+      await this.genreService.deleteGenre(req.params.id);
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  deleteMultipleGenres = async (req: Request, res: Response): Promise<void> => {
+  deleteMultipleGenres = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       await this.genreService.deleteMultipleGenres(req.body.ids);
-      res.status(204).end();
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 }

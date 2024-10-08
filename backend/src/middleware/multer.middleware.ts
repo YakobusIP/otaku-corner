@@ -1,7 +1,7 @@
 import multer from "multer";
 import { env } from "../lib/env";
 
-const upload = multer({
+export const uploadMiddleware = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: env.MAX_FILE_SIZE },
   fileFilter: (_, file, cb) => {
@@ -12,5 +12,3 @@ const upload = multer({
     }
   }
 });
-
-export default upload;

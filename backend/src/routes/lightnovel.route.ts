@@ -37,16 +37,6 @@ class LightNovelRouter {
       authMiddleware,
       this.lightNovelController.updateLightNovel
     );
-    this.router.put(
-      "/review/:id",
-      authMiddleware,
-      this.lightNovelController.updateLightNovelReview
-    );
-    this.router.put(
-      "/progress/:id",
-      authMiddleware,
-      this.lightNovelController.updateLightNovelProgressStatus
-    );
     this.router.delete(
       "/",
       authMiddleware,

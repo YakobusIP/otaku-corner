@@ -1,5 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
+import {
+  BadRequestError,
+  InternalServerError,
+  NotFoundError,
+  PrismaUniqueError
+} from "../lib/error";
 
 export class ThemeService {
   async getAllThemes(
@@ -8,86 +14,116 @@ export class ThemeService {
     limitPerPage?: number,
     query?: string
   ) {
-    const lowerCaseQuery = query && query.toLowerCase();
+    try {
+      const lowerCaseQuery = query && query.toLowerCase();
 
-    const filterCriteria: Prisma.ThemeWhereInput = {
-      name: {
-        contains: lowerCaseQuery,
-        mode: "insensitive"
-      }
-    };
-
-    if (currentPage && limitPerPage) {
-      const itemCount = await prisma.theme.count({
-        where: filterCriteria
-      });
-
-      const pageCount = Math.ceil(itemCount / limitPerPage);
-
-      const data = await prisma.theme.findMany({
-        where: filterCriteria,
-        take: limitPerPage,
-        skip: (currentPage - 1) * limitPerPage
-      });
-
-      if (connected_media) {
-        for (const theme of data) {
-          const mangaCount = await prisma.manga.count({
-            where: { themes: { some: { id: theme.id } } }
-          });
-
-          const lightNovelCount = await prisma.lightNovel.count({
-            where: { themes: { some: { id: theme.id } } }
-          });
-
-          (theme as any).connectedMediaCount = mangaCount + lightNovelCount;
-        }
-      }
-
-      return {
-        data,
-        metadata: {
-          currentPage,
-          limitPerPage,
-          pageCount,
-          itemCount
+      const filterCriteria: Prisma.ThemeWhereInput = {
+        name: {
+          contains: lowerCaseQuery,
+          mode: "insensitive"
         }
       };
-    } else {
-      const data = await prisma.theme.findMany({
-        where: filterCriteria
-      });
 
-      if (connected_media) {
-        for (const theme of data) {
-          const animeCount = await prisma.anime.count({
-            where: { themes: { some: { id: theme.id } } }
-          });
+      if (currentPage && limitPerPage) {
+        const itemCount = await prisma.theme.count({
+          where: filterCriteria
+        });
 
-          const mangaCount = await prisma.manga.count({
-            where: { themes: { some: { id: theme.id } } }
-          });
+        const pageCount = Math.ceil(itemCount / limitPerPage);
 
-          const lightNovelCount = await prisma.lightNovel.count({
-            where: { themes: { some: { id: theme.id } } }
-          });
+        const data = await prisma.theme.findMany({
+          where: filterCriteria,
+          take: limitPerPage,
+          skip: (currentPage - 1) * limitPerPage
+        });
 
-          (theme as any).connectedMediaCount =
-            animeCount + mangaCount + lightNovelCount;
+        if (connected_media) {
+          for (const theme of data) {
+            const mangaCount = await prisma.manga.count({
+              where: { themes: { some: { id: theme.id } } }
+            });
+
+            const lightNovelCount = await prisma.lightNovel.count({
+              where: { themes: { some: { id: theme.id } } }
+            });
+
+            (theme as any).connectedMediaCount = mangaCount + lightNovelCount;
+          }
         }
+
+        return {
+          data,
+          metadata: {
+            currentPage,
+            limitPerPage,
+            pageCount,
+            itemCount
+          }
+        };
+      } else {
+        const data = await prisma.theme.findMany({
+          where: filterCriteria
+        });
+
+        if (connected_media) {
+          for (const theme of data) {
+            const animeCount = await prisma.anime.count({
+              where: { themes: { some: { id: theme.id } } }
+            });
+
+            const mangaCount = await prisma.manga.count({
+              where: { themes: { some: { id: theme.id } } }
+            });
+
+            const lightNovelCount = await prisma.lightNovel.count({
+              where: { themes: { some: { id: theme.id } } }
+            });
+
+            (theme as any).connectedMediaCount =
+              animeCount + mangaCount + lightNovelCount;
+          }
+        }
+
+        return data;
+      }
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request parameters!");
       }
 
-      return data;
+      throw new InternalServerError((error as Error).message);
     }
   }
   async getTheme(name: string) {
-    return prisma.theme.findFirst({
-      where: { name: { equals: name, mode: "insensitive" } }
-    });
+    try {
+      return await prisma.theme.findFirst({
+        where: { name: { equals: name, mode: "insensitive" } }
+      });
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      throw new InternalServerError((error as Error).message);
+    }
   }
 
   async createTheme(data: Prisma.ThemeCreateInput) {
-    return prisma.theme.create({ data });
+    try {
+      return await prisma.theme.create({ data });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new PrismaUniqueError("Theme already exists!");
+      }
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request body!");
+      }
+
+      throw new InternalServerError((error as Error).message);
+    }
   }
 
   async getOrCreateTheme(name: string) {
@@ -99,14 +135,44 @@ export class ThemeService {
   }
 
   async updateTheme(id: string, data: Prisma.ThemeUpdateInput) {
-    return prisma.theme.update({ where: { id }, data });
+    try {
+      return await prisma.theme.update({ where: { id }, data });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        throw new NotFoundError("Theme not found!");
+      }
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request body!");
+      }
+
+      throw new InternalServerError((error as Error).message);
+    }
   }
 
   async deleteTheme(id: string) {
-    return prisma.theme.delete({ where: { id } });
+    try {
+      return await prisma.theme.delete({ where: { id } });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        throw new NotFoundError("Theme not found!");
+      }
+
+      throw new InternalServerError((error as Error).message);
+    }
   }
 
   async deleteMultipleThemes(ids: string[]) {
-    return prisma.theme.deleteMany({ where: { id: { in: ids } } });
+    try {
+      return await prisma.theme.deleteMany({ where: { id: { in: ids } } });
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
   }
 }

@@ -1,11 +1,13 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { AuthorService } from "../services/author.service";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 export class AuthorController {
   constructor(private readonly authorService: AuthorService) {}
 
-  getAllAuthors = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * @todo Make currentPage and limitPerPage mandatory (changes in the FE as well)
+   */
+  getAllAuthors = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const connected_media = req.query.connected_media === "true";
       const currentPage = req.query.currentPage as string;
@@ -18,65 +20,50 @@ export class AuthorController {
         parseInt(limitPerPage),
         query
       );
-      res.json({ data: authors });
+
+      return res.json({ data: authors });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  createAuthor = async (req: Request, res: Response): Promise<void> => {
+  createAuthor = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.authorService.createAuthor(req.body);
-      res.status(201).json({ message: "Author created successfully!" });
+      return res.status(201).json({ message: "Author created successfully!" });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        res.status(409).json({ error: "Author already exists!" });
-      } else {
-        res.status(500).json({ error });
-      }
+      return next(error);
     }
   };
 
-  updateAuthor = async (req: Request, res: Response): Promise<void> => {
+  updateAuthor = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const updatedAuthor = await this.authorService.updateAuthor(
-        req.params.id,
-        req.body
-      );
-      if (updatedAuthor) {
-        res.json({ message: "Author updated successfully!" });
-      } else {
-        res.status(404).json({ error: "Author not found!" });
-      }
+      await this.authorService.updateAuthor(req.params.id, req.body);
+      return res.json({ message: "Author updated successfully!" });
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
-  deleteAuthor = async (req: Request, res: Response): Promise<void> => {
+  deleteAuthor = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const deletedAuthor = await this.authorService.deleteAuthor(
-        req.params.id
-      );
-      if (deletedAuthor) {
-        res.status(204).end();
-      } else {
-        res.status(404).json({ error: "Author not found!" });
-      }
+      await this.authorService.deleteAuthor(req.params.id);
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 
   deleteMultipleAuthors = async (
     req: Request,
-    res: Response
-  ): Promise<void> => {
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       await this.authorService.deleteMultipleAuthors(req.body.ids);
-      res.status(204).end();
+      return res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error });
+      return next(error);
     }
   };
 }

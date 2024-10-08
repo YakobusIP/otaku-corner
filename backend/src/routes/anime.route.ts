@@ -27,16 +27,6 @@ class AnimeRouter {
     this.router.get("/:id", this.animeController.getAnimeById);
     this.router.post("/", authMiddleware, this.animeController.createAnime);
     this.router.put("/:id", authMiddleware, this.animeController.updateAnime);
-    this.router.put(
-      "/review/:id",
-      authMiddleware,
-      this.animeController.updateAnimeReview
-    );
-    this.router.put(
-      "/progress/:id",
-      authMiddleware,
-      this.animeController.updateAnimeProgressStatus
-    );
     this.router.delete(
       "/",
       authMiddleware,
