@@ -1,4 +1,4 @@
-import { SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 import {
   LightNovelDetail,
   LightNovelList,
@@ -109,6 +109,27 @@ const updateLightNovelReviewService = async (
   }
 };
 
+const updateLightNovelProgressStatusService = async (
+  id: string,
+  data: PROGRESS_STATUS
+): Promise<ApiResponse<MessageResponse>> => {
+  try {
+    const response = await interceptedAxios.put(
+      `${BASE_LIGHTNOVEL_URL}/progress/${id}`,
+      { progressStatus: data }
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
 const deleteLightNovelService = async (
   ids: string[]
 ): Promise<ApiResponse<void>> => {
@@ -131,5 +152,6 @@ export {
   fetchLightNovelByIdService,
   addLightNovelService,
   updateLightNovelReviewService,
+  updateLightNovelProgressStatusService,
   deleteLightNovelService
 };

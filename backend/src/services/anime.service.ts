@@ -26,16 +26,57 @@ type CustomAnimeReviewUpdateInput = Pick<
   | "storylineRating"
   | "qualityRating"
   | "voiceActingRating"
-  | "enjoymentRating"
+  | "soundTrackRating"
+  | "charDevelopmentRating"
   | "personalScore"
 >;
 
 export class AnimeService {
+  private static readonly scoringWeight = {
+    storylineRating: 0.3,
+    qualityRating: 0.25,
+    voiceActingRating: 0.2,
+    soundTrackRating: 0.15,
+    charDevelopmentRating: 0.1
+  };
+
   constructor(
     private readonly genreService: GenreService,
     private readonly studioService: StudioService,
     private readonly themeService: ThemeService
   ) {}
+
+  private validatePersonalScore(data: CustomAnimeCreateInput) {
+    const {
+      storylineRating,
+      qualityRating,
+      voiceActingRating,
+      soundTrackRating,
+      charDevelopmentRating,
+      personalScore
+    } = data;
+
+    if (
+      storylineRating &&
+      qualityRating &&
+      voiceActingRating &&
+      soundTrackRating &&
+      charDevelopmentRating &&
+      personalScore
+    ) {
+      const calculatedScore =
+        storylineRating * AnimeService.scoringWeight.storylineRating +
+        qualityRating * AnimeService.scoringWeight.qualityRating +
+        voiceActingRating * AnimeService.scoringWeight.voiceActingRating +
+        soundTrackRating * AnimeService.scoringWeight.soundTrackRating +
+        charDevelopmentRating *
+          AnimeService.scoringWeight.charDevelopmentRating;
+
+      return calculatedScore;
+    }
+
+    return null;
+  }
 
   async getAllAnimes(
     currentPage: number,
@@ -120,6 +161,7 @@ export class AnimeService {
         type: true,
         score: true,
         rating: true,
+        progressStatus: true,
         personalScore: true
       },
       orderBy: {
@@ -181,6 +223,16 @@ export class AnimeService {
       episodes: undefined
     };
 
+    const calculatedPersonalScore = this.validatePersonalScore(data);
+
+    if (
+      !calculatedPersonalScore ||
+      Math.abs(calculatedPersonalScore - (data.personalScore as number)) > 0.001
+    ) {
+      console.warn("Arriving ANIME personal score calculation is incorrect");
+      animeData.personalScore = calculatedPersonalScore;
+    }
+
     if (data.episodes && data.episodes.length > 0) {
       return prisma.anime.create({
         data: {
@@ -199,6 +251,16 @@ export class AnimeService {
 
   async updateAnimeReview(id: string, data: CustomAnimeReviewUpdateInput) {
     return prisma.anime.update({ where: { id }, data });
+  }
+
+  async updateAnimeProgressStatus(
+    id: string,
+    data: Pick<Prisma.AnimeUpdateInput, "progressStatus">
+  ) {
+    return prisma.anime.update({
+      where: { id },
+      data
+    });
   }
 
   async deleteAnime(id: string) {

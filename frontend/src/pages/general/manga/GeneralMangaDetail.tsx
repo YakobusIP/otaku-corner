@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import GeneralFooter from "@/components/general/GeneralFooter";
 import DOMPurify from "dompurify";
+import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
 export default function GeneralMangaDetail() {
   const [mangaDetail, setMangaDetail] = useState<MangaDetail>();
@@ -67,6 +68,12 @@ export default function GeneralMangaDetail() {
                 <div>Status: {mangaDetail.status}</div>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
+                {mangaDetail.progressStatus && (
+                  <ProgressStatusBadge
+                    className="text-black border-none"
+                    progressStatus={mangaDetail.progressStatus}
+                  />
+                )}
                 {mangaDetail.genres.map((genre) => (
                   <Badge key={genre.id} variant="secondary">
                     {genre.name}
@@ -142,17 +149,24 @@ export default function GeneralMangaDetail() {
           </Card>
         </div>
       </header>
-      {mangaDetail.review && (
-        <section className="container">
-          <h3>My Review</h3>
+      <section className="container space-y-2">
+        <h3>My Review</h3>
+        {!mangaDetail.review || mangaDetail.review === "<p></p>\n" ? (
+          <div className="flex flex-col items-center justify-center gap-2 xl:gap-4">
+            <img src="/no-review.gif" className="w-64 rounded-xl" />
+            <p className="text-center text-muted-foreground">
+              No review available
+            </p>
+          </div>
+        ) : (
           <div
             className="flex flex-col gap-4"
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(mangaDetail.review)
             }}
           />
-        </section>
-      )}
+        )}
+      </section>
       <div className="container">
         <div className="flex justify-center mt-12">
           <Link

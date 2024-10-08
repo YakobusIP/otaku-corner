@@ -1,5 +1,6 @@
 import asyncio
 import aiohttp
+import time
 from datetime import datetime
 from jikanpy import AioJikan
 from rich.console import Console
@@ -234,6 +235,8 @@ async def create_lightnovel(session, lightnovel_data):
 
 async def main():
     global success_count, failure_count, failed_ids
+    start_time = time.time()
+
     anime_ids = [
         54744,
         50803,
@@ -445,6 +448,10 @@ async def main():
     console.print(f"Failed media creations: {failure_count}", style="red")
     if failed_ids:
         console.print(f"Failed media IDs: {failed_ids}", style="red")
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    console.print(f"Time elapsed: {elapsed_time} seconds", style="blue")
 
 
 if __name__ == "__main__":

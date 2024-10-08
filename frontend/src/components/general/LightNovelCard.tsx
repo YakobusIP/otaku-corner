@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { LightNovelList } from "@/types/lightnovel.type";
 import { Star, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
 type Props = {
   lightNovel: LightNovelList;
@@ -43,6 +44,7 @@ export default function LightNovelCard({ lightNovel }: Props) {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 mb-4">
+            <ProgressStatusBadge progressStatus={lightNovel.progressStatus} />
             <Badge>{lightNovel.status}</Badge>
           </div>
         </CardContent>

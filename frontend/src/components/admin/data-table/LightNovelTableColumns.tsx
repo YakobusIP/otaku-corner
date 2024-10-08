@@ -11,6 +11,8 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
+import ProgressStatus from "@/components/admin/ProgressStatus";
+import { updateLightNovelProgressStatusService } from "@/services/lightnovel.service";
 
 export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
   {
@@ -60,6 +62,21 @@ export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
   {
     accessorKey: "status",
     header: "Status",
+    size: "auto" as unknown as number
+  },
+  {
+    accessorKey: "progressStatus",
+    header: "Progress Status",
+    cell: ({ row }) => {
+      const lightNovel = row.original;
+      return (
+        <ProgressStatus
+          id={lightNovel.id}
+          progressStatus={lightNovel.progressStatus}
+          serviceFn={updateLightNovelProgressStatusService}
+        />
+      );
+    },
     size: "auto" as unknown as number
   },
   {

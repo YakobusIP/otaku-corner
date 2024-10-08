@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { MangaList } from "@/types/manga.type";
 import { Star, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
 type Props = {
   manga: MangaList;
@@ -41,6 +42,7 @@ export default function MangaCard({ manga }: Props) {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 mb-4">
+            <ProgressStatusBadge progressStatus={manga.progressStatus} />
             <Badge>{manga.status}</Badge>
           </div>
         </CardContent>

@@ -18,17 +18,60 @@ type CustomLightNovelReviewUpdateInput = Pick<
   | "review"
   | "storylineRating"
   | "worldBuildingRating"
-  | "illustrationRating"
-  | "enjoymentRating"
+  | "writingStyleRating"
+  | "charDevelopmentRating"
+  | "originalityRating"
   | "personalScore"
 >;
 
 export class LightNovelService {
+  private static readonly scoringWeight = {
+    storylineRating: 0.3,
+    worldBuildingRating: 0.25,
+    writingStyleRating: 0.2,
+    charDevelopmentRating: 0.15,
+    originalityRating: 0.1
+  };
+
   constructor(
     private readonly authorService: AuthorService,
     private readonly genreService: GenreService,
     private readonly themeService: ThemeService
   ) {}
+
+  private validatePersonalScore(data: CustomLightNovelCreateInput) {
+    const {
+      storylineRating,
+      worldBuildingRating,
+      writingStyleRating,
+      charDevelopmentRating,
+      originalityRating,
+      personalScore
+    } = data;
+
+    if (
+      storylineRating &&
+      worldBuildingRating &&
+      writingStyleRating &&
+      charDevelopmentRating &&
+      originalityRating &&
+      personalScore
+    ) {
+      const calculatedScore =
+        storylineRating * LightNovelService.scoringWeight.storylineRating +
+        worldBuildingRating *
+          LightNovelService.scoringWeight.worldBuildingRating +
+        writingStyleRating *
+          LightNovelService.scoringWeight.writingStyleRating +
+        charDevelopmentRating *
+          LightNovelService.scoringWeight.charDevelopmentRating +
+        originalityRating * LightNovelService.scoringWeight.originalityRating;
+
+      return calculatedScore;
+    }
+
+    return null;
+  }
 
   async getAllLightNovels(
     currentPage: number,
@@ -109,6 +152,7 @@ export class LightNovelService {
         images: true,
         status: true,
         score: true,
+        progressStatus: true,
         personalScore: true
       },
       orderBy: {
@@ -168,6 +212,18 @@ export class LightNovelService {
       themes: { connect: themeIds }
     };
 
+    const calculatedPersonalScore = this.validatePersonalScore(data);
+
+    if (
+      !calculatedPersonalScore ||
+      Math.abs(calculatedPersonalScore - (data.personalScore as number)) > 0.001
+    ) {
+      console.warn(
+        "Arriving LIGHT_NOVEL personal score calculation is incorrect"
+      );
+      lightNovelData.personalScore = calculatedPersonalScore;
+    }
+
     return prisma.lightNovel.create({ data: lightNovelData });
   }
 
@@ -180,6 +236,16 @@ export class LightNovelService {
     data: CustomLightNovelReviewUpdateInput
   ) {
     return prisma.lightNovel.update({ where: { id }, data });
+  }
+
+  async updateLightNovelProgressStatus(
+    id: string,
+    data: Pick<Prisma.LightNovelUpdateInput, "progressStatus">
+  ) {
+    return prisma.lightNovel.update({
+      where: { id },
+      data
+    });
   }
 
   async deleteLightNovel(id: string) {

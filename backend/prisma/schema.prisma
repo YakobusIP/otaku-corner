@@ -8,39 +8,49 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum ProgressStatus {
+  PLANNED
+  ON_HOLD
+  ON_PROGRESS
+  COMPLETED
+  DROPPED
+}
+
 model Anime {
-  id                String         @id @default(uuid())
-  malId             Int            @unique
-  type              String
-  status            String
-  rating            String
-  season            String?
-  title             String
-  titleJapanese     String
-  titleSynonyms     String
-  source            String
-  aired             String
-  broadcast         String
-  episodesCount     Int?
-  duration          String
-  score             Float?
-  images            Json
-  genres            Genre[]        @relation("AnimeGenres")
-  studios           Studio[]
-  themes            Theme[]        @relation("AnimeThemes")
-  synopsis          String
-  trailer           String?
-  malUrl            String
-  review            String?
-  storylineRating   Int?
-  qualityRating     Int?
-  voiceActingRating Int?
-  enjoymentRating   Int?
-  personalScore     Int?
-  reviewImages      ReviewImage[]  @relation("AnimeReviewImages")
-  episodes          AnimeEpisode[]
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  id                    String         @id @default(uuid())
+  malId                 Int            @unique
+  type                  String
+  status                String
+  rating                String
+  season                String?
+  title                 String
+  titleJapanese         String
+  titleSynonyms         String
+  source                String
+  aired                 String
+  broadcast             String
+  episodesCount         Int?
+  duration              String
+  score                 Float?
+  images                Json
+  genres                Genre[]        @relation("AnimeGenres")
+  studios               Studio[]
+  themes                Theme[]        @relation("AnimeThemes")
+  synopsis              String
+  trailer               String?
+  malUrl                String
+  review                String?
+  storylineRating       Int?
+  qualityRating         Int?
+  voiceActingRating     Int?
+  soundTrackRating      Int?
+  charDevelopmentRating Int?
+  personalScore         Int?
+  progressStatus        ProgressStatus @default(PLANNED)
+  reviewImages          ReviewImage[]  @relation("AnimeReviewImages")
+  episodes              AnimeEpisode[]
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
 }
 
 model AnimeEpisode {
@@ -55,59 +65,63 @@ model AnimeEpisode {
 }
 
 model Manga {
-  id                     String        @id @default(uuid())
-  malId                  Int           @unique
-  status                 String
-  title                  String
-  titleJapanese          String
-  titleSynonyms          String
-  published              String
-  chaptersCount          Int?
-  volumesCount           Int?
-  score                  Float?
-  images                 Json
-  authors                Author[]      @relation("MangaAuthors")
-  genres                 Genre[]       @relation("MangaGenres")
-  themes                 Theme[]       @relation("MangaThemes")
-  synopsis               String
-  malUrl                 String
-  review                 String?
-  storylineRating        Int?
-  qualityRating          Int?
-  characterizationRating Int?
-  enjoymentRating        Int?
-  personalScore          Int?
-  reviewImages           ReviewImage[] @relation("MangaReviewImages")
-  createdAt              DateTime      @default(now())
-  updatedAt              DateTime      @updatedAt
+  id                    String         @id @default(uuid())
+  malId                 Int            @unique
+  status                String
+  title                 String
+  titleJapanese         String
+  titleSynonyms         String
+  published             String
+  chaptersCount         Int?
+  volumesCount          Int?
+  score                 Float?
+  images                Json
+  authors               Author[]       @relation("MangaAuthors")
+  genres                Genre[]        @relation("MangaGenres")
+  themes                Theme[]        @relation("MangaThemes")
+  synopsis              String
+  malUrl                String
+  review                String?
+  storylineRating       Int?
+  artStyleRating        Int?
+  charDevelopmentRating Int?
+  worldBuildingRating   Int?
+  originalityRating     Int?
+  personalScore         Int?
+  progressStatus        ProgressStatus @default(PLANNED)
+  reviewImages          ReviewImage[]  @relation("MangaReviewImages")
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
 }
 
 model LightNovel {
-  id                  String        @id @default(uuid())
-  malId               Int           @unique
-  status              String
-  title               String
-  titleJapanese       String
-  titleSynonyms       String
-  published           String
-  chaptersCount       Int?
-  volumesCount        Int?
-  score               Float?
-  images              Json
-  authors             Author[]      @relation("LightNovelAuthors")
-  genres              Genre[]       @relation("LightNovelGenres")
-  themes              Theme[]       @relation("LightNovelThemes")
-  synopsis            String
-  malUrl              String
-  review              String?
-  storylineRating     Int?
-  worldBuildingRating Int?
-  illustrationRating  Int?
-  enjoymentRating     Int?
-  personalScore       Int?
-  reviewImages        ReviewImage[] @relation("LightNovelReviewImages")
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  id                    String         @id @default(uuid())
+  malId                 Int            @unique
+  status                String
+  title                 String
+  titleJapanese         String
+  titleSynonyms         String
+  published             String
+  chaptersCount         Int?
+  volumesCount          Int?
+  score                 Float?
+  images                Json
+  authors               Author[]       @relation("LightNovelAuthors")
+  genres                Genre[]        @relation("LightNovelGenres")
+  themes                Theme[]        @relation("LightNovelThemes")
+  synopsis              String
+  malUrl                String
+  review                String?
+  storylineRating       Int?
+  worldBuildingRating   Int?
+  writingStyleRating    Int?
+  charDevelopmentRating Int?
+  originalityRating     Int?
+  personalScore         Int?
+  progressStatus        ProgressStatus @default(PLANNED)
+  reviewImages          ReviewImage[]  @relation("LightNovelReviewImages")
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
 }
 
 model Genre {

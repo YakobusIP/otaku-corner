@@ -1,4 +1,4 @@
-import { SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 import {
   AuthorEntityPartial,
   GenreEntityPartial,
@@ -27,9 +27,11 @@ type MangaPostRequest = {
   malUrl: string;
   review?: string | null;
   storylineRating?: number | null;
-  qualityRating?: number | null;
-  characterizationRating?: number | null;
-  enjoymentRating?: number | null;
+  artStyleRating?: number | null;
+  charDevelopmentRating?: number | null;
+  worldBuildingRating?: number | null;
+  originalityRating?: number | null;
+  progressStatus: PROGRESS_STATUS;
   personalScore?: number | null;
 };
 
@@ -51,16 +53,19 @@ type MangaList = {
     small_image_url?: string | null;
   };
   score: number;
+  progressStatus: PROGRESS_STATUS;
   personalScore: number | null;
 };
 
 type MangaReview = Pick<
   MangaPostRequest,
   | "review"
+  | "progressStatus"
   | "storylineRating"
-  | "qualityRating"
-  | "characterizationRating"
-  | "enjoymentRating"
+  | "artStyleRating"
+  | "charDevelopmentRating"
+  | "worldBuildingRating"
+  | "originalityRating"
   | "personalScore"
 >;
 

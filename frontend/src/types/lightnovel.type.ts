@@ -1,4 +1,4 @@
-import { SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 import {
   AuthorEntityPartial,
   GenreEntityPartial,
@@ -28,8 +28,10 @@ type LightNovelPostRequest = {
   review?: string | null;
   storylineRating?: number | null;
   worldBuildingRating?: number | null;
-  illustrationRating?: number | null;
-  enjoymentRating?: number | null;
+  writingStyleRating?: number | null;
+  charDevelopmentRating?: number | null;
+  originalityRating?: number | null;
+  progressStatus: PROGRESS_STATUS;
   personalScore?: number | null;
 };
 
@@ -54,16 +56,19 @@ type LightNovelList = {
     small_image_url?: string | null;
   };
   score: number;
+  progressStatus: PROGRESS_STATUS;
   personalScore: number | null;
 };
 
 type LightNovelReview = Pick<
   LightNovelPostRequest,
   | "review"
+  | "progressStatus"
   | "storylineRating"
   | "worldBuildingRating"
-  | "illustrationRating"
-  | "enjoymentRating"
+  | "writingStyleRating"
+  | "charDevelopmentRating"
+  | "originalityRating"
   | "personalScore"
 >;
 

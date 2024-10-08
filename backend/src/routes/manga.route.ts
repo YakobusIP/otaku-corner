@@ -32,6 +32,11 @@ class MangaRouter {
       authMiddleware,
       this.mangaController.updateMangaReview
     );
+    this.router.put(
+      "/progress/:id",
+      authMiddleware,
+      this.mangaController.updateMangaProgressStatus
+    );
     this.router.delete(
       "/",
       authMiddleware,

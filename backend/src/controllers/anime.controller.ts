@@ -101,6 +101,22 @@ export class AnimeController {
     }
   };
 
+  updateAnimeProgressStatus = async (req: Request, res: Response) => {
+    try {
+      const updatedAnime = await this.animeService.updateAnimeProgressStatus(
+        req.params.id,
+        req.body
+      );
+      if (updatedAnime) {
+        return res.json({ message: "Progress status updated successfully!" });
+      } else {
+        return res.status(404).json({ error: "Anime not found!" });
+      }
+    } catch (error) {
+      return res.status(500).json({ error });
+    }
+  };
+
   deleteAnime = async (req: Request, res: Response): Promise<void> => {
     try {
       const deletedAnime = await this.animeService.deleteAnime(req.params.id);

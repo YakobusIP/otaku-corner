@@ -9,6 +9,14 @@ export enum SORT_ORDER {
   DESCENDING = "desc"
 }
 
+export enum PROGRESS_STATUS {
+  PLANNED = "Planned",
+  ON_HOLD = "On Hold",
+  ON_PROGRESS = "On Progress",
+  COMPLETED = "Completed",
+  DROPPED = "Dropped"
+}
+
 export enum BLOCK_TYPES {
   PARAGRAPH = "unstyled",
   ORDERED_LIST = "ordered-list-item",

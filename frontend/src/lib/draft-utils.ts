@@ -50,3 +50,27 @@ export const decorator = new CompositeDecorator([
     component: ReviewImage
   }
 ]);
+
+export const extractExistingImages = (
+  blocks: ContentBlock[],
+  contentState: ContentState
+) => {
+  const currentImageIds: string[] = [];
+  blocks.forEach((block) => {
+    if (block.getType() === BLOCK_TYPES.IMAGE) {
+      const entityKey = block.getEntityAt(0);
+      if (entityKey) {
+        const entity = contentState.getEntity(entityKey);
+        const { src } = entity.getData();
+        const stringSrc = src as string;
+        const id = stringSrc.substring(
+          stringSrc.lastIndexOf("/") + 1,
+          stringSrc.lastIndexOf(".")
+        );
+        currentImageIds.push(id);
+      }
+    }
+  });
+
+  return currentImageIds;
+};

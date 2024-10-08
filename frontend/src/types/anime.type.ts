@@ -1,4 +1,4 @@
-import { SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 import {
   GenreEntityPartial,
   StudioEntityPartial,
@@ -36,7 +36,9 @@ type AnimePostRequest = {
   storylineRating?: number | null;
   qualityRating?: number | null;
   voiceActingRating?: number | null;
-  enjoymentRating?: number | null;
+  soundTrackRating?: number | null;
+  charDevelopmentRating?: number | null;
+  progressStatus?: PROGRESS_STATUS;
   personalScore?: number | null;
 };
 
@@ -60,6 +62,7 @@ type AnimeList = {
   };
   rating: string;
   score: number;
+  progressStatus: PROGRESS_STATUS;
   personalScore: number | null;
 };
 
@@ -75,10 +78,12 @@ type AnimeEpisode = {
 type AnimeReview = Pick<
   AnimePostRequest,
   | "review"
+  | "progressStatus"
   | "storylineRating"
   | "qualityRating"
   | "voiceActingRating"
-  | "enjoymentRating"
+  | "soundTrackRating"
+  | "charDevelopmentRating"
   | "personalScore"
 >;
 

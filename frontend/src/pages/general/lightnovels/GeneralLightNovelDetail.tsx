@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import GeneralFooter from "@/components/general/GeneralFooter";
 import DOMPurify from "dompurify";
+import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
 export default function GeneralLightNovelDetail() {
   const [lightNovelDetail, setLightNovelDetail] = useState<LightNovelDetail>();
@@ -69,6 +70,12 @@ export default function GeneralLightNovelDetail() {
                 <div>Status: {lightNovelDetail.status}</div>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
+                {lightNovelDetail.progressStatus && (
+                  <ProgressStatusBadge
+                    className="text-black border-none"
+                    progressStatus={lightNovelDetail.progressStatus}
+                  />
+                )}
                 {lightNovelDetail.genres.map((genre) => (
                   <Badge key={genre.id} variant="secondary">
                     {genre.name}
@@ -138,17 +145,24 @@ export default function GeneralLightNovelDetail() {
           </Card>
         </div>
       </header>
-      {lightNovelDetail.review && (
-        <section className="container">
-          <h3>My Review</h3>
+      <section className="container space-y-2">
+        <h3>My Review</h3>
+        {!lightNovelDetail.review || lightNovelDetail.review === "<p></p>\n" ? (
+          <div className="flex flex-col items-center justify-center gap-2 xl:gap-4">
+            <img src="/no-review.gif" className="w-64 rounded-xl" />
+            <p className="text-center text-muted-foreground">
+              No review available
+            </p>
+          </div>
+        ) : (
           <div
             className="flex flex-col gap-4"
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(lightNovelDetail.review)
             }}
           />
-        </section>
-      )}
+        )}
+      </section>
       <div className="container">
         <div className="flex justify-center mt-12">
           <Link

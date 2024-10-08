@@ -11,6 +11,8 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
+import ProgressStatus from "@/components/admin/ProgressStatus";
+import { updateAnimeProgressStatusService } from "@/services/anime.service";
 
 export const animeColumns: ColumnDef<AnimeList>[] = [
   {
@@ -58,18 +60,28 @@ export const animeColumns: ColumnDef<AnimeList>[] = [
     size: 300
   },
   {
-    accessorKey: "status",
-    header: "Status",
-    size: "auto" as unknown as number
-  },
-  {
     accessorKey: "type",
     header: "Type",
     size: "auto" as unknown as number
   },
   {
-    accessorKey: "rating",
-    header: "Rating",
+    accessorKey: "status",
+    header: "Status",
+    size: "auto" as unknown as number
+  },
+  {
+    accessorKey: "progressStatus",
+    header: "Progress Status",
+    cell: ({ row }) => {
+      const anime = row.original;
+      return (
+        <ProgressStatus
+          id={anime.id}
+          progressStatus={anime.progressStatus}
+          serviceFn={updateAnimeProgressStatusService}
+        />
+      );
+    },
     size: "auto" as unknown as number
   },
   {

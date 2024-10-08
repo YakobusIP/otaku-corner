@@ -105,6 +105,26 @@ export class LightNovelController {
     }
   };
 
+  updateLightNovelProgressStatus = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const updatedLightNovel =
+        await this.lightNovelService.updateLightNovelProgressStatus(
+          req.params.id,
+          req.body
+        );
+      if (updatedLightNovel) {
+        res.json({ message: "Progress status updated successfully!" });
+      } else {
+        res.status(404).json({ error: "Light novel not found!" });
+      }
+    } catch (error) {
+      res.status(500).json({ error });
+    }
+  };
+
   deleteLightNovel = async (req: Request, res: Response): Promise<void> => {
     try {
       const deletedLightNovel = await this.lightNovelService.deleteLightNovel(

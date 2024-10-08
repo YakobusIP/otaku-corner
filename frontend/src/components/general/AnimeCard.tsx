@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { AnimeList } from "@/types/anime.type";
 import { Star, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
 type Props = {
   anime: AnimeList;
@@ -33,7 +34,7 @@ export default function AnimeCard({ anime }: Props) {
           )}
         </div>
         <Separator />
-        <CardContent className="p-4 space-y-4 min-h-[150px]">
+        <CardContent className="p-4 space-y-4 xl:min-h-[180px]">
           <div className="flex flex-col">
             <p className="text-lg font-medium truncate">{anime.title}</p>
             <p className="text-muted-foreground text-sm truncate">
@@ -41,6 +42,7 @@ export default function AnimeCard({ anime }: Props) {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 mb-4">
+            <ProgressStatusBadge progressStatus={anime.progressStatus} />
             <Badge>{anime.rating}</Badge>
             <Badge>{anime.type}</Badge>
             <Badge>{anime.status}</Badge>

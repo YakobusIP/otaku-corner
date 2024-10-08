@@ -74,7 +74,7 @@ export default function AdminAnimeDetail() {
           {animeDetail.type !== "Movie" && (
             <EpisodeTab animeDetail={animeDetail} />
           )}
-          <ReviewTab animeDetail={animeDetail} />
+          <ReviewTab animeDetail={animeDetail} resetParent={fetchAnimeById} />
         </Tabs>
       </main>
     </div>

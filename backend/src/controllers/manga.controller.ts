@@ -99,6 +99,25 @@ export class MangaController {
     }
   };
 
+  updateMangaProgressStatus = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const updatedManga = await this.mangaService.updateMangaProgressStatus(
+        req.params.id,
+        req.body
+      );
+      if (updatedManga) {
+        res.json({ message: "Progress status updated successfully!" });
+      } else {
+        res.status(404).json({ error: "Manga not found!" });
+      }
+    } catch (error) {
+      res.status(500).json({ error });
+    }
+  };
+
   deleteManga = async (req: Request, res: Response): Promise<void> => {
     try {
       const deletedManga = await this.mangaService.deleteManga(req.params.id);

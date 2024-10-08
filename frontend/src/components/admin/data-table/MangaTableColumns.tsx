@@ -11,6 +11,8 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
+import ProgressStatus from "@/components/admin/ProgressStatus";
+import { updateMangaProgressStatusService } from "@/services/manga.service";
 
 export const mangaColumns: ColumnDef<MangaList>[] = [
   {
@@ -60,6 +62,21 @@ export const mangaColumns: ColumnDef<MangaList>[] = [
   {
     accessorKey: "status",
     header: "Status",
+    size: "auto" as unknown as number
+  },
+  {
+    accessorKey: "progressStatus",
+    header: "Progress Status",
+    cell: ({ row }) => {
+      const manga = row.original;
+      return (
+        <ProgressStatus
+          id={manga.id}
+          progressStatus={manga.progressStatus}
+          serviceFn={updateMangaProgressStatusService}
+        />
+      );
+    },
     size: "auto" as unknown as number
   },
   {

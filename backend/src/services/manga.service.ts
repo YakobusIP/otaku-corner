@@ -17,18 +17,59 @@ type CustomMangaReviewUpdateInput = Pick<
   Prisma.MangaUpdateInput,
   | "review"
   | "storylineRating"
-  | "qualityRating"
-  | "characterizationRating"
-  | "enjoymentRating"
+  | "artStyleRating"
+  | "charDevelopmentRating"
+  | "worldBuildingRating"
+  | "originalityRating"
   | "personalScore"
 >;
 
 export class MangaService {
+  private static readonly scoringWeight = {
+    storylineRating: 0.3,
+    artStyleRating: 0.25,
+    charDevelopmentRating: 0.2,
+    worldBuildingRating: 0.15,
+    originalityRating: 0.1
+  };
+
   constructor(
     private readonly authorService: AuthorService,
     private readonly genreService: GenreService,
     private readonly themeService: ThemeService
   ) {}
+
+  private validatePersonalScore(data: CustomMangaCreateInput) {
+    const {
+      storylineRating,
+      artStyleRating,
+      charDevelopmentRating,
+      worldBuildingRating,
+      originalityRating,
+      personalScore
+    } = data;
+
+    if (
+      storylineRating &&
+      artStyleRating &&
+      charDevelopmentRating &&
+      worldBuildingRating &&
+      originalityRating &&
+      personalScore
+    ) {
+      const calculatedScore =
+        storylineRating * MangaService.scoringWeight.storylineRating +
+        artStyleRating * MangaService.scoringWeight.artStyleRating +
+        charDevelopmentRating *
+          MangaService.scoringWeight.charDevelopmentRating +
+        worldBuildingRating * MangaService.scoringWeight.worldBuildingRating +
+        originalityRating * MangaService.scoringWeight.originalityRating;
+
+      return calculatedScore;
+    }
+
+    return null;
+  }
 
   async getAllMangas(
     currentPage: number,
@@ -109,6 +150,7 @@ export class MangaService {
         images: true,
         status: true,
         score: true,
+        progressStatus: true,
         personalScore: true
       },
       orderBy: {
@@ -168,6 +210,16 @@ export class MangaService {
       themes: { connect: themeIds }
     };
 
+    const calculatedPersonalScore = this.validatePersonalScore(data);
+
+    if (
+      !calculatedPersonalScore ||
+      Math.abs(calculatedPersonalScore - (data.personalScore as number)) > 0.001
+    ) {
+      console.warn("Arriving MANGA personal score calculation is incorrect");
+      mangaData.personalScore = calculatedPersonalScore;
+    }
+
     return prisma.manga.create({ data: mangaData });
   }
 
@@ -177,6 +229,16 @@ export class MangaService {
 
   async updateMangaReview(id: string, data: CustomMangaReviewUpdateInput) {
     return prisma.manga.update({ where: { id }, data });
+  }
+
+  async updateMangaProgressStatus(
+    id: string,
+    data: Pick<Prisma.MangaUpdateInput, "progressStatus">
+  ) {
+    return prisma.manga.update({
+      where: { id },
+      data
+    });
   }
 
   async deleteManga(id: string) {

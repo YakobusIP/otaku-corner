@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
 import { Star, ExternalLink } from "lucide-react";
+import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
 type Props = {
   lightNovelDetail: LightNovelDetail;
@@ -13,6 +14,13 @@ export default function AboutTab({ lightNovelDetail }: Props) {
     <TabsContent value="about">
       <div className="flex flex-col gap-4 pt-4">
         <h2>About</h2>
+        <div className="flex flex-wrap items-center gap-2">
+          {lightNovelDetail.progressStatus && (
+            <ProgressStatusBadge
+              progressStatus={lightNovelDetail.progressStatus}
+            />
+          )}
+        </div>
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground">Title</Label>

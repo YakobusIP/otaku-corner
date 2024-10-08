@@ -68,7 +68,10 @@ export default function AdminLightNovelDetail() {
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
           </TabsList>
           <AboutTab lightNovelDetail={lightNovelDetail} />
-          <ReviewTab lightNovelDetail={lightNovelDetail} />
+          <ReviewTab
+            lightNovelDetail={lightNovelDetail}
+            resetParent={fetchLightNovelById}
+          />
         </Tabs>
       </main>
     </div>

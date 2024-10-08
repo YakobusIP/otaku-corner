@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import GeneralFooter from "@/components/general/GeneralFooter";
 import DOMPurify from "dompurify";
+import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
 export default function GeneralAnimeDetail() {
   const [animeDetail, setAnimeDetail] = useState<AnimeDetail>();
@@ -106,6 +107,12 @@ export default function GeneralAnimeDetail() {
                 <div>Broadcast: {animeDetail.broadcast}</div>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
+                {animeDetail.progressStatus && (
+                  <ProgressStatusBadge
+                    className="text-black border-none"
+                    progressStatus={animeDetail.progressStatus}
+                  />
+                )}
                 {animeDetail.genres.map((genre) => (
                   <Badge key={genre.id} variant="secondary">
                     {genre.name}
@@ -262,18 +269,25 @@ export default function GeneralAnimeDetail() {
           </Table>
         </div>
       </section>
-      {animeDetail.review && (
-        <section className="container">
-          <Separator className="mb-4" />
-          <h3>My Review</h3>
+      <section className="container space-y-2">
+        <Separator className="mb-4" />
+        <h3>My Review</h3>
+        {!animeDetail.review || animeDetail.review === "<p></p>\n" ? (
+          <div className="flex flex-col items-center justify-center gap-2 xl:gap-4">
+            <img src="/no-review.gif" className="w-64 rounded-xl" />
+            <p className="text-center text-muted-foreground">
+              No review available
+            </p>
+          </div>
+        ) : (
           <div
             className="flex flex-col gap-4"
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(animeDetail.review)
             }}
           />
-        </section>
-      )}
+        )}
+      </section>
       <div className="flex justify-center mt-12">
         <Link
           to="/anime"

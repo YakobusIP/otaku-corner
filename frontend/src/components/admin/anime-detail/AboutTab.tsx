@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
 import { Star, ExternalLink } from "lucide-react";
+import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
 type Props = {
   animeDetail: AnimeDetail;
@@ -14,6 +15,9 @@ export default function AboutTab({ animeDetail }: Props) {
       <div className="flex flex-col gap-4 pt-4">
         <h2>About</h2>
         <div className="flex flex-wrap items-center gap-2">
+          {animeDetail.progressStatus && (
+            <ProgressStatusBadge progressStatus={animeDetail.progressStatus} />
+          )}
           <Badge>{animeDetail.type}</Badge>
           <Badge>{animeDetail.status}</Badge>
           <Badge>{animeDetail.rating}</Badge>

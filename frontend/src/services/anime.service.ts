@@ -1,4 +1,4 @@
-import { SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 import interceptedAxios from "@/lib/axios";
 import {
   AnimeDetail,
@@ -111,6 +111,27 @@ const updateAnimeReviewService = async (
   }
 };
 
+const updateAnimeProgressStatusService = async (
+  id: string,
+  data: PROGRESS_STATUS
+): Promise<ApiResponse<MessageResponse>> => {
+  try {
+    const response = await interceptedAxios.put(
+      `${BASE_ANIME_URL}/progress/${id}`,
+      { progressStatus: data }
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
 const deleteAnimeService = async (
   ids: string[]
 ): Promise<ApiResponse<void>> => {
@@ -133,5 +154,6 @@ export {
   fetchAnimeByIdService,
   addAnimeService,
   updateAnimeReviewService,
+  updateAnimeProgressStatusService,
   deleteAnimeService
 };
