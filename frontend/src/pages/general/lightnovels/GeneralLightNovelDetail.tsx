@@ -4,19 +4,34 @@ import { type LightNovelDetail } from "@/types/lightnovel.type";
 import {
   Loader2,
   StarIcon,
+  HeartIcon,
   CalendarIcon,
   ArrowLeftIcon,
-  Library
+  Library,
+  InfoIcon
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import GeneralFooter from "@/components/general/GeneralFooter";
 import DOMPurify from "dompurify";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
+import { ratingDescriptions } from "@/lib/constants";
+import RatingDetailContent from "@/components/general/RatingDetailContent";
+import { isMobile } from "react-device-detect";
 
 export default function GeneralLightNovelDetail() {
   const [lightNovelDetail, setLightNovelDetail] = useState<LightNovelDetail>();
@@ -45,6 +60,54 @@ export default function GeneralLightNovelDetail() {
   useEffect(() => {
     fetchLightNovelById();
   }, [fetchLightNovelById]);
+
+  const lightNovelPersonalRatings = [
+    {
+      title: "Storyline",
+      weight: "30",
+      rating: lightNovelDetail?.storylineRating
+        ? `${lightNovelDetail.storylineRating} - ${
+            ratingDescriptions[lightNovelDetail.storylineRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "World Building",
+      weight: "25",
+      rating: lightNovelDetail?.worldBuildingRating
+        ? `${lightNovelDetail.worldBuildingRating} - ${
+            ratingDescriptions[lightNovelDetail.worldBuildingRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Writing Style",
+      weight: "20",
+      rating: lightNovelDetail?.writingStyleRating
+        ? `${lightNovelDetail.writingStyleRating} - ${
+            ratingDescriptions[lightNovelDetail.writingStyleRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Character Development",
+      weight: "15",
+      rating: lightNovelDetail?.charDevelopmentRating
+        ? `${lightNovelDetail.charDevelopmentRating} - ${
+            ratingDescriptions[lightNovelDetail.charDevelopmentRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Originality",
+      weight: "10",
+      rating: lightNovelDetail?.originalityRating
+        ? `${lightNovelDetail.originalityRating} - ${
+            ratingDescriptions[lightNovelDetail.originalityRating]
+          }`
+        : "N/A"
+    }
+  ];
 
   return !isLoadingLightNovelDetail && lightNovelDetail ? (
     <div className="text-foreground space-y-8 min-h-screen">
@@ -88,23 +151,77 @@ export default function GeneralLightNovelDetail() {
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1 text-primary">
-                {[...Array(5)].map((_, i) => (
-                  <StarIcon
-                    key={i}
-                    className={`w-5 h-5 ${
-                      i < Math.round(lightNovelDetail.score / 2)
-                        ? "text-primary-foreground"
-                        : "text-muted-foreground"
-                    }`}
-                  />
-                ))}
+            <div className="flex flex-col xl:flex-row justify-center xl:justify-normal gap-4 xl:gap-16">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 text-primary">
+                  {[...Array(5)].map((_, i) => (
+                    <StarIcon
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i < Math.round(lightNovelDetail.score / 2)
+                          ? "text-primary-foreground"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="text-lg font-semibold">
+                  {lightNovelDetail.score.toFixed(2)}
+                </div>
+                <div className="text-sm text-muted-foreground">(MAL Score)</div>
               </div>
-              <div className="text-lg font-semibold">
-                {lightNovelDetail.score}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 text-primary">
+                  {[...Array(5)].map((_, i) => (
+                    <HeartIcon
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i <
+                        Math.round((lightNovelDetail.personalScore ?? 0) / 2)
+                          ? "text-yellow-600"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-semibold">
+                    {lightNovelDetail.personalScore
+                      ? lightNovelDetail.personalScore.toFixed(2)
+                      : "N/A"}
+                  </p>
+                  {isMobile ? (
+                    <Popover>
+                      <PopoverTrigger>
+                        <InfoIcon className="w-4 h-4" />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64">
+                        <RatingDetailContent
+                          details={lightNovelPersonalRatings}
+                          finalScore={lightNovelDetail.personalScore}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <InfoIcon className="w-4 h-4" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <RatingDetailContent
+                            details={lightNovelPersonalRatings}
+                            finalScore={lightNovelDetail.personalScore}
+                          />
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  (Personal Score)
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground">(MAL Score)</div>
             </div>
             <div>
               <p className="text-justify whitespace-pre-line">

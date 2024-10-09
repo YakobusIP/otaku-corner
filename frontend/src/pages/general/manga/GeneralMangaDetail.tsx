@@ -7,17 +7,31 @@ import {
   CalendarIcon,
   ArrowLeftIcon,
   BookOpenText,
-  Library
+  Library,
+  InfoIcon
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import GeneralFooter from "@/components/general/GeneralFooter";
 import DOMPurify from "dompurify";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
+import { ratingDescriptions } from "@/lib/constants";
+import RatingDetailContent from "@/components/general/RatingDetailContent";
+import { isMobile } from "react-device-detect";
 
 export default function GeneralMangaDetail() {
   const [mangaDetail, setMangaDetail] = useState<MangaDetail>();
@@ -45,6 +59,54 @@ export default function GeneralMangaDetail() {
   useEffect(() => {
     fetchMangaById();
   }, [fetchMangaById]);
+
+  const mangaPersonalRatings = [
+    {
+      title: "Storyline",
+      weight: "30",
+      rating: mangaDetail?.storylineRating
+        ? `${mangaDetail.storylineRating} - ${
+            ratingDescriptions[mangaDetail.storylineRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Art Style",
+      weight: "25",
+      rating: mangaDetail?.artStyleRating
+        ? `${mangaDetail.artStyleRating} - ${
+            ratingDescriptions[mangaDetail.artStyleRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Character Development",
+      weight: "20",
+      rating: mangaDetail?.charDevelopmentRating
+        ? `${mangaDetail.charDevelopmentRating} - ${
+            ratingDescriptions[mangaDetail.charDevelopmentRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "World Building",
+      weight: "15",
+      rating: mangaDetail?.worldBuildingRating
+        ? `${mangaDetail.worldBuildingRating} - ${
+            ratingDescriptions[mangaDetail.worldBuildingRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Originality",
+      weight: "10",
+      rating: mangaDetail?.originalityRating
+        ? `${mangaDetail.originalityRating} - ${
+            ratingDescriptions[mangaDetail.originalityRating]
+          }`
+        : "N/A"
+    }
+  ];
 
   return !isLoadingMangaDetail && mangaDetail ? (
     <div className="text-foreground space-y-8">
@@ -86,21 +148,76 @@ export default function GeneralMangaDetail() {
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1 text-primary">
-                {[...Array(5)].map((_, i) => (
-                  <StarIcon
-                    key={i}
-                    className={`w-5 h-5 ${
-                      i < Math.round(mangaDetail.score / 2)
-                        ? "text-primary-foreground"
-                        : "text-muted-foreground"
-                    }`}
-                  />
-                ))}
+            <div className="flex flex-col xl:flex-row justify-center xl:justify-normal gap-4 xl:gap-16">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 text-primary">
+                  {[...Array(5)].map((_, i) => (
+                    <StarIcon
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i < Math.round(mangaDetail.score / 2)
+                          ? "text-primary-foreground"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="text-lg font-semibold">
+                  {mangaDetail.score.toFixed(2)}
+                </div>
+                <div className="text-sm text-muted-foreground">(MAL Score)</div>
               </div>
-              <div className="text-lg font-semibold">{mangaDetail.score}</div>
-              <div className="text-sm text-muted-foreground">(MAL Score)</div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 text-primary">
+                  {[...Array(5)].map((_, i) => (
+                    <StarIcon
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i < Math.round((mangaDetail.personalScore ?? 0) / 2)
+                          ? "text-yellow-600"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-semibold">
+                    {mangaDetail.personalScore
+                      ? mangaDetail.personalScore.toFixed(2)
+                      : "N/A"}
+                  </p>
+                  {isMobile ? (
+                    <Popover>
+                      <PopoverTrigger>
+                        <InfoIcon className="w-4 h-4" />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64">
+                        <RatingDetailContent
+                          details={mangaPersonalRatings}
+                          finalScore={mangaDetail.personalScore}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <InfoIcon className="w-4 h-4" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <RatingDetailContent
+                            details={mangaPersonalRatings}
+                            finalScore={mangaDetail.personalScore}
+                          />
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  (Personal Score)
+                </div>
+              </div>
             </div>
             <div>
               <p className="text-justify whitespace-pre-line">

@@ -94,7 +94,7 @@ const updateLightNovelReviewService = async (
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
     const response = await interceptedAxios.put(
-      `${BASE_LIGHTNOVEL_URL}/review/${id}`,
+      `${BASE_LIGHTNOVEL_URL}/${id}`,
       data
     );
     return { success: true, data: response.data };
@@ -115,7 +115,7 @@ const updateLightNovelProgressStatusService = async (
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
     const response = await interceptedAxios.put(
-      `${BASE_LIGHTNOVEL_URL}/progress/${id}`,
+      `${BASE_LIGHTNOVEL_URL}/${id}`,
       { progressStatus: data }
     );
     return { success: true, data: response.data };

@@ -7,6 +7,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { ratingDescriptions } from "@/lib/constants";
 
 type RatingField = {
   key: string;
@@ -17,13 +18,9 @@ type RatingField = {
 
 type Props = {
   ratingFields: RatingField[];
-  ratingDescriptions: { [key: number]: string };
 };
 
-export default function RatingSelect({
-  ratingFields,
-  ratingDescriptions
-}: Props) {
+export default function RatingSelect({ ratingFields }: Props) {
   return (
     <>
       {ratingFields.map((field) => (

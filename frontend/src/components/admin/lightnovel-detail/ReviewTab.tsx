@@ -75,19 +75,6 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
   );
 
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
-  const ratingDescriptions: { [key: number]: string } = {
-    0: "Abysmal",
-    1: "Terrible",
-    2: "Horrible",
-    3: "Bad",
-    4: "Poor",
-    5: "Average",
-    6: "Decent",
-    7: "Good",
-    8: "Great",
-    9: "Excellent",
-    10: "Masterpiece"
-  };
 
   const scoringWeight = {
     storylineRating: 0.3,
@@ -202,10 +189,7 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
               setProgressStatus={setProgressStatus}
             />
           </div>
-          <RatingSelect
-            ratingFields={ratingFields}
-            ratingDescriptions={ratingDescriptions}
-          />
+          <RatingSelect ratingFields={ratingFields} />
         </div>
         <DraftEditor
           editorState={editorState}

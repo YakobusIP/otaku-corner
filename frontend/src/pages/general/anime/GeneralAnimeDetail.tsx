@@ -7,7 +7,9 @@ import {
   FilmIcon,
   ClockIcon,
   CalendarIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  HeartIcon,
+  InfoIcon
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -21,13 +23,26 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipProvider,
+  TooltipContent,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import GeneralFooter from "@/components/general/GeneralFooter";
 import DOMPurify from "dompurify";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
+import { ratingDescriptions } from "@/lib/constants";
+import RatingDetailContent from "@/components/general/RatingDetailContent";
+import { isMobile } from "react-device-detect";
 
 export default function GeneralAnimeDetail() {
   const [animeDetail, setAnimeDetail] = useState<AnimeDetail>();
@@ -69,6 +84,54 @@ export default function GeneralAnimeDetail() {
   useEffect(() => {
     fetchAnimeById();
   }, [fetchAnimeById]);
+
+  const animePersonalRatings = [
+    {
+      title: "Storyline",
+      weight: "30",
+      rating: animeDetail?.storylineRating
+        ? `${animeDetail.storylineRating} - ${
+            ratingDescriptions[animeDetail.storylineRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Animation Quality",
+      weight: "25",
+      rating: animeDetail?.qualityRating
+        ? `${animeDetail.qualityRating} - ${
+            ratingDescriptions[animeDetail.qualityRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Voice Acting",
+      weight: "20",
+      rating: animeDetail?.voiceActingRating
+        ? `${animeDetail.voiceActingRating} - ${
+            ratingDescriptions[animeDetail.voiceActingRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Soundtrack",
+      weight: "15",
+      rating: animeDetail?.soundTrackRating
+        ? `${animeDetail.soundTrackRating} - ${
+            ratingDescriptions[animeDetail.soundTrackRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Character Development",
+      weight: "10",
+      rating: animeDetail?.charDevelopmentRating
+        ? `${animeDetail.charDevelopmentRating} - ${
+            ratingDescriptions[animeDetail.charDevelopmentRating]
+          }`
+        : "N/A"
+    }
+  ];
 
   useEffect(() => {
     const handleResize = () => {
@@ -125,21 +188,76 @@ export default function GeneralAnimeDetail() {
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1 text-primary">
-                {[...Array(5)].map((_, i) => (
-                  <StarIcon
-                    key={i}
-                    className={`w-5 h-5 ${
-                      i < Math.round(animeDetail.score / 2)
-                        ? "text-primary-foreground"
-                        : "text-muted-foreground"
-                    }`}
-                  />
-                ))}
+            <div className="flex flex-col xl:flex-row justify-center xl:justify-normal gap-4 xl:gap-16">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 text-primary">
+                  {[...Array(5)].map((_, i) => (
+                    <StarIcon
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i < Math.round(animeDetail.score / 2)
+                          ? "text-primary-foreground"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-lg font-semibold">
+                  {animeDetail.score.toFixed(2)}
+                </p>
+                <div className="text-sm text-muted-foreground">(MAL Score)</div>
               </div>
-              <div className="text-lg font-semibold">{animeDetail.score}</div>
-              <div className="text-sm text-muted-foreground">(MAL Score)</div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 text-primary">
+                  {[...Array(5)].map((_, i) => (
+                    <HeartIcon
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i < Math.round((animeDetail.personalScore ?? 0) / 2)
+                          ? "text-yellow-600"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-semibold">
+                    {animeDetail.personalScore
+                      ? animeDetail.personalScore.toFixed(2)
+                      : "N/A"}
+                  </p>
+                  {isMobile ? (
+                    <Popover>
+                      <PopoverTrigger>
+                        <InfoIcon className="w-4 h-4" />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64">
+                        <RatingDetailContent
+                          details={animePersonalRatings}
+                          finalScore={animeDetail.personalScore}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <InfoIcon className="w-4 h-4" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <RatingDetailContent
+                            details={animePersonalRatings}
+                            finalScore={animeDetail.personalScore}
+                          />
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  (Personal Score)
+                </div>
+              </div>
             </div>
             <div>
               <p className="text-justify whitespace-pre-line">

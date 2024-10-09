@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { scoreOptions } from "@/lib/constants";
 
 type Props = {
   filterPersonalScore?: string;
@@ -22,14 +23,7 @@ export default function FilterPersonalScore({
   const [isFilterPersonalScoreOpen, setIsFilterPersonalScoreOpen] =
     useState(false);
 
-  const scoreFilters = [
-    { key: "poor", label: "Poor (1 - 3)" },
-    { key: "average", label: "Average (4 - 6)" },
-    { key: "good", label: "Good (7 - 8)" },
-    { key: "excellent", label: "Excellent (9 - 10)" }
-  ];
-
-  const selectedFilterPersonalScore = scoreFilters.find(
+  const selectedFilterPersonalScore = scoreOptions.find(
     (filter) => filter.key === filterPersonalScore
   );
 
@@ -39,7 +33,7 @@ export default function FilterPersonalScore({
         <Button variant="outline" size="sm" className="w-full">
           Filter by:{" "}
           {selectedFilterPersonalScore
-            ? selectedFilterPersonalScore.label
+            ? selectedFilterPersonalScore.optionLabel
             : "Personal Score"}
           {isFilterPersonalScoreOpen ? (
             <ChevronUp className="ml-2 h-4 w-4 shrink-0" />
@@ -53,7 +47,7 @@ export default function FilterPersonalScore({
           All Personal Scores
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {scoreFilters.map((filter) => {
+        {scoreOptions.map((filter) => {
           return (
             <DropdownMenuItem
               key={filter.key}
@@ -67,7 +61,7 @@ export default function FilterPersonalScore({
                     : "opacity-0"
                 )}
               />
-              {filter.label}
+              {filter.optionLabel}
             </DropdownMenuItem>
           );
         })}

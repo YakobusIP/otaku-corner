@@ -96,7 +96,7 @@ const updateAnimeReviewService = async (
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
     const response = await interceptedAxios.put(
-      `${BASE_ANIME_URL}/review/${id}`,
+      `${BASE_ANIME_URL}/${id}`,
       data
     );
     return { success: true, data: response.data };
@@ -116,10 +116,9 @@ const updateAnimeProgressStatusService = async (
   data: PROGRESS_STATUS
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
-    const response = await interceptedAxios.put(
-      `${BASE_ANIME_URL}/progress/${id}`,
-      { progressStatus: data }
-    );
+    const response = await interceptedAxios.put(`${BASE_ANIME_URL}/${id}`, {
+      progressStatus: data
+    });
     return { success: true, data: response.data };
   } catch (error) {
     return {

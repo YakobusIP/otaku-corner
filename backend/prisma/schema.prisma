@@ -50,7 +50,7 @@ model Anime {
   voiceActingRating     Int?
   soundTrackRating      Int?
   charDevelopmentRating Int?
-  personalScore         Int?
+  personalScore         Float?
   progressStatus        ProgressStatus @default(PLANNED)
   reviewImages          ReviewImage[]  @relation("AnimeReviewImages")
   episodes              AnimeEpisode[]
@@ -92,7 +92,7 @@ model Manga {
   charDevelopmentRating Int?
   worldBuildingRating   Int?
   originalityRating     Int?
-  personalScore         Int?
+  personalScore         Float?
   progressStatus        ProgressStatus @default(PLANNED)
   reviewImages          ReviewImage[]  @relation("MangaReviewImages")
   createdAt             DateTime       @default(now())
@@ -122,7 +122,7 @@ model LightNovel {
   writingStyleRating    Int?
   charDevelopmentRating Int?
   originalityRating     Int?
-  personalScore         Int?
+  personalScore         Float?
   progressStatus        ProgressStatus @default(PLANNED)
   reviewImages          ReviewImage[]  @relation("LightNovelReviewImages")
   createdAt             DateTime       @default(now())

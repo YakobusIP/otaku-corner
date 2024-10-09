@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { scoreOptions } from "@/lib/constants";
 
 type Props = {
   filterMALScore?: string;
@@ -21,14 +22,7 @@ export default function FilterMALScore({
 }: Props) {
   const [isFilterMALScoreOpen, setIsFilterMALScoreOpen] = useState(false);
 
-  const scoreFilters = [
-    { key: "poor", label: "Poor (1 - 3)" },
-    { key: "average", label: "Average (4 - 6)" },
-    { key: "good", label: "Good (7 - 8)" },
-    { key: "excellent", label: "Excellent (9 - 10)" }
-  ];
-
-  const selectedFilterMALScore = scoreFilters.find(
+  const selectedFilterMALScore = scoreOptions.find(
     (filter) => filter.key === filterMALScore
   );
 
@@ -37,7 +31,9 @@ export default function FilterMALScore({
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="w-full">
           Filter by:{" "}
-          {selectedFilterMALScore ? selectedFilterMALScore.label : "MAL Score"}
+          {selectedFilterMALScore
+            ? selectedFilterMALScore.optionLabel
+            : "MAL Score"}
           {isFilterMALScoreOpen ? (
             <ChevronUp className="ml-2 h-4 w-4 shrink-0" />
           ) : (
@@ -50,7 +46,7 @@ export default function FilterMALScore({
           All MAL Scores
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {scoreFilters.map((filter) => {
+        {scoreOptions.map((filter) => {
           return (
             <DropdownMenuItem
               key={filter.key}
@@ -62,7 +58,7 @@ export default function FilterMALScore({
                   filterMALScore === filter.key ? "opacity-100" : "opacity-0"
                 )}
               />
-              {filter.label}
+              {filter.optionLabel}
             </DropdownMenuItem>
           );
         })}

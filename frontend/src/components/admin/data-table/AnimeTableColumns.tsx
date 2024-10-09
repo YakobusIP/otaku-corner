@@ -86,7 +86,24 @@ export const animeColumns: ColumnDef<AnimeList>[] = [
   },
   {
     accessorKey: "score",
-    header: "Score",
+    header: "MAL Score",
+    cell: ({ getValue }) => {
+      const score = getValue<number>();
+      return score.toFixed(2);
+    },
+    size: "auto" as unknown as number
+  },
+  {
+    accessorKey: "personalScore",
+    header: "Personal Score",
+    cell: ({ getValue }) => {
+      const score = getValue<number | null>();
+      if (score) {
+        return score.toFixed(2);
+      } else {
+        return "N/A";
+      }
+    },
     size: "auto" as unknown as number
   },
   {
