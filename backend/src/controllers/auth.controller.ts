@@ -64,6 +64,30 @@ export class AuthController {
     return res.status(200).json({ message: "Logged out successfully!" });
   };
 
+  validateToken = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authHeader = req.headers["authorization"];
+
+      if (!authHeader) {
+        throw new UnauthorizedError("Access denied. No token provided!");
+      }
+
+      const token = authHeader.split(" ")[1];
+
+      if (!token) throw new UnauthorizedError("Invalid token!");
+
+      jwt.verify(token, ACCESS_TOKEN_SECRET, (err, _) => {
+        if (err) {
+          return res.status(401).json({ error: "Invalid token!" });
+        }
+
+        return res.status(200).end();
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   refreshToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const refreshToken = req.cookies.refreshToken;

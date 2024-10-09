@@ -12,7 +12,7 @@ import {
   InfoIcon
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -57,6 +57,7 @@ export default function GeneralAnimeDetail() {
     calculateEpisodeNumberTitle()
   );
   const { animeId } = useParams();
+  const navigate = useNavigate();
 
   const embedURL = animeDetail?.trailer?.replace(
     /(autoplay=)[^&]+/,
@@ -77,9 +78,10 @@ export default function GeneralAnimeDetail() {
         title: "Uh oh! Something went wrong",
         description: response.error
       });
+      navigate("*");
     }
     setIsLoadingAnimeDetail(false);
-  }, [animeId]);
+  }, [animeId, navigate]);
 
   useEffect(() => {
     fetchAnimeById();

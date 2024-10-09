@@ -17,6 +17,7 @@ class AuthRouter {
   private initializeRoutes() {
     this.router.post("/login", this.authController.login);
     this.router.post("/logout", this.authController.logout);
+    this.router.get("/validate-token", this.authController.validateToken);
     this.router.get("/refresh-token", this.authController.refreshToken);
   }
 }

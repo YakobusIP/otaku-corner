@@ -44,4 +44,19 @@ const logout = async (): Promise<ApiResponse<MessageResponse>> => {
   }
 };
 
-export { login, logout };
+const validateToken = async (): Promise<ApiResponse<undefined>> => {
+  try {
+    await interceptedAxios.get(`${BASE_AUTH_URL}/validate-token`);
+    return { success: true, data: undefined };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
+export { login, logout, validateToken };
