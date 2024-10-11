@@ -25,7 +25,7 @@ export const authMiddleware = (
     return res.status(401).json({ error: "Invalid token!" });
   }
 
-  jwt.verify(token, ACCESS_TOKEN_SECRET, (err, _) => {
+  jwt.verify(token, ACCESS_TOKEN_SECRET, (err) => {
     if (err) {
       return res.status(401).json({ error: "Invalid token!" });
     }

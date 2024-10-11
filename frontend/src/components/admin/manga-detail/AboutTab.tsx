@@ -2,7 +2,7 @@ import { MangaDetail } from "@/types/manga.type";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
-import { Star, ExternalLink } from "lucide-react";
+import { StarIcon, ExternalLinkIcon } from "lucide-react";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
 type Props = {
@@ -43,7 +43,7 @@ export default function AboutTab({ mangaDetail }: Props) {
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground">MAL Score</Label>
             <span className="inline-flex items-center gap-1">
-              <Star className="w-4 h-4" /> {mangaDetail.score ?? "N/A"}
+              <StarIcon className="w-4 h-4" /> {mangaDetail.score ?? "N/A"}
             </span>
           </div>
           <div className="flex flex-col gap-1">
@@ -54,7 +54,7 @@ export default function AboutTab({ mangaDetail }: Props) {
               target="_blank"
             >
               Visit MAL
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLinkIcon className="w-4 h-4" />
             </a>
           </div>
           <div className="grid grid-cols-1 xl:grid-cols-3 col-span-1 xl:col-span-3 gap-8">

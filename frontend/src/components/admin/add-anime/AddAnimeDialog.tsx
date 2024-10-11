@@ -14,9 +14,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-
 import { useState, Dispatch, SetStateAction } from "react";
-import { Plus, ExternalLink, Star, Loader2 } from "lucide-react";
+import {
+  PlusIcon,
+  ExternalLinkIcon,
+  StarIcon,
+  Loader2Icon
+} from "lucide-react";
 import { Anime, AnimeEpisode } from "@tutkli/jikan-ts";
 import SearchAnimeJikan from "@/components/admin/add-anime/SearchAnimeJikan";
 import { AnimePostRequest } from "@/types/anime.type";
@@ -144,7 +148,7 @@ export default function AddAnimeDialog({
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
         <Button className="w-full xl:w-fit">
-          <Plus className="mr-2 w-4 h-4" />
+          <PlusIcon className="mr-2 w-4 h-4" />
           Add Anime
         </Button>
       </DialogTrigger>
@@ -166,7 +170,7 @@ export default function AddAnimeDialog({
         </div>
         {isLoadingChosenAnime && (
           <div className="flex items-center justify-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2Icon className="h-4 w-4 animate-spin" />
             Fetching anime details...
           </div>
         )}
@@ -258,7 +262,7 @@ export default function AddAnimeDialog({
                     <div className="flex flex-col">
                       <Label>MAL Score</Label>
                       <span className="inline-flex items-center gap-1">
-                        <Star className="w-4 h-4" />
+                        <StarIcon className="w-4 h-4" />
                         {chosenAnime.score ?? "N/A"}
                       </span>
                     </div>
@@ -270,7 +274,7 @@ export default function AddAnimeDialog({
                         target="_blank"
                       >
                         Visit MAL
-                        <ExternalLink className="w-4 h-4" />
+                        <ExternalLinkIcon className="w-4 h-4" />
                       </a>
                     </div>
                     <div className="grid grid-cols-1 xl:grid-cols-3 col-span-1 xl:col-span-3 gap-4">
@@ -338,7 +342,7 @@ export default function AddAnimeDialog({
             </div>
             <Button onClick={() => addAnime(chosenAnime)}>
               {isLoadingAddAnime && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
               )}
               Add Anime
             </Button>

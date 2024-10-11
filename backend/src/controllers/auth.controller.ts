@@ -76,7 +76,7 @@ export class AuthController {
 
       if (!token) throw new UnauthorizedError("Invalid token!");
 
-      jwt.verify(token, ACCESS_TOKEN_SECRET, (err, _) => {
+      jwt.verify(token, ACCESS_TOKEN_SECRET, (err) => {
         if (err) {
           return res.status(401).json({ error: "Invalid token!" });
         }
@@ -94,7 +94,7 @@ export class AuthController {
 
       if (!refreshToken) throw new ForbiddenError("Session timed out!");
 
-      jwt.verify(refreshToken as string, REFRESH_TOKEN_SECRET, (err, _) => {
+      jwt.verify(refreshToken as string, REFRESH_TOKEN_SECRET, (err) => {
         if (err) return next(new ForbiddenError("Invalid token!"));
 
         const accessToken = jwt.sign({ role: "admin" }, ACCESS_TOKEN_SECRET, {

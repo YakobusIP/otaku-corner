@@ -8,7 +8,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Layers } from "lucide-react";
+import { LayersIcon } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import AuthorManagement from "@/components/admin/entity-management/author-management/AuthorManagement";
 import GenreManagement from "@/components/admin/entity-management/genre-management/GenreManagement";
@@ -36,7 +36,7 @@ export default function EntityManagement({
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
         <Button className="w-full xl:w-fit">
-          <Layers className="mr-2 w-4 h-4" />
+          <LayersIcon className="mr-2 w-4 h-4" />
           Entity Management
         </Button>
       </DialogTrigger>

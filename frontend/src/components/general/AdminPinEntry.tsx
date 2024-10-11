@@ -15,7 +15,7 @@ import {
   InputOTPSlot
 } from "@/components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { KeyRound, Loader2 } from "lucide-react";
+import { KeyRoundIcon, Loader2Icon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 type Props = {
@@ -83,7 +83,7 @@ export default function AdminPinEntry({ isLoadingLogin, handleLogin }: Props) {
     >
       <DialogTrigger asChild>
         <Button variant="outline" className="absolute top-4 right-4">
-          <KeyRound className="mr-2 w-4 h-4" />
+          <KeyRoundIcon className="mr-2 w-4 h-4" />
           Enter admin mode
         </Button>
       </DialogTrigger>
@@ -124,7 +124,7 @@ export default function AdminPinEntry({ isLoadingLogin, handleLogin }: Props) {
           )}
           <Button onClick={handlePinInput}>
             {isLoadingLogin && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
             )}
             {inputStep === 1 ? "Next" : "Submit"}
           </Button>

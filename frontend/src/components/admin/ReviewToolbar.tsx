@@ -1,10 +1,10 @@
 import {
-  Bold,
-  Italic,
-  Underline,
-  ListOrdered,
-  List,
-  Image
+  BoldIcon,
+  ItalicIcon,
+  UnderlineIcon,
+  ListOrderedIcon,
+  ListIcon,
+  ImageIcon
 } from "lucide-react";
 import {
   Select,
@@ -65,42 +65,42 @@ export default function ReviewToolbar({
         pressed={isInlineStyleActive(INLINE_STYLES.BOLD)}
         onPressedChange={() => toggleInlineStyle(INLINE_STYLES.BOLD)}
       >
-        <Bold className="h-4 w-4" />
+        <BoldIcon className="h-4 w-4" />
       </Toggle>
       <Toggle
         aria-label="Toggle italic"
         pressed={isInlineStyleActive(INLINE_STYLES.ITALIC)}
         onPressedChange={() => toggleInlineStyle(INLINE_STYLES.ITALIC)}
       >
-        <Italic className="h-4 w-4" />
+        <ItalicIcon className="h-4 w-4" />
       </Toggle>
       <Toggle
         aria-label="Toggle underline"
         pressed={isInlineStyleActive(INLINE_STYLES.UNDERLINE)}
         onPressedChange={() => toggleInlineStyle(INLINE_STYLES.UNDERLINE)}
       >
-        <Underline className="h-4 w-4" />
+        <UnderlineIcon className="h-4 w-4" />
       </Toggle>
       <Toggle
         aria-label="Toggle ordered list"
         pressed={isBlockActive(BLOCK_TYPES.ORDERED_LIST)}
         onPressedChange={() => toggleBlockType(BLOCK_TYPES.ORDERED_LIST)}
       >
-        <ListOrdered className="h-4 w-4" />
+        <ListOrderedIcon className="h-4 w-4" />
       </Toggle>
       <Toggle
         aria-label="Toggle unordered list"
         pressed={isBlockActive(BLOCK_TYPES.UNORDERED_LIST)}
         onPressedChange={() => toggleBlockType(BLOCK_TYPES.UNORDERED_LIST)}
       >
-        <List className="h-4 w-4" />
+        <ListIcon className="h-4 w-4" />
       </Toggle>
       <Toggle
         aria-label="Insert image"
         pressed={false}
         onPressedChange={insertImage}
       >
-        <Image className="h-4 w-4" />
+        <ImageIcon className="h-4 w-4" />
       </Toggle>
     </div>
   );

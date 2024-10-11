@@ -5,7 +5,7 @@ import {
   AccordionTrigger
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
+import { FilterIcon } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { SORT_ORDER } from "@/lib/enums";
 import SortDirection from "@/components/global/sort-and-filters/SortDirection";
@@ -110,7 +110,7 @@ export default function LightNovelFilterSortAccordion({
         <AccordionItem value="filter-and-sort">
           <AccordionTrigger className="hover:no-underline">
             <span className="flex items-center justify-center gap-2">
-              <Filter />
+              <FilterIcon />
               <p className="text-base tracking-normal font-semibold">
                 Filter & Sort
               </p>

@@ -6,7 +6,7 @@ import {
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -29,9 +29,9 @@ export default function FilterType({ filterType, handleFilterType }: Props) {
         <Button variant="outline" size="sm" className="w-full">
           Filter by: {filterType || "Type"}
           {isFilterTypeOpen ? (
-            <ChevronUp className="ml-2 h-4 w-4 shrink-0" />
+            <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
           ) : (
-            <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
           )}
         </Button>
       </DropdownMenuTrigger>
@@ -46,7 +46,7 @@ export default function FilterType({ filterType, handleFilterType }: Props) {
               key={filter.key}
               onClick={() => handleFilterType(filter.key)}
             >
-              <Check
+              <CheckIcon
                 className={cn(
                   "mr-2 h-4 w-4",
                   filterType === filter.key ? "opacity-100" : "opacity-0"

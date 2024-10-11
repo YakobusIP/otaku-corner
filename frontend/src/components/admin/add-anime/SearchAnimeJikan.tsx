@@ -13,7 +13,7 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Check, Loader2 } from "lucide-react";
+import { ChevronDownIcon, CheckIcon, Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Anime,
@@ -91,7 +91,7 @@ export default function SearchAnimeJikan({
                 ).getFullYear()}`
               : "Select anime..."}
           </p>
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="popover-content-width-full p-0">
@@ -123,7 +123,7 @@ export default function SearchAnimeJikan({
             {isLoadingAnimeList && (
               <CommandLoading>
                 <div className="flex items-center justify-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2Icon className="h-4 w-4 animate-spin" />
                   Loading...
                 </div>
               </CommandLoading>
@@ -140,7 +140,7 @@ export default function SearchAnimeJikan({
                       setOpenAnimeList(false);
                     }}
                   >
-                    <Check
+                    <CheckIcon
                       className={cn(
                         "mr-2 h-4 w-4",
                         chosenAnime && chosenAnime.mal_id === anime.mal_id

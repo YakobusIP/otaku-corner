@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { fetchAllAnimeService } from "@/services/anime.service";
 import { useDebounce } from "use-debounce";
 import type { AnimeFilterSort, AnimeList } from "@/types/anime.type";
-import { Loader2 } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import {
   genreService,
   studioService,
@@ -161,7 +161,7 @@ export default function AnimeList() {
         {isLoadingAnime ? (
           <section className="flex flex-col items-center justify-center flex-1">
             <div className="flex items-center justify-center gap-2 xl:gap-4">
-              <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
+              <Loader2Icon className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
               <h2>Fetching animes...</h2>
             </div>
           </section>

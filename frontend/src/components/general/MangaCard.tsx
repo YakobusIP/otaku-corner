@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { MangaList } from "@/types/manga.type";
-import { Star, Heart } from "lucide-react";
+import { StarIcon, HeartIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
@@ -23,12 +23,12 @@ export default function MangaCard({ manga }: Props) {
             />
           </div>
           <span className="absolute flex gap-2 items-center justify-center right-0 bottom-4 bg-primary/60 text-white p-2">
-            <Star />
+            <StarIcon />
             {manga.score.toFixed(2)}
           </span>
           {manga.personalScore && (
             <span className="absolute flex gap-2 items-center justify-center right-0 bottom-16 bg-primary/60 text-white p-2">
-              <Heart />
+              <HeartIcon />
               {manga.personalScore.toFixed(2)}
             </span>
           )}

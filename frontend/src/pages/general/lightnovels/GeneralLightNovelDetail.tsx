@@ -2,12 +2,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { fetchLightNovelByIdService } from "@/services/lightnovel.service";
 import { type LightNovelDetail } from "@/types/lightnovel.type";
 import {
-  Loader2,
+  Loader2Icon,
   StarIcon,
   HeartIcon,
   CalendarIcon,
   ArrowLeftIcon,
-  Library,
+  LibraryIcon,
   InfoIcon
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -245,7 +245,7 @@ export default function GeneralLightNovelDetail() {
               <div className="p-6">
                 <div className="grid gap-4">
                   <div className="flex items-center gap-2">
-                    <Library className="w-5 h-5" />
+                    <LibraryIcon className="w-5 h-5" />
                     <div className="text-lg font-semibold">
                       {lightNovelDetail.volumesCount
                         ? `${lightNovelDetail.volumesCount} volume(s)`
@@ -297,7 +297,7 @@ export default function GeneralLightNovelDetail() {
     <div className="flex flex-col min-h-[100dvh] items-center justify-center gap-4">
       <img src="/loading.gif" className="w-32 h-32 rounded-xl" />
       <div className="flex items-center justify-center gap-2 xl:gap-4">
-        <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
+        <Loader2Icon className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
         <h2>Fetching light novel details...</h2>
       </div>
     </div>

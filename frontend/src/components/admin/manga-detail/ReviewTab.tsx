@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { updateMangaReviewService } from "@/services/manga.service";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { CalendarDaysIcon, Loader2Icon } from "lucide-react";
 import { decorator, extractExistingImages } from "@/lib/draft-utils";
 import { ContentState, convertToRaw, EditorState } from "draft-js";
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
@@ -17,6 +17,12 @@ import draftToHtml from "draftjs-to-html";
 import DraftEditor from "@/components/admin/DraftEditor";
 import ProgressStatus from "@/components/admin/ProgressStatus";
 import RatingSelect from "@/components/admin/RatingSelect";
+import MonthPicker from "@/components/ui/month-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
 
 type Props = {
   mangaDetail: MangaDetail;
@@ -58,6 +64,7 @@ export default function ReviewTab({ mangaDetail, resetParent }: Props) {
   const [progressStatus, setProgressStatus] = useState(
     mangaDetail.progressStatus as string
   );
+  const [consumedMonth, setConsumedMonth] = useState<Date>(new Date());
   const [storylineRating, setStorylineRating] = useState(
     mangaDetail.storylineRating || 10
   );
@@ -178,13 +185,27 @@ export default function ReviewTab({ mangaDetail, resetParent }: Props) {
       <div className="flex flex-col pt-4">
         <h2 className="mb-4">Reviews</h2>
         <div className="flex flex-col xl:flex-row items-center gap-4 mb-4">
-          <div className="flex flex-col gap-2">
-            <Label>Progress Status</Label>
-            <ProgressStatus
-              id={mangaDetail.id}
-              progressStatus={progressStatus}
-              setProgressStatus={setProgressStatus}
-            />
+          <div className="flex w-full items-center justify-between gap-4">
+            <div className="flex flex-col gap-2">
+              <Label>Progress Status</Label>
+              <ProgressStatus
+                id={mangaDetail.id}
+                progressStatus={progressStatus}
+                setProgressStatus={setProgressStatus}
+              />
+            </div>
+            <Popover>
+              <PopoverTrigger className="self-end pb-2">
+                <CalendarDaysIcon />
+              </PopoverTrigger>
+              <PopoverContent className="w-fit">
+                <p className="text-center font-bold">Month completed</p>
+                <MonthPicker
+                  currentMonth={consumedMonth}
+                  onMonthChange={(value) => setConsumedMonth(value)}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <RatingSelect ratingFields={ratingFields} />
         </div>
@@ -197,7 +218,7 @@ export default function ReviewTab({ mangaDetail, resetParent }: Props) {
         />
         <Button type="submit" className="mt-4" onClick={onSubmit}>
           {isLoadingUpdateReview && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
           )}
           Submit review
         </Button>

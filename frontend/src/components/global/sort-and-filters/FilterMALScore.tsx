@@ -6,7 +6,7 @@ import {
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { scoreOptions } from "@/lib/constants";
@@ -35,9 +35,9 @@ export default function FilterMALScore({
             ? selectedFilterMALScore.optionLabel
             : "MAL Score"}
           {isFilterMALScoreOpen ? (
-            <ChevronUp className="ml-2 h-4 w-4 shrink-0" />
+            <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
           ) : (
-            <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
           )}
         </Button>
       </DropdownMenuTrigger>
@@ -52,7 +52,7 @@ export default function FilterMALScore({
               key={filter.key}
               onClick={() => handleFilterMALScore(filter.key)}
             >
-              <Check
+              <CheckIcon
                 className={cn(
                   "mr-2 h-4 w-4",
                   filterMALScore === filter.key ? "opacity-100" : "opacity-0"

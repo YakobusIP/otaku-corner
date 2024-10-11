@@ -3,7 +3,7 @@ import { MEDIA_TYPE } from "@/lib/enums";
 import { Dispatch, SetStateAction } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeftIcon } from "lucide-react";
 
 type Props = {
   type: MEDIA_TYPE;
@@ -18,7 +18,7 @@ export default function ListHeader({ type, setSearchMedia }: Props) {
           variant="outline"
           className="absolute text-primary top-4 left-4"
         >
-          <ArrowLeft className="mr-2 w-4 h-4" />
+          <ArrowLeftIcon className="mr-2 w-4 h-4" />
           Back to list
         </Button>
       </Link>

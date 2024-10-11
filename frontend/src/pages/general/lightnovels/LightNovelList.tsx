@@ -9,7 +9,7 @@ import type {
   LightNovelFilterSort,
   LightNovelList
 } from "@/types/lightnovel.type";
-import { Loader2 } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import {
   genreService,
   authorService,
@@ -168,7 +168,7 @@ export default function LightNovelList() {
         {isLoadingLightNovel ? (
           <section className="flex flex-col items-center justify-center flex-1">
             <div className="flex items-center justify-center gap-2 xl:gap-4">
-              <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
+              <Loader2Icon className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
               <h2>Fetching light novels...</h2>
             </div>
           </section>

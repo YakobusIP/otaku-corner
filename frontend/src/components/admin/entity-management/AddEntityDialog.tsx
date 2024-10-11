@@ -9,7 +9,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 
 type Props = {
@@ -51,7 +51,7 @@ export default function AddEntityDialog({
         <DialogFooter>
           <Button onClick={() => addHandler(entity)}>
             {isLoadingAddEntity && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
             )}
             Add
           </Button>

@@ -2,7 +2,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { fetchAnimeByIdService } from "@/services/anime.service";
 import { type AnimeDetail } from "@/types/anime.type";
 import {
-  Loader2,
+  Loader2Icon,
   StarIcon,
   FilmIcon,
   ClockIcon,
@@ -377,8 +377,8 @@ export default function GeneralAnimeDetail() {
                     !animeDetail.episodesCount
                       ? "text-destructive"
                       : animeDetail.episodes.length < animeDetail.episodesCount
-                      ? "text-yellow-400"
-                      : "text-green-700"
+                        ? "text-yellow-400"
+                        : "text-green-700"
                   }`}
                 >
                   Season episode progress: {animeDetail.episodes.length} /{" "}
@@ -423,7 +423,7 @@ export default function GeneralAnimeDetail() {
     <div className="flex flex-col min-h-[100dvh] items-center justify-center gap-4">
       <img src="/loading.gif" className="w-32 h-32 rounded-xl" />
       <div className="flex items-center justify-center gap-2 xl:gap-4">
-        <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
+        <Loader2Icon className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
         <h2>Fetching anime details...</h2>
       </div>
     </div>

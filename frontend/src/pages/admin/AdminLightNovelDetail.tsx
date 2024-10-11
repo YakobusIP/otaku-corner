@@ -1,7 +1,7 @@
 import { useToast } from "@/components/ui/use-toast";
 import { fetchLightNovelByIdService } from "@/services/lightnovel.service";
 import { type LightNovelDetail } from "@/types/lightnovel.type";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2Icon, ArrowLeftIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,7 +41,7 @@ export default function AdminLightNovelDetail() {
     <div className="flex flex-col min-h-[100dvh]">
       <Link to="/admin">
         <Button variant="outline" className="absolute top-4 left-4">
-          <ArrowLeft className="mr-2 w-4 h-4" /> Back to list
+          <ArrowLeftIcon className="mr-2 w-4 h-4" /> Back to list
         </Button>
       </Link>
       <header className="w-full bg-gradient-to-b xl:bg-gradient-to-r from-primary to-muted-foreground pt-20 pb-12 xl:py-12 px-4">
@@ -79,7 +79,7 @@ export default function AdminLightNovelDetail() {
     <div className="flex flex-col min-h-[100dvh] items-center justify-center gap-4">
       <img src="/loading.gif" className="w-32 h-32 rounded-xl" />
       <div className="flex items-center justify-center gap-2 xl:gap-4">
-        <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
+        <Loader2Icon className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
         <h2>Fetching light novel details...</h2>
       </div>
     </div>

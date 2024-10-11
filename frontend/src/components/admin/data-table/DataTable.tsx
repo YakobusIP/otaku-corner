@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2Icon, Trash2Icon } from "lucide-react";
 import { MetadataResponse } from "@/types/api.type";
 interface Identifiable {
   id: string;
@@ -90,9 +90,9 @@ export default function DataTable<TData extends Identifiable, TValue>({
                 onClick={() => deleteData()}
                 disabled={Object.keys(rowSelection).length === 0}
               >
-                {!isLoadingDeleteData && <Trash2 className="w-4 h-4" />}
+                {!isLoadingDeleteData && <Trash2Icon className="w-4 h-4" />}
                 {isLoadingDeleteData && (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2Icon className="h-4 w-4 animate-spin" />
                 )}
                 Delete
               </Button>
@@ -107,9 +107,9 @@ export default function DataTable<TData extends Identifiable, TValue>({
               onClick={() => deleteData()}
               disabled={Object.keys(rowSelection).length === 0}
             >
-              {!isLoadingDeleteData && <Trash2 className="w-4 h-4" />}
+              {!isLoadingDeleteData && <Trash2Icon className="w-4 h-4" />}
               {isLoadingDeleteData && (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2Icon className="h-4 w-4 animate-spin" />
               )}
               Delete
             </Button>
@@ -173,7 +173,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
                   className="h-24 text-center"
                 >
                   <div className="inline-flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Loading...
+                    <Loader2Icon className="w-4 h-4 animate-spin" /> Loading...
                   </div>
                 </TableCell>
               </TableRow>

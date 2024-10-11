@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { DropdownChecked } from "@/components/ui/dropdown-menu";
-import { Loader2, LogOut, Search } from "lucide-react";
+import { Loader2Icon, LogOutIcon, SearchIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import AddAnimeDialog from "@/components/admin/add-anime/AddAnimeDialog";
 import AddMangaDialog from "@/components/admin/add-manga/AddMangaDialog";
@@ -416,7 +416,7 @@ export default function Dashboard() {
               <Input
                 type="text"
                 placeholder="Search"
-                startIcon={Search}
+                startIcon={SearchIcon}
                 parentClassName="w-full xl:w-fit"
                 className="w-full xl:w-[300px]"
                 onChange={(e) => setSearchMedia(e.target.value)}
@@ -428,9 +428,9 @@ export default function Dashboard() {
               {!isWideScreen && (
                 <Button variant="outline" onClick={handleLogout}>
                   {isLoadingLogout ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2Icon className="h-4 w-4 animate-spin" />
                   ) : (
-                    <LogOut className="w-4 h-4" />
+                    <LogOutIcon className="w-4 h-4" />
                   )}
                 </Button>
               )}
@@ -462,9 +462,9 @@ export default function Dashboard() {
           {isWideScreen && (
             <Button variant="outline" onClick={handleLogout}>
               {isLoadingLogout ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <LogOut className="mr-2 w-4 h-4" />
+                <LogOutIcon className="mr-2 w-4 h-4" />
               )}
               Logout
             </Button>

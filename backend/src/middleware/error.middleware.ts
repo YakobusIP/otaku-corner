@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { CustomError, InternalServerError } from "../lib/error";
 import { Prisma } from "@prisma/client";
@@ -6,8 +6,7 @@ import { Prisma } from "@prisma/client";
 export const errorMiddleware = async (
   err: CustomError,
   req: Request,
-  res: Response,
-  _: NextFunction
+  res: Response
 ) => {
   const data: Prisma.ErrorLogCreateInput = {
     message:

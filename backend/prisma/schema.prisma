@@ -54,6 +54,7 @@ model Anime {
   progressStatus        ProgressStatus @default(PLANNED)
   reviewImages          ReviewImage[]  @relation("AnimeReviewImages")
   episodes              AnimeEpisode[]
+  consumedAt            DateTime?      @db.Date
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
 }
@@ -95,6 +96,7 @@ model Manga {
   personalScore         Float?
   progressStatus        ProgressStatus @default(PLANNED)
   reviewImages          ReviewImage[]  @relation("MangaReviewImages")
+  consumedAt            DateTime?      @db.Date
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
 }
@@ -125,6 +127,7 @@ model LightNovel {
   personalScore         Float?
   progressStatus        ProgressStatus @default(PLANNED)
   reviewImages          ReviewImage[]  @relation("LightNovelReviewImages")
+  consumedAt            DateTime?      @db.Date
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
 }

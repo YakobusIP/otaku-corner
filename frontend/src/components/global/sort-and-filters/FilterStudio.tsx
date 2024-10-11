@@ -6,7 +6,12 @@ import {
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  Loader2Icon
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { StudioEntity } from "@/types/entity.type";
@@ -33,10 +38,10 @@ export default function FilterStudio({
         {isLoadingStudio ? (
           <Button variant="outline" size="sm" className="w-full" disabled>
             <div className="flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2Icon className="w-4 h-4 animate-spin" />
               Fetching studios...
             </div>
-            <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
           </Button>
         ) : (
           <Button variant="outline" size="sm" className="w-full">
@@ -44,9 +49,9 @@ export default function FilterStudio({
             {studioList.find((studio) => studio.id === filterStudio)?.name ||
               "Studio"}
             {isFilterStudioOpen ? (
-              <ChevronUp className="ml-2 h-4 w-4 shrink-0" />
+              <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
             ) : (
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+              <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
             )}
           </Button>
         )}
@@ -63,7 +68,7 @@ export default function FilterStudio({
                 key={studio.id}
                 onClick={() => handleFilterStudio(studio.id)}
               >
-                <Check
+                <CheckIcon
                   className={cn(
                     "mr-2 h-4 w-4",
                     filterStudio === studio.id ? "opacity-100" : "opacity-0"

@@ -7,7 +7,7 @@ import { studioService } from "@/services/entity.service";
 import { useToast } from "@/components/ui/use-toast";
 import { MetadataResponse } from "@/types/api.type";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import AddEntityDialog from "../AddEntityDialog";
 import { useDebounce } from "use-debounce";
 
@@ -137,7 +137,7 @@ export default function StudioManagement({ resetParent }: Props) {
           <Input
             type="text"
             placeholder="Search studio"
-            startIcon={Search}
+            startIcon={SearchIcon}
             parentClassName="w-full xl:w-fit"
             className="w-full xl:w-[300px]"
             onChange={(e) => setSearchStudio(e.target.value)}

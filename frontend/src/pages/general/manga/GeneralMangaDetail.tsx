@@ -2,12 +2,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { fetchMangaByIdService } from "@/services/manga.service";
 import { type MangaDetail } from "@/types/manga.type";
 import {
-  Loader2,
+  Loader2Icon,
   StarIcon,
   CalendarIcon,
   ArrowLeftIcon,
   BookOpenText,
-  Library,
+  LibraryIcon,
   InfoIcon
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -249,7 +249,7 @@ export default function GeneralMangaDetail() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Library className="w-5 h-5" />
+                    <LibraryIcon className="w-5 h-5" />
                     <div>
                       {mangaDetail.volumesCount
                         ? `${mangaDetail.volumesCount} volume(s)`
@@ -301,7 +301,7 @@ export default function GeneralMangaDetail() {
     <div className="flex flex-col min-h-[100dvh] items-center justify-center gap-4">
       <img src="/loading.gif" className="w-32 h-32 rounded-xl" />
       <div className="flex items-center justify-center gap-2 xl:gap-4">
-        <Loader2 className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
+        <Loader2Icon className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
         <h2>Fetching manga details...</h2>
       </div>
     </div>

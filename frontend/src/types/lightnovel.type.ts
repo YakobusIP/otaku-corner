@@ -31,7 +31,7 @@ type LightNovelPostRequest = {
   writingStyleRating?: number | null;
   charDevelopmentRating?: number | null;
   originalityRating?: number | null;
-  progressStatus: PROGRESS_STATUS;
+  progressStatus?: PROGRESS_STATUS;
   personalScore?: number | null;
 };
 

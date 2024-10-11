@@ -70,8 +70,8 @@ export default function EpisodeTab({ animeDetail }: Props) {
                   !animeDetail.episodesCount
                     ? "text-destructive"
                     : animeDetail.episodes.length < animeDetail.episodesCount
-                    ? "text-yellow-400"
-                    : "text-green-700"
+                      ? "text-yellow-400"
+                      : "text-green-700"
                 }`}
               >
                 Season episode progress: {animeDetail.episodes.length} /{" "}

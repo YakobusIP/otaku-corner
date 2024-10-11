@@ -8,7 +8,7 @@ import {
   DropdownChecked
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { EyeIcon } from "lucide-react";
 
 type Props = {
   mediaFilters: DropdownChecked[];
@@ -23,7 +23,7 @@ export default function MediaFilter({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
-          <Eye className="w-4 h-4" />
+          <EyeIcon className="w-4 h-4" />
           <span className="sr-only xl:not-sr-only xl:whitespace-nowrap">
             Visibility
           </span>

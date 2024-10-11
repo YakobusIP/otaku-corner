@@ -20,9 +20,8 @@ const interceptedAxios: AxiosInstance = axios.create({
 export const setAccessToken = (token: string | null) => {
   if (token) {
     accessToken = token;
-    interceptedAxios.defaults.headers.common[
-      "Authorization"
-    ] = `Bearer ${token}`;
+    interceptedAxios.defaults.headers.common["Authorization"] =
+      `Bearer ${token}`;
   } else {
     delete interceptedAxios.defaults.headers.common["Authorization"];
   }
@@ -104,9 +103,8 @@ interceptedAxios.interceptors.response.use(
             setAccessToken(newAccessToken);
             processQueue(null, newAccessToken);
             if (originalRequest.headers) {
-              originalRequest.headers[
-                "Authorization"
-              ] = `Bearer ${newAccessToken}`;
+              originalRequest.headers["Authorization"] =
+                `Bearer ${newAccessToken}`;
             }
             resolve(interceptedAxios(originalRequest));
           })

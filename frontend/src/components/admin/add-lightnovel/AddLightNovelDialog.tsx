@@ -16,7 +16,12 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 
 import { useState, Dispatch, SetStateAction } from "react";
-import { Plus, ExternalLink, Star, Loader2 } from "lucide-react";
+import {
+  PlusIcon,
+  ExternalLinkIcon,
+  StarIcon,
+  Loader2Icon
+} from "lucide-react";
 import { Manga } from "@tutkli/jikan-ts";
 import SearchLightNovelJikan from "@/components/admin/add-lightnovel/SearchLightNovelJikan";
 import { LightNovelPostRequest } from "@/types/lightnovel.type";
@@ -111,7 +116,7 @@ export default function AddLightNovelDialog({
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
         <Button className="w-full xl:w-fit">
-          <Plus className="mr-2 w-4 h-4" />
+          <PlusIcon className="mr-2 w-4 h-4" />
           Add Light Novel
         </Button>
       </DialogTrigger>
@@ -132,7 +137,7 @@ export default function AddLightNovelDialog({
         </div>
         {isLoadingChosenLightNovel && (
           <div className="flex items-center justify-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2Icon className="h-4 w-4 animate-spin" />
             Fetching light novel details...
           </div>
         )}
@@ -197,7 +202,7 @@ export default function AddLightNovelDialog({
                     <div className="flex flex-col">
                       <Label>MAL Score</Label>
                       <span className="inline-flex items-center gap-1">
-                        <Star className="w-4 h-4" />
+                        <StarIcon className="w-4 h-4" />
                         {chosenLightNovel.score ?? "N/A"}
                       </span>
                     </div>
@@ -209,7 +214,7 @@ export default function AddLightNovelDialog({
                         target="_blank"
                       >
                         Visit MAL
-                        <ExternalLink className="w-4 h-4" />
+                        <ExternalLinkIcon className="w-4 h-4" />
                       </a>
                     </div>
                     <div className="grid grid-cols-1 xl:grid-cols-3 col-span-1 xl:col-span-3 gap-4">
@@ -265,7 +270,7 @@ export default function AddLightNovelDialog({
             </div>
             <Button onClick={() => addLightNovel(chosenLightNovel)}>
               {isLoadingAddLightNovel && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
               )}
               Add Light Novel
             </Button>

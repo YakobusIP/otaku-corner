@@ -31,7 +31,7 @@ type MangaPostRequest = {
   charDevelopmentRating?: number | null;
   worldBuildingRating?: number | null;
   originalityRating?: number | null;
-  progressStatus: PROGRESS_STATUS;
+  progressStatus?: PROGRESS_STATUS;
   personalScore?: number | null;
 };
 

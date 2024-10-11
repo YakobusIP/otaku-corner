@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { SORT_ORDER } from "@/lib/enums";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
 type Props = {
   sortBy: string;
@@ -25,9 +25,9 @@ export default function SortDirection({
         <Button variant="outline" size="sm" className="w-full">
           Sort by: {sortBy === "title" ? "Title" : "MAL Score"}
           {sortOrder === SORT_ORDER.ASCENDING ? (
-            <ArrowUp className="ml-2 w-4 h-4" />
+            <ArrowUpIcon className="ml-2 w-4 h-4" />
           ) : (
-            <ArrowDown className="ml-2 w-4 h-4" />
+            <ArrowDownIcon className="ml-2 w-4 h-4" />
           )}
         </Button>
       </DropdownMenuTrigger>
@@ -37,9 +37,9 @@ export default function SortDirection({
           {sortBy === "title" && (
             <span className="ml-1">
               {sortOrder === SORT_ORDER.ASCENDING ? (
-                <ArrowUp className="w-4 h-4" />
+                <ArrowUpIcon className="w-4 h-4" />
               ) : (
-                <ArrowDown className="w-4 h-4" />
+                <ArrowDownIcon className="w-4 h-4" />
               )}
             </span>
           )}
@@ -49,9 +49,9 @@ export default function SortDirection({
           {sortBy === "score" && (
             <span className="ml-1">
               {sortOrder === SORT_ORDER.ASCENDING ? (
-                <ArrowUp className="w-4 h-4" />
+                <ArrowUpIcon className="w-4 h-4" />
               ) : (
-                <ArrowDown className="w-4 h-4" />
+                <ArrowDownIcon className="w-4 h-4" />
               )}
             </span>
           )}
