@@ -33,6 +33,7 @@ type MangaPostRequest = {
   originalityRating?: number | null;
   progressStatus?: PROGRESS_STATUS;
   personalScore?: number | null;
+  consumedAt: Date | null;
 };
 
 type MangaDetail = Omit<MangaPostRequest, "authors" | "genres" | "themes"> & {
@@ -60,6 +61,7 @@ type MangaList = {
 type MangaReview = Pick<
   MangaPostRequest,
   | "review"
+  | "consumedAt"
   | "progressStatus"
   | "storylineRating"
   | "artStyleRating"

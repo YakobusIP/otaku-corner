@@ -23,6 +23,13 @@ import {
   PopoverContent,
   PopoverTrigger
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
+import { createUTCDate } from "@/lib/utils";
 
 type Props = {
   animeDetail: AnimeDetail;
@@ -64,7 +71,9 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
   const [progressStatus, setProgressStatus] = useState(
     animeDetail.progressStatus as string
   );
-  const [consumedMonth, setConsumedMonth] = useState<Date>(new Date());
+  const [consumedMonth, setConsumedMonth] = useState<Date | null>(
+    animeDetail.consumedAt ? new Date(animeDetail.consumedAt) : null
+  );
   const [storylineRating, setStorylineRating] = useState(
     animeDetail.storylineRating || 10
   );
@@ -152,9 +161,17 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
       soundTrackRating * scoringWeight.soundTrackRating +
       charDevelopmentRating * scoringWeight.charDevelopmentRating;
 
+    const adjustedConsumedMonth = consumedMonth
+      ? createUTCDate(
+          consumedMonth.getUTCFullYear(),
+          consumedMonth.getUTCMonth()
+        )
+      : null;
+
     const data: AnimeReview = {
       review: html,
       progressStatus: progressStatus as PROGRESS_STATUS,
+      consumedAt: adjustedConsumedMonth,
       storylineRating,
       qualityRating,
       voiceActingRating,
@@ -162,6 +179,7 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
       charDevelopmentRating,
       personalScore: parseFloat(personalScore.toFixed(2))
     };
+
     const response = await updateAnimeReviewService(animeDetail.id, data);
     if (response.success) {
       toast.toast({
@@ -195,13 +213,42 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
               />
             </div>
             <Popover>
-              <PopoverTrigger className="self-end pb-2">
-                <CalendarDaysIcon />
+              <PopoverTrigger className="self-end pb-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <CalendarDaysIcon
+                        className={
+                          consumedMonth ? "text-green-600" : "text-red-600"
+                        }
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {consumedMonth ? (
+                        <p>
+                          Consumed at{" "}
+                          {consumedMonth.toLocaleString("default", {
+                            month: "long"
+                          })}{" "}
+                          {consumedMonth.getUTCFullYear()}
+                        </p>
+                      ) : (
+                        <p>Consumed date is not set</p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </PopoverTrigger>
               <PopoverContent className="w-fit">
-                <p className="text-center font-bold">Month completed</p>
+                <p className="text-center font-bold">Month consumed</p>
                 <MonthPicker
-                  currentMonth={consumedMonth}
+                  currentMonth={
+                    consumedMonth ||
+                    createUTCDate(
+                      new Date().getUTCFullYear(),
+                      new Date().getUTCMonth()
+                    )
+                  }
                   onMonthChange={(value) => setConsumedMonth(value)}
                 />
               </PopoverContent>

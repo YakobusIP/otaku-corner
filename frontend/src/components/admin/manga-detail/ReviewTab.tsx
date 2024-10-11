@@ -23,6 +23,13 @@ import {
   PopoverContent,
   PopoverTrigger
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
+import { createUTCDate } from "@/lib/utils";
 
 type Props = {
   mangaDetail: MangaDetail;
@@ -64,7 +71,9 @@ export default function ReviewTab({ mangaDetail, resetParent }: Props) {
   const [progressStatus, setProgressStatus] = useState(
     mangaDetail.progressStatus as string
   );
-  const [consumedMonth, setConsumedMonth] = useState<Date>(new Date());
+  const [consumedMonth, setConsumedMonth] = useState<Date | null>(
+    mangaDetail.consumedAt ? new Date(mangaDetail.consumedAt) : null
+  );
   const [storylineRating, setStorylineRating] = useState(
     mangaDetail.storylineRating || 10
   );
@@ -152,9 +161,17 @@ export default function ReviewTab({ mangaDetail, resetParent }: Props) {
       worldBuildingRating * scoringWeight.worldBuildingRating +
       originalityRating * scoringWeight.originalityRating;
 
+    const adjustedConsumedMonth = consumedMonth
+      ? createUTCDate(
+          consumedMonth.getUTCFullYear(),
+          consumedMonth.getUTCMonth()
+        )
+      : null;
+
     const data: MangaReview = {
       review: html,
       progressStatus: progressStatus as PROGRESS_STATUS,
+      consumedAt: adjustedConsumedMonth,
       storylineRating,
       artStyleRating,
       charDevelopmentRating,
@@ -195,13 +212,42 @@ export default function ReviewTab({ mangaDetail, resetParent }: Props) {
               />
             </div>
             <Popover>
-              <PopoverTrigger className="self-end pb-2">
-                <CalendarDaysIcon />
+              <PopoverTrigger className="self-end pb-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <CalendarDaysIcon
+                        className={
+                          consumedMonth ? "text-green-600" : "text-red-600"
+                        }
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {consumedMonth ? (
+                        <p>
+                          Consumed at{" "}
+                          {consumedMonth.toLocaleString("default", {
+                            month: "long"
+                          })}{" "}
+                          {consumedMonth.getUTCFullYear()}
+                        </p>
+                      ) : (
+                        <p>Consumed date is not set</p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </PopoverTrigger>
               <PopoverContent className="w-fit">
-                <p className="text-center font-bold">Month completed</p>
+                <p className="text-center font-bold">Month consumed</p>
                 <MonthPicker
-                  currentMonth={consumedMonth}
+                  currentMonth={
+                    consumedMonth ||
+                    createUTCDate(
+                      new Date().getUTCFullYear(),
+                      new Date().getUTCMonth()
+                    )
+                  }
                   onMonthChange={(value) => setConsumedMonth(value)}
                 />
               </PopoverContent>

@@ -33,6 +33,7 @@ type LightNovelPostRequest = {
   originalityRating?: number | null;
   progressStatus?: PROGRESS_STATUS;
   personalScore?: number | null;
+  consumedAt: Date | null;
 };
 
 type LightNovelDetail = Omit<
@@ -63,6 +64,7 @@ type LightNovelList = {
 type LightNovelReview = Pick<
   LightNovelPostRequest,
   | "review"
+  | "consumedAt"
   | "progressStatus"
   | "storylineRating"
   | "worldBuildingRating"

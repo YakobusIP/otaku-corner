@@ -40,6 +40,7 @@ type AnimePostRequest = {
   charDevelopmentRating?: number | null;
   progressStatus?: PROGRESS_STATUS;
   personalScore?: number | null;
+  consumedAt: Date | null;
 };
 
 type AnimeDetail = Omit<AnimePostRequest, "genres" | "studios" | "themes"> & {
@@ -78,6 +79,7 @@ type AnimeEpisode = {
 type AnimeReview = Pick<
   AnimePostRequest,
   | "review"
+  | "consumedAt"
   | "progressStatus"
   | "storylineRating"
   | "qualityRating"

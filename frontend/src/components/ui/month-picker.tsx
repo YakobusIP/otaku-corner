@@ -3,19 +3,17 @@ import {
   eachMonthOfInterval,
   endOfYear,
   format,
-  isEqual,
   isFuture,
-  parse,
-  startOfMonth,
-  startOfToday
+  isSameMonth
 } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import * as React from "react";
 import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, createUTCDate } from "@/lib/utils";
 
 function getStartOfCurrentMonth() {
-  return startOfMonth(startOfToday());
+  const today = new Date();
+  return createUTCDate(today.getUTCFullYear(), today.getUTCMonth());
 }
 
 interface MonthPickerProps {
@@ -30,7 +28,7 @@ export default function MonthPicker({
   const [currentYear, setCurrentYear] = React.useState(
     format(currentMonth, "yyyy")
   );
-  const firstDayCurrentYear = parse(currentYear, "yyyy", new Date());
+  const firstDayCurrentYear = createUTCDate(parseInt(currentYear), 0);
 
   const months = eachMonthOfInterval({
     start: firstDayCurrentYear,
@@ -46,6 +44,11 @@ export default function MonthPicker({
     const firstDayNextYear = add(firstDayCurrentYear, { years: 1 });
     setCurrentYear(format(firstDayNextYear, "yyyy"));
   }
+
+  const handleMonthChange = (month: Date) => {
+    const utcDate = createUTCDate(month.getFullYear(), month.getMonth());
+    onMonthChange(utcDate);
+  };
 
   return (
     <div className="p-3">
@@ -105,17 +108,17 @@ export default function MonthPicker({
                   name="day"
                   className={cn(
                     "inline-flex h-9 w-16 items-center justify-center rounded-md p-0 text-sm font-normal ring-offset-white transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 aria-selected:opacity-100 dark:ring-offset-slate-950 dark:hover:bg-slate-800 dark:hover:text-slate-50 dark:focus-visible:ring-slate-800",
-                    isEqual(month, currentMonth) &&
+                    isSameMonth(month, currentMonth) &&
                       "bg-slate-900 text-slate-50 hover:bg-slate-900 hover:text-slate-50 focus:bg-slate-900 focus:text-slate-50 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50 dark:hover:text-slate-900 dark:focus:bg-slate-50 dark:focus:text-slate-900",
-                    !isEqual(month, currentMonth) &&
-                      isEqual(month, getStartOfCurrentMonth()) &&
+                    !isSameMonth(month, currentMonth) &&
+                      isSameMonth(month, getStartOfCurrentMonth()) &&
                       "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50"
                   )}
                   disabled={isFuture(month)}
                   role="gridcell"
                   tabIndex={-1}
                   type="button"
-                  onClick={() => onMonthChange(month)}
+                  onClick={() => handleMonthChange(month)}
                 >
                   <time dateTime={format(month, "yyyy-MM-dd")}>
                     {format(month, "MMM")}
