@@ -258,7 +258,15 @@ export class MangaService {
           calculatedPersonalScore - (mangaData.personalScore as number)
         ) > 0.001
       ) {
-        console.warn("Arriving MANGA personal score calculation is incorrect");
+        await prisma.errorLog.create({
+          data: {
+            message: "Arriving MANGA personal score calculation is incorrect",
+            type: "WARN",
+            route: "MangaService.updateManga",
+            timestamp: new Date()
+          }
+        });
+
         mangaData.personalScore = calculatedPersonalScore;
       }
       return await prisma.manga.update({ where: { id }, data: mangaData });

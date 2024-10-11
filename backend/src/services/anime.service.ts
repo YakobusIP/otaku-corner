@@ -284,7 +284,7 @@ export class AnimeService {
           data: {
             message: "Arriving ANIME personal score calculation is incorrect",
             type: "WARN",
-            route: "AnimeService.createAnime",
+            route: "AnimeService.updateAnime",
             timestamp: new Date()
           }
         });

@@ -265,7 +265,7 @@ export class LightNovelService {
             message:
               "Arriving LIGHT NOVEL personal score calculation is incorrect",
             type: "WARN",
-            route: "LightNovelService.createLightNovel",
+            route: "LightNovelService.updateLightNovel",
             timestamp: new Date()
           }
         });
