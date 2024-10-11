@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Theme } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import {
   BadRequestError,
@@ -6,6 +6,10 @@ import {
   NotFoundError,
   PrismaUniqueError
 } from "../lib/error";
+
+interface ThemeWithConnectedMediaCount extends Theme {
+  connectedMediaCount?: number;
+}
 
 export class ThemeService {
   async getAllThemes(
@@ -24,35 +28,43 @@ export class ThemeService {
         }
       };
 
+      const includeCount: Prisma.ThemeInclude = connected_media
+        ? {
+            _count: {
+              select: {
+                anime: true,
+                manga: true,
+                lightNovel: true
+              }
+            }
+          }
+        : {};
+
       if (currentPage && limitPerPage) {
-        const itemCount = await prisma.theme.count({
-          where: filterCriteria
-        });
+        const [itemCount, data] = await prisma.$transaction([
+          prisma.theme.count({ where: filterCriteria }),
+          prisma.theme.findMany({
+            where: filterCriteria,
+            take: limitPerPage,
+            skip: (currentPage - 1) * limitPerPage,
+            include: includeCount
+          })
+        ]);
 
         const pageCount = Math.ceil(itemCount / limitPerPage);
 
-        const data = await prisma.theme.findMany({
-          where: filterCriteria,
-          take: limitPerPage,
-          skip: (currentPage - 1) * limitPerPage
-        });
-
-        if (connected_media) {
-          for (const theme of data) {
-            const mangaCount = await prisma.manga.count({
-              where: { themes: { some: { id: theme.id } } }
-            });
-
-            const lightNovelCount = await prisma.lightNovel.count({
-              where: { themes: { some: { id: theme.id } } }
-            });
-
-            (theme as any).connectedMediaCount = mangaCount + lightNovelCount;
-          }
-        }
+        const themesWithCounts: ThemeWithConnectedMediaCount[] = connected_media
+          ? data.map((theme) => ({
+              ...theme,
+              connectedMediaCount:
+                theme._count.anime +
+                theme._count.manga +
+                theme._count.lightNovel
+            }))
+          : data;
 
         return {
-          data,
+          data: themesWithCounts,
           metadata: {
             currentPage,
             limitPerPage,
@@ -62,29 +74,21 @@ export class ThemeService {
         };
       } else {
         const data = await prisma.theme.findMany({
-          where: filterCriteria
+          where: filterCriteria,
+          include: includeCount
         });
 
-        if (connected_media) {
-          for (const theme of data) {
-            const animeCount = await prisma.anime.count({
-              where: { themes: { some: { id: theme.id } } }
-            });
+        const themesWithCounts: ThemeWithConnectedMediaCount[] = connected_media
+          ? data.map((theme) => ({
+              ...theme,
+              connectedMediaCount:
+                theme._count.anime +
+                theme._count.manga +
+                theme._count.lightNovel
+            }))
+          : data;
 
-            const mangaCount = await prisma.manga.count({
-              where: { themes: { some: { id: theme.id } } }
-            });
-
-            const lightNovelCount = await prisma.lightNovel.count({
-              where: { themes: { some: { id: theme.id } } }
-            });
-
-            (theme as any).connectedMediaCount =
-              animeCount + mangaCount + lightNovelCount;
-          }
-        }
-
-        return data;
+        return themesWithCounts;
       }
     } catch (error) {
       if (error instanceof Prisma.PrismaClientValidationError) {
@@ -94,6 +98,7 @@ export class ThemeService {
       throw new InternalServerError((error as Error).message);
     }
   }
+
   async getTheme(name: string) {
     try {
       return await prisma.theme.findFirst({

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Genre, Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import {
   BadRequestError,
@@ -6,6 +6,10 @@ import {
   NotFoundError,
   PrismaUniqueError
 } from "../lib/error";
+
+interface GenreWithConnectedMediaCount extends Genre {
+  connectedMediaCount?: number;
+}
 
 export class GenreService {
   async getAllGenres(
@@ -24,35 +28,37 @@ export class GenreService {
         }
       };
 
+      const includeCount: Prisma.GenreInclude = connected_media
+        ? {
+            _count: { select: { anime: true, manga: true, lightNovel: true } }
+          }
+        : {};
+
       if (currentPage && limitPerPage) {
-        const itemCount = await prisma.genre.count({
-          where: filterCriteria
-        });
+        const [itemCount, data] = await prisma.$transaction([
+          prisma.genre.count({ where: filterCriteria }),
+          prisma.genre.findMany({
+            where: filterCriteria,
+            take: limitPerPage,
+            skip: (currentPage - 1) * limitPerPage,
+            include: includeCount
+          })
+        ]);
 
         const pageCount = Math.ceil(itemCount / limitPerPage);
 
-        const data = await prisma.genre.findMany({
-          where: filterCriteria,
-          take: limitPerPage,
-          skip: (currentPage - 1) * limitPerPage
-        });
-
-        if (connected_media) {
-          for (const genre of data) {
-            const mangaCount = await prisma.manga.count({
-              where: { genres: { some: { id: genre.id } } }
-            });
-
-            const lightNovelCount = await prisma.lightNovel.count({
-              where: { genres: { some: { id: genre.id } } }
-            });
-
-            (genre as any).connectedMediaCount = mangaCount + lightNovelCount;
-          }
-        }
+        const genresWithCounts: GenreWithConnectedMediaCount[] = connected_media
+          ? data.map((genre) => ({
+              ...genre,
+              connectedMediaCount:
+                genre._count.anime +
+                genre._count.manga +
+                genre._count.lightNovel
+            }))
+          : data;
 
         return {
-          data,
+          data: genresWithCounts,
           metadata: {
             currentPage,
             limitPerPage,
@@ -62,29 +68,21 @@ export class GenreService {
         };
       } else {
         const data = await prisma.genre.findMany({
-          where: filterCriteria
+          where: filterCriteria,
+          include: includeCount
         });
 
-        if (connected_media) {
-          for (const genre of data) {
-            const animeCount = await prisma.anime.count({
-              where: { genres: { some: { id: genre.id } } }
-            });
+        const genresWithCounts: GenreWithConnectedMediaCount[] = connected_media
+          ? data.map((genre) => ({
+              ...genre,
+              connectedMediaCount:
+                genre._count.anime +
+                genre._count.manga +
+                genre._count.lightNovel
+            }))
+          : data;
 
-            const mangaCount = await prisma.manga.count({
-              where: { genres: { some: { id: genre.id } } }
-            });
-
-            const lightNovelCount = await prisma.lightNovel.count({
-              where: { genres: { some: { id: genre.id } } }
-            });
-
-            (genre as any).connectedMediaCount =
-              animeCount + mangaCount + lightNovelCount;
-          }
-        }
-
-        return data;
+        return genresWithCounts;
       }
     } catch (error) {
       if (error instanceof Prisma.PrismaClientValidationError) {

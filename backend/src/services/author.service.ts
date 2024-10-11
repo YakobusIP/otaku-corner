@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Author, Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import {
   BadRequestError,
@@ -6,6 +6,10 @@ import {
   NotFoundError,
   PrismaUniqueError
 } from "../lib/error";
+
+interface AuthorWithConnectedMediaCount extends Author {
+  connectedMediaCount?: number;
+}
 
 export class AuthorService {
   async getAllAuthors(
@@ -24,35 +28,34 @@ export class AuthorService {
         }
       };
 
+      const includeCount: Prisma.AuthorInclude = connected_media
+        ? { _count: { select: { manga: true, lightNovel: true } } }
+        : {};
+
       if (currentPage && limitPerPage) {
-        const itemCount = await prisma.author.count({
-          where: filterCriteria
-        });
+        const [itemCount, data] = await prisma.$transaction([
+          prisma.author.count({ where: filterCriteria }),
+          prisma.author.findMany({
+            where: filterCriteria,
+            take: limitPerPage,
+            skip: (currentPage - 1) * limitPerPage,
+            include: includeCount
+          })
+        ]);
 
         const pageCount = Math.ceil(itemCount / limitPerPage);
 
-        const data = await prisma.author.findMany({
-          where: filterCriteria,
-          take: limitPerPage,
-          skip: (currentPage - 1) * limitPerPage
-        });
-
-        if (connected_media) {
-          for (const author of data) {
-            const mangaCount = await prisma.manga.count({
-              where: { authors: { some: { id: author.id } } }
-            });
-
-            const lightNovelCount = await prisma.lightNovel.count({
-              where: { authors: { some: { id: author.id } } }
-            });
-
-            (author as any).connectedMediaCount = mangaCount + lightNovelCount;
-          }
-        }
+        const authorsWithCounts: AuthorWithConnectedMediaCount[] =
+          connected_media
+            ? data.map((author) => ({
+                ...author,
+                connectedMediaCount:
+                  author._count.manga + author._count.lightNovel
+              }))
+            : data;
 
         return {
-          data,
+          data: authorsWithCounts,
           metadata: {
             currentPage,
             limitPerPage,
@@ -62,24 +65,20 @@ export class AuthorService {
         };
       } else {
         const data = await prisma.author.findMany({
-          where: filterCriteria
+          where: filterCriteria,
+          include: includeCount
         });
 
-        if (connected_media) {
-          for (const author of data) {
-            const mangaCount = await prisma.manga.count({
-              where: { authors: { some: { id: author.id } } }
-            });
+        const authorsWithCounts: AuthorWithConnectedMediaCount[] =
+          connected_media
+            ? data.map((author) => ({
+                ...author,
+                connectedMediaCount:
+                  author._count.manga + author._count.lightNovel
+              }))
+            : data;
 
-            const lightNovelCount = await prisma.lightNovel.count({
-              where: { authors: { some: { id: author.id } } }
-            });
-
-            (author as any).connectedMediaCount = mangaCount + lightNovelCount;
-          }
-        }
-
-        return data;
+        return authorsWithCounts;
       }
     } catch (error) {
       if (error instanceof Prisma.PrismaClientValidationError) {

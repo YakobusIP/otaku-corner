@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Studio } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import {
   BadRequestError,
@@ -6,6 +6,10 @@ import {
   NotFoundError,
   PrismaUniqueError
 } from "../lib/error";
+
+interface StudioWithConnectedMediaCount extends Studio {
+  connectedMediaCount?: number;
+}
 
 export class StudioService {
   async getAllStudios(
@@ -24,31 +28,39 @@ export class StudioService {
         }
       };
 
+      const includeCount: Prisma.StudioInclude = connected_media
+        ? {
+            _count: {
+              select: {
+                anime: true
+              }
+            }
+          }
+        : {};
+
       if (currentPage && limitPerPage) {
-        const itemCount = await prisma.studio.count({
-          where: filterCriteria
-        });
+        const [itemCount, data] = await prisma.$transaction([
+          prisma.studio.count({ where: filterCriteria }),
+          prisma.studio.findMany({
+            where: filterCriteria,
+            take: limitPerPage,
+            skip: (currentPage - 1) * limitPerPage,
+            include: includeCount
+          })
+        ]);
 
         const pageCount = Math.ceil(itemCount / limitPerPage);
 
-        const data = await prisma.studio.findMany({
-          where: filterCriteria,
-          take: limitPerPage,
-          skip: (currentPage - 1) * limitPerPage
-        });
-
-        if (connected_media) {
-          for (const studio of data) {
-            const animeCount = await prisma.anime.count({
-              where: { studios: { some: { id: studio.id } } }
-            });
-
-            (studio as any).connectedMediaCount = animeCount;
-          }
-        }
+        const studiosWithCounts: StudioWithConnectedMediaCount[] =
+          connected_media
+            ? data.map((studio) => ({
+                ...studio,
+                connectedMediaCount: studio._count.anime
+              }))
+            : data;
 
         return {
-          data,
+          data: studiosWithCounts,
           metadata: {
             currentPage,
             limitPerPage,
@@ -58,20 +70,19 @@ export class StudioService {
         };
       } else {
         const data = await prisma.studio.findMany({
-          where: filterCriteria
+          where: filterCriteria,
+          include: includeCount
         });
 
-        if (connected_media) {
-          for (const studio of data) {
-            const animeCount = await prisma.anime.count({
-              where: { studios: { some: { id: studio.id } } }
-            });
+        const studiosWithCounts: StudioWithConnectedMediaCount[] =
+          connected_media
+            ? data.map((studio) => ({
+                ...studio,
+                connectedMediaCount: studio._count.anime
+              }))
+            : data;
 
-            (studio as any).connectedMediaCount = animeCount;
-          }
-        }
-
-        return data;
+        return studiosWithCounts;
       }
     } catch (error) {
       if (error instanceof Prisma.PrismaClientValidationError) {
