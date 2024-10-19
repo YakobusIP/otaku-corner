@@ -92,14 +92,6 @@ export default function ReviewTab({ mangaDetail, resetParent }: Props) {
 
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
 
-  const scoringWeight = {
-    storylineRating: 0.3,
-    artStyleRating: 0.25,
-    charDevelopmentRating: 0.2,
-    worldBuildingRating: 0.15,
-    originalityRating: 0.1
-  };
-
   const ratingFields = [
     {
       key: "storyline",
@@ -154,13 +146,6 @@ export default function ReviewTab({ mangaDetail, resetParent }: Props) {
       })
     );
 
-    const personalScore =
-      storylineRating * scoringWeight.storylineRating +
-      artStyleRating * scoringWeight.artStyleRating +
-      charDevelopmentRating * scoringWeight.charDevelopmentRating +
-      worldBuildingRating * scoringWeight.worldBuildingRating +
-      originalityRating * scoringWeight.originalityRating;
-
     const adjustedConsumedMonth = consumedMonth
       ? createUTCDate(
           consumedMonth.getUTCFullYear(),
@@ -176,8 +161,7 @@ export default function ReviewTab({ mangaDetail, resetParent }: Props) {
       artStyleRating,
       charDevelopmentRating,
       worldBuildingRating,
-      originalityRating,
-      personalScore
+      originalityRating
     };
     const response = await updateMangaReviewService(mangaDetail.id, data);
     if (response.success) {

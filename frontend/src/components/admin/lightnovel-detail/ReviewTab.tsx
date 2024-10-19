@@ -92,14 +92,6 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
 
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
 
-  const scoringWeight = {
-    storylineRating: 0.3,
-    worldBuildingRating: 0.25,
-    writingStyleRating: 0.2,
-    charDevelopmentRating: 0.15,
-    originalityRating: 0.1
-  };
-
   const ratingFields = [
     {
       key: "storyline",
@@ -154,13 +146,6 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
       })
     );
 
-    const personalScore =
-      storylineRating * scoringWeight.storylineRating +
-      worldBuildingRating * scoringWeight.worldBuildingRating +
-      writingStyleRating * scoringWeight.writingStyleRating +
-      charDevelopmentRating * scoringWeight.charDevelopmentRating +
-      originalityRating * scoringWeight.originalityRating;
-
     const adjustedConsumedMonth = consumedMonth
       ? createUTCDate(
           consumedMonth.getUTCFullYear(),
@@ -176,8 +161,7 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
       worldBuildingRating,
       writingStyleRating,
       charDevelopmentRating,
-      originalityRating,
-      personalScore
+      originalityRating
     };
     const response = await updateLightNovelReviewService(
       lightNovelDetail.id,

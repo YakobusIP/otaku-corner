@@ -34,7 +34,7 @@ export class LightNovelService {
     private readonly themeService: ThemeService
   ) {}
 
-  private validatePersonalScore(data: Prisma.LightNovelUpdateInput) {
+  private calculatePersonalScore(data: Prisma.LightNovelUpdateInput) {
     const {
       storylineRating,
       worldBuildingRating,
@@ -251,27 +251,8 @@ export class LightNovelService {
   async updateLightNovel(id: string, data: Prisma.LightNovelUpdateInput) {
     try {
       const lightNovelData = { ...data };
-      const calculatedPersonalScore =
-        this.validatePersonalScore(lightNovelData);
-
-      if (
-        !calculatedPersonalScore ||
-        Math.abs(
-          calculatedPersonalScore - (lightNovelData.personalScore as number)
-        ) > 0.001
-      ) {
-        await prisma.errorLog.create({
-          data: {
-            message:
-              "Arriving LIGHT NOVEL personal score calculation is incorrect",
-            type: "WARN",
-            route: "LightNovelService.updateLightNovel",
-            timestamp: new Date()
-          }
-        });
-
-        lightNovelData.personalScore = calculatedPersonalScore;
-      }
+      lightNovelData.personalScore =
+        this.calculatePersonalScore(lightNovelData);
       return await prisma.lightNovel.update({
         where: { id },
         data: lightNovelData

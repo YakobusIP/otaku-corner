@@ -41,7 +41,7 @@ export class AnimeService {
     private readonly themeService: ThemeService
   ) {}
 
-  private validatePersonalScore(data: Prisma.AnimeUpdateInput) {
+  private calculatePersonalScore(data: Prisma.AnimeUpdateInput) {
     const {
       storylineRating,
       qualityRating,
@@ -272,26 +272,7 @@ export class AnimeService {
   async updateAnime(id: string, data: Prisma.AnimeUpdateInput) {
     try {
       const animeData = { ...data };
-      const calculatedPersonalScore = this.validatePersonalScore(animeData);
-
-      if (
-        !calculatedPersonalScore ||
-        Math.abs(
-          calculatedPersonalScore - (animeData.personalScore as number)
-        ) > 0.001
-      ) {
-        await prisma.errorLog.create({
-          data: {
-            message: "Arriving ANIME personal score calculation is incorrect",
-            type: "WARN",
-            route: "AnimeService.updateAnime",
-            timestamp: new Date()
-          }
-        });
-
-        animeData.personalScore = calculatedPersonalScore;
-      }
-
+      animeData.personalScore = this.calculatePersonalScore(animeData);
       return await prisma.anime.update({ where: { id }, data: animeData });
     } catch (error) {
       if (

@@ -92,14 +92,6 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
 
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
 
-  const scoringWeight = {
-    storylineRating: 0.3,
-    qualityRating: 0.25,
-    voiceActingRating: 0.2,
-    soundTrackRating: 0.15,
-    charDevelopmentRating: 0.1
-  };
-
   const ratingFields = [
     {
       key: "storyline",
@@ -154,13 +146,6 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
       })
     );
 
-    const personalScore =
-      storylineRating * scoringWeight.storylineRating +
-      qualityRating * scoringWeight.qualityRating +
-      voiceActingRating * scoringWeight.voiceActingRating +
-      soundTrackRating * scoringWeight.soundTrackRating +
-      charDevelopmentRating * scoringWeight.charDevelopmentRating;
-
     const adjustedConsumedMonth = consumedMonth
       ? createUTCDate(
           consumedMonth.getUTCFullYear(),
@@ -176,8 +161,7 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
       qualityRating,
       voiceActingRating,
       soundTrackRating,
-      charDevelopmentRating,
-      personalScore: parseFloat(personalScore.toFixed(2))
+      charDevelopmentRating
     };
 
     const response = await updateAnimeReviewService(animeDetail.id, data);

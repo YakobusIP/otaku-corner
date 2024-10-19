@@ -34,7 +34,7 @@ export class MangaService {
     private readonly themeService: ThemeService
   ) {}
 
-  private validatePersonalScore(data: Prisma.MangaUpdateInput) {
+  private calculatePersonalScore(data: Prisma.MangaUpdateInput) {
     const {
       storylineRating,
       artStyleRating,
@@ -250,25 +250,7 @@ export class MangaService {
   async updateManga(id: string, data: Prisma.MangaUpdateInput) {
     try {
       const mangaData = { ...data };
-      const calculatedPersonalScore = this.validatePersonalScore(mangaData);
-
-      if (
-        !calculatedPersonalScore ||
-        Math.abs(
-          calculatedPersonalScore - (mangaData.personalScore as number)
-        ) > 0.001
-      ) {
-        await prisma.errorLog.create({
-          data: {
-            message: "Arriving MANGA personal score calculation is incorrect",
-            type: "WARN",
-            route: "MangaService.updateManga",
-            timestamp: new Date()
-          }
-        });
-
-        mangaData.personalScore = calculatedPersonalScore;
-      }
+      mangaData.personalScore = this.calculatePersonalScore(mangaData);
       return await prisma.manga.update({ where: { id }, data: mangaData });
     } catch (error) {
       if (
