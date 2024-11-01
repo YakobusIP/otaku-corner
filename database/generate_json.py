@@ -23,6 +23,9 @@ def save_payload_to_json(filename, payload):
     console.print(f"Payload saved to {filepath}", style="blue")
 
 
+statuses = ["PLANNED", "ON_HOLD", "ON_PROGRESS", "COMPLETED", "DROPPED"]
+
+
 def create_anime(anime_data, anime_episodes, embed_url):
     year = random.randint(2020, 2024)
     month = random.randint(1, 12)
@@ -89,6 +92,7 @@ def create_anime(anime_data, anime_episodes, embed_url):
         "soundTrackRating": random.randint(1, 10),
         "charDevelopmentRating": random.randint(1, 10),
         "consumedAt": consumed_at,
+        "progressStatus": random.choice(statuses),
     }
 
 
@@ -138,6 +142,7 @@ def create_manga(manga_data):
         "worldBuildingRating": random.randint(1, 10),
         "originalityRating": random.randint(1, 10),
         "consumedAt": consumed_at,
+        "progressStatus": random.choice(statuses),
     }
 
 
@@ -189,6 +194,7 @@ def create_lightnovel(lightnovel_data):
         "charDevelopmentRating": random.randint(1, 10),
         "originalityRating": random.randint(1, 10),
         "consumedAt": consumed_at,
+        "progressStatus": random.choice(statuses),
     }
 
 

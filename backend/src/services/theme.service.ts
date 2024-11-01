@@ -32,9 +32,9 @@ export class ThemeService {
         ? {
             _count: {
               select: {
-                anime: true,
-                manga: true,
-                lightNovel: true
+                animes: true,
+                mangas: true,
+                lightNovels: true
               }
             }
           }
@@ -57,9 +57,9 @@ export class ThemeService {
           ? data.map((theme) => ({
               ...theme,
               connectedMediaCount:
-                theme._count.anime +
-                theme._count.manga +
-                theme._count.lightNovel
+                theme._count.animes +
+                theme._count.mangas +
+                theme._count.lightNovels
             }))
           : data;
 
@@ -82,9 +82,9 @@ export class ThemeService {
           ? data.map((theme) => ({
               ...theme,
               connectedMediaCount:
-                theme._count.anime +
-                theme._count.manga +
-                theme._count.lightNovel
+                theme._count.animes +
+                theme._count.mangas +
+                theme._count.lightNovels
             }))
           : data;
 
@@ -136,7 +136,7 @@ export class ThemeService {
     if (!theme) {
       theme = await this.createTheme({ name });
     }
-    return theme.id;
+    return theme;
   }
 
   async updateTheme(id: string, data: Prisma.ThemeUpdateInput) {

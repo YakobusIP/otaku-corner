@@ -12,7 +12,7 @@ export class MangaController {
       const limitPerPage = req.query.limitPerPage as string;
 
       if (!currentPage || !limitPerPage) {
-        throw new UnprocessableEntityError("Pagination query params missing");
+        throw new UnprocessableEntityError("Pagination query params missing!");
       }
 
       const query = req.query.q as string;

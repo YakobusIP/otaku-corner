@@ -22,7 +22,7 @@
     "start": "node dist/server.js",
     "lint": "eslint . --ext ts --report-unused-disable-directives --max-warnings 0",
     "format": "prettier . --write",
-    "dev": "nodemon src/server.ts"
+    "dev": "nodemon --watch .env --watch src src/server.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

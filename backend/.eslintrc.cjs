@@ -9,7 +9,14 @@ module.exports = {
   ignorePatterns: ["dist", ".eslintrc.cjs"],
   parser: "@typescript-eslint/parser",
   rules: {
-    "@typescript-eslint/no-unused-vars": "warn", // Warn on unused variables
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_"
+      }
+    ], // Warn on unused variables
     "node/no-unsupported-features/es-syntax": "off", // Disable this to allow ES Modules syntax
     "node/no-missing-import": "off", // Turn off because TypeScript resolves imports
     "node/no-unsupported-features/es-builtins": "off",

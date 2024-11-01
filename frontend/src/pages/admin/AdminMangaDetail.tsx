@@ -38,7 +38,7 @@ export default function AdminMangaDetail() {
 
   return !isLoadingMangaDetail && mangaDetail ? (
     <div className="flex flex-col min-h-[100dvh]">
-      <Link to="/admin">
+      <Link to="/admin/media-list">
         <Button variant="outline" className="absolute top-4 left-4">
           <ArrowLeftIcon className="mr-2 w-4 h-4" /> Back to list
         </Button>

@@ -121,7 +121,7 @@ export const animeColumns: ColumnDef<AnimeList>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <Link to={"anime/" + anime.id}>
+            <Link to={"/admin/anime/" + anime.id}>
               <DropdownMenuItem>View details</DropdownMenuItem>
             </Link>
           </DropdownMenuContent>

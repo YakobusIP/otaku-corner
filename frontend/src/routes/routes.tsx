@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import Home from "@/pages/general/Home.tsx";
-import Dashboard from "@/pages/admin/Dashboard";
+import MediaList from "@/pages/admin/MediaList";
 import AnimeList from "@/pages/general/anime/AnimeList";
 import MangaList from "@/pages/general/manga/MangaList";
 import LightNovelList from "@/pages/general/lightnovels/LightNovelList";
@@ -13,6 +13,7 @@ import AdminLightNovelDetail from "@/pages/admin/AdminLightNovelDetail";
 import UnauthorizedPage from "@/routes/UnauthorizedPage";
 import NotFoundPage from "@/routes/NotFoundPage";
 import ProtectedRoute from "@/routes/ProtectedRoute";
+import Dashboard from "@/pages/admin/Dashboard";
 
 export const router = createBrowserRouter([
   {
@@ -48,6 +49,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Dashboard />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/admin/media-list",
+    element: (
+      <ProtectedRoute>
+        <MediaList />
       </ProtectedRoute>
     )
   },

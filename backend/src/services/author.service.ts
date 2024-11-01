@@ -29,7 +29,7 @@ export class AuthorService {
       };
 
       const includeCount: Prisma.AuthorInclude = connected_media
-        ? { _count: { select: { manga: true, lightNovel: true } } }
+        ? { _count: { select: { mangas: true, lightNovels: true } } }
         : {};
 
       if (currentPage && limitPerPage) {
@@ -50,7 +50,7 @@ export class AuthorService {
             ? data.map((author) => ({
                 ...author,
                 connectedMediaCount:
-                  author._count.manga + author._count.lightNovel
+                  author._count.mangas + author._count.lightNovels
               }))
             : data;
 
@@ -74,7 +74,7 @@ export class AuthorService {
             ? data.map((author) => ({
                 ...author,
                 connectedMediaCount:
-                  author._count.manga + author._count.lightNovel
+                  author._count.mangas + author._count.lightNovels
               }))
             : data;
 
@@ -126,7 +126,7 @@ export class AuthorService {
     if (!author) {
       author = await this.createAuthor({ name });
     }
-    return author.id;
+    return author;
   }
 
   async updateAuthor(id: string, data: Prisma.AuthorUpdateInput) {

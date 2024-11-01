@@ -5,24 +5,12 @@ type GenreEntity = {
   updatedAt: Date;
 };
 
-type GenreWithMediaCount = GenreEntity & {
-  connectedMediaCount: number;
-};
-
-type GenreEntityPartial = Pick<GenreEntity, "id" | "name">;
-
 type StudioEntity = {
   id: string;
   name: string;
   createdAt: Date;
   updatedAt: Date;
 };
-
-type StudioWithMediaCount = StudioEntity & {
-  connectedMediaCount: number;
-};
-
-type StudioEntityPartial = Pick<StudioEntity, "id" | "name">;
 
 type ThemeEntity = {
   id: string;
@@ -31,12 +19,6 @@ type ThemeEntity = {
   updatedAt: Date;
 };
 
-type ThemeWithMediaCount = ThemeEntity & {
-  connectedMediaCount: number;
-};
-
-type ThemeEntityPartial = Pick<ThemeEntity, "id" | "name">;
-
 type AuthorEntity = {
   id: string;
   name: string;
@@ -44,23 +26,38 @@ type AuthorEntity = {
   updatedAt: Date;
 };
 
+type GenreWithMediaCount = GenreEntity & {
+  connectedMediaCount: number;
+};
+
+type StudioWithMediaCount = StudioEntity & {
+  connectedMediaCount: number;
+};
+
+type ThemeWithMediaCount = ThemeEntity & {
+  connectedMediaCount: number;
+};
+
 type AuthorWithMediaCount = AuthorEntity & {
   connectedMediaCount: number;
 };
 
+type GenreEntityPartial = Pick<GenreEntity, "id" | "name">;
+type StudioEntityPartial = Pick<StudioEntity, "id" | "name">;
+type ThemeEntityPartial = Pick<ThemeEntity, "id" | "name">;
 type AuthorEntityPartial = Pick<AuthorEntity, "id" | "name">;
 
 export type {
   GenreEntity,
-  GenreWithMediaCount,
-  GenreEntityPartial,
   StudioEntity,
-  StudioWithMediaCount,
-  StudioEntityPartial,
   ThemeEntity,
-  ThemeWithMediaCount,
-  ThemeEntityPartial,
   AuthorEntity,
+  GenreWithMediaCount,
+  StudioWithMediaCount,
+  ThemeWithMediaCount,
   AuthorWithMediaCount,
+  GenreEntityPartial,
+  StudioEntityPartial,
+  ThemeEntityPartial,
   AuthorEntityPartial
 };

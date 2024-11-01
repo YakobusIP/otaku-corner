@@ -1,7 +1,7 @@
 export enum MEDIA_TYPE {
   ANIME = "Anime",
   MANGA = "Manga",
-  LIGHT_NOVEL = "Light novel"
+  LIGHT_NOVEL = "Light Novel"
 }
 
 export enum SORT_ORDER {
@@ -31,4 +31,16 @@ export enum INLINE_STYLES {
   BOLD = "BOLD",
   ITALIC = "ITALIC",
   UNDERLINE = "UNDERLINE"
+}
+
+export enum ENTITY_TYPE {
+  GENRE = "Genre",
+  STUDIO = "Studio",
+  THEME = "Theme",
+  AUTHOR = "Author"
+}
+
+export enum STATISTICS_VIEW {
+  YEARLY = "Yearly",
+  MONTHLY = "Monthly"
 }

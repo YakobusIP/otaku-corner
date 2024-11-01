@@ -110,10 +110,14 @@ export class LightNovelService {
             ]
           },
           ...(filterAuthor
-            ? [{ authors: { some: { id: filterAuthor } } }]
+            ? [{ authors: { some: { authorId: filterAuthor } } }]
             : []),
-          ...(filterGenre ? [{ genres: { some: { id: filterGenre } } }] : []),
-          ...(filterTheme ? [{ themes: { some: { id: filterTheme } } }] : []),
+          ...(filterGenre
+            ? [{ genres: { some: { genreId: filterGenre } } }]
+            : []),
+          ...(filterTheme
+            ? [{ themes: { some: { themeId: filterTheme } } }]
+            : []),
           ...(filterMALScore
             ? [
                 {
@@ -186,9 +190,9 @@ export class LightNovelService {
       const lightNovel = await prisma.lightNovel.findUnique({
         where: { id },
         include: {
-          authors: { select: { id: true, name: true } },
-          genres: { select: { id: true, name: true } },
-          themes: { select: { id: true, name: true } }
+          authors: { select: { author: { select: { id: true, name: true } } } },
+          genres: { select: { genre: { select: { id: true, name: true } } } },
+          themes: { select: { theme: { select: { id: true, name: true } } } }
         }
       });
 
@@ -207,28 +211,34 @@ export class LightNovelService {
     try {
       const authorIds = await Promise.all(
         data.authors.map(async (name) => {
-          const id = await this.authorService.getOrCreateAuthor(name);
-          return { id } as Prisma.AuthorWhereUniqueInput;
+          const author = await this.authorService.getOrCreateAuthor(name);
+          return { authorId: author.id };
         })
       );
       const genreIds = await Promise.all(
         data.genres.map(async (name) => {
-          const id = await this.genreService.getOrCreateGenre(name);
-          return { id } as Prisma.GenreWhereUniqueInput;
+          const genre = await this.genreService.getOrCreateGenre(name);
+          return { genreId: genre.id };
         })
       );
       const themeIds = await Promise.all(
         data.themes.map(async (name) => {
-          const id = await this.themeService.getOrCreateTheme(name);
-          return { id } as Prisma.ThemeWhereUniqueInput;
+          const theme = await this.themeService.getOrCreateTheme(name);
+          return { themeId: theme.id };
         })
       );
 
       const lightNovelData: Prisma.LightNovelCreateInput = {
         ...data,
-        authors: { connect: authorIds },
-        genres: { connect: genreIds },
-        themes: { connect: themeIds }
+        authors: {
+          create: authorIds.map((author) => ({ authorId: author.authorId }))
+        },
+        genres: {
+          create: genreIds.map((genre) => ({ genreId: genre.genreId }))
+        },
+        themes: {
+          create: themeIds.map((theme) => ({ themeId: theme.themeId }))
+        }
       };
 
       return await prisma.lightNovel.create({ data: lightNovelData });

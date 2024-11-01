@@ -116,11 +116,15 @@ export class AnimeService {
               }
             ]
           },
-          ...(filterGenre ? [{ genres: { some: { id: filterGenre } } }] : []),
-          ...(filterStudio
-            ? [{ studios: { some: { id: filterStudio } } }]
+          ...(filterGenre
+            ? [{ genres: { some: { genreId: filterGenre } } }]
             : []),
-          ...(filterTheme ? [{ themes: { some: { id: filterTheme } } }] : []),
+          ...(filterStudio
+            ? [{ studios: { some: { studioId: filterStudio } } }]
+            : []),
+          ...(filterTheme
+            ? [{ themes: { some: { themeId: filterTheme } } }]
+            : []),
           ...(filterMALScore
             ? [
                 {
@@ -196,9 +200,9 @@ export class AnimeService {
       const anime = await prisma.anime.findUnique({
         where: { id },
         include: {
-          genres: { select: { id: true, name: true } },
-          studios: { select: { id: true, name: true } },
-          themes: { select: { id: true, name: true } },
+          genres: { select: { genre: { select: { id: true, name: true } } } },
+          studios: { select: { studio: { select: { id: true, name: true } } } },
+          themes: { select: { theme: { select: { id: true, name: true } } } },
           episodes: { orderBy: { number: "asc" } }
         }
       });
@@ -218,28 +222,34 @@ export class AnimeService {
     try {
       const genreIds = await Promise.all(
         data.genres.map(async (name) => {
-          const id = await this.genreService.getOrCreateGenre(name);
-          return { id } as Prisma.GenreWhereUniqueInput;
+          const genre = await this.genreService.getOrCreateGenre(name);
+          return { genreId: genre.id };
         })
       );
       const studioIds = await Promise.all(
         data.studios.map(async (name) => {
-          const id = await this.studioService.getOrCreateStudio(name);
-          return { id } as Prisma.StudioWhereUniqueInput;
+          const studio = await this.studioService.getOrCreateStudio(name);
+          return { studioId: studio.id };
         })
       );
       const themeIds = await Promise.all(
         data.themes.map(async (name) => {
-          const id = await this.themeService.getOrCreateTheme(name);
-          return { id } as Prisma.ThemeWhereUniqueInput;
+          const theme = await this.themeService.getOrCreateTheme(name);
+          return { themeId: theme.id };
         })
       );
 
       const animeData: Prisma.AnimeCreateInput = {
         ...data,
-        genres: { connect: genreIds },
-        studios: { connect: studioIds },
-        themes: { connect: themeIds },
+        genres: {
+          create: genreIds.map((genre) => ({ genreId: genre.genreId }))
+        },
+        studios: {
+          create: studioIds.map((studio) => ({ studioId: studio.studioId }))
+        },
+        themes: {
+          create: themeIds.map((theme) => ({ themeId: theme.themeId }))
+        },
         episodes: undefined
       };
 

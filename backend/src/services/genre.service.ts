@@ -30,7 +30,9 @@ export class GenreService {
 
       const includeCount: Prisma.GenreInclude = connected_media
         ? {
-            _count: { select: { anime: true, manga: true, lightNovel: true } }
+            _count: {
+              select: { animes: true, mangas: true, lightNovels: true }
+            }
           }
         : {};
 
@@ -51,9 +53,9 @@ export class GenreService {
           ? data.map((genre) => ({
               ...genre,
               connectedMediaCount:
-                genre._count.anime +
-                genre._count.manga +
-                genre._count.lightNovel
+                genre._count.animes +
+                genre._count.mangas +
+                genre._count.lightNovels
             }))
           : data;
 
@@ -76,9 +78,9 @@ export class GenreService {
           ? data.map((genre) => ({
               ...genre,
               connectedMediaCount:
-                genre._count.anime +
-                genre._count.manga +
-                genre._count.lightNovel
+                genre._count.animes +
+                genre._count.mangas +
+                genre._count.lightNovels
             }))
           : data;
 
@@ -130,7 +132,7 @@ export class GenreService {
     if (!genre) {
       genre = await this.createGenre({ name });
     }
-    return genre.id;
+    return genre;
   }
 
   async updateGenre(id: string, data: Prisma.GenreUpdateInput) {

@@ -116,7 +116,7 @@ export const mangaColumns: ColumnDef<MangaList>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <Link to={"manga/" + manga.id}>
+            <Link to={"/admin/manga/" + manga.id}>
               <DropdownMenuItem>View details</DropdownMenuItem>
             </Link>
           </DropdownMenuContent>

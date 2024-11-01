@@ -38,9 +38,9 @@ model Anime {
   duration              String
   score                 Float?
   images                Json
-  genres                Genre[]        @relation("AnimeGenres")
-  studios               Studio[]
-  themes                Theme[]        @relation("AnimeThemes")
+  genres                AnimeGenres[]
+  studios               AnimeStudios[]
+  themes                AnimeThemes[]
   synopsis              String
   trailer               String?
   malUrl                String
@@ -82,9 +82,9 @@ model Manga {
   volumesCount          Int?
   score                 Float?
   images                Json
-  authors               Author[]       @relation("MangaAuthors")
-  genres                Genre[]        @relation("MangaGenres")
-  themes                Theme[]        @relation("MangaThemes")
+  authors               MangaAuthors[]
+  genres                MangaGenres[]
+  themes                MangaThemes[]
   synopsis              String
   malUrl                String
   review                String?
@@ -102,8 +102,8 @@ model Manga {
 }
 
 model LightNovel {
-  id                    String         @id @default(uuid())
-  malId                 Int            @unique
+  id                    String              @id @default(uuid())
+  malId                 Int                 @unique
   status                String
   title                 String
   titleJapanese         String
@@ -113,9 +113,9 @@ model LightNovel {
   volumesCount          Int?
   score                 Float?
   images                Json
-  authors               Author[]       @relation("LightNovelAuthors")
-  genres                Genre[]        @relation("LightNovelGenres")
-  themes                Theme[]        @relation("LightNovelThemes")
+  authors               LightNovelAuthors[]
+  genres                LightNovelGenres[]
+  themes                LightNovelThemes[]
   synopsis              String
   malUrl                String
   review                String?
@@ -125,48 +125,129 @@ model LightNovel {
   charDevelopmentRating Int?
   originalityRating     Int?
   personalScore         Float?
-  progressStatus        ProgressStatus @default(PLANNED)
-  reviewImages          ReviewImage[]  @relation("LightNovelReviewImages")
-  consumedAt            DateTime?      @db.Date
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
+  progressStatus        ProgressStatus      @default(PLANNED)
+  reviewImages          ReviewImage[]       @relation("LightNovelReviewImages")
+  consumedAt            DateTime?           @db.Date
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
 }
 
 model Genre {
-  id         String       @id @default(uuid())
-  name       String       @unique
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  anime      Anime[]      @relation("AnimeGenres")
-  manga      Manga[]      @relation("MangaGenres")
-  lightNovel LightNovel[] @relation("LightNovelGenres")
+  id          String             @id @default(uuid())
+  name        String             @unique
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  animes      AnimeGenres[]
+  mangas      MangaGenres[]
+  lightNovels LightNovelGenres[]
 }
 
 model Studio {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  anime     Anime[]
+  id        String         @id @default(uuid())
+  name      String         @unique
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  animes    AnimeStudios[]
 }
 
 model Theme {
-  id         String       @id @default(uuid())
-  name       String       @unique
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  anime      Anime[]      @relation("AnimeThemes")
-  manga      Manga[]      @relation("MangaThemes")
-  lightNovel LightNovel[] @relation("LightNovelThemes")
+  id          String             @id @default(uuid())
+  name        String             @unique
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  animes      AnimeThemes[]
+  mangas      MangaThemes[]
+  lightNovels LightNovelThemes[]
 }
 
 model Author {
-  id         String       @id @default(uuid())
-  name       String       @unique
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  manga      Manga[]      @relation("MangaAuthors")
-  lightNovel LightNovel[] @relation("LightNovelAuthors")
+  id          String              @id @default(uuid())
+  name        String              @unique
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  mangas      MangaAuthors[]
+  lightNovels LightNovelAuthors[]
+}
+
+model AnimeGenres {
+  anime   Anime  @relation(fields: [animeId], references: [id])
+  animeId String
+  genre   Genre  @relation(fields: [genreId], references: [id])
+  genreId String
+
+  @@id([animeId, genreId])
+}
+
+model MangaGenres {
+  manga   Manga  @relation(fields: [mangaId], references: [id])
+  mangaId String
+  genre   Genre  @relation(fields: [genreId], references: [id])
+  genreId String
+
+  @@id([mangaId, genreId])
+}
+
+model LightNovelGenres {
+  lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id])
+  lightNovelId String
+  genre        Genre      @relation(fields: [genreId], references: [id])
+  genreId      String
+
+  @@id([lightNovelId, genreId])
+}
+
+model AnimeStudios {
+  anime    Anime  @relation(fields: [animeId], references: [id])
+  animeId  String
+  studio   Studio @relation(fields: [studioId], references: [id])
+  studioId String
+
+  @@id([animeId, studioId])
+}
+
+model AnimeThemes {
+  anime   Anime  @relation(fields: [animeId], references: [id])
+  animeId String
+  theme   Theme  @relation(fields: [themeId], references: [id])
+  themeId String
+
+  @@id([animeId, themeId])
+}
+
+model MangaThemes {
+  manga   Manga  @relation(fields: [mangaId], references: [id])
+  mangaId String
+  theme   Theme  @relation(fields: [themeId], references: [id])
+  themeId String
+
+  @@id([mangaId, themeId])
+}
+
+model LightNovelThemes {
+  lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id])
+  lightNovelId String
+  theme        Theme      @relation(fields: [themeId], references: [id])
+  themeId      String
+
+  @@id([lightNovelId, themeId])
+}
+
+model MangaAuthors {
+  manga    Manga  @relation(fields: [mangaId], references: [id])
+  mangaId  String
+  author   Author @relation(fields: [authorId], references: [id])
+  authorId String
+
+  @@id([mangaId, authorId])
+}
+
+model LightNovelAuthors {
+  lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id])
+  lightNovelId String
+  author       Author     @relation(fields: [authorId], references: [id])
+  authorId     String
+
+  @@id([lightNovelId, authorId])
 }
 
 model AdminPin {

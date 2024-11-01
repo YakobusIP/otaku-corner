@@ -32,7 +32,7 @@ export class StudioService {
         ? {
             _count: {
               select: {
-                anime: true
+                animes: true
               }
             }
           }
@@ -55,7 +55,7 @@ export class StudioService {
           connected_media
             ? data.map((studio) => ({
                 ...studio,
-                connectedMediaCount: studio._count.anime
+                connectedMediaCount: studio._count.animes
               }))
             : data;
 
@@ -78,7 +78,7 @@ export class StudioService {
           connected_media
             ? data.map((studio) => ({
                 ...studio,
-                connectedMediaCount: studio._count.anime
+                connectedMediaCount: studio._count.animes
               }))
             : data;
 
@@ -127,7 +127,7 @@ export class StudioService {
     if (!studio) {
       studio = await this.createStudio({ name });
     }
-    return studio.id;
+    return studio;
   }
 
   async updateStudio(id: string, data: Prisma.StudioUpdateInput) {
