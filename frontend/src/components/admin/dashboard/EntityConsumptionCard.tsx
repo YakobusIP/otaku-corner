@@ -144,14 +144,14 @@ export default function EntityConsumptionCard() {
 
   return (
     <Card className="w-full">
-      <CardHeader className="flex flex-col items-stretch justify-between space-y-0 p-0 sm:flex-row">
-        <div className="flex flex-col justify-center gap-1 px-6 py-5 sm:py-6">
+      <CardHeader className="flex flex-col items-stretch justify-between space-y-0 p-0 2xl:flex-row">
+        <div className="flex flex-col justify-center gap-1 px-6 py-5 2xl:py-6">
           <CardTitle>{activeChart} Consumption</CardTitle>
           <CardDescription>
             Top 10 {activeChart.toLowerCase()} medias consumed over the years
           </CardDescription>
         </div>
-        <div className="flex items-center justify-center gap-4 px-6 py-2 sm:py-6">
+        <div className="flex items-center justify-center gap-4 px-6 py-2 2xl:py-6">
           <Label>Entity Type</Label>
           <Select
             defaultValue={ENTITY_TYPE.GENRE}

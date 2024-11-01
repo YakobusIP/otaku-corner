@@ -40,6 +40,7 @@ class StatisticRouter {
       "/author-consumption",
       this.statisticController.getAuthorConsumption
     );
+    this.router.get("/all-time", this.statisticController.getAllTimeStatistics);
   }
 }
 

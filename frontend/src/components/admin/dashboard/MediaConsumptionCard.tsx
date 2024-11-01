@@ -103,12 +103,12 @@ export default function MediaConsumptionCard() {
 
   return (
     <Card className="w-full">
-      <CardHeader className="flex flex-col items-stretch justify-between space-y-0 p-0 sm:flex-row">
-        <div className="flex flex-col justify-center gap-1 px-6 py-5 sm:py-6">
+      <CardHeader className="flex flex-col items-stretch justify-between space-y-0 p-0 2xl:flex-row">
+        <div className="flex flex-col justify-center gap-1 px-6 py-5 2xl:py-6">
           <CardTitle>Media Consumption</CardTitle>
           <CardDescription>Medias consumed over the year</CardDescription>
         </div>
-        <div className="flex flex-col xl:flex-row items-center justify-center gap-4 px-6 py-2 sm:py-6">
+        <div className="flex flex-col xl:flex-row items-center justify-center gap-4 px-6 py-2 2xl:py-6">
           <div className="flex items-center justify-center gap-4">
             <Label>View</Label>
             <Select

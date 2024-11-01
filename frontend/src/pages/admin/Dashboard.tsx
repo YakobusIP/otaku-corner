@@ -1,3 +1,4 @@
+import AllTimeStatisticsCards from "@/components/admin/dashboard/AllTimeStatisticsCards";
 import EntityConsumptionCard from "@/components/admin/dashboard/EntityConsumptionCard";
 import MediaConsumptionCard from "@/components/admin/dashboard/MediaConsumptionCard";
 import ProgressStatusCard from "@/components/admin/dashboard/ProgressStatusCard";
@@ -38,6 +39,7 @@ export default function Dashboard() {
           </section>
           <section className="flex flex-col xl:flex-row items-center justify-center w-full gap-4">
             <ProgressStatusCard />
+            <AllTimeStatisticsCards />
           </section>
         </div>
       </main>

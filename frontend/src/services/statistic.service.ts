@@ -2,6 +2,7 @@ import interceptedAxios from "@/lib/axios";
 import { ApiResponse } from "@/types/api.type";
 import { AxiosError } from "axios";
 import {
+  AllTimeStatistic,
   AuthorConsumption,
   GenreConsumption,
   MediaConsumption,
@@ -151,6 +152,25 @@ const fetchAuthorConsumptionService = async (): Promise<
   }
 };
 
+const fetchAllTimeStatisticService = async (): Promise<
+  ApiResponse<AllTimeStatistic>
+> => {
+  try {
+    const response = await interceptedAxios.get(
+      `${BASE_STATISTIC_URL}/all-time`
+    );
+    return { success: true, data: response.data.data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
 export {
   fetchYearRangeService,
   fetchMediaConsumptionService,
@@ -158,5 +178,6 @@ export {
   fetchGenreConsumptionService,
   fetchStudioConsumptionService,
   fetchThemeConsumptionService,
-  fetchAuthorConsumptionService
+  fetchAuthorConsumptionService,
+  fetchAllTimeStatisticService
 };

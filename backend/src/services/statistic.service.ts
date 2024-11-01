@@ -348,4 +348,47 @@ export class StatisticService {
       throw new InternalServerError((error as Error).message);
     }
   };
+
+  getAllTimeStatistics = async () => {
+    try {
+      const consumedAnimeCount = await prisma.anime.count({
+        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
+      });
+      const consumedMangaCount = await prisma.manga.count({
+        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
+      });
+      const consumedLightNovelCount = await prisma.lightNovel.count({
+        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
+      });
+
+      const averageAnimePersonalScore = await prisma.anime.aggregate({
+        _avg: { personalScore: true }
+      });
+      const averageMangaPersonalScore = await prisma.manga.aggregate({
+        _avg: { personalScore: true }
+      });
+      const averageLightNovelPersonalScore = await prisma.lightNovel.aggregate({
+        _avg: { personalScore: true }
+      });
+
+      const scores = [
+        averageAnimePersonalScore._avg.personalScore,
+        averageMangaPersonalScore._avg.personalScore,
+        averageLightNovelPersonalScore._avg.personalScore
+      ];
+
+      const validScores = scores.filter((score) => score !== null);
+      const averagePersonalScore =
+        validScores.reduce((sum, score) => sum + score, 0) / validScores.length;
+
+      return {
+        animeCount: consumedAnimeCount,
+        mangaCount: consumedMangaCount,
+        lightNovelCount: consumedLightNovelCount,
+        averagePersonalScore: averagePersonalScore
+      };
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  };
 }

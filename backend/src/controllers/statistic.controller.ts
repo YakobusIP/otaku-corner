@@ -155,4 +155,18 @@ export class StatisticController {
       return next(error);
     }
   };
+
+  getAllTimeStatistics = async (
+    _: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const statistics = await this.statisticService.getAllTimeStatistics();
+
+      return res.json({ data: statistics });
+    } catch (error) {
+      return next(error);
+    }
+  };
 }

@@ -42,6 +42,13 @@ type AuthorConsumption = {
   totalCount: number;
 };
 
+type AllTimeStatistic = {
+  animeCount: number;
+  mangaCount: number;
+  lightNovelCount: number;
+  averagePersonalScore: number;
+};
+
 export type {
   MediaConsumption,
   MediaProgress,
@@ -49,5 +56,6 @@ export type {
   GenreConsumption,
   StudioConsumption,
   ThemeConsumption,
-  AuthorConsumption
+  AuthorConsumption,
+  AllTimeStatistic
 };

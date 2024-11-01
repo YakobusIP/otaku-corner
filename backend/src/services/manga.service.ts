@@ -40,8 +40,7 @@ export class MangaService {
       artStyleRating,
       charDevelopmentRating,
       worldBuildingRating,
-      originalityRating,
-      personalScore
+      originalityRating
     } = data;
 
     if (
@@ -49,8 +48,7 @@ export class MangaService {
       artStyleRating &&
       charDevelopmentRating &&
       worldBuildingRating &&
-      originalityRating &&
-      personalScore
+      originalityRating
     ) {
       const calculatedScore =
         (storylineRating as number) *

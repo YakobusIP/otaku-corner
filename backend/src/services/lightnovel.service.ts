@@ -40,8 +40,7 @@ export class LightNovelService {
       worldBuildingRating,
       writingStyleRating,
       charDevelopmentRating,
-      originalityRating,
-      personalScore
+      originalityRating
     } = data;
 
     if (
@@ -49,8 +48,7 @@ export class LightNovelService {
       worldBuildingRating &&
       writingStyleRating &&
       charDevelopmentRating &&
-      originalityRating &&
-      personalScore
+      originalityRating
     ) {
       const calculatedScore =
         (storylineRating as number) *

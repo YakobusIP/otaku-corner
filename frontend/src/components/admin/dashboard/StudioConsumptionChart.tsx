@@ -44,7 +44,7 @@ export default function StudioConsumptionChart({ isLoading, data }: Props) {
         accessibilityLayer
         data={data}
         layout="vertical"
-        margin={{ left: 50 }}
+        margin={{ left: 40 }}
       >
         <CartesianGrid horizontal={false} />
         <XAxis type="number" />

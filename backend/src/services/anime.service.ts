@@ -47,8 +47,7 @@ export class AnimeService {
       qualityRating,
       voiceActingRating,
       soundTrackRating,
-      charDevelopmentRating,
-      personalScore
+      charDevelopmentRating
     } = data;
 
     if (
@@ -56,8 +55,7 @@ export class AnimeService {
       qualityRating &&
       voiceActingRating &&
       soundTrackRating &&
-      charDevelopmentRating &&
-      personalScore
+      charDevelopmentRating
     ) {
       const calculatedScore =
         (storylineRating as number) *
