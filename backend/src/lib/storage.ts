@@ -2,10 +2,10 @@ import { Storage } from "@google-cloud/storage";
 import path from "path";
 import { env } from "./env";
 
-interface GlobalForStorage {
+type GlobalForStorage = {
   storage: Storage;
   bucket: ReturnType<Storage["bucket"]>;
-}
+};
 
 const globalForStorage = globalThis as unknown as GlobalForStorage;
 

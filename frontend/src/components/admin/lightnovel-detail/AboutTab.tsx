@@ -4,12 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
 import { StarIcon, ExternalLinkIcon } from "lucide-react";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
+import EditVolumes from "./EditVolumes";
 
 type Props = {
   lightNovelDetail: LightNovelDetail;
+  resetParent: () => Promise<void>;
 };
 
-export default function AboutTab({ lightNovelDetail }: Props) {
+export default function AboutTab({ lightNovelDetail, resetParent }: Props) {
   return (
     <TabsContent value="about">
       <div className="flex flex-col gap-4 pt-4">
@@ -33,10 +35,6 @@ export default function AboutTab({ lightNovelDetail }: Props) {
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground">Published</Label>
             <p>{lightNovelDetail.published}</p>
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label className="text-muted-foreground">Chapters</Label>
-            <p>{lightNovelDetail.chaptersCount ?? "Unknown"}</p>
           </div>
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground">Volumes</Label>
@@ -91,6 +89,10 @@ export default function AboutTab({ lightNovelDetail }: Props) {
               </div>
             )}
           </div>
+          <EditVolumes
+            lightNovelDetail={lightNovelDetail}
+            resetParent={resetParent}
+          />
         </div>
       </div>
     </TabsContent>

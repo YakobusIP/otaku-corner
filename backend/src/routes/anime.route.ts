@@ -25,7 +25,8 @@ class AnimeRouter {
   private initializeRoutes() {
     this.router.get("/", this.animeController.getAllAnimes);
     this.router.get("/:id", this.animeController.getAnimeById);
-    this.router.post("/", authMiddleware, this.animeController.createAnime);
+    this.router.get("/duplicate/:id", this.animeController.getAnimeDuplicate);
+    this.router.post("/", authMiddleware, this.animeController.createAnimeBulk);
     this.router.put("/:id", authMiddleware, this.animeController.updateAnime);
     this.router.delete(
       "/",

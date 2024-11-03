@@ -27,10 +27,14 @@ class LightNovelRouter {
   private initializeRoutes() {
     this.router.get("/", this.lightNovelController.getAllLightNovels);
     this.router.get("/:id", this.lightNovelController.getLightNovelById);
+    this.router.get(
+      "/duplicate/:id",
+      this.lightNovelController.getLightNovelDuplicate
+    );
     this.router.post(
       "/",
       authMiddleware,
-      this.lightNovelController.createLightNovel
+      this.lightNovelController.createLightNovelBulk
     );
     this.router.put(
       "/:id",

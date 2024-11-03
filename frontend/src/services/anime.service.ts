@@ -3,7 +3,7 @@ import interceptedAxios from "@/lib/axios";
 import {
   AnimeDetail,
   AnimeList,
-  AnimePostRequest,
+  AnimeCreateRequest,
   AnimeReview
 } from "@/types/anime.type";
 import {
@@ -73,11 +73,30 @@ const fetchAnimeByIdService = async (
   }
 };
 
+const fetchAnimeDuplicate = async (
+  malId: string
+): Promise<ApiResponse<{ exists: boolean }>> => {
+  try {
+    const response = await interceptedAxios.get(
+      `${BASE_ANIME_URL}/duplicate/${malId}`
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
 const addAnimeService = async (
-  data: AnimePostRequest
+  data: AnimeCreateRequest[]
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
-    const response = await interceptedAxios.post(BASE_ANIME_URL, data);
+    const response = await interceptedAxios.post(BASE_ANIME_URL, { data });
     return { success: true, data: response.data };
   } catch (error) {
     return {
@@ -151,6 +170,7 @@ const deleteAnimeService = async (
 export {
   fetchAllAnimeService,
   fetchAnimeByIdService,
+  fetchAnimeDuplicate,
   addAnimeService,
   updateAnimeReviewService,
   updateAnimeProgressStatusService,

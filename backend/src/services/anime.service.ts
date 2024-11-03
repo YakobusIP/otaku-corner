@@ -207,7 +207,25 @@ export class AnimeService {
 
       if (!anime) throw new NotFoundError("Anime not found!");
 
-      return anime;
+      const genreNames = anime.genres.map((g) => ({
+        id: g.genre.id,
+        name: g.genre.name
+      }));
+      const studioNames = anime.studios.map((s) => ({
+        id: s.studio.id,
+        name: s.studio.name
+      }));
+      const themeNames = anime.themes.map((t) => ({
+        id: t.theme.id,
+        name: t.theme.name
+      }));
+
+      return {
+        ...anime,
+        genres: genreNames,
+        studios: studioNames,
+        themes: themeNames
+      };
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error;
@@ -216,63 +234,153 @@ export class AnimeService {
     }
   }
 
-  async createAnime(data: CustomAnimeCreateInput) {
+  async getAnimeDuplicate(id: number) {
     try {
-      const genreIds = await Promise.all(
-        data.genres.map(async (name) => {
-          const genre = await this.genreService.getOrCreateGenre(name);
-          return { genreId: genre.id };
-        })
-      );
-      const studioIds = await Promise.all(
-        data.studios.map(async (name) => {
-          const studio = await this.studioService.getOrCreateStudio(name);
-          return { studioId: studio.id };
-        })
-      );
-      const themeIds = await Promise.all(
-        data.themes.map(async (name) => {
-          const theme = await this.themeService.getOrCreateTheme(name);
-          return { themeId: theme.id };
-        })
-      );
+      const anime = await prisma.anime.findUnique({
+        where: { malId: id }
+      });
 
-      const animeData: Prisma.AnimeCreateInput = {
-        ...data,
-        genres: {
-          create: genreIds.map((genre) => ({ genreId: genre.genreId }))
-        },
-        studios: {
-          create: studioIds.map((studio) => ({ studioId: studio.studioId }))
-        },
-        themes: {
-          create: themeIds.map((theme) => ({ themeId: theme.themeId }))
-        },
-        episodes: undefined
-      };
+      return !!anime;
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  }
 
-      if (data.episodes && data.episodes.length > 0) {
-        return await prisma.anime.create({
-          data: {
-            ...animeData,
-            episodes: { createMany: { data: data.episodes } }
+  async createAnimeBulk(data: CustomAnimeCreateInput[]) {
+    try {
+      const createdAnimes = await prisma.$transaction(async (prisma) => {
+        const allGenres = Array.from(
+          new Set(data.flatMap((anime) => anime.genres.map((g) => g.trim())))
+        );
+        const allStudios = Array.from(
+          new Set(data.flatMap((anime) => anime.studios.map((s) => s.trim())))
+        );
+        const allThemes = Array.from(
+          new Set(data.flatMap((anime) => anime.themes.map((t) => t.trim())))
+        );
+
+        const [genres, studios, themes] = await Promise.all([
+          Promise.all(
+            allGenres.map((name) => this.genreService.getOrCreateGenre(name))
+          ),
+          Promise.all(
+            allStudios.map((name) => this.studioService.getOrCreateStudio(name))
+          ),
+          Promise.all(
+            allThemes.map((name) => this.themeService.getOrCreateTheme(name))
+          )
+        ]);
+
+        const genreMap: Record<string, string> = {};
+        genres.forEach((genre) => {
+          genreMap[genre.name.toLowerCase()] = genre.id;
+        });
+
+        const studioMap: Record<string, string> = {};
+        studios.forEach((studio) => {
+          studioMap[studio.name.toLowerCase()] = studio.id;
+        });
+
+        const themeMap: Record<string, string> = {};
+        themes.forEach((theme) => {
+          themeMap[theme.name.toLowerCase()] = theme.id;
+        });
+
+        const createdAnimes = await prisma.anime.createManyAndReturn({
+          data: data.map(
+            ({
+              genres: _genres,
+              studios: _studios,
+              themes: _themes,
+              ...anime
+            }) => ({
+              ...anime
+            })
+          ),
+          skipDuplicates: true
+        });
+
+        const animeGenresData: Prisma.AnimeGenresCreateManyInput[] = [];
+        const animeStudiosData: Prisma.AnimeStudiosCreateManyInput[] = [];
+        const animeThemesData: Prisma.AnimeThemesCreateManyInput[] = [];
+
+        createdAnimes.forEach((record) => {
+          const originalAnime = data.find((a) => a.malId === record.malId);
+          if (originalAnime) {
+            originalAnime.genres.forEach((name) => {
+              const genreId = genreMap[name.toLowerCase()];
+              if (genreId) {
+                animeGenresData.push({
+                  animeId: record.id,
+                  genreId
+                });
+              }
+            });
+
+            originalAnime.studios.forEach((name) => {
+              const studioId = studioMap[name.toLowerCase()];
+              if (studioId) {
+                animeStudiosData.push({
+                  animeId: record.id,
+                  studioId
+                });
+              }
+            });
+
+            originalAnime.themes.forEach((name) => {
+              const themeId = themeMap[name.toLowerCase()];
+              if (themeId) {
+                animeThemesData.push({
+                  animeId: record.id,
+                  themeId
+                });
+              }
+            });
           }
         });
-      } else {
-        return await prisma.anime.create({ data: animeData });
-      }
+
+        await Promise.all([
+          prisma.animeGenres.createMany({
+            data: animeGenresData,
+            skipDuplicates: true
+          }),
+          prisma.animeStudios.createMany({
+            data: animeStudiosData,
+            skipDuplicates: true
+          }),
+          prisma.animeThemes.createMany({
+            data: animeThemesData,
+            skipDuplicates: true
+          })
+        ]);
+
+        return createdAnimes;
+      });
+
+      return createdAnimes;
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        throw new PrismaUniqueError("Anime already exists!");
+        throw new PrismaUniqueError("One or more anime records already exist!");
       }
 
       if (error instanceof Prisma.PrismaClientValidationError) {
         throw new BadRequestError("Invalid request body!");
       }
 
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
+  async addAnimeEpisodes(episodes: Prisma.AnimeEpisodeCreateManyInput[]) {
+    try {
+      return await prisma.animeEpisode.createMany({
+        data: episodes,
+        skipDuplicates: true
+      });
+    } catch (error) {
       throw new InternalServerError((error as Error).message);
     }
   }

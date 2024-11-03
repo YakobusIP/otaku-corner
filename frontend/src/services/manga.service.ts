@@ -2,7 +2,7 @@ import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 import {
   MangaDetail,
   MangaList,
-  MangaPostRequest,
+  MangaCreateRequest,
   MangaReview
 } from "@/types/manga.type";
 import {
@@ -71,11 +71,30 @@ const fetchMangaByIdService = async (
   }
 };
 
+const fetchMangaDuplicate = async (
+  malId: string
+): Promise<ApiResponse<{ exists: boolean }>> => {
+  try {
+    const response = await interceptedAxios.get(
+      `${BASE_MANGA_URL}/duplicate/${malId}`
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
 const addMangaService = async (
-  data: MangaPostRequest
+  data: MangaCreateRequest[]
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
-    const response = await interceptedAxios.post(BASE_MANGA_URL, data);
+    const response = await interceptedAxios.post(BASE_MANGA_URL, { data });
     return { success: true, data: response.data };
   } catch (error) {
     return {
@@ -129,6 +148,28 @@ const updateMangaProgressStatusService = async (
   }
 };
 
+const updateMangaVolumeAndChaptersService = async (
+  id: string,
+  chaptersCount: number,
+  volumesCount: number
+): Promise<ApiResponse<MessageResponse>> => {
+  try {
+    const response = await interceptedAxios.put(`${BASE_MANGA_URL}/${id}`, {
+      chaptersCount,
+      volumesCount
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
 const deleteMangaService = async (
   ids: string[]
 ): Promise<ApiResponse<void>> => {
@@ -149,8 +190,10 @@ const deleteMangaService = async (
 export {
   fetchAllMangaService,
   fetchMangaByIdService,
+  fetchMangaDuplicate,
   addMangaService,
   updateMangaReviewService,
   updateMangaProgressStatusService,
+  updateMangaVolumeAndChaptersService,
   deleteMangaService
 };

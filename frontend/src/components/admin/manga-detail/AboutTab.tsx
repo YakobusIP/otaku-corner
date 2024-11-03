@@ -4,12 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
 import { StarIcon, ExternalLinkIcon } from "lucide-react";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
+import EditChapterVolumes from "./EditChapterVolumes";
 
 type Props = {
   mangaDetail: MangaDetail;
+  resetParent: () => Promise<void>;
 };
 
-export default function AboutTab({ mangaDetail }: Props) {
+export default function AboutTab({ mangaDetail, resetParent }: Props) {
   return (
     <TabsContent value="about">
       <div className="flex flex-col gap-4 pt-4">
@@ -89,6 +91,10 @@ export default function AboutTab({ mangaDetail }: Props) {
               </div>
             )}
           </div>
+          <EditChapterVolumes
+            mangaDetail={mangaDetail}
+            resetParent={resetParent}
+          />
         </div>
       </div>
     </TabsContent>

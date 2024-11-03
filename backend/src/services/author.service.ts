@@ -89,19 +89,6 @@ export class AuthorService {
     }
   }
 
-  async getAuthor(name: string) {
-    try {
-      return await prisma.author.findFirst({
-        where: { name: { equals: name, mode: "insensitive" } }
-      });
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
-      throw new InternalServerError((error as Error).message);
-    }
-  }
-
   async createAuthor(data: Prisma.AuthorCreateInput) {
     try {
       return await prisma.author.create({ data });
@@ -122,11 +109,26 @@ export class AuthorService {
   }
 
   async getOrCreateAuthor(name: string) {
-    let author = await this.getAuthor(name);
-    if (!author) {
-      author = await this.createAuthor({ name });
+    try {
+      return await prisma.author.upsert({
+        where: { name },
+        update: {},
+        create: { name }
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new PrismaUniqueError("Author already exists!");
+      }
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request body!");
+      }
+
+      throw new InternalServerError((error as Error).message);
     }
-    return author;
   }
 
   async updateAuthor(id: string, data: Prisma.AuthorUpdateInput) {

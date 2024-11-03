@@ -15,69 +15,69 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronDownIcon, CheckIcon, Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Manga, MangaClient, JikanResponse } from "@tutkli/jikan-ts";
-import { useEffect, useState, Dispatch, SetStateAction } from "react";
+import { Manga, MangaClient } from "@tutkli/jikan-ts";
+import {
+  useEffect,
+  useState,
+  Dispatch,
+  SetStateAction,
+  useRef,
+  useCallback
+} from "react";
 import { useDebounce } from "use-debounce";
+import { useToast } from "@/components/ui/use-toast";
 
 type Props = {
-  chosenManga?: Manga;
-  setChosenManga: Dispatch<SetStateAction<Manga | undefined>>;
-  setIsLoadingChosenManga: Dispatch<SetStateAction<boolean>>;
+  selectedManga: Manga[];
+  setSelectedManga: Dispatch<SetStateAction<Manga[]>>;
 };
 
+const mangaClient = new MangaClient();
+
 export default function SearchMangaJikan({
-  chosenManga,
-  setChosenManga,
-  setIsLoadingChosenManga
+  selectedManga,
+  setSelectedManga
 }: Props) {
-  const [openMangaList, setOpenMangaList] = useState(false);
+  const toast = useToast();
+  const toastRef = useRef(toast.toast);
   const [mangaList, setMangaList] = useState<Manga[]>([]);
   const [isLoadingMangaList, setIsLoadingMangaList] = useState(false);
   const [searchManga, setSearchManga] = useState("");
   const [debouncedSearch] = useDebounce(searchManga, 1000);
 
-  useEffect(() => {
-    const mangaClient = new MangaClient();
+  const fetchMangaList = useCallback(async () => {
     setIsLoadingMangaList(true);
-    mangaClient
-      .getMangaSearch({ limit: 10, q: debouncedSearch, type: "Manga" })
-      .then((response: JikanResponse<Manga[]>) => {
-        setMangaList(response.data);
-      })
-      .finally(() => {
-        setIsLoadingMangaList(false);
+    try {
+      const response = await mangaClient.getMangaSearch({
+        limit: 10,
+        q: debouncedSearch,
+        type: "Manga"
       });
+      setMangaList(response.data);
+    } catch (error) {
+      toastRef.current({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong",
+        description: "Failed to fetch manga list from Jikan"
+      });
+    } finally {
+      setIsLoadingMangaList(false);
+    }
   }, [debouncedSearch]);
 
-  const fetchMangaDetail = (id: string) => {
-    const mangaClient = new MangaClient();
-    setIsLoadingChosenManga(true);
-    mangaClient
-      .getMangaById(parseInt(id))
-      .then((response: JikanResponse<Manga>) => {
-        setChosenManga(response.data);
-      })
-      .finally(() => {
-        setIsLoadingChosenManga(false);
-      });
-  };
+  useEffect(() => {
+    fetchMangaList();
+  }, [fetchMangaList]);
 
   return (
-    <Popover open={openMangaList} onOpenChange={setOpenMangaList}>
+    <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
-          aria-expanded={openMangaList}
           className="w-full justify-between"
         >
-          <p className="truncate">
-            {chosenManga
-              ? `${chosenManga.title} - ${new Date(
-                  chosenManga.published.from
-                ).getFullYear()}`
-              : "Select manga..."}
-          </p>
+          <p className="truncate">Select manga...</p>
           <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -123,14 +123,16 @@ export default function SearchMangaJikan({
                     value={JSON.stringify(manga)}
                     onSelect={(currentValue) => {
                       const parsedValue: Manga = JSON.parse(currentValue);
-                      fetchMangaDetail(parsedValue.mal_id.toString());
-                      setOpenMangaList(false);
+                      setSelectedManga((prev) => [...prev, parsedValue]);
                     }}
                   >
                     <CheckIcon
                       className={cn(
                         "mr-2 h-4 w-4",
-                        chosenManga && chosenManga.mal_id === manga.mal_id
+                        selectedManga &&
+                          selectedManga.some(
+                            (selected) => selected.mal_id === manga.mal_id
+                          )
                           ? "opacity-100"
                           : "opacity-0"
                       )}

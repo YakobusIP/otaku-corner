@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { MangaService } from "../services/manga.service";
 import { Prisma } from "@prisma/client";
 import { UnprocessableEntityError } from "../lib/error";
+import { fetchMangaDataQueue } from "../lib/queues/manga.queue";
 
 export class MangaController {
   constructor(private readonly mangaService: MangaService) {}
@@ -51,10 +52,35 @@ export class MangaController {
     }
   };
 
-  createManga = async (req: Request, res: Response, next: NextFunction) => {
+  getMangaDuplicate = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      await this.mangaService.createManga(req.body);
-      return res.status(201).json({ message: "Manga created successfully!" });
+      const exists = await this.mangaService.getMangaDuplicate(
+        parseInt(req.params.id)
+      );
+      return res.json({ exists });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  createMangaBulk = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const mangaList = await this.mangaService.createMangaBulk(req.body.data);
+      res.status(201).json({ message: "Manga(s) created successfully!" });
+
+      mangaList.forEach((manga) => {
+        if (manga.status !== "Upcoming") {
+          fetchMangaDataQueue.add({
+            manga_id: manga.id,
+            title: manga.title,
+            titleJapanese: manga.titleJapanese
+          });
+        }
+      });
     } catch (error) {
       return next(error);
     }

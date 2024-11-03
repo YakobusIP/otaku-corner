@@ -5,14 +5,14 @@ import {
   ThemeEntityPartial
 } from "@/types/entity.type";
 
-type LightNovelPostRequest = {
+type LightNovelEntity = {
+  id: string;
   malId: number;
   status: string;
   title: string;
   titleJapanese: string;
   titleSynonyms: string;
   published: string;
-  chaptersCount?: number | null;
   volumesCount?: number | null;
   score: number;
   images: {
@@ -34,10 +34,33 @@ type LightNovelPostRequest = {
   progressStatus?: PROGRESS_STATUS;
   personalScore?: number | null;
   consumedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type LightNovelCreateRequest = {
+  malId: number;
+  status: string;
+  title: string;
+  titleJapanese: string;
+  titleSynonyms: string;
+  published: string;
+  volumesCount?: number | null;
+  score: number;
+  images: {
+    image_url: string;
+    large_image_url?: string | null;
+    small_image_url?: string | null;
+  };
+  authors: string[];
+  genres: string[];
+  themes: string[];
+  synopsis: string;
+  malUrl: string;
 };
 
 type LightNovelDetail = Omit<
-  LightNovelPostRequest,
+  LightNovelEntity,
   "authors" | "genres" | "themes"
 > & {
   id: string;
@@ -62,7 +85,7 @@ type LightNovelList = {
 };
 
 type LightNovelReview = Pick<
-  LightNovelPostRequest,
+  LightNovelEntity,
   | "review"
   | "consumedAt"
   | "progressStatus"
@@ -85,7 +108,8 @@ type LightNovelFilterSort = {
 };
 
 export type {
-  LightNovelPostRequest,
+  LightNovelEntity,
+  LightNovelCreateRequest,
   LightNovelDetail,
   LightNovelList,
   LightNovelReview,

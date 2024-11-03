@@ -15,69 +15,69 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronDownIcon, CheckIcon, Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Manga, MangaClient, JikanResponse } from "@tutkli/jikan-ts";
-import { useEffect, useState, Dispatch, SetStateAction } from "react";
+import { Manga, MangaClient } from "@tutkli/jikan-ts";
+import {
+  useEffect,
+  useState,
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useRef
+} from "react";
 import { useDebounce } from "use-debounce";
+import { useToast } from "@/components/ui/use-toast";
 
 type Props = {
-  chosenLightNovel?: Manga;
-  setChosenLightNovel: Dispatch<SetStateAction<Manga | undefined>>;
-  setIsLoadingChosenLightNovel: Dispatch<SetStateAction<boolean>>;
+  selectedLightNovel: Manga[];
+  setSelectedLightNovel: Dispatch<SetStateAction<Manga[]>>;
 };
 
+const mangaClient = new MangaClient();
+
 export default function SearchLightNovelJikan({
-  chosenLightNovel,
-  setChosenLightNovel,
-  setIsLoadingChosenLightNovel
+  selectedLightNovel,
+  setSelectedLightNovel
 }: Props) {
-  const [openLightNovelList, setOpenLightNovelList] = useState(false);
+  const toast = useToast();
+  const toastRef = useRef(toast.toast);
   const [lightNovelList, setLightNovelList] = useState<Manga[]>([]);
   const [isLoadingLightNovelList, setIsLoadingLightNovelList] = useState(false);
   const [searchLightNovel, setSearchLightNovel] = useState("");
   const [debouncedSearch] = useDebounce(searchLightNovel, 1000);
 
-  useEffect(() => {
-    const mangaClient = new MangaClient();
+  const fetchLightNovelList = useCallback(async () => {
     setIsLoadingLightNovelList(true);
-    mangaClient
-      .getMangaSearch({ limit: 10, q: debouncedSearch, type: "Lightnovel" })
-      .then((response: JikanResponse<Manga[]>) => {
-        setLightNovelList(response.data);
-      })
-      .finally(() => {
-        setIsLoadingLightNovelList(false);
+    try {
+      const response = await mangaClient.getMangaSearch({
+        limit: 10,
+        q: debouncedSearch,
+        type: "Lightnovel"
       });
+      setLightNovelList(response.data);
+    } catch (error) {
+      toastRef.current({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong",
+        description: "Failed to fetch light novel list from Jikan"
+      });
+    } finally {
+      setIsLoadingLightNovelList(false);
+    }
   }, [debouncedSearch]);
 
-  const fetchLightNovelDetail = (id: string) => {
-    const mangaClient = new MangaClient();
-    setIsLoadingChosenLightNovel(true);
-    mangaClient
-      .getMangaById(parseInt(id))
-      .then((response: JikanResponse<Manga>) => {
-        setChosenLightNovel(response.data);
-      })
-      .finally(() => {
-        setIsLoadingChosenLightNovel(false);
-      });
-  };
+  useEffect(() => {
+    fetchLightNovelList();
+  }, [fetchLightNovelList]);
 
   return (
-    <Popover open={openLightNovelList} onOpenChange={setOpenLightNovelList}>
+    <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
-          aria-expanded={openLightNovelList}
           className="w-full justify-between"
         >
-          <p className="truncate">
-            {chosenLightNovel
-              ? `${chosenLightNovel.title} - ${new Date(
-                  chosenLightNovel.published.from
-                ).getFullYear()}`
-              : "Select light novel..."}
-          </p>
+          <p className="truncate">Select light novel...</p>
           <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -123,15 +123,16 @@ export default function SearchLightNovelJikan({
                     value={JSON.stringify(lightNovel)}
                     onSelect={(currentValue) => {
                       const parsedValue: Manga = JSON.parse(currentValue);
-                      fetchLightNovelDetail(parsedValue.mal_id.toString());
-                      setOpenLightNovelList(false);
+                      setSelectedLightNovel((prev) => [...prev, parsedValue]);
                     }}
                   >
                     <CheckIcon
                       className={cn(
                         "mr-2 h-4 w-4",
-                        chosenLightNovel &&
-                          chosenLightNovel.mal_id === lightNovel.mal_id
+                        selectedLightNovel &&
+                          selectedLightNovel.some(
+                            (selected) => selected.mal_id === lightNovel.mal_id
+                          )
                           ? "opacity-100"
                           : "opacity-0"
                       )}

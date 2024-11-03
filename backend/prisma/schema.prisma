@@ -1,11 +1,13 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [citext]
 }
 
 enum ProgressStatus {
@@ -19,6 +21,12 @@ enum ProgressStatus {
 enum ErrorType {
   WARN
   ERROR
+}
+
+enum QueueStatus {
+  QUEUED
+  COMPLETED
+  FAILED
 }
 
 model Anime {
@@ -109,7 +117,6 @@ model LightNovel {
   titleJapanese         String
   titleSynonyms         String
   published             String
-  chaptersCount         Int?
   volumesCount          Int?
   score                 Float?
   images                Json
@@ -134,7 +141,7 @@ model LightNovel {
 
 model Genre {
   id          String             @id @default(uuid())
-  name        String             @unique
+  name        String             @unique @db.Citext
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   animes      AnimeGenres[]
@@ -144,7 +151,7 @@ model Genre {
 
 model Studio {
   id        String         @id @default(uuid())
-  name      String         @unique
+  name      String         @unique @db.Citext
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   animes    AnimeStudios[]
@@ -152,7 +159,7 @@ model Studio {
 
 model Theme {
   id          String             @id @default(uuid())
-  name        String             @unique
+  name        String             @unique @db.Citext
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   animes      AnimeThemes[]
@@ -162,7 +169,7 @@ model Theme {
 
 model Author {
   id          String              @id @default(uuid())
-  name        String              @unique
+  name        String              @unique @db.Citext
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
   mangas      MangaAuthors[]
@@ -170,81 +177,81 @@ model Author {
 }
 
 model AnimeGenres {
-  anime   Anime  @relation(fields: [animeId], references: [id])
+  anime   Anime  @relation(fields: [animeId], references: [id], onDelete: Cascade)
   animeId String
-  genre   Genre  @relation(fields: [genreId], references: [id])
+  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
   genreId String
 
   @@id([animeId, genreId])
 }
 
 model MangaGenres {
-  manga   Manga  @relation(fields: [mangaId], references: [id])
+  manga   Manga  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
   mangaId String
-  genre   Genre  @relation(fields: [genreId], references: [id])
+  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
   genreId String
 
   @@id([mangaId, genreId])
 }
 
 model LightNovelGenres {
-  lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id])
+  lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id], onDelete: Cascade)
   lightNovelId String
-  genre        Genre      @relation(fields: [genreId], references: [id])
+  genre        Genre      @relation(fields: [genreId], references: [id], onDelete: Cascade)
   genreId      String
 
   @@id([lightNovelId, genreId])
 }
 
 model AnimeStudios {
-  anime    Anime  @relation(fields: [animeId], references: [id])
+  anime    Anime  @relation(fields: [animeId], references: [id], onDelete: Cascade)
   animeId  String
-  studio   Studio @relation(fields: [studioId], references: [id])
+  studio   Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
   studioId String
 
   @@id([animeId, studioId])
 }
 
 model AnimeThemes {
-  anime   Anime  @relation(fields: [animeId], references: [id])
+  anime   Anime  @relation(fields: [animeId], references: [id], onDelete: Cascade)
   animeId String
-  theme   Theme  @relation(fields: [themeId], references: [id])
+  theme   Theme  @relation(fields: [themeId], references: [id], onDelete: Cascade)
   themeId String
 
   @@id([animeId, themeId])
 }
 
 model MangaThemes {
-  manga   Manga  @relation(fields: [mangaId], references: [id])
+  manga   Manga  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
   mangaId String
-  theme   Theme  @relation(fields: [themeId], references: [id])
+  theme   Theme  @relation(fields: [themeId], references: [id], onDelete: Cascade)
   themeId String
 
   @@id([mangaId, themeId])
 }
 
 model LightNovelThemes {
-  lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id])
+  lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id], onDelete: Cascade)
   lightNovelId String
-  theme        Theme      @relation(fields: [themeId], references: [id])
+  theme        Theme      @relation(fields: [themeId], references: [id], onDelete: Cascade)
   themeId      String
 
   @@id([lightNovelId, themeId])
 }
 
 model MangaAuthors {
-  manga    Manga  @relation(fields: [mangaId], references: [id])
+  manga    Manga  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
   mangaId  String
-  author   Author @relation(fields: [authorId], references: [id])
+  author   Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
 
   @@id([mangaId, authorId])
 }
 
 model LightNovelAuthors {
-  lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id])
+  lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id], onDelete: Cascade)
   lightNovelId String
-  author       Author     @relation(fields: [authorId], references: [id])
+  author       Author     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId     String
 
   @@id([lightNovelId, authorId])
@@ -294,4 +301,16 @@ model ErrorLog {
   stack      String?
   route      String
   timestamp  DateTime  @default(now())
+}
+
+model QueueLog {
+  id          String      @id @default(uuid())
+  jobId       String      @unique
+  queueName   String
+  status      QueueStatus
+  data        Json
+  result      Json?
+  error       String?
+  timestamp   DateTime    @default(now())
+  completedAt DateTime?
 }

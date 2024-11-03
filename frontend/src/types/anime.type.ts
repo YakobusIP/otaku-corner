@@ -5,7 +5,8 @@ import {
   ThemeEntityPartial
 } from "@/types/entity.type";
 
-type AnimePostRequest = {
+type AnimeEntity = {
+  id: string;
   malId: number;
   type: string;
   status: string;
@@ -40,10 +41,40 @@ type AnimePostRequest = {
   charDevelopmentRating?: number | null;
   progressStatus?: PROGRESS_STATUS;
   personalScore?: number | null;
-  consumedAt: Date | null;
+  consumedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
-type AnimeDetail = Omit<AnimePostRequest, "genres" | "studios" | "themes"> & {
+type AnimeCreateRequest = {
+  malId: number;
+  type: string;
+  status: string;
+  rating: string;
+  season?: string | null;
+  title: string;
+  titleJapanese: string;
+  titleSynonyms: string;
+  source: string;
+  aired: string;
+  broadcast: string;
+  episodesCount?: number | null;
+  duration: string;
+  score: number;
+  images: {
+    image_url: string;
+    large_image_url?: string | null;
+    small_image_url?: string | null;
+  };
+  genres: string[];
+  studios: string[];
+  themes: string[];
+  synopsis: string;
+  trailer?: string | null;
+  malUrl: string;
+};
+
+type AnimeDetail = Omit<AnimeEntity, "genres" | "studios" | "themes"> & {
   id: string;
   genres: GenreEntityPartial[];
   studios: StudioEntityPartial[];
@@ -77,7 +108,7 @@ type AnimeEpisode = {
 };
 
 type AnimeReview = Pick<
-  AnimePostRequest,
+  AnimeEntity,
   | "review"
   | "consumedAt"
   | "progressStatus"
@@ -101,7 +132,8 @@ type AnimeFilterSort = {
 };
 
 export type {
-  AnimePostRequest,
+  AnimeEntity,
+  AnimeCreateRequest,
   AnimeDetail,
   AnimeList,
   AnimeReview,

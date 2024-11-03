@@ -93,16 +93,6 @@ export class StudioService {
     }
   }
 
-  async getStudio(name: string) {
-    try {
-      return await prisma.studio.findFirst({
-        where: { name: { equals: name, mode: "insensitive" } }
-      });
-    } catch (error) {
-      throw new InternalServerError((error as Error).message);
-    }
-  }
-
   async createStudio(data: Prisma.StudioCreateInput) {
     try {
       return await prisma.studio.create({ data });
@@ -123,11 +113,26 @@ export class StudioService {
   }
 
   async getOrCreateStudio(name: string) {
-    let studio = await this.getStudio(name);
-    if (!studio) {
-      studio = await this.createStudio({ name });
+    try {
+      return await prisma.studio.upsert({
+        where: { name },
+        update: {},
+        create: { name }
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new PrismaUniqueError("Studio already exists!");
+      }
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request body!");
+      }
+
+      throw new InternalServerError((error as Error).message);
     }
-    return studio;
   }
 
   async updateStudio(id: string, data: Prisma.StudioUpdateInput) {

@@ -195,7 +195,25 @@ export class MangaService {
 
       if (!manga) throw new NotFoundError("Manga not found!");
 
-      return manga;
+      const authorNames = manga.authors.map((a) => ({
+        id: a.author.id,
+        name: a.author.name
+      }));
+      const genreNames = manga.genres.map((g) => ({
+        id: g.genre.id,
+        name: g.genre.name
+      }));
+      const themeNames = manga.themes.map((t) => ({
+        id: t.theme.id,
+        name: t.theme.name
+      }));
+
+      return {
+        ...manga,
+        authors: authorNames,
+        genres: genreNames,
+        themes: themeNames
+      };
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error;
@@ -204,47 +222,136 @@ export class MangaService {
     }
   }
 
-  async createManga(data: CustomMangaCreateInput) {
+  async getMangaDuplicate(id: number) {
     try {
-      const authorIds = await Promise.all(
-        data.authors.map(async (name) => {
-          const author = await this.authorService.getOrCreateAuthor(name);
-          return { authorId: author.id };
-        })
-      );
-      const genreIds = await Promise.all(
-        data.genres.map(async (name) => {
-          const genre = await this.genreService.getOrCreateGenre(name);
-          return { genreId: genre.id };
-        })
-      );
-      const themeIds = await Promise.all(
-        data.themes.map(async (name) => {
-          const theme = await this.themeService.getOrCreateTheme(name);
-          return { themeId: theme.id };
-        })
-      );
+      const manga = await prisma.manga.findUnique({
+        where: { malId: id }
+      });
 
-      const mangaData: Prisma.MangaCreateInput = {
-        ...data,
-        authors: {
-          create: authorIds.map((author) => ({ authorId: author.authorId }))
-        },
-        genres: {
-          create: genreIds.map((genre) => ({ genreId: genre.genreId }))
-        },
-        themes: {
-          create: themeIds.map((theme) => ({ themeId: theme.themeId }))
-        }
-      };
+      return !!manga;
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  }
 
-      return await prisma.manga.create({ data: mangaData });
+  async createMangaBulk(data: CustomMangaCreateInput[]) {
+    try {
+      const createdMangas = await prisma.$transaction(async (prisma) => {
+        const allAuthors = Array.from(
+          new Set(data.flatMap((manga) => manga.authors.map((s) => s.trim())))
+        );
+        const allGenres = Array.from(
+          new Set(data.flatMap((manga) => manga.genres.map((g) => g.trim())))
+        );
+        const allThemes = Array.from(
+          new Set(data.flatMap((manga) => manga.themes.map((t) => t.trim())))
+        );
+
+        const [authors, genres, themes] = await Promise.all([
+          Promise.all(
+            allAuthors.map((name) => this.authorService.getOrCreateAuthor(name))
+          ),
+          Promise.all(
+            allGenres.map((name) => this.genreService.getOrCreateGenre(name))
+          ),
+          Promise.all(
+            allThemes.map((name) => this.themeService.getOrCreateTheme(name))
+          )
+        ]);
+
+        const authorMap: Record<string, string> = {};
+        authors.forEach((author) => {
+          authorMap[author.name.toLowerCase()] = author.id;
+        });
+
+        const genreMap: Record<string, string> = {};
+        genres.forEach((genre) => {
+          genreMap[genre.name.toLowerCase()] = genre.id;
+        });
+
+        const themeMap: Record<string, string> = {};
+        themes.forEach((theme) => {
+          themeMap[theme.name.toLowerCase()] = theme.id;
+        });
+
+        const createdMangas = await prisma.manga.createManyAndReturn({
+          data: data.map(
+            ({
+              authors: _authors,
+              genres: _genres,
+              themes: _themes,
+              ...manga
+            }) => ({
+              ...manga
+            })
+          ),
+          skipDuplicates: true
+        });
+
+        const mangaAuthorsData: Prisma.MangaAuthorsCreateManyInput[] = [];
+        const mangaGenresData: Prisma.MangaGenresCreateManyInput[] = [];
+        const mangaThemesData: Prisma.MangaThemesCreateManyInput[] = [];
+
+        createdMangas.forEach((record) => {
+          const originalManga = data.find((a) => a.malId === record.malId);
+          if (originalManga) {
+            originalManga.authors.forEach((name) => {
+              const authorId = authorMap[name.toLowerCase()];
+              if (authorId) {
+                mangaAuthorsData.push({
+                  mangaId: record.id,
+                  authorId
+                });
+              }
+            });
+
+            originalManga.genres.forEach((name) => {
+              const genreId = genreMap[name.toLowerCase()];
+              if (genreId) {
+                mangaGenresData.push({
+                  mangaId: record.id,
+                  genreId
+                });
+              }
+            });
+
+            originalManga.themes.forEach((name) => {
+              const themeId = themeMap[name.toLowerCase()];
+              if (themeId) {
+                mangaThemesData.push({
+                  mangaId: record.id,
+                  themeId
+                });
+              }
+            });
+          }
+        });
+
+        await Promise.all([
+          prisma.mangaAuthors.createMany({
+            data: mangaAuthorsData,
+            skipDuplicates: true
+          }),
+          prisma.mangaGenres.createMany({
+            data: mangaGenresData,
+            skipDuplicates: true
+          }),
+          prisma.mangaThemes.createMany({
+            data: mangaThemesData,
+            skipDuplicates: true
+          })
+        ]);
+
+        return createdMangas;
+      });
+
+      return createdMangas;
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        throw new PrismaUniqueError("Manga already exists!");
+        throw new PrismaUniqueError("One or more manga records already exist!");
       }
 
       if (error instanceof Prisma.PrismaClientValidationError) {

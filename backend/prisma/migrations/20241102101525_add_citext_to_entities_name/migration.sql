@@ -1,0 +1,14 @@
+-- CreateExtension
+CREATE EXTENSION IF NOT EXISTS "citext";
+
+-- AlterTable
+ALTER TABLE "Author" ALTER COLUMN "name" SET DATA TYPE CITEXT;
+
+-- AlterTable
+ALTER TABLE "Genre" ALTER COLUMN "name" SET DATA TYPE CITEXT;
+
+-- AlterTable
+ALTER TABLE "Studio" ALTER COLUMN "name" SET DATA TYPE CITEXT;
+
+-- AlterTable
+ALTER TABLE "Theme" ALTER COLUMN "name" SET DATA TYPE CITEXT;

@@ -95,19 +95,6 @@ export class GenreService {
     }
   }
 
-  async getGenre(name: string) {
-    try {
-      return await prisma.genre.findFirst({
-        where: { name: { equals: name, mode: "insensitive" } }
-      });
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
-      throw new InternalServerError((error as Error).message);
-    }
-  }
-
   async createGenre(data: Prisma.GenreCreateInput) {
     try {
       return await prisma.genre.create({ data });
@@ -128,11 +115,26 @@ export class GenreService {
   }
 
   async getOrCreateGenre(name: string) {
-    let genre = await this.getGenre(name);
-    if (!genre) {
-      genre = await this.createGenre({ name });
+    try {
+      return await prisma.genre.upsert({
+        where: { name },
+        update: {},
+        create: { name }
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new PrismaUniqueError("Genre already exists!");
+      }
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request body!");
+      }
+
+      throw new InternalServerError((error as Error).message);
     }
-    return genre;
   }
 
   async updateGenre(id: string, data: Prisma.GenreUpdateInput) {

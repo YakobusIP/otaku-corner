@@ -9,23 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-
 import { useState, Dispatch, SetStateAction } from "react";
-import {
-  PlusIcon,
-  ExternalLinkIcon,
-  StarIcon,
-  Loader2Icon
-} from "lucide-react";
+import { PlusIcon, Loader2Icon } from "lucide-react";
 import { Manga } from "@tutkli/jikan-ts";
 import SearchLightNovelJikan from "@/components/admin/add-lightnovel/SearchLightNovelJikan";
-import { LightNovelPostRequest } from "@/types/lightnovel.type";
 import { addLightNovelService } from "@/services/lightnovel.service";
+import LightNovelSmallCard from "./LightNovelSmallCard";
 
 type Props = {
   openDialog: boolean;
@@ -38,68 +28,72 @@ export default function AddLightNovelDialog({
   setOpenDialog,
   resetParent
 }: Props) {
-  const [isLoadingChosenLightNovel, setIsLoadingChosenLightNovel] =
-    useState(false);
-  const [chosenLightNovel, setChosenLightNovel] = useState<Manga>();
+  const [selectedLightNovel, setSelectedLightNovel] = useState<Manga[]>([]);
   const [isLoadingAddLightNovel, setIsLoadingAddLightNovel] = useState(false);
 
   const toast = useToast();
 
-  const addLightNovel = async (data: Manga) => {
+  const addLightNovel = async () => {
     setIsLoadingAddLightNovel(true);
-    const lightNovel: LightNovelPostRequest = {
-      malId: data.mal_id,
-      status: data.status,
-      title: data.title,
-      titleJapanese: data.title_japanese,
-      titleSynonyms: data.title_synonyms
-        ? data.title_synonyms.map((synonym) => synonym.toLowerCase()).join(" ")
+    const data = selectedLightNovel.map((lightNovel) => ({
+      malId: lightNovel.mal_id,
+      status: lightNovel.status,
+      title: lightNovel.title,
+      titleJapanese: lightNovel.title_japanese,
+      titleSynonyms: lightNovel.title_synonyms
+        ? lightNovel.title_synonyms
+            .map((synonym) => synonym.toLowerCase())
+            .join(" ")
         : "",
       published:
-        data.status === "Upcoming"
-          ? data.status
-          : `${new Date(data.published.from).toLocaleDateString("en-US", {
+        lightNovel.status === "Upcoming"
+          ? lightNovel.status
+          : `${new Date(lightNovel.published.from).toLocaleDateString("en-US", {
               day: "numeric",
               month: "short",
               year: "numeric"
             })} to ${
-              data.published.to
-                ? new Date(data.published.to).toLocaleDateString("en-US", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric"
-                  })
+              lightNovel.published.to
+                ? new Date(lightNovel.published.to).toLocaleDateString(
+                    "en-US",
+                    {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric"
+                    }
+                  )
                 : "?"
             }`,
-      chaptersCount: data.chapters,
-      volumesCount: data.volumes,
-      score: data.score,
+      volumesCount: lightNovel.volumes,
+      score: lightNovel.score,
       images: {
-        image_url: data.images.webp
-          ? data.images.webp.image_url
-          : data.images.jpg.image_url,
-        large_image_url: data.images.webp
-          ? data.images.webp.large_image_url
-          : data.images.jpg.large_image_url,
-        small_image_url: data.images.webp
-          ? data.images.webp.small_image_url
-          : data.images.jpg.small_image_url
+        image_url: lightNovel.images.webp
+          ? lightNovel.images.webp.image_url
+          : lightNovel.images.jpg.image_url,
+        large_image_url: lightNovel.images.webp
+          ? lightNovel.images.webp.large_image_url
+          : lightNovel.images.jpg.large_image_url,
+        small_image_url: lightNovel.images.webp
+          ? lightNovel.images.webp.small_image_url
+          : lightNovel.images.jpg.small_image_url
       },
-      authors: data.authors.map((author) => author.name),
-      genres: data.genres.map((genre) => genre.name),
-      themes: data.themes.map((theme) => theme.name),
-      synopsis: data.synopsis,
-      malUrl: data.url
-    };
+      authors: lightNovel.authors.map((author) => author.name),
+      genres: lightNovel.genres.map((genre) => genre.name),
+      themes: lightNovel.themes.map((theme) => theme.name),
+      synopsis: lightNovel.synopsis
+        ? lightNovel.synopsis
+        : "No synopsis available",
+      malUrl: lightNovel.url
+    }));
 
-    const response = await addLightNovelService(lightNovel);
+    const response = await addLightNovelService(data);
     if (response.success) {
       toast.toast({
         title: "All set!",
         description: response.data.message
       });
 
-      setChosenLightNovel(undefined);
+      setSelectedLightNovel([]);
       resetParent();
       setOpenDialog(false);
     } else {
@@ -130,151 +124,27 @@ export default function AddLightNovelDialog({
         <div className="flex flex-col gap-1 w-[calc(100dvw-3rem)] md:w-auto">
           <Label>Light Novel Title</Label>
           <SearchLightNovelJikan
-            chosenLightNovel={chosenLightNovel}
-            setChosenLightNovel={setChosenLightNovel}
-            setIsLoadingChosenLightNovel={setIsLoadingChosenLightNovel}
+            selectedLightNovel={selectedLightNovel}
+            setSelectedLightNovel={setSelectedLightNovel}
           />
         </div>
-        {isLoadingChosenLightNovel && (
-          <div className="flex items-center justify-center gap-2">
-            <Loader2Icon className="h-4 w-4 animate-spin" />
-            Fetching light novel details...
-          </div>
-        )}
-        {!isLoadingChosenLightNovel && chosenLightNovel && (
-          <>
-            <div className="flex flex-col xl:flex-row w-full space-x-0 xl:space-x-4 items-center">
-              <img
-                src={
-                  chosenLightNovel.images.webp
-                    ? chosenLightNovel.images.webp.image_url
-                    : chosenLightNovel.images.jpg.image_url
-                }
-                className="object-cover rounded-lg h-fit w-[100px] xl:w-[300px]"
+        <div className="flex flex-wrap w-full gap-4 items-center">
+          {selectedLightNovel.map((lightNovel) => {
+            return (
+              <LightNovelSmallCard
+                lightNovel={lightNovel}
+                setSelectedLightNovel={setSelectedLightNovel}
               />
-              <Separator orientation="vertical" className="hidden xl:block" />
-              <ScrollArea className="h-full xl:h-[400px] w-full p-0 xl:p-2">
-                <div className="flex flex-col space-y-4 w-full p-0 xl:p-2">
-                  <h4>Light Novel Details</h4>
-                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-center w-full">
-                    <div className="flex flex-col">
-                      <Label>Title</Label>
-                      <p className="break-words">{chosenLightNovel.title}</p>
-                    </div>
-                    <div className="flex flex-col">
-                      <Label>Title (Japanese)</Label>
-                      <p className="break-words">
-                        {chosenLightNovel.title_japanese}
-                      </p>
-                    </div>
-                    <div className="flex flex-col">
-                      <Label>Published</Label>
-                      <p>
-                        {chosenLightNovel.status === "Upcoming"
-                          ? chosenLightNovel.status
-                          : `${new Date(
-                              chosenLightNovel.published.from
-                            ).toLocaleDateString("en-US", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric"
-                            })} to ${
-                              chosenLightNovel.published.to
-                                ? new Date(
-                                    chosenLightNovel.published.to
-                                  ).toLocaleDateString("en-US", {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "numeric"
-                                  })
-                                : "?"
-                            }`}
-                      </p>
-                    </div>
-                    <div className="flex flex-col">
-                      <Label>Chapters</Label>
-                      <p>{chosenLightNovel.chapters ?? "Unknown"}</p>
-                    </div>
-                    <div className="flex flex-col">
-                      <Label>Volumes</Label>
-                      <p>{chosenLightNovel.volumes ?? "Unknown"}</p>
-                    </div>
-                    <div className="flex flex-col">
-                      <Label>MAL Score</Label>
-                      <span className="inline-flex items-center gap-1">
-                        <StarIcon className="w-4 h-4" />
-                        {chosenLightNovel.score ?? "N/A"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <Label>MAL Entry</Label>
-                      <a
-                        href={chosenLightNovel.url}
-                        className="inline-flex items-center gap-1 hover:underline hover:underline-offset-4"
-                        target="_blank"
-                      >
-                        Visit MAL
-                        <ExternalLinkIcon className="w-4 h-4" />
-                      </a>
-                    </div>
-                    <div className="grid grid-cols-1 xl:grid-cols-3 col-span-1 xl:col-span-3 gap-4">
-                      {chosenLightNovel.authors.length > 0 && (
-                        <div className="flex flex-col gap-1">
-                          <Label>Authors</Label>
-                          <div className="flex flex-wrap gap-2 items-center">
-                            {chosenLightNovel.authors.map((author) => {
-                              return (
-                                <Badge key={author.mal_id}>{author.name}</Badge>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                      {chosenLightNovel.genres.length > 0 && (
-                        <div className="flex flex-col gap-1">
-                          <Label>Genres</Label>
-                          <div className="flex flex-wrap gap-2 items-center">
-                            {chosenLightNovel.genres.map((genre) => {
-                              return (
-                                <Badge key={genre.mal_id}>{genre.name}</Badge>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                      {chosenLightNovel.themes.length > 0 && (
-                        <div className="flex flex-col gap-1">
-                          <Label>Themes</Label>
-                          <div className="flex flex-wrap gap-2 items-center">
-                            {chosenLightNovel.themes.map((theme) => {
-                              return (
-                                <Badge key={theme.mal_id}>{theme.name}</Badge>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-1 col-span-1 xl:col-span-3">
-                      <Label>Synopsis</Label>
-                      <Textarea
-                        rows={7}
-                        value={chosenLightNovel.synopsis}
-                        readOnly
-                        className="resize-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </ScrollArea>
-            </div>
-            <Button onClick={() => addLightNovel(chosenLightNovel)}>
-              {isLoadingAddLightNovel && (
-                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Add Light Novel
-            </Button>
-          </>
+            );
+          })}
+        </div>
+        {selectedLightNovel.length > 0 && (
+          <Button onClick={addLightNovel}>
+            {isLoadingAddLightNovel && (
+              <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Add Light Novel(s)
+          </Button>
         )}
       </DialogContent>
     </Dialog>

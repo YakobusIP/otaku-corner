@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { AnimeService } from "../services/anime.service";
 import { Prisma } from "@prisma/client";
 import { UnprocessableEntityError } from "../lib/error";
+import { fetchEpisodesQueue } from "../lib/queues/anime.queue";
 
 export class AnimeController {
   constructor(private readonly animeService: AnimeService) {}
@@ -53,10 +54,31 @@ export class AnimeController {
     }
   };
 
-  createAnime = async (req: Request, res: Response, next: NextFunction) => {
+  getAnimeDuplicate = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      await this.animeService.createAnime(req.body);
-      return res.status(201).json({ message: "Anime created successfully!" });
+      const exists = await this.animeService.getAnimeDuplicate(
+        parseInt(req.params.id)
+      );
+      return res.json({ exists });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  createAnimeBulk = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const animeList = await this.animeService.createAnimeBulk(req.body.data);
+      res.status(201).json({ message: "Anime(s) created successfully!" });
+
+      animeList.forEach((anime) => {
+        if (!["Movie", "OVA"].includes(anime.type)) {
+          fetchEpisodesQueue.add({ anime_id: anime.id, mal_id: anime.malId });
+        }
+      });
     } catch (error) {
       return next(error);
     }

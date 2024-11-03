@@ -5,7 +5,8 @@ import {
   ThemeEntityPartial
 } from "@/types/entity.type";
 
-type MangaPostRequest = {
+type MangaEntity = {
+  id: string;
   malId: number;
   status: string;
   title: string;
@@ -34,9 +35,33 @@ type MangaPostRequest = {
   progressStatus?: PROGRESS_STATUS;
   personalScore?: number | null;
   consumedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
-type MangaDetail = Omit<MangaPostRequest, "authors" | "genres" | "themes"> & {
+type MangaCreateRequest = {
+  malId: number;
+  status: string;
+  title: string;
+  titleJapanese: string;
+  titleSynonyms: string;
+  published: string;
+  chaptersCount?: number | null;
+  volumesCount?: number | null;
+  score: number;
+  images: {
+    image_url: string;
+    large_image_url?: string | null;
+    small_image_url?: string | null;
+  };
+  authors: string[];
+  genres: string[];
+  themes: string[];
+  synopsis: string;
+  malUrl: string;
+};
+
+type MangaDetail = Omit<MangaEntity, "authors" | "genres" | "themes"> & {
   id: string;
   authors: AuthorEntityPartial[];
   genres: GenreEntityPartial[];
@@ -59,7 +84,7 @@ type MangaList = {
 };
 
 type MangaReview = Pick<
-  MangaPostRequest,
+  MangaEntity,
   | "review"
   | "consumedAt"
   | "progressStatus"
@@ -82,7 +107,8 @@ type MangaFilterSort = {
 };
 
 export type {
-  MangaPostRequest,
+  MangaEntity,
+  MangaCreateRequest,
   MangaDetail,
   MangaList,
   MangaReview,

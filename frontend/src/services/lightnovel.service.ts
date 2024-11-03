@@ -2,7 +2,7 @@ import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 import {
   LightNovelDetail,
   LightNovelList,
-  LightNovelPostRequest,
+  LightNovelCreateRequest,
   LightNovelReview
 } from "@/types/lightnovel.type";
 import {
@@ -71,11 +71,30 @@ const fetchLightNovelByIdService = async (
   }
 };
 
+const fetchLightNovelDuplicate = async (
+  malId: string
+): Promise<ApiResponse<{ exists: boolean }>> => {
+  try {
+    const response = await interceptedAxios.get(
+      `${BASE_LIGHTNOVEL_URL}/duplicate/${malId}`
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
 const addLightNovelService = async (
-  data: LightNovelPostRequest
+  data: LightNovelCreateRequest[]
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
-    const response = await interceptedAxios.post(BASE_LIGHTNOVEL_URL, data);
+    const response = await interceptedAxios.post(BASE_LIGHTNOVEL_URL, { data });
     return { success: true, data: response.data };
   } catch (error) {
     return {
@@ -130,6 +149,27 @@ const updateLightNovelProgressStatusService = async (
   }
 };
 
+const updateLightNovelVolumesService = async (
+  id: string,
+  volumesCount: number
+): Promise<ApiResponse<MessageResponse>> => {
+  try {
+    const response = await interceptedAxios.put(
+      `${BASE_LIGHTNOVEL_URL}/${id}`,
+      { volumesCount }
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
 const deleteLightNovelService = async (
   ids: string[]
 ): Promise<ApiResponse<void>> => {
@@ -150,8 +190,10 @@ const deleteLightNovelService = async (
 export {
   fetchAllLightNovelService,
   fetchLightNovelByIdService,
+  fetchLightNovelDuplicate,
   addLightNovelService,
   updateLightNovelReviewService,
   updateLightNovelProgressStatusService,
+  updateLightNovelVolumesService,
   deleteLightNovelService
 };

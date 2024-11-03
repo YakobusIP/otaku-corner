@@ -61,16 +61,31 @@ export class LightNovelController {
     }
   };
 
-  createLightNovel = async (
+  getLightNovelDuplicate = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      await this.lightNovelService.createLightNovel(req.body);
+      const exists = await this.lightNovelService.getLightNovelDuplicate(
+        parseInt(req.params.id)
+      );
+      return res.json({ exists });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  createLightNovelBulk = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await this.lightNovelService.createLightNovelBulk(req.body.data);
       return res
         .status(201)
-        .json({ message: "Light novel created successfully!" });
+        .json({ message: "Light novel(s) created successfully!" });
     } catch (error) {
       return next(error);
     }

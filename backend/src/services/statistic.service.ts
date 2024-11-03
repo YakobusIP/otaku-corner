@@ -379,7 +379,10 @@ export class StatisticService {
 
       const validScores = scores.filter((score) => score !== null);
       const averagePersonalScore =
-        validScores.reduce((sum, score) => sum + score, 0) / validScores.length;
+        validScores.length > 0
+          ? validScores.reduce((sum, score) => sum + score, 0) /
+            validScores.length
+          : 0;
 
       return {
         animeCount: consumedAnimeCount,

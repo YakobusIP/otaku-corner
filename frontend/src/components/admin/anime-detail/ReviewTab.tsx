@@ -203,7 +203,7 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
                     <TooltipTrigger>
                       <CalendarDaysIcon
                         className={
-                          consumedMonth ? "text-green-600" : "text-red-600"
+                          consumedMonth ? "text-green-700" : "text-red-600"
                         }
                       />
                     </TooltipTrigger>

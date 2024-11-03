@@ -37,7 +37,7 @@ function ProgressStatusBadge({
       value: "ON_PROGRESS",
       label: PROGRESS_STATUS.ON_PROGRESS,
       icon: <PlayCircleIcon className="mr-2 h-4 w-4" />,
-      color: "bg-green-300 hover:bg-green-300/80"
+      color: "bg-green-700 hover:bg-green-700/80"
     },
     {
       value: "COMPLETED",

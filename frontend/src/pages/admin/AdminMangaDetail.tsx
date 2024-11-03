@@ -66,7 +66,7 @@ export default function AdminMangaDetail() {
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
           </TabsList>
-          <AboutTab mangaDetail={mangaDetail} />
+          <AboutTab mangaDetail={mangaDetail} resetParent={fetchMangaById} />
           <ReviewTab mangaDetail={mangaDetail} resetParent={fetchMangaById} />
         </Tabs>
       </main>

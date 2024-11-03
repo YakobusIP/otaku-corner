@@ -99,19 +99,6 @@ export class ThemeService {
     }
   }
 
-  async getTheme(name: string) {
-    try {
-      return await prisma.theme.findFirst({
-        where: { name: { equals: name, mode: "insensitive" } }
-      });
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
-      throw new InternalServerError((error as Error).message);
-    }
-  }
-
   async createTheme(data: Prisma.ThemeCreateInput) {
     try {
       return await prisma.theme.create({ data });
@@ -132,11 +119,26 @@ export class ThemeService {
   }
 
   async getOrCreateTheme(name: string) {
-    let theme = await this.getTheme(name);
-    if (!theme) {
-      theme = await this.createTheme({ name });
+    try {
+      return await prisma.theme.upsert({
+        where: { name },
+        update: {},
+        create: { name }
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new PrismaUniqueError("Theme already exists!");
+      }
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request body!");
+      }
+
+      throw new InternalServerError((error as Error).message);
     }
-    return theme;
   }
 
   async updateTheme(id: string, data: Prisma.ThemeUpdateInput) {

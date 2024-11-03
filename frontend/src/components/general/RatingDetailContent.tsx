@@ -3,11 +3,11 @@ import { scoreOptions } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { isMobile } from "react-device-detect";
 
-interface RatingDetail {
+type RatingDetail = {
   title: string;
   weight: string;
   rating: string;
-}
+};
 
 type Props = {
   details: RatingDetail[];
