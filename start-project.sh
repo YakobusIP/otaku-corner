@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# Navigate to the frontend directory and run yarn dev in a new terminal window
-cd frontend || { echo "Failed to navigate to frontend"; exit 1; }
+# Navigate to the public-app directory and run yarn dev in a new terminal window
+cd public-app || { echo "Failed to navigate to public-app"; exit 1; }
+start bash -c "yarn dev; exec bash"
+
+# Navigate to the admin-app directory and run yarn dev in a new terminal window
+cd ../admin-app || { echo "Failed to navigate to admin-app"; exit 1; }
 start bash -c "yarn dev; exec bash"
 
 # Navigate to the backend directory and run yarn dev in the current terminal
