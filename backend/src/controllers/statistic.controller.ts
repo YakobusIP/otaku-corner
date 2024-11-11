@@ -169,4 +169,19 @@ export class StatisticController {
       return next(error);
     }
   };
+
+  getEachMediaTopScoreAndYearlyCount = async (
+    _: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const statistics =
+        await this.statisticService.getEachMediaTopScoreAndYearlyCount();
+
+      return res.json({ data: statistics });
+    } catch (error) {
+      return next(error);
+    }
+  };
 }

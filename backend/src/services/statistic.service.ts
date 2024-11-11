@@ -351,44 +351,155 @@ export class StatisticService {
 
   getAllTimeStatistics = async () => {
     try {
-      const consumedAnimeCount = await prisma.anime.count({
+      const consumedAnimeCountPromise = await prisma.anime.count({
         where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
       });
-      const consumedMangaCount = await prisma.manga.count({
+      const consumedMangaCountPromise = await prisma.manga.count({
         where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
       });
-      const consumedLightNovelCount = await prisma.lightNovel.count({
+      const consumedLightNovelCountPromise = await prisma.lightNovel.count({
         where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
       });
 
-      const averageAnimePersonalScore = await prisma.anime.aggregate({
-        _avg: { personalScore: true }
+      const averageAnimeScoresPromise = await prisma.anime.aggregate({
+        _avg: { score: true, personalScore: true }
       });
-      const averageMangaPersonalScore = await prisma.manga.aggregate({
-        _avg: { personalScore: true }
+      const averageMangaScoresPromise = await prisma.manga.aggregate({
+        _avg: { score: true, personalScore: true }
       });
-      const averageLightNovelPersonalScore = await prisma.lightNovel.aggregate({
-        _avg: { personalScore: true }
+      const averageLightNovelScoresPromise = await prisma.lightNovel.aggregate({
+        _avg: { score: true, personalScore: true }
       });
 
-      const scores = [
-        averageAnimePersonalScore._avg.personalScore,
-        averageMangaPersonalScore._avg.personalScore,
-        averageLightNovelPersonalScore._avg.personalScore
+      const [
+        consumedAnimeCount,
+        consumedMangaCount,
+        consumedLightNovelCount,
+        averageAnimeScores,
+        averageMangaScores,
+        averageLightNovelScores
+      ] = await Promise.all([
+        consumedAnimeCountPromise,
+        consumedMangaCountPromise,
+        consumedLightNovelCountPromise,
+        averageAnimeScoresPromise,
+        averageMangaScoresPromise,
+        averageLightNovelScoresPromise
+      ]);
+
+      const malScores = [
+        averageAnimeScores._avg.score,
+        averageMangaScores._avg.score,
+        averageLightNovelScores._avg.score
       ];
 
-      const validScores = scores.filter((score) => score !== null);
+      const personalScores = [
+        averageAnimeScores._avg.personalScore,
+        averageMangaScores._avg.personalScore,
+        averageLightNovelScores._avg.personalScore
+      ];
+
+      const validMalScores = malScores.filter((score) => score !== null);
+      const averageMalScore =
+        validMalScores.length > 0
+          ? validMalScores.reduce((sum, score) => sum + score, 0) /
+            validMalScores.length
+          : 0;
+
+      const validPersonalScores = personalScores.filter(
+        (score) => score !== null
+      );
       const averagePersonalScore =
-        validScores.length > 0
-          ? validScores.reduce((sum, score) => sum + score, 0) /
-            validScores.length
+        validPersonalScores.length > 0
+          ? validPersonalScores.reduce((sum, score) => sum + score, 0) /
+            validPersonalScores.length
           : 0;
 
       return {
+        allMediaCount:
+          consumedAnimeCount + consumedMangaCount + consumedLightNovelCount,
         animeCount: consumedAnimeCount,
         mangaCount: consumedMangaCount,
         lightNovelCount: consumedLightNovelCount,
+        averageMalScore: averageMalScore,
         averagePersonalScore: averagePersonalScore
+      };
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  };
+
+  getEachMediaTopScoreAndYearlyCount = async () => {
+    try {
+      const currentYear = new Date().getFullYear();
+      const startDate = new Date(currentYear, 0, 1);
+      const endDate = new Date(currentYear, 11, 31, 23, 59, 59, 9999);
+
+      const consumedAnimeYearlyPromise = prisma.anime.count({
+        where: { consumedAt: { gte: startDate, lte: endDate } }
+      });
+
+      const highestAnimePromise = prisma.anime.findMany({
+        select: { images: true, personalScore: true, title: true },
+        orderBy: { personalScore: "desc" },
+        take: 1
+      });
+
+      const consumedMangaYearlyPromise = prisma.manga.count({
+        where: { consumedAt: { gte: startDate, lte: endDate } }
+      });
+
+      const highestMangaPromise = prisma.manga.findMany({
+        select: { images: true, personalScore: true, title: true },
+        orderBy: { personalScore: "desc" },
+        take: 1
+      });
+
+      const consumedLightNovelYearlyPromise = prisma.lightNovel.count({
+        where: { consumedAt: { gte: startDate, lte: endDate } }
+      });
+
+      const highestLightNovelPromise = prisma.lightNovel.findMany({
+        select: { images: true, personalScore: true, title: true },
+        orderBy: { personalScore: "desc" },
+        take: 1
+      });
+
+      const [
+        consumedAnimeYearlyCount,
+        highestAnimeImage,
+        consumedMangaYearlyCount,
+        highestMangaImage,
+        consumedLightNovelYearlyCount,
+        highestLightNovelImage
+      ] = await Promise.all([
+        consumedAnimeYearlyPromise,
+        highestAnimePromise,
+        consumedMangaYearlyPromise,
+        highestMangaPromise,
+        consumedLightNovelYearlyPromise,
+        highestLightNovelPromise
+      ]);
+
+      return {
+        anime: {
+          count: consumedAnimeYearlyCount,
+          images: highestAnimeImage[0].images,
+          title: highestAnimeImage[0].title,
+          score: highestAnimeImage[0].personalScore
+        },
+        manga: {
+          count: consumedMangaYearlyCount,
+          images: highestMangaImage[0].images,
+          title: highestMangaImage[0].title,
+          score: highestMangaImage[0].personalScore
+        },
+        lightNovel: {
+          count: consumedLightNovelYearlyCount,
+          images: highestLightNovelImage[0].images,
+          title: highestLightNovelImage[0].title,
+          score: highestLightNovelImage[0].personalScore
+        }
       };
     } catch (error) {
       throw new InternalServerError((error as Error).message);
