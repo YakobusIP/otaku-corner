@@ -14,6 +14,8 @@ const envSchema = z.object({
   }),
   ACCESS_TOKEN_SECRET: z.string(),
   REFRESH_TOKEN_SECRET: z.string(),
+  ACCESS_TOKEN_DURATION: z.string(),
+  REFRESH_TOKEN_DURATION: z.string(),
 
   MAX_FILE_SIZE: z.string().transform((value) => {
     const parsed = parseInt(value, 10);
