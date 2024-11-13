@@ -35,7 +35,7 @@ jobs:
 
       - name: Build Docker image
         working-directory: ./backend
-        run: docker build --tag ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }}
+        run: docker build --tag ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }} .
 
       - name: Push image to Artifact Registry
         run: docker push ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }}
