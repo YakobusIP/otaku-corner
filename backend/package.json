@@ -50,6 +50,5 @@
   },
   "prisma": {
     "seed": "ts-node prisma/pin-seed.ts"
-  },
-  "packageManager": "yarn@4.5.1"
+  }
 }

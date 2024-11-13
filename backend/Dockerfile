@@ -12,18 +12,18 @@ WORKDIR /usr/src/app
 # Copying this separately prevents re-running yarn install on every code change.
 COPY package.json yarn.lock tsconfig.json ./
 
-# Run corepack for newest Yarn version and initialize yarn
-RUN corepack enable
-RUN yarn set version berry
+# Copy local code to the container image.
+COPY src/ ./src/
+
+# Copy prisma setup to the container image.
+COPY prisma ./prisma/
 
 # Install dependencies.
 RUN yarn install
 
-# Copy local code to the container image.
-COPY src .
-
 # Transpile TypeScript to JavaScript.
 RUN yarn build
+RUN ls -la dist
 
 # Generate prisma client
 RUN npx prisma generate
@@ -32,7 +32,7 @@ RUN npx prisma generate
 EXPOSE 5000
 
 # Set the environment to production
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # Run the web service on container startup.
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/server.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
