@@ -12,11 +12,15 @@ WORKDIR /usr/src/app
 # Copying this separately prevents re-running yarn install on every code change.
 COPY package.json yarn.lock tsconfig.json ./
 
-# Install dependencies.
-RUN yarn install
+# Run corepack for newest Yarn version and initialize yarn
+RUN corepack enable
+RUN yarn set version berry
 
 # Copy local code to the container image.
 COPY . .
+
+# Install dependencies.
+RUN yarn install
 
 # Transpile TypeScript to JavaScript.
 RUN yarn build
