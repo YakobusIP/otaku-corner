@@ -2,10 +2,11 @@ name: Deploy to Google Cloud Run
 
 on:
   push:
-    branches:
-      - production
-    paths:
-      - backend
+    branches: ['production']
+    paths: ['backend/**']
+  pull_request:
+    branches: ['production']
+    paths: ['backend/**']
 
 
 jobs:
