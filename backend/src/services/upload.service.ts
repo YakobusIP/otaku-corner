@@ -62,20 +62,19 @@ export class UploadService {
   ) {
     try {
       const [uuid, filename] = generateFilename(file.originalname);
-      const filePath = `review-image/${filename}`;
+      const filePath = `review-images/${filename}`;
 
       if (env.NODE_ENV === "production") {
         const blob = bucket.file(filePath);
         const blobStream = blob.createWriteStream({
           resumable: false,
-          contentType: file.mimetype,
-          public: true
+          contentType: file.mimetype
         });
 
         await new Promise<void>((resolve, reject) => {
-          blobStream.on("error", (error) =>
-            reject(new FileStorageError(error.message))
-          );
+          blobStream.on("error", (error) => {
+            reject(new FileStorageError(error.message));
+          });
           blobStream.on("finish", () => resolve());
           blobStream.end(file.buffer);
         });
@@ -83,7 +82,7 @@ export class UploadService {
 
         return await this.saveImageToDatabase(uuid, publicUrl, type, entityId);
       } else {
-        const localPath = path.join(__dirname, env.LOCAL_UPLOAD_PATH, filename);
+        const localPath = path.join(__dirname, "../uploads", filename);
 
         try {
           writeFileSync(localPath, file.buffer);
@@ -117,7 +116,7 @@ export class UploadService {
       }
 
       const urlParts = reviewImage.url.split("/");
-      const filename = urlParts[urlParts.length - 1];
+      const filename = `review-images/${urlParts[urlParts.length - 1]}`;
 
       if (env.NODE_ENV === "production") {
         const file = bucket.file(filename);
@@ -127,7 +126,7 @@ export class UploadService {
           throw new FileStorageError((error as Error).message);
         }
       } else {
-        const localPath = path.join(__dirname, env.LOCAL_UPLOAD_PATH, filename);
+        const localPath = path.join(__dirname, "../uploads", filename);
         try {
           if (existsSync(localPath)) {
             unlinkSync(localPath);

@@ -8,6 +8,7 @@ import { MangaService } from "../../services/manga.service";
 import { AuthorService } from "../../services/author.service";
 import { v4 as uuidv4 } from "uuid";
 import { stringSimilarity } from "string-similarity-js";
+import { env } from "../env";
 
 const BASE_MANGADEX_URL = "https://api.mangadex.org";
 const SIMILARITY_THRESHOLD = 0.9;
@@ -68,6 +69,10 @@ const mangaService = new MangaService(
 export const fetchMangaDataQueue = new Queue<FetchMangaDataJobData>(
   "fetchMangaDataQueue",
   {
+    redis: {
+      host: env.BULL_REDIS_IP,
+      port: env.BULL_REDIS_PORT
+    },
     limiter: {
       max: 1,
       duration: 2000

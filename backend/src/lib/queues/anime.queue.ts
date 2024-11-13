@@ -7,6 +7,7 @@ import { StudioService } from "../../services/studio.service";
 import { ThemeService } from "../../services/theme.service";
 import { QueueLogger } from "./queue.logger";
 import { v4 as uuidv4 } from "uuid";
+import { env } from "../env";
 
 type FetchEpisodesJobData = {
   anime_id: string;
@@ -43,6 +44,10 @@ const animeService = new AnimeService(
 export const fetchEpisodesQueue = new Queue<FetchEpisodesJobData>(
   "fetchEpisodesQueue",
   {
+    redis: {
+      host: env.BULL_REDIS_IP,
+      port: env.BULL_REDIS_PORT
+    },
     limiter: {
       max: 1,
       duration: 1000
