@@ -6,8 +6,14 @@ dotenv.config();
 const envSchema = z
   .object({
     NODE_ENV: z.enum(["development", "production", "test"]),
-    SEED_MODE: z.string().transform((value) => value === "true"),
-    ENABLE_THROTTLE: z.string().transform((value) => value === "true"),
+    SEED_MODE: z
+      .string()
+      .transform((value) => value === "true")
+      .optional(),
+    ENABLE_THROTTLE: z
+      .string()
+      .transform((value) => value === "true")
+      .optional(),
     PORT: z.string().transform((value) => {
       const parsed = parseInt(value, 10);
       if (isNaN(parsed)) throw new Error("Server port must be a number");
