@@ -1,8 +1,7 @@
-import express, { Express } from "express";
+import express, { Express, json, urlencoded } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import cookies from "cookie-parser";
-import { json, urlencoded } from "body-parser";
 
 import AuthRouter from "./routes/auth.route";
 import AnimeRouter from "./routes/anime.route";

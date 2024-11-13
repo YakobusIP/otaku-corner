@@ -8,7 +8,6 @@
     "@prisma/client": "^5.17.0",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
-    "body-parser": "^1.20.2",
     "bull": "^4.16.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -29,7 +28,6 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
-    "@types/bull": "^4.10.4",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
@@ -51,5 +49,6 @@
   },
   "prisma": {
     "seed": "ts-node prisma/pin-seed.ts"
-  }
+  },
+  "packageManager": "yarn@4.5.1"
 }
