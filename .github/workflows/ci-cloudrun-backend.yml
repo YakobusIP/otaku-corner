@@ -3,10 +3,10 @@ name: Deploy to Google Cloud Run
 on:
   push:
     branches: ['production']
-    paths: ['backend/**']
+    paths: ['.github/workflows/**', 'backend/**']
   pull_request:
     branches: ['production']
-    paths: ['backend/**']
+    paths: ['.github/workflows/**', 'backend/**']
 
 
 jobs:
@@ -30,12 +30,11 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Authenticate Docker
-        run: |
-          gcloud auth configure-docker ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev --quiet
+        run: gcloud auth configure-docker ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev --quiet
 
       - name: Build Docker image
         working-directory: ./backend
-        run: docker build --tag ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }}
+        run: docker build --tag ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }} .
 
       - name: Push image to Artifact Registry
         run: docker push ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }}
@@ -49,19 +48,18 @@ jobs:
             --allow-unauthenticated \
             --service-account ${{ secrets.GCS_CLOUD_RUN_SA }} \
             --vpc-connector backend-redis-connector \
-            --set-env-vars \
-                DATABASE_URL=${{ secrets.DATABASE_URL }} \
-                DIRECT_URL=${{ secrets.DIRECT_URL }} \
-                ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }} \
-                REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }} \
-                ACCESS_TOKEN_DURATION=${{ vars.ACCESS_TOKEN_DURATION }} \
-                REFRESH_TOKEN_DURATION=${{ vars.REFRESH_TOKEN_DURATION }} \
-                MAX_FILE_SIZE=${{ vars.MAX_FILE_SIZE }} \
-                GCS_BUCKET_NAME=${{ vars.GCS_BUCKET_NAME }} \
-                BULL_REDIS_IP=${{ secrets.BULL_REDIS_IP }} \
-                BULL_REDIS_PORT=${{ secrets.BULL_REDIS_PORT }} \
-                ADMIN_APP_URL=${{ vars.ADMIN_APP_URL }} \
-                PUBLIC_APP_URL=${{ vars.PUBLIC_APP_URL }} \
+            --set-env-vars DATABASE_URL=${{ secrets.DATABASE_URL }} \
+            --set-env-vars DIRECT_URL=${{ secrets.DIRECT_URL }} \
+            --set-env-vars ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }} \
+            --set-env-vars REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }} \
+            --set-env-vars ACCESS_TOKEN_DURATION=${{ vars.ACCESS_TOKEN_DURATION }} \
+            --set-env-vars REFRESH_TOKEN_DURATION=${{ vars.REFRESH_TOKEN_DURATION }} \
+            --set-env-vars MAX_FILE_SIZE=${{ vars.MAX_FILE_SIZE }} \
+            --set-env-vars GCS_BUCKET_NAME=${{ vars.GCS_BUCKET_NAME }} \
+            --set-env-vars BULL_REDIS_IP=${{ secrets.BULL_REDIS_IP }} \
+            --set-env-vars BULL_REDIS_PORT=${{ secrets.BULL_REDIS_PORT }} \
+            --set-env-vars ADMIN_APP_URL=${{ vars.ADMIN_APP_URL }} \
+            --set-env-vars PUBLIC_APP_URL=${{ vars.PUBLIC_APP_URL }} \
             --port 5000 \
             --min-instances 0 \
             --max-instances 2
