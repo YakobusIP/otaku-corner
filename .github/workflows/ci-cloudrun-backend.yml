@@ -30,8 +30,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Authenticate Docker
-        run: |
-          gcloud auth configure-docker ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev --quiet
+        run: gcloud auth configure-docker ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev --quiet
 
       - name: Build Docker image
         working-directory: ./backend

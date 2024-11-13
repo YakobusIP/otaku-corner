@@ -16,11 +16,11 @@ COPY package.json yarn.lock tsconfig.json ./
 RUN corepack enable
 RUN yarn set version berry
 
-# Copy local code to the container image.
-COPY . .
-
 # Install dependencies.
 RUN yarn install
+
+# Copy local code to the container image.
+COPY src .
 
 # Transpile TypeScript to JavaScript.
 RUN yarn build
@@ -28,11 +28,11 @@ RUN yarn build
 # Generate prisma client
 RUN npx prisma generate
 
-# Set the environment to production
-ENV NODE_ENV production
-
 # Expose port
 EXPOSE 5000
+
+# Set the environment to production
+ENV NODE_ENV production
 
 # Run the web service on container startup.
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/server.js"]
