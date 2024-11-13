@@ -29,7 +29,7 @@ if (env.NODE_ENV === "development") {
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:3000", "http://localhost:5173"]
+    origin: [env.PUBLIC_APP_URL, env.ADMIN_APP_URL]
   })
 );
 app.use(json());
@@ -38,13 +38,16 @@ app.use(cookies());
 
 app.use(requestLogMiddleware);
 
-app.use(
-  "/uploads",
-  express.static(path.join(__dirname, env.RELATIVE_LOCAL_UPLOAD_PATH))
-);
+if (env.NODE_ENV === "development") {
+  app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+}
 
 app.use("/api/auth", AuthRouter);
-app.use(throttleMiddleware);
+
+if (env.NODE_ENV === "development") {
+  app.use(throttleMiddleware);
+}
+
 app.use("/api/anime", AnimeRouter);
 app.use("/api/manga", MangaRouter);
 app.use("/api/lightnovel", LightNovelRouter);
