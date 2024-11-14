@@ -42,24 +42,26 @@ jobs:
       - name: Deploy image to Google Cloud Run
         run: |
           gcloud run deploy roadtofit-be \
-            --image ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }} \
-            --platform managed \
-            --region ${{ vars.GCP_CLOUD_RUN_REGION }} \
+            --image=${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }} \
+            --platform=managed \
+            --region=${{ vars.GCP_CLOUD_RUN_REGION }} \
             --allow-unauthenticated \
-            --service-account ${{ secrets.GCS_CLOUD_RUN_SA }} \
-            --vpc-connector backend-redis-connector \
-            --set-env-vars DATABASE_URL=${{ secrets.DATABASE_URL }} \
-            --set-env-vars DIRECT_URL=${{ secrets.DIRECT_URL }} \
-            --set-env-vars ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }} \
-            --set-env-vars REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }} \
-            --set-env-vars ACCESS_TOKEN_DURATION=${{ vars.ACCESS_TOKEN_DURATION }} \
-            --set-env-vars REFRESH_TOKEN_DURATION=${{ vars.REFRESH_TOKEN_DURATION }} \
-            --set-env-vars MAX_FILE_SIZE=${{ vars.MAX_FILE_SIZE }} \
-            --set-env-vars GCS_BUCKET_NAME=${{ vars.GCS_BUCKET_NAME }} \
-            --set-env-vars BULL_REDIS_IP=${{ secrets.BULL_REDIS_IP }} \
-            --set-env-vars BULL_REDIS_PORT=${{ secrets.BULL_REDIS_PORT }} \
-            --set-env-vars ADMIN_APP_URL=${{ vars.ADMIN_APP_URL }} \
-            --set-env-vars PUBLIC_APP_URL=${{ vars.PUBLIC_APP_URL }} \
-            --port 5000 \
-            --min-instances 0 \
-            --max-instances 2
+            --service-account=${{ secrets.GCS_CLOUD_RUN_SA }} \
+            --network=default \
+            --subnet=default \
+            --vpc-egress=private-ranges-only \
+            --set-env-vars=DATABASE_URL=${{ secrets.DATABASE_URL }} \
+            --set-env-vars=DIRECT_URL=${{ secrets.DIRECT_URL }} \
+            --set-env-vars=ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }} \
+            --set-env-vars=REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }} \
+            --set-env-vars=ACCESS_TOKEN_DURATION=${{ vars.ACCESS_TOKEN_DURATION }} \
+            --set-env-vars=REFRESH_TOKEN_DURATION=${{ vars.REFRESH_TOKEN_DURATION }} \
+            --set-env-vars=MAX_FILE_SIZE=${{ vars.MAX_FILE_SIZE }} \
+            --set-env-vars=GCS_BUCKET_NAME=${{ vars.GCS_BUCKET_NAME }} \
+            --set-env-vars=BULL_REDIS_IP=${{ secrets.BULL_REDIS_IP }} \
+            --set-env-vars=BULL_REDIS_PORT=${{ secrets.BULL_REDIS_PORT }} \
+            --set-env-vars=ADMIN_APP_URL=${{ vars.ADMIN_APP_URL }} \
+            --set-env-vars=PUBLIC_APP_URL=${{ vars.PUBLIC_APP_URL }} \
+            --port=5000 \
+            --min-instances=0 \
+            --max-instances=2
