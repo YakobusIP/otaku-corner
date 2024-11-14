@@ -30,6 +30,7 @@ export default async function Page() {
     if (response.success) {
       return [response.data.data, response.data.metadata];
     } else {
+      console.error(response.error);
       redirect("/fetch-error");
     }
   };
@@ -39,6 +40,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error(response.error);
       redirect("/fetch-error");
     }
   };
@@ -48,6 +50,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error(response.error);
       redirect("/fetch-error");
     }
   };
@@ -57,6 +60,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error(response.error);
       redirect("/fetch-error");
     }
   };
