@@ -23,7 +23,7 @@ export default function ListHeader({ type, setSearchMedia }: Props) {
           variant="outline"
           className="absolute text-primary top-4 left-4"
         >
-          <ArrowLeftIcon className="mr-2 w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4" />
           Home
         </Button>
       </Link>

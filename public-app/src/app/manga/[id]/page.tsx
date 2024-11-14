@@ -29,11 +29,35 @@ import {
   LibraryIcon,
   StarIcon
 } from "lucide-react";
+import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isMobile } from "react-device-detect";
 
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const id = (await params).id;
+
+  const fetchMangaById = async () => {
+    const response = await fetchMangaByIdService(id);
+    if (response.success) {
+      return response.data;
+    } else {
+      redirect("/fetch-error");
+    }
+  };
+
+  const mangaDetail = await fetchMangaById();
+
+  return {
+    title: `${mangaDetail.title} Manga Review | Otaku Corner`,
+    description: `Delve into bearking58's review of ${mangaDetail.title}, providing a unique perspective and rating. Learn why this manga stands out or falls short in the collection.`
+  };
+}
 export default async function Page({
   params
 }: {
@@ -46,7 +70,6 @@ export default async function Page({
     if (response.success) {
       return response.data;
     } else {
-      console.error(response.error);
       redirect("/fetch-error");
     }
   };

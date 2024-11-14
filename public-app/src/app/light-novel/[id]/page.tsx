@@ -29,16 +29,17 @@ import {
   LibraryIcon,
   StarIcon
 } from "lucide-react";
+import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isMobile } from "react-device-detect";
 
-export default async function Page({
-  params
-}: {
+type Props = {
   params: Promise<{ id: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const id = (await params).id;
 
   const fetchLightNovelById = async () => {
@@ -46,7 +47,26 @@ export default async function Page({
     if (response.success) {
       return response.data;
     } else {
-      console.error(response.error);
+      redirect("/fetch-error");
+    }
+  };
+
+  const lightNovelDetail = await fetchLightNovelById();
+
+  return {
+    title: `${lightNovelDetail.title} Light Novel Review | Otaku Corner`,
+    description: `Get bearking58's take on ${lightNovelDetail.title}, with a detailed review and rating. Find out what sets this light novel apart or why it may not be worth your time.`
+  };
+}
+
+export default async function Page({ params }: Props) {
+  const id = (await params).id;
+
+  const fetchLightNovelById = async () => {
+    const response = await fetchLightNovelByIdService(id);
+    if (response.success) {
+      return response.data;
+    } else {
       redirect("/fetch-error");
     }
   };

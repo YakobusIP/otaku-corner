@@ -5,9 +5,9 @@ type TopMediaAndYearlyCount = {
       image_url: string;
       large_image_url?: string | null;
       small_image_url?: string | null;
-    };
-    title: string;
-    score: number;
+    } | null;
+    title: string | null;
+    score: number | null;
   };
   manga: {
     count: number;
@@ -15,9 +15,9 @@ type TopMediaAndYearlyCount = {
       image_url: string;
       large_image_url?: string | null;
       small_image_url?: string | null;
-    };
-    title: string;
-    score: number;
+    } | null;
+    title: string | null;
+    score: number | null;
   };
   lightNovel: {
     count: number;
@@ -25,9 +25,9 @@ type TopMediaAndYearlyCount = {
       image_url: string;
       large_image_url?: string | null;
       small_image_url?: string | null;
-    };
-    title: string;
-    score: number;
+    } | null;
+    title: string | null;
+    score: number | null;
   };
 };
 

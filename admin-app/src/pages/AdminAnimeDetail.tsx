@@ -42,6 +42,14 @@ export default function AdminAnimeDetail() {
     fetchAnimeById();
   }, [fetchAnimeById]);
 
+  useEffect(() => {
+    if (animeDetail) {
+      document.title = `Anime - ${animeDetail.title} | Otaku Corner Admin`;
+    } else {
+      document.title = "Anime | Otaku Corner Admin";
+    }
+  }, [animeDetail]);
+
   return !isLoadingAnimeDetail && animeDetail ? (
     <div className="flex flex-col min-h-[100dvh]">
       <Link to="/media-list">
@@ -52,7 +60,9 @@ export default function AdminAnimeDetail() {
       <header className="w-full bg-gradient-to-b xl:bg-gradient-to-r from-primary to-muted-foreground pt-20 pb-12 xl:py-12 px-4">
         <div className="container mx-auto flex flex-col xl:flex-row gap-6 items-center">
           <img
-            src={animeDetail.images.large_image_url ?? "/placeholder.svg"}
+            src={
+              animeDetail.images.large_image_url ?? animeDetail.images.image_url
+            }
             width={300}
             height={400}
             alt="Anime Cover"

@@ -76,6 +76,13 @@ export const fetchMangaDataQueue = new Queue<FetchMangaDataJobData>(
     limiter: {
       max: 1,
       duration: 2000
+    },
+    defaultJobOptions: {
+      attempts: 5,
+      backoff: {
+        type: "exponential",
+        delay: 1000
+      }
     }
   }
 );
@@ -83,9 +90,20 @@ export const fetchMangaDataQueue = new Queue<FetchMangaDataJobData>(
 const fetchMangaStatisticsQueue = new Queue<FetchMangaStatisticsData>(
   "fetchMangaStatisticsQueue",
   {
+    redis: {
+      host: env.BULL_REDIS_IP,
+      port: env.BULL_REDIS_PORT
+    },
     limiter: {
       max: 1,
       duration: 2000
+    },
+    defaultJobOptions: {
+      attempts: 5,
+      backoff: {
+        type: "exponential",
+        delay: 1000
+      }
     }
   }
 );
