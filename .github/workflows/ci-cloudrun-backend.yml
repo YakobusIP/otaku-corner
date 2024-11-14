@@ -1,9 +1,6 @@
 name: Deploy to Google Cloud Run
 
 on:
-  push:
-    branches: ['production']
-    paths: ['.github/workflows/**', 'backend/**']
   pull_request:
     branches: ['production']
     paths: ['.github/workflows/**', 'backend/**']
