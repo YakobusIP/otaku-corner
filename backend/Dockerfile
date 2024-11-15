@@ -23,7 +23,6 @@ RUN yarn install
 
 # Transpile TypeScript to JavaScript.
 RUN yarn build
-RUN ls -la dist
 
 # Generate prisma client
 RUN npx prisma generate
