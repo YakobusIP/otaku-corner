@@ -1,4 +1,4 @@
-import { Dispatch, ReactNode, SetStateAction } from "react";
+import { Dispatch, Fragment, ReactNode, SetStateAction } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -80,7 +80,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
     <div>
       <div className="flex flex-col mb-2">
         {searchComponent ? (
-          <>
+          <Fragment>
             <h2>{title}</h2>
             <div className="flex flex-col xl:flex-row justify-between items-center gap-2">
               <div className="flex flex-col xl:flex-row items-center gap-2 w-full xl:w-fit">
@@ -100,7 +100,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
                 Delete
               </Button>
             </div>
-          </>
+          </Fragment>
         ) : (
           <div className="flex flex-col xl:flex-row justify-between items-center gap-2">
             <h2>{title}</h2>

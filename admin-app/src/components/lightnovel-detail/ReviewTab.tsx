@@ -3,9 +3,9 @@ import { useState } from "react";
 import { updateLightNovelReviewService } from "@/services/lightnovel.service";
 import { deleteImageService } from "@/services/upload.service";
 
-import DraftEditor from "@/components/DraftEditor";
 import ProgressStatus from "@/components/ProgressStatus";
 import RatingSelect from "@/components/RatingSelect";
+import ReviewEditor from "@/components/ReviewEditor";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import MonthPicker from "@/components/ui/month-picker";
@@ -26,15 +26,9 @@ import { useToast } from "@/hooks/useToast";
 
 import { LightNovelDetail, LightNovelReview } from "@/types/lightnovel.type";
 
-import { decorator, extractExistingImages } from "@/lib/draft-utils";
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
-import { createUTCDate } from "@/lib/utils";
+import { createUTCDate, extractImageIds } from "@/lib/utils";
 
-import DOMPurify from "dompurify";
-import { ContentState, EditorState, convertToRaw } from "draft-js";
-import "draft-js/dist/Draft.css";
-import draftToHtml from "draftjs-to-html";
-import htmlToDraft from "html-to-draftjs";
 import { CalendarDaysIcon, Loader2Icon } from "lucide-react";
 
 type Props = {
@@ -45,35 +39,11 @@ type Props = {
 export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
   const toast = useToast();
 
-  let initialEditorState: EditorState;
-  let currentImageIds: string[] = [];
-  if (lightNovelDetail.review) {
-    const sanitizedHTML = DOMPurify.sanitize(lightNovelDetail.review);
-    const blocksFromHtml = htmlToDraft(sanitizedHTML);
-    if (blocksFromHtml) {
-      const { contentBlocks, entityMap } = blocksFromHtml;
-      const contentState = ContentState.createFromBlockArray(
-        contentBlocks,
-        entityMap
-      );
-      initialEditorState = EditorState.createWithContent(
-        contentState,
-        decorator
-      );
+  const [review, setReview] = useState(lightNovelDetail.review ?? undefined);
+  const [uploadedImages, setUploadedImages] = useState<string[]>(
+    extractImageIds(lightNovelDetail.review ?? undefined)
+  );
 
-      const blocks = contentState.getBlocksAsArray();
-
-      currentImageIds = [...extractExistingImages(blocks, contentState)];
-    } else {
-      initialEditorState = EditorState.createEmpty(decorator);
-    }
-  } else {
-    initialEditorState = EditorState.createEmpty(decorator);
-  }
-
-  const [editorState, setEditorState] = useState(initialEditorState);
-  const [uploadedImages, setUploadedImages] =
-    useState<string[]>(currentImageIds);
   const [progressStatus, setProgressStatus] = useState(
     lightNovelDetail.progressStatus as string
   );
@@ -134,13 +104,7 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
   const onSubmit = async () => {
     setIsLoadingUpdateReview(true);
 
-    const rawContentState = convertToRaw(editorState.getCurrentContent());
-    const html = draftToHtml(rawContentState);
-
-    const contentState = editorState.getCurrentContent();
-    const blocks = contentState.getBlocksAsArray();
-    const currentImageIds = extractExistingImages(blocks, contentState);
-
+    const currentImageIds = extractImageIds(review);
     const previouslyUploadedImageIds = Object.values(uploadedImages);
     const removedImageIds = previouslyUploadedImageIds.filter(
       (id) => !currentImageIds.includes(id)
@@ -160,7 +124,7 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
       : null;
 
     const data: LightNovelReview = {
-      review: html,
+      review,
       progressStatus: progressStatus as PROGRESS_STATUS,
       consumedAt: adjustedConsumedMonth,
       storylineRating,
@@ -205,10 +169,10 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
               />
             </div>
             <Popover>
-              <PopoverTrigger className="self-end pb-1">
+              <PopoverTrigger className="self-end pb-2">
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger>
+                    <TooltipTrigger asChild>
                       <CalendarDaysIcon
                         className={
                           consumedMonth ? "text-green-700" : "text-red-600"
@@ -248,9 +212,9 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
           </div>
           <RatingSelect ratingFields={ratingFields} />
         </div>
-        <DraftEditor
-          editorState={editorState}
-          setEditorState={setEditorState}
+        <ReviewEditor
+          review={review}
+          setReview={setReview}
           mediaType={MEDIA_TYPE.LIGHT_NOVEL}
           mediaId={lightNovelDetail.id}
           setUploadedImages={setUploadedImages}

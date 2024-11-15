@@ -2,6 +2,7 @@ import { fetchAnimeByIdService } from "@/services/anime.service";
 
 import GeneralFooter from "@/components/GeneralFooter";
 import RatingDetailContent from "@/components/RatingDetailContent";
+import ReviewContent from "@/components/ReviewContent";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -30,7 +31,6 @@ import {
 
 import { ratingDescriptions } from "@/lib/constants";
 
-import DOMPurify from "isomorphic-dompurify";
 import {
   ArrowLeftIcon,
   CalendarIcon,
@@ -401,12 +401,7 @@ export default async function Page({ params }: Props) {
             </p>
           </div>
         ) : (
-          <div
-            className="flex flex-col gap-4"
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(animeDetail.review)
-            }}
-          />
+          <ReviewContent review={animeDetail.review} />
         )}
       </section>
       <div className="flex justify-center mt-12">
