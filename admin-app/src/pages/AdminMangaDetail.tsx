@@ -41,6 +41,14 @@ export default function AdminMangaDetail() {
     fetchMangaById();
   }, [fetchMangaById]);
 
+  useEffect(() => {
+    if (mangaDetail) {
+      document.title = `Manga - ${mangaDetail.title} | Otaku Corner Admin`;
+    } else {
+      document.title = "Manga | Otaku Corner Admin";
+    }
+  }, [mangaDetail]);
+
   return !isLoadingMangaDetail && mangaDetail ? (
     <div className="flex flex-col min-h-[100dvh]">
       <Link to="/media-list">
@@ -51,7 +59,9 @@ export default function AdminMangaDetail() {
       <header className="w-full bg-gradient-to-b xl:bg-gradient-to-r from-primary to-muted-foreground pt-20 pb-12 xl:py-12 px-4">
         <div className="container mx-auto flex flex-col xl:flex-row gap-6 items-center">
           <img
-            src={mangaDetail.images.large_image_url ?? "/placeholder.svg"}
+            src={
+              mangaDetail.images.large_image_url ?? mangaDetail.images.image_url
+            }
             width={300}
             height={400}
             alt="Manga Cover"

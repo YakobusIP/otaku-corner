@@ -389,6 +389,10 @@ export default function MediaList() {
     resetFilter();
   }, [resetFilter]);
 
+  useEffect(() => {
+    document.title = "Media List | Otaku Corner Admin";
+  }, []);
+
   return (
     <div className="flex flex-col min-h-[100dvh]">
       <header className="flex flex-col xl:flex-row items-center bg-background border-b">

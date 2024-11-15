@@ -1,8 +1,13 @@
 import GeneralFooter from "@/components/GeneralFooter";
 import { Button } from "@/components/ui/button";
 
+import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "404 Not Found | Otaku Corner"
+};
 
 export default function Page() {
   return (

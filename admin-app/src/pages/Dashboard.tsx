@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 import LogoutButton from "@/components/LogoutButton";
 import AllTimeStatisticsCards from "@/components/dashboard/AllTimeStatisticsCards";
 import EntityConsumptionCard from "@/components/dashboard/EntityConsumptionCard";
@@ -13,6 +15,10 @@ import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const isWideScreen = useWideScreen();
+
+  useEffect(() => {
+    document.title = "Dashboard | Otaku Corner Admin";
+  }, []);
 
   return (
     <div className="flex flex-col min-h-[100dvh]">

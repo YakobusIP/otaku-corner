@@ -23,7 +23,6 @@ export const setAccessToken = (token: string | null) => {
     interceptedAxios.defaults.headers.common["Authorization"] =
       `Bearer ${token}`;
   } else {
-    console.debug("in here");
     delete interceptedAxios.defaults.headers.common["Authorization"];
   }
 };

@@ -13,10 +13,17 @@ import type { MangaList } from "@/types/manga.type";
 
 import { SORT_ORDER } from "@/lib/enums";
 
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 const START_PAGE = 1;
 const PAGINATION_SIZE = 15;
+
+export const metadata: Metadata = {
+  title: "Manga Collection | Otaku Corner",
+  description:
+    "Browse through bearking58's manga collection, featuring straightforward reviews and ratings. Find compelling stories and steer clear of the duds with helpful insights."
+};
 
 export default async function Page() {
   const fetchMangaList = async (): Promise<[MangaList[], MetadataResponse]> => {
