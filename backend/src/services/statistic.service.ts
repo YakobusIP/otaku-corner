@@ -481,25 +481,30 @@ export class StatisticService {
         highestLightNovelPromise
       ]);
 
+      const prepareResults = (
+        count: number,
+        highestImages: {
+          personalScore: number | null;
+          title: string;
+          images: Prisma.JsonValue;
+        }[]
+      ) => {
+        return {
+          count,
+          images: highestImages.length > 0 ? highestImages[0].images : null,
+          title: highestImages.length > 0 ? highestImages[0].title : null,
+          score:
+            highestImages.length > 0 ? highestImages[0].personalScore : null
+        };
+      };
+
       return {
-        anime: {
-          count: consumedAnimeYearlyCount,
-          images: highestAnimeImage[0].images,
-          title: highestAnimeImage[0].title,
-          score: highestAnimeImage[0].personalScore
-        },
-        manga: {
-          count: consumedMangaYearlyCount,
-          images: highestMangaImage[0].images,
-          title: highestMangaImage[0].title,
-          score: highestMangaImage[0].personalScore
-        },
-        lightNovel: {
-          count: consumedLightNovelYearlyCount,
-          images: highestLightNovelImage[0].images,
-          title: highestLightNovelImage[0].title,
-          score: highestLightNovelImage[0].personalScore
-        }
+        anime: prepareResults(consumedAnimeYearlyCount, highestAnimeImage),
+        manga: prepareResults(consumedMangaYearlyCount, highestMangaImage),
+        lightNovel: prepareResults(
+          consumedLightNovelYearlyCount,
+          highestLightNovelImage
+        )
       };
     } catch (error) {
       throw new InternalServerError((error as Error).message);

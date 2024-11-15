@@ -100,6 +100,10 @@ export default function Home() {
     };
   }, [handleKeyEvents]);
 
+  useEffect(() => {
+    document.title = "Login | Otaku Corner Admin";
+  }, []);
+
   return (
     <main className="flex items-center justify-center w-full min-h-screen">
       <img

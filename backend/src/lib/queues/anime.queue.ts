@@ -51,6 +51,13 @@ export const fetchEpisodesQueue = new Queue<FetchEpisodesJobData>(
     limiter: {
       max: 1,
       duration: 1000
+    },
+    defaultJobOptions: {
+      attempts: 5,
+      backoff: {
+        type: "exponential",
+        delay: 1000
+      }
     }
   }
 );

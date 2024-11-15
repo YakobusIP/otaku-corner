@@ -6,9 +6,17 @@ import { Button } from "@/components/ui/button";
 
 import { MEDIA_TYPE } from "@/lib/enums";
 
+import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title:
+    "bearking58 Otaku Corner: Personal Reviews of Anime, Manga, and Light Novels",
+  description:
+    "Dive into bearking58's personal otaku media collection, featuring candid reviews and ratings of anime, manga, and light novels. Explore insights from an average Japanese media enthusiast."
+};
 
 export default async function Page() {
   const fetchHomeData = async () => {
@@ -36,9 +44,10 @@ export default async function Page() {
       type: MEDIA_TYPE.ANIME,
       path: "/anime",
       image:
-        homeData.anime.images.large_image_url ||
-        homeData.anime.images.image_url,
-      mediaTitle: homeData.anime.title,
+        homeData.anime.images?.large_image_url ||
+        homeData.anime.images?.image_url ||
+        "/placeholder.svg",
+      mediaTitle: homeData.anime.title || "",
       rating: homeData.anime.score ? homeData.anime.score.toFixed(2) : 0
     },
     {
@@ -48,9 +57,10 @@ export default async function Page() {
       type: MEDIA_TYPE.MANGA,
       path: "/manga",
       image:
-        homeData.manga.images.large_image_url ||
-        homeData.manga.images.image_url,
-      mediaTitle: homeData.manga.title,
+        homeData.manga.images?.large_image_url ||
+        homeData.manga.images?.image_url ||
+        "/placeholder.svg",
+      mediaTitle: homeData.manga.title || "",
       rating: homeData.manga.score ? homeData.manga.score.toFixed(2) : 0
     },
     {
@@ -60,9 +70,10 @@ export default async function Page() {
       type: MEDIA_TYPE.LIGHT_NOVEL,
       path: "/light-novel",
       image:
-        homeData.lightNovel.images.large_image_url ||
-        homeData.lightNovel.images.image_url,
-      mediaTitle: homeData.lightNovel.title,
+        homeData.lightNovel.images?.large_image_url ||
+        homeData.lightNovel.images?.image_url ||
+        "/placeholder.svg",
+      mediaTitle: homeData.lightNovel.title || "",
       rating: homeData.lightNovel.score
         ? homeData.lightNovel.score.toFixed(2)
         : 0

@@ -42,6 +42,14 @@ export default function AdminLightNovelDetail() {
     fetchLightNovelById();
   }, [fetchLightNovelById]);
 
+  useEffect(() => {
+    if (lightNovelDetail) {
+      document.title = `Light Novel - ${lightNovelDetail.title} | Otaku Corner Admin`;
+    } else {
+      document.title = "Light Novel | Otaku Corner Admin";
+    }
+  }, [lightNovelDetail]);
+
   return !isLoadingLightNovelDetail && lightNovelDetail ? (
     <div className="flex flex-col min-h-[100dvh]">
       <Link to="/media-list">
@@ -52,7 +60,10 @@ export default function AdminLightNovelDetail() {
       <header className="w-full bg-gradient-to-b xl:bg-gradient-to-r from-primary to-muted-foreground pt-20 pb-12 xl:py-12 px-4">
         <div className="container mx-auto flex flex-col xl:flex-row gap-6 items-center">
           <img
-            src={lightNovelDetail.images.large_image_url ?? "/placeholder.svg"}
+            src={
+              lightNovelDetail.images.large_image_url ??
+              lightNovelDetail.images.image_url
+            }
             width={300}
             height={400}
             alt="LightNovel Cover"

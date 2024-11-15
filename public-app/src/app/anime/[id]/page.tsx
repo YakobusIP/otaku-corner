@@ -40,16 +40,37 @@ import {
   InfoIcon,
   StarIcon
 } from "lucide-react";
+import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isMobile } from "react-device-detect";
 
-export default async function Page({
-  params
-}: {
+type Props = {
   params: Promise<{ id: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const id = (await params).id;
+
+  const fetchAnimeById = async () => {
+    const response = await fetchAnimeByIdService(id);
+    if (response.success) {
+      return response.data;
+    } else {
+      redirect("/fetch-error");
+    }
+  };
+
+  const animeDetail = await fetchAnimeById();
+
+  return {
+    title: `${animeDetail.title} Anime Review | Otaku Corner`,
+    description: `Read bearking58's in-depth review of ${animeDetail.title}, offering a personal perspective and rating. Uncover what makes this anime a hit or miss in the collection.`
+  };
+}
+
+export default async function Page({ params }: Props) {
   const id = (await params).id;
 
   const fetchAnimeById = async () => {

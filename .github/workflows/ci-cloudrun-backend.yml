@@ -38,7 +38,7 @@ jobs:
 
       - name: Deploy image to Google Cloud Run
         run: |
-          gcloud run deploy roadtofit-be \
+          gcloud run deploy otaku-corner-be \
             --image=${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }} \
             --platform=managed \
             --region=${{ vars.GCP_CLOUD_RUN_REGION }} \
