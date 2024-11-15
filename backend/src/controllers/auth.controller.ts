@@ -34,8 +34,8 @@ export class AuthController {
 
         res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: "strict"
+          secure: env.NODE_ENV === "production",
+          sameSite: "none"
         });
 
         res.status(200).json({ accessToken });
