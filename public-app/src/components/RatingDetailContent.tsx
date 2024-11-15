@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+
 import { Separator } from "@/components/ui/separator";
 
 import { scoreOptions } from "@/lib/constants";
@@ -28,9 +30,8 @@ export default function RatingDetailContent({ details, finalScore }: Props) {
     <div className="space-y-1">
       <p className="font-bold">Personal score breakdown:</p>
       {details.map((detail) => (
-        <>
+        <Fragment key={`rating-${detail.title}`}>
           <span
-            key={`rating-${detail.title}`}
             className={cn(
               "flex flex-col xl:flex-row justify-between",
               isMobile ? "w-[250px]" : " w-[325px]"
@@ -40,7 +41,7 @@ export default function RatingDetailContent({ details, finalScore }: Props) {
             <p>{detail.rating}</p>
           </span>
           <Separator />
-        </>
+        </Fragment>
       ))}
       <span
         className={cn(

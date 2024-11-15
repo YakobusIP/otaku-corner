@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import { fetchAllTimeStatisticService } from "@/services/statistic.service";
 
@@ -45,7 +45,7 @@ export default function AllTimeStatisticsCards() {
   return (
     <div className="grid grid-cols-1 grid-rows-6 xl:grid-cols-2 xl:grid-rows-3-auto gap-4 w-full xl:w-fit">
       {!isLoadingAllTimeStatistic && allTimeStatistic ? (
-        <>
+        <Fragment>
           <Card className="w-full xl:w-[300px]">
             <CardHeader>
               <CardTitle>Total Media Count</CardTitle>
@@ -102,9 +102,9 @@ export default function AllTimeStatisticsCards() {
               <h2>{allTimeStatistic.averagePersonalScore.toFixed(2)}</h2>
             </CardContent>
           </Card>
-        </>
+        </Fragment>
       ) : (
-        <>
+        <Fragment>
           <Card className="w-full xl:w-[300px]">
             <CardHeader>
               <Skeleton className="h-[25px] w-[120px]" />
@@ -159,7 +159,7 @@ export default function AllTimeStatisticsCards() {
               <Skeleton className="h-[35px] w-[90px]" />
             </CardContent>
           </Card>
-        </>
+        </Fragment>
       )}
     </div>
   );

@@ -2,6 +2,7 @@ import { fetchMangaByIdService } from "@/services/manga.service";
 
 import GeneralFooter from "@/components/GeneralFooter";
 import RatingDetailContent from "@/components/RatingDetailContent";
+import ReviewContent from "@/components/ReviewContent";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -20,7 +21,6 @@ import {
 
 import { ratingDescriptions } from "@/lib/constants";
 
-import DOMPurify from "isomorphic-dompurify";
 import {
   ArrowLeftIcon,
   BookOpenText,
@@ -301,12 +301,7 @@ export default async function Page({
             </p>
           </div>
         ) : (
-          <div
-            className="flex flex-col gap-4"
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(mangaDetail.review)
-            }}
-          />
+          <ReviewContent review={mangaDetail.review} />
         )}
       </section>
       <div className="container">

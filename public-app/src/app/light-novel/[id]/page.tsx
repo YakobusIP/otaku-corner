@@ -2,6 +2,7 @@ import { fetchLightNovelByIdService } from "@/services/lightnovel.service";
 
 import GeneralFooter from "@/components/GeneralFooter";
 import RatingDetailContent from "@/components/RatingDetailContent";
+import ReviewContent from "@/components/ReviewContent";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -20,7 +21,6 @@ import {
 
 import { ratingDescriptions } from "@/lib/constants";
 
-import DOMPurify from "isomorphic-dompurify";
 import {
   ArrowLeftIcon,
   CalendarIcon,
@@ -293,12 +293,7 @@ export default async function Page({ params }: Props) {
             </p>
           </div>
         ) : (
-          <div
-            className="flex flex-col gap-4"
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(lightNovelDetail.review)
-            }}
-          />
+          <ReviewContent review={lightNovelDetail.review} />
         )}
       </section>
       <div className="container">

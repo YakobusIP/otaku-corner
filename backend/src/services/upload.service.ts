@@ -116,9 +116,9 @@ export class UploadService {
       }
 
       const urlParts = reviewImage.url.split("/");
-      const filename = `review-images/${urlParts[urlParts.length - 1]}`;
 
       if (env.NODE_ENV === "production") {
+        const filename = `review-images/${urlParts[urlParts.length - 1]}`;
         const file = bucket.file(filename);
         try {
           await file.delete();
@@ -126,6 +126,7 @@ export class UploadService {
           throw new FileStorageError((error as Error).message);
         }
       } else {
+        const filename = urlParts[urlParts.length - 1];
         const localPath = path.join(__dirname, "../uploads", filename);
         try {
           if (existsSync(localPath)) {
