@@ -1,10 +1,9 @@
+import EditEntityDialog from "@/components/entity-management/EditEntityDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { AuthorEntity } from "@/types/entity.type";
 
 import { ColumnDef } from "@tanstack/react-table";
-
-import EditEntityDialog from "../EditEntityDialog";
 
 export const authorColumns = (
   editEntity: (id: string, entity: string) => void,

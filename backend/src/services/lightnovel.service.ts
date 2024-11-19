@@ -34,7 +34,7 @@ export class LightNovelService {
     private readonly themeService: ThemeService
   ) {}
 
-  private calculatePersonalScore(data: Prisma.LightNovelUpdateInput) {
+  private calculatePersonalScore(data: Prisma.LightNovelReviewUpdateInput) {
     const {
       storylineRating,
       worldBuildingRating,
@@ -78,7 +78,8 @@ export class LightNovelService {
     filterGenre?: string,
     filterTheme?: string,
     filterMALScore?: string,
-    filterPersonalScore?: string
+    filterPersonalScore?: string,
+    filterStatusCheck?: string
   ) {
     try {
       const lowerCaseQuery = query && query.toLowerCase();
@@ -129,13 +130,36 @@ export class LightNovelService {
           ...(filterPersonalScore
             ? [
                 {
-                  personalScore: {
-                    gte: scoreRanges[filterPersonalScore].min,
-                    lte: scoreRanges[filterPersonalScore].max
+                  review: {
+                    personalScore: {
+                      gte: scoreRanges[filterPersonalScore].min,
+                      lte: scoreRanges[filterPersonalScore].max
+                    }
                   }
                 }
               ]
-            : [])
+            : []),
+          ...(filterStatusCheck === "complete"
+            ? [
+                {
+                  AND: [
+                    { volumesCount: { not: null } },
+                    { review: { review: { not: null } } },
+                    { review: { consumedAt: { not: null } } }
+                  ]
+                }
+              ]
+            : filterStatusCheck === "incomplete"
+              ? [
+                  {
+                    OR: [
+                      { volumesCount: null },
+                      { review: { review: null } },
+                      { review: { consumedAt: null } }
+                    ]
+                  }
+                ]
+              : [])
         ]
       };
 
@@ -154,8 +178,15 @@ export class LightNovelService {
           images: true,
           status: true,
           score: true,
-          progressStatus: true,
-          personalScore: true
+          review: {
+            select: {
+              review: true,
+              progressStatus: true,
+              personalScore: true,
+              consumedAt: true
+            }
+          },
+          volumesCount: true
         },
         orderBy: {
           title: sortBy === "title" ? sortOrder : undefined,
@@ -165,8 +196,22 @@ export class LightNovelService {
         skip: (currentPage - 1) * limitPerPage
       });
 
+      const mappedData = data.map((row) => ({
+        id: row.id,
+        title: row.title,
+        titleJapanese: row.titleJapanese,
+        images: row.images,
+        status: row.status,
+        score: row.score,
+        review: row.review?.review,
+        progressStatus: row.review?.progressStatus,
+        personalScore: row.review?.personalScore,
+        consumedAt: row.review?.consumedAt,
+        volumesCount: row.volumesCount
+      }));
+
       return {
-        data,
+        data: mappedData,
         metadata: {
           currentPage,
           limitPerPage,
@@ -188,6 +233,7 @@ export class LightNovelService {
       const lightNovel = await prisma.lightNovel.findUnique({
         where: { id },
         include: {
+          review: true,
           authors: { select: { author: { select: { id: true, name: true } } } },
           genres: { select: { genre: { select: { id: true, name: true } } } },
           themes: { select: { theme: { select: { id: true, name: true } } } }
@@ -283,8 +329,19 @@ export class LightNovelService {
           themeMap[theme.name.toLowerCase()] = theme.id;
         });
 
+        const reviewRecords = await prisma.lightNovelReview.createManyAndReturn(
+          {
+            data: data.map(() => ({}))
+          }
+        );
+
+        const lightNovelDataWithReviews = data.map((lightNovel, index) => ({
+          ...lightNovel,
+          reviewId: reviewRecords[index].id
+        }));
+
         const createdLightNovels = await prisma.lightNovel.createManyAndReturn({
-          data: data.map(
+          data: lightNovelDataWithReviews.map(
             ({
               authors: _authors,
               genres: _genres,
@@ -378,12 +435,38 @@ export class LightNovelService {
 
   async updateLightNovel(id: string, data: Prisma.LightNovelUpdateInput) {
     try {
-      const lightNovelData = { ...data };
-      lightNovelData.personalScore =
-        this.calculatePersonalScore(lightNovelData);
+      return await prisma.lightNovel.update({ where: { id }, data });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        throw new NotFoundError("Light novel not found!");
+      }
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request body!");
+      }
+
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
+  async updateLightNovelReview(
+    id: string,
+    data: Prisma.LightNovelReviewUpdateInput
+  ) {
+    try {
       return await prisma.lightNovel.update({
         where: { id },
-        data: lightNovelData
+        data: {
+          review: {
+            update: {
+              ...data,
+              personalScore: this.calculatePersonalScore(data)
+            }
+          }
+        }
       });
     } catch (error) {
       if (

@@ -1,3 +1,4 @@
+import EditVolumes from "@/components/lightnovel-detail/EditVolumes";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
@@ -6,8 +7,6 @@ import { TabsContent } from "@/components/ui/tabs";
 import { LightNovelDetail } from "@/types/lightnovel.type";
 
 import { ExternalLinkIcon, StarIcon } from "lucide-react";
-
-import EditVolumes from "./EditVolumes";
 
 type Props = {
   lightNovelDetail: LightNovelDetail;
@@ -20,11 +19,9 @@ export default function AboutTab({ lightNovelDetail, resetParent }: Props) {
       <div className="flex flex-col gap-4 pt-4">
         <h2>About</h2>
         <div className="flex flex-wrap items-center gap-2">
-          {lightNovelDetail.progressStatus && (
-            <ProgressStatusBadge
-              progressStatus={lightNovelDetail.progressStatus}
-            />
-          )}
+          <ProgressStatusBadge
+            progressStatus={lightNovelDetail.review.progressStatus}
+          />
         </div>
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           <div className="flex flex-col gap-1">

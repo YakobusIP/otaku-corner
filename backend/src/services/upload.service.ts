@@ -19,20 +19,20 @@ export class UploadService {
     uuid: string,
     url: string,
     type: MEDIA_TYPE,
-    entityId: string
+    reviewId: string
   ) {
     try {
       const data: Prisma.ReviewImageCreateInput = { id: uuid, url };
 
       switch (type) {
         case MEDIA_TYPE.ANIME:
-          data.anime = { connect: { id: entityId } };
+          data.animeReview = { connect: { id: reviewId } };
           break;
         case MEDIA_TYPE.MANGA:
-          data.manga = { connect: { id: entityId } };
+          data.mangaReview = { connect: { id: reviewId } };
           break;
         case MEDIA_TYPE.LIGHT_NOVEL:
-          data.lightNovel = { connect: { id: entityId } };
+          data.lightNovelReview = { connect: { id: reviewId } };
           break;
         default:
           throw new BadRequestError("Invalid media type!");

@@ -1,6 +1,7 @@
 import { updateLightNovelProgressStatusService } from "@/services/lightnovel.service";
 
 import ProgressStatus from "@/components/ProgressStatus";
+import DataTableStatuses from "@/components/data-table/DataTableStatuses";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -14,7 +15,12 @@ import {
 import { LightNovelList } from "@/types/lightnovel.type";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontalIcon } from "lucide-react";
+import {
+  CalendarDaysIcon,
+  ListIcon,
+  MoreHorizontalIcon,
+  NotebookPenIcon
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
@@ -46,16 +52,63 @@ export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
     header: "Title",
     cell: ({ row }) => {
       const data = row.original;
-      const image_url = data.images.image_url;
-      const title = data.title;
-      const title_japanese = data.titleJapanese;
+      const { images, title, titleJapanese, review, consumedAt, volumesCount } =
+        data;
+
+      const statusChecks = [
+        {
+          key: `${title}-manga-volume-status`,
+          Trigger: ListIcon,
+          condition: !!volumesCount,
+          triggerColor: {
+            success: "text-green-700",
+            failed: "text-destructive"
+          },
+          message: {
+            success: "Volume count set",
+            failed: "Volume count missing"
+          }
+        },
+        {
+          key: `${title}-manga-review-status`,
+          Trigger: NotebookPenIcon,
+          condition: !!review,
+          triggerColor: {
+            success: "text-green-700",
+            failed: "text-destructive"
+          },
+          message: {
+            success: "Review added",
+            failed: "Review missing"
+          }
+        },
+        {
+          key: `${title}-manga-date-status`,
+          Trigger: CalendarDaysIcon,
+          condition: !!consumedAt,
+          triggerColor: {
+            success: "text-green-700",
+            failed: "text-destructive"
+          },
+          message: {
+            success: "Consumed date set",
+            failed: "Consumed date missing"
+          }
+        }
+      ];
 
       return (
         <div className="flex gap-2 items-center">
-          <img src={image_url ?? undefined} width="50" height="74" />
-          <div className="flex flex-col">
-            <p className="font-bold">{title}</p>
-            <p className="text-muted-foreground">{title_japanese}</p>
+          <img
+            src={images.image_url || undefined}
+            className="w-[50px] h-[75px] object-cover"
+          />
+          <div className="flex flex-col w-full">
+            <p className="font-bold line-clamp-2">{title}</p>
+            <p className="text-muted-foreground line-clamp-1">
+              {titleJapanese}
+            </p>
+            <DataTableStatuses checks={statusChecks} />
           </div>
         </div>
       );

@@ -57,7 +57,7 @@ export default function SearchAnimeJikan({
         q: debouncedSearch
       });
       setAnimeList(response.data);
-    } catch (error) {
+    } catch {
       toastRef.current({
         variant: "destructive",
         title: "Uh oh! Something went wrong",

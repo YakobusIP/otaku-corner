@@ -5,11 +5,6 @@ import RatingDetailContent from "@/components/RatingDetailContent";
 import ReviewContent from "@/components/ReviewContent";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,12 +17,6 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
 
 import { ratingDescriptions } from "@/lib/constants";
 
@@ -37,14 +26,12 @@ import {
   ClockIcon,
   FilmIcon,
   HeartIcon,
-  InfoIcon,
   StarIcon
 } from "lucide-react";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { isMobile } from "react-device-detect";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -83,6 +70,7 @@ export default async function Page({ params }: Props) {
   };
 
   const animeDetail = await fetchAnimeById();
+  const reviewObject = animeDetail.review;
 
   const embedURL = animeDetail?.trailer?.replace(
     /(autoplay=)[^&]+/,
@@ -93,45 +81,45 @@ export default async function Page({ params }: Props) {
     {
       title: "Storyline",
       weight: "30",
-      rating: animeDetail?.storylineRating
-        ? `${animeDetail.storylineRating} - ${
-            ratingDescriptions[animeDetail.storylineRating]
+      rating: reviewObject.storylineRating
+        ? `${reviewObject.storylineRating} - ${
+            ratingDescriptions[reviewObject.storylineRating]
           }`
         : "N/A"
     },
     {
       title: "Animation Quality",
       weight: "25",
-      rating: animeDetail?.qualityRating
-        ? `${animeDetail.qualityRating} - ${
-            ratingDescriptions[animeDetail.qualityRating]
+      rating: reviewObject.qualityRating
+        ? `${reviewObject.qualityRating} - ${
+            ratingDescriptions[reviewObject.qualityRating]
           }`
         : "N/A"
     },
     {
       title: "Voice Acting",
       weight: "20",
-      rating: animeDetail?.voiceActingRating
-        ? `${animeDetail.voiceActingRating} - ${
-            ratingDescriptions[animeDetail.voiceActingRating]
+      rating: reviewObject.voiceActingRating
+        ? `${reviewObject.voiceActingRating} - ${
+            ratingDescriptions[reviewObject.voiceActingRating]
           }`
         : "N/A"
     },
     {
       title: "Soundtrack",
       weight: "15",
-      rating: animeDetail?.soundTrackRating
-        ? `${animeDetail.soundTrackRating} - ${
-            ratingDescriptions[animeDetail.soundTrackRating]
+      rating: reviewObject.soundTrackRating
+        ? `${reviewObject.soundTrackRating} - ${
+            ratingDescriptions[reviewObject.soundTrackRating]
           }`
         : "N/A"
     },
     {
       title: "Character Development",
       weight: "10",
-      rating: animeDetail?.charDevelopmentRating
-        ? `${animeDetail.charDevelopmentRating} - ${
-            ratingDescriptions[animeDetail.charDevelopmentRating]
+      rating: reviewObject.charDevelopmentRating
+        ? `${reviewObject.charDevelopmentRating} - ${
+            ratingDescriptions[reviewObject.charDevelopmentRating]
           }`
         : "N/A"
     }
@@ -162,12 +150,10 @@ export default async function Page({ params }: Props) {
                 <div>Broadcast: {animeDetail.broadcast}</div>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
-                {animeDetail.progressStatus && (
-                  <ProgressStatusBadge
-                    className="text-black border-none"
-                    progressStatus={animeDetail.progressStatus}
-                  />
-                )}
+                <ProgressStatusBadge
+                  className="text-black border-none"
+                  progressStatus={reviewObject.progressStatus}
+                />
                 {animeDetail.genres.map((genre) => (
                   <Badge key={genre.id} variant="secondary">
                     {genre.name}
@@ -205,7 +191,7 @@ export default async function Page({ params }: Props) {
                     <HeartIcon
                       key={`heart-${i}`}
                       className={`w-5 h-5 ${
-                        i < Math.round((animeDetail.personalScore ?? 0) / 2)
+                        i < Math.round((reviewObject.personalScore ?? 0) / 2)
                           ? "text-yellow-600"
                           : "text-muted-foreground"
                       }`}
@@ -214,37 +200,14 @@ export default async function Page({ params }: Props) {
                 </div>
                 <div className="flex items-center gap-2">
                   <p className="text-lg font-semibold">
-                    {animeDetail.personalScore
-                      ? animeDetail.personalScore.toFixed(2)
+                    {reviewObject.personalScore
+                      ? reviewObject.personalScore.toFixed(2)
                       : "N/A"}
                   </p>
-                  {isMobile ? (
-                    <Popover>
-                      <PopoverTrigger>
-                        <InfoIcon className="w-4 h-4" />
-                      </PopoverTrigger>
-                      <PopoverContent className="w-64">
-                        <RatingDetailContent
-                          details={animePersonalRatings}
-                          finalScore={animeDetail.personalScore}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  ) : (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <InfoIcon className="w-4 h-4" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <RatingDetailContent
-                            details={animePersonalRatings}
-                            finalScore={animeDetail.personalScore}
-                          />
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
+                  <RatingDetailContent
+                    details={animePersonalRatings}
+                    finalScore={reviewObject.personalScore}
+                  />
                 </div>
                 <div className="text-sm text-muted-foreground">
                   (Personal Score)
@@ -387,7 +350,7 @@ export default async function Page({ params }: Props) {
       <section className="container space-y-2">
         <Separator className="mb-4" />
         <h3>My Review</h3>
-        {!animeDetail.review || animeDetail.review === "<p></p>\n" ? (
+        {!reviewObject.review ? (
           <div className="flex flex-col items-center justify-center gap-2 xl:gap-4">
             <Image
               src="/no-review.gif"
@@ -401,7 +364,7 @@ export default async function Page({ params }: Props) {
             </p>
           </div>
         ) : (
-          <ReviewContent review={animeDetail.review} />
+          <ReviewContent review={reviewObject.review} />
         )}
       </section>
       <div className="flex justify-center mt-12">

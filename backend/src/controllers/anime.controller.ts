@@ -25,6 +25,7 @@ export class AnimeController {
       const filterMALScore = req.query.filterMALScore as string;
       const filterPersonalScore = req.query.filterPersonalScore as string;
       const filterType = req.query.filterType as string;
+      const filterStatusCheck = req.query.filterStatusCheck as string;
       const animes = await this.animeService.getAllAnimes(
         parseInt(currentPage),
         parseInt(limitPerPage),
@@ -36,7 +37,8 @@ export class AnimeController {
         filterTheme,
         filterMALScore,
         filterPersonalScore,
-        filterType
+        filterType,
+        filterStatusCheck
       );
 
       return res.json({ data: animes });
@@ -88,6 +90,19 @@ export class AnimeController {
     try {
       await this.animeService.updateAnime(req.params.id, req.body);
       return res.json({ message: "Anime updated successfully!" });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  updateAnimeReview = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await this.animeService.updateAnimeReview(req.params.id, req.body);
+      return res.json({ message: "Anime review updated successfully!" });
     } catch (error) {
       return next(error);
     }

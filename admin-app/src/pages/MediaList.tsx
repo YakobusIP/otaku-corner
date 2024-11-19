@@ -151,7 +151,8 @@ export default function MediaList() {
       animeFilterSort.filterTheme,
       animeFilterSort.filterMALScore,
       animeFilterSort.filterPersonalScore,
-      animeFilterSort.filterType
+      animeFilterSort.filterType,
+      animeFilterSort.filterStatusCheck
     );
     if (response.success) {
       setAddedAnimeList(response.data.data);
@@ -179,7 +180,8 @@ export default function MediaList() {
       mangaFilterSort.filterGenre,
       mangaFilterSort.filterTheme,
       mangaFilterSort.filterMALScore,
-      mangaFilterSort.filterPersonalScore
+      mangaFilterSort.filterPersonalScore,
+      mangaFilterSort.filterStatusCheck
     );
     if (response.success) {
       setAddedMangaList(response.data.data);
@@ -207,7 +209,8 @@ export default function MediaList() {
       lightNovelFilterSort.filterGenre,
       lightNovelFilterSort.filterTheme,
       lightNovelFilterSort.filterMALScore,
-      lightNovelFilterSort.filterPersonalScore
+      lightNovelFilterSort.filterPersonalScore,
+      lightNovelFilterSort.filterStatusCheck
     );
     if (response.success) {
       setAddedLightNovelList(response.data.data);

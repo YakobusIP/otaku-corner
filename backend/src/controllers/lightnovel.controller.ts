@@ -27,6 +27,7 @@ export class LightNovelController {
       const filterTheme = req.query.filterTheme as string;
       const filterMALScore = req.query.filterMALScore as string;
       const filterPersonalScore = req.query.filterPersonalScore as string;
+      const filterStatusCheck = req.query.filterStatusCheck as string;
       const lightNovels = await this.lightNovelService.getAllLightNovels(
         parseInt(currentPage),
         parseInt(limitPerPage),
@@ -37,7 +38,8 @@ export class LightNovelController {
         filterGenre,
         filterTheme,
         filterMALScore,
-        filterPersonalScore
+        filterPersonalScore,
+        filterStatusCheck
       );
 
       return res.json({ data: lightNovels });
@@ -99,6 +101,22 @@ export class LightNovelController {
     try {
       await this.lightNovelService.updateLightNovel(req.params.id, req.body);
       return res.json({ message: "Light novel updated successfully!" });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  updateLightNovelReview = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await this.lightNovelService.updateLightNovelReview(
+        req.params.id,
+        req.body
+      );
+      return res.json({ message: "Light novel review updated successfully!" });
     } catch (error) {
       return next(error);
     }

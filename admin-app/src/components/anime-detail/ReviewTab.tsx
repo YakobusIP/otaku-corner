@@ -24,7 +24,7 @@ import {
 
 import { useToast } from "@/hooks/useToast";
 
-import { AnimeDetail, AnimeReview } from "@/types/anime.type";
+import { AnimeDetail, AnimeReviewRequest } from "@/types/anime.type";
 
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
 import { createUTCDate, extractImageIds } from "@/lib/utils";
@@ -38,32 +38,33 @@ type Props = {
 
 export default function ReviewTab({ animeDetail, resetParent }: Props) {
   const toast = useToast();
+  const reviewObject = animeDetail.review;
 
-  const [review, setReview] = useState(animeDetail.review ?? undefined);
+  const [review, setReview] = useState(reviewObject.review ?? undefined);
   const [uploadedImages, setUploadedImages] = useState<string[]>(
-    extractImageIds(animeDetail.review ?? undefined)
+    extractImageIds(reviewObject.review ?? undefined)
   );
 
   const [progressStatus, setProgressStatus] = useState(
-    animeDetail.progressStatus as string
+    reviewObject.progressStatus as string
   );
   const [consumedMonth, setConsumedMonth] = useState<Date | null>(
-    animeDetail.consumedAt ? new Date(animeDetail.consumedAt) : null
+    reviewObject.consumedAt ? new Date(reviewObject.consumedAt) : null
   );
   const [storylineRating, setStorylineRating] = useState(
-    animeDetail.storylineRating || 10
+    reviewObject.storylineRating || 10
   );
   const [qualityRating, setQualityRating] = useState(
-    animeDetail.qualityRating || 10
+    reviewObject.qualityRating || 10
   );
   const [voiceActingRating, setVoiceActingRating] = useState(
-    animeDetail.voiceActingRating || 10
+    reviewObject.voiceActingRating || 10
   );
   const [soundTrackRating, setSoundTrackRating] = useState(
-    animeDetail.soundTrackRating || 10
+    reviewObject.soundTrackRating || 10
   );
   const [charDevelopmentRating, setCharDevelopmentRating] = useState(
-    animeDetail.charDevelopmentRating || 10
+    reviewObject.charDevelopmentRating || 10
   );
 
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
@@ -123,7 +124,7 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
         )
       : null;
 
-    const data: AnimeReview = {
+    const data: AnimeReviewRequest = {
       review,
       progressStatus: progressStatus as PROGRESS_STATUS,
       consumedAt: adjustedConsumedMonth,
@@ -214,7 +215,7 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
           review={review}
           setReview={setReview}
           mediaType={MEDIA_TYPE.ANIME}
-          mediaId={animeDetail.id}
+          reviewId={reviewObject.id}
           setUploadedImages={setUploadedImages}
         />
         <Button type="submit" className="mt-4" onClick={handleSubmit}>

@@ -41,6 +41,11 @@ class LightNovelRouter {
       authMiddleware,
       this.lightNovelController.updateLightNovel
     );
+    this.router.put(
+      "/:id/review",
+      authMiddleware,
+      this.lightNovelController.updateLightNovelReview
+    );
     this.router.delete(
       "/",
       authMiddleware,

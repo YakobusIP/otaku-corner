@@ -41,7 +41,7 @@ export class AnimeService {
     private readonly themeService: ThemeService
   ) {}
 
-  private calculatePersonalScore(data: Prisma.AnimeUpdateInput) {
+  private calculatePersonalScore(data: Prisma.AnimeReviewUpdateInput) {
     const {
       storylineRating,
       qualityRating,
@@ -85,7 +85,8 @@ export class AnimeService {
     filterTheme?: string,
     filterMALScore?: string,
     filterPersonalScore?: string,
-    filterType?: string
+    filterType?: string,
+    filterStatusCheck?: string
   ) {
     try {
       const lowerCaseQuery = query && query.toLowerCase();
@@ -136,14 +137,52 @@ export class AnimeService {
           ...(filterPersonalScore
             ? [
                 {
-                  personalScore: {
-                    gte: scoreRanges[filterPersonalScore].min,
-                    lte: scoreRanges[filterPersonalScore].max
+                  review: {
+                    personalScore: {
+                      gte: scoreRanges[filterPersonalScore].min,
+                      lte: scoreRanges[filterPersonalScore].max
+                    }
                   }
                 }
               ]
             : []),
-          ...(filterType ? [{ type: { equals: filterType } }] : [])
+          ...(filterType ? [{ type: { equals: filterType } }] : []),
+          ...(filterStatusCheck === "complete"
+            ? [
+                {
+                  AND: [
+                    {
+                      OR: [
+                        { type: { in: ["Movie", "OVA"] } },
+                        {
+                          AND: [
+                            { type: { notIn: ["Movie", "OVA"] } },
+                            { episodes: { some: {} } }
+                          ]
+                        }
+                      ]
+                    },
+                    { review: { review: { not: null } } },
+                    { review: { consumedAt: { not: null } } }
+                  ]
+                }
+              ]
+            : filterStatusCheck === "incomplete"
+              ? [
+                  {
+                    OR: [
+                      {
+                        AND: [
+                          { type: { notIn: ["Movie", "OVA"] } },
+                          { episodes: { none: {} } }
+                        ]
+                      },
+                      { review: { review: null } },
+                      { review: { consumedAt: null } }
+                    ]
+                  }
+                ]
+              : [])
         ]
       };
 
@@ -164,8 +203,19 @@ export class AnimeService {
           type: true,
           score: true,
           rating: true,
-          progressStatus: true,
-          personalScore: true
+          review: {
+            select: {
+              review: true,
+              progressStatus: true,
+              personalScore: true,
+              consumedAt: true
+            }
+          },
+          _count: {
+            select: {
+              episodes: true
+            }
+          }
         },
         orderBy: {
           title: sortBy === "title" ? sortOrder : undefined,
@@ -175,8 +225,24 @@ export class AnimeService {
         skip: (currentPage - 1) * limitPerPage
       });
 
+      const mappedData = data.map((row) => ({
+        id: row.id,
+        title: row.title,
+        titleJapanese: row.titleJapanese,
+        images: row.images,
+        status: row.status,
+        type: row.type,
+        score: row.score,
+        rating: row.rating,
+        review: row.review?.review,
+        progressStatus: row.review?.progressStatus,
+        personalScore: row.review?.personalScore,
+        consumedAt: row.review?.consumedAt,
+        fetchedEpisode: row._count.episodes
+      }));
+
       return {
-        data,
+        data: mappedData,
         metadata: {
           currentPage,
           limitPerPage,
@@ -198,6 +264,7 @@ export class AnimeService {
       const anime = await prisma.anime.findUnique({
         where: { id },
         include: {
+          review: true,
           genres: { select: { genre: { select: { id: true, name: true } } } },
           studios: { select: { studio: { select: { id: true, name: true } } } },
           themes: { select: { theme: { select: { id: true, name: true } } } },
@@ -286,8 +353,17 @@ export class AnimeService {
           themeMap[theme.name.toLowerCase()] = theme.id;
         });
 
+        const reviewRecords = await prisma.animeReview.createManyAndReturn({
+          data: data.map(() => ({}))
+        });
+
+        const animeDataWithReviews = data.map((anime, index) => ({
+          ...anime,
+          reviewId: reviewRecords[index].id
+        }));
+
         const createdAnimes = await prisma.anime.createManyAndReturn({
-          data: data.map(
+          data: animeDataWithReviews.map(
             ({
               genres: _genres,
               studios: _studios,
@@ -387,9 +463,36 @@ export class AnimeService {
 
   async updateAnime(id: string, data: Prisma.AnimeUpdateInput) {
     try {
-      const animeData = { ...data };
-      animeData.personalScore = this.calculatePersonalScore(animeData);
-      return await prisma.anime.update({ where: { id }, data: animeData });
+      return await prisma.anime.update({ where: { id }, data });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        throw new NotFoundError("Anime not found!");
+      }
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request body!");
+      }
+
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
+  async updateAnimeReview(id: string, data: Prisma.AnimeReviewUpdateInput) {
+    try {
+      return await prisma.anime.update({
+        where: { id },
+        data: {
+          review: {
+            update: {
+              ...data,
+              personalScore: this.calculatePersonalScore(data)
+            }
+          }
+        }
+      });
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

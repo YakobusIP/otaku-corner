@@ -24,7 +24,7 @@ import {
 
 import { useToast } from "@/hooks/useToast";
 
-import { MangaDetail, MangaReview } from "@/types/manga.type";
+import { MangaDetail, MangaReviewRequest } from "@/types/manga.type";
 
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
 import { createUTCDate, extractImageIds } from "@/lib/utils";
@@ -38,32 +38,33 @@ type Props = {
 
 export default function ReviewTab({ mangaDetail, resetParent }: Props) {
   const toast = useToast();
+  const reviewObject = mangaDetail.review;
 
-  const [review, setReview] = useState(mangaDetail.review ?? undefined);
+  const [review, setReview] = useState(reviewObject.review ?? undefined);
   const [uploadedImages, setUploadedImages] = useState<string[]>(
-    extractImageIds(mangaDetail.review ?? undefined)
+    extractImageIds(reviewObject.review ?? undefined)
   );
 
   const [progressStatus, setProgressStatus] = useState(
-    mangaDetail.progressStatus as string
+    reviewObject.progressStatus as string
   );
   const [consumedMonth, setConsumedMonth] = useState<Date | null>(
-    mangaDetail.consumedAt ? new Date(mangaDetail.consumedAt) : null
+    reviewObject.consumedAt ? new Date(reviewObject.consumedAt) : null
   );
   const [storylineRating, setStorylineRating] = useState(
-    mangaDetail.storylineRating || 10
+    reviewObject.storylineRating || 10
   );
   const [artStyleRating, setArtStyleRating] = useState(
-    mangaDetail.artStyleRating || 10
+    reviewObject.artStyleRating || 10
   );
   const [charDevelopmentRating, setCharDevelopmentRating] = useState(
-    mangaDetail.charDevelopmentRating || 10
+    reviewObject.charDevelopmentRating || 10
   );
   const [worldBuildingRating, setWorldBuildingRating] = useState(
-    mangaDetail.worldBuildingRating || 10
+    reviewObject.worldBuildingRating || 10
   );
   const [originalityRating, setOriginalityRating] = useState(
-    mangaDetail.originalityRating || 10
+    reviewObject.originalityRating || 10
   );
 
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
@@ -123,7 +124,7 @@ export default function ReviewTab({ mangaDetail, resetParent }: Props) {
         )
       : null;
 
-    const data: MangaReview = {
+    const data: MangaReviewRequest = {
       review,
       progressStatus: progressStatus as PROGRESS_STATUS,
       consumedAt: adjustedConsumedMonth,
@@ -213,7 +214,7 @@ export default function ReviewTab({ mangaDetail, resetParent }: Props) {
           review={review}
           setReview={setReview}
           mediaType={MEDIA_TYPE.MANGA}
-          mediaId={mangaDetail.id}
+          reviewId={reviewObject.id}
           setUploadedImages={setUploadedImages}
         />
         <Button type="submit" className="mt-4" onClick={onSubmit}>

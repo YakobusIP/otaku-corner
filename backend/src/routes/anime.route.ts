@@ -28,6 +28,11 @@ class AnimeRouter {
     this.router.get("/duplicate/:id", this.animeController.getAnimeDuplicate);
     this.router.post("/", authMiddleware, this.animeController.createAnimeBulk);
     this.router.put("/:id", authMiddleware, this.animeController.updateAnime);
+    this.router.put(
+      "/:id/review",
+      authMiddleware,
+      this.animeController.updateAnimeReview
+    );
     this.router.delete(
       "/",
       authMiddleware,

@@ -24,7 +24,10 @@ import {
 
 import { useToast } from "@/hooks/useToast";
 
-import { LightNovelDetail, LightNovelReview } from "@/types/lightnovel.type";
+import {
+  LightNovelDetail,
+  LightNovelReviewRequest
+} from "@/types/lightnovel.type";
 
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
 import { createUTCDate, extractImageIds } from "@/lib/utils";
@@ -38,32 +41,33 @@ type Props = {
 
 export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
   const toast = useToast();
+  const reviewObject = lightNovelDetail.review;
 
-  const [review, setReview] = useState(lightNovelDetail.review ?? undefined);
+  const [review, setReview] = useState(reviewObject.review ?? undefined);
   const [uploadedImages, setUploadedImages] = useState<string[]>(
-    extractImageIds(lightNovelDetail.review ?? undefined)
+    extractImageIds(reviewObject.review ?? undefined)
   );
 
   const [progressStatus, setProgressStatus] = useState(
-    lightNovelDetail.progressStatus as string
+    reviewObject.progressStatus as string
   );
   const [consumedMonth, setConsumedMonth] = useState<Date | null>(
-    lightNovelDetail.consumedAt ? new Date(lightNovelDetail.consumedAt) : null
+    reviewObject.consumedAt ? new Date(reviewObject.consumedAt) : null
   );
   const [storylineRating, setStorylineRating] = useState(
-    lightNovelDetail.storylineRating || 10
+    reviewObject.storylineRating || 10
   );
   const [worldBuildingRating, setWorldBuildingRating] = useState(
-    lightNovelDetail.worldBuildingRating || 10
+    reviewObject.worldBuildingRating || 10
   );
   const [writingStyleRating, setWritingStyleRating] = useState(
-    lightNovelDetail.writingStyleRating || 10
+    reviewObject.writingStyleRating || 10
   );
   const [charDevelopmentRating, setCharDevelopmentRating] = useState(
-    lightNovelDetail.charDevelopmentRating || 10
+    reviewObject.charDevelopmentRating || 10
   );
   const [originalityRating, setOriginalityRating] = useState(
-    lightNovelDetail.originalityRating || 10
+    reviewObject.originalityRating || 10
   );
 
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
@@ -123,7 +127,7 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
         )
       : null;
 
-    const data: LightNovelReview = {
+    const data: LightNovelReviewRequest = {
       review,
       progressStatus: progressStatus as PROGRESS_STATUS,
       consumedAt: adjustedConsumedMonth,
@@ -216,7 +220,7 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
           review={review}
           setReview={setReview}
           mediaType={MEDIA_TYPE.LIGHT_NOVEL}
-          mediaId={lightNovelDetail.id}
+          reviewId={reviewObject.id}
           setUploadedImages={setUploadedImages}
         />
         <Button type="submit" className="mt-4" onClick={onSubmit}>

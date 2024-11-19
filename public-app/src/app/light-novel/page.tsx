@@ -1,3 +1,5 @@
+import LightNovelListClient from "@/app/light-novel/LightNovelListClient";
+
 import {
   authorService,
   genreService,
@@ -13,8 +15,6 @@ import { SORT_ORDER } from "@/lib/enums";
 
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-
-import LightNovelListClient from "./LightNovelListClient";
 
 const START_PAGE = 1;
 const PAGINATION_SIZE = 15;

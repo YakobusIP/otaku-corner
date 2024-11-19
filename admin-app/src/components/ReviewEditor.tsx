@@ -12,7 +12,7 @@ type Props = {
   review: string | undefined;
   setReview: Dispatch<SetStateAction<string | undefined>>;
   mediaType: MEDIA_TYPE;
-  mediaId: string;
+  reviewId: string;
   setUploadedImages: Dispatch<SetStateAction<string[]>>;
 };
 
@@ -20,13 +20,13 @@ export default function ReviewEditor({
   review,
   setReview,
   mediaType,
-  mediaId,
+  reviewId,
   setUploadedImages
 }: Props) {
   const toast = useToast();
 
   const insertImage = async (file: File) => {
-    const response = await uploadImageService(file, mediaType, mediaId);
+    const response = await uploadImageService(file, mediaType, reviewId);
     if (response.success) {
       const { url, id } = response.data;
       return { url, id };

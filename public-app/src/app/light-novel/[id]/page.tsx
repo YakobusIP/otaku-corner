@@ -5,19 +5,8 @@ import RatingDetailContent from "@/components/RatingDetailContent";
 import ReviewContent from "@/components/ReviewContent";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
 
 import { ratingDescriptions } from "@/lib/constants";
 
@@ -25,7 +14,6 @@ import {
   ArrowLeftIcon,
   CalendarIcon,
   HeartIcon,
-  InfoIcon,
   LibraryIcon,
   StarIcon
 } from "lucide-react";
@@ -33,7 +21,6 @@ import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { isMobile } from "react-device-detect";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -72,50 +59,51 @@ export default async function Page({ params }: Props) {
   };
 
   const lightNovelDetail = await fetchLightNovelById();
+  const reviewObject = lightNovelDetail.review;
 
   const lightNovelPersonalRatings = [
     {
       title: "Storyline",
       weight: "30",
-      rating: lightNovelDetail?.storylineRating
-        ? `${lightNovelDetail.storylineRating} - ${
-            ratingDescriptions[lightNovelDetail.storylineRating]
+      rating: reviewObject.storylineRating
+        ? `${reviewObject.storylineRating} - ${
+            ratingDescriptions[reviewObject.storylineRating]
           }`
         : "N/A"
     },
     {
       title: "World Building",
       weight: "25",
-      rating: lightNovelDetail?.worldBuildingRating
-        ? `${lightNovelDetail.worldBuildingRating} - ${
-            ratingDescriptions[lightNovelDetail.worldBuildingRating]
+      rating: reviewObject.worldBuildingRating
+        ? `${reviewObject.worldBuildingRating} - ${
+            ratingDescriptions[reviewObject.worldBuildingRating]
           }`
         : "N/A"
     },
     {
       title: "Writing Style",
       weight: "20",
-      rating: lightNovelDetail?.writingStyleRating
-        ? `${lightNovelDetail.writingStyleRating} - ${
-            ratingDescriptions[lightNovelDetail.writingStyleRating]
+      rating: reviewObject.writingStyleRating
+        ? `${reviewObject.writingStyleRating} - ${
+            ratingDescriptions[reviewObject.writingStyleRating]
           }`
         : "N/A"
     },
     {
       title: "Character Development",
       weight: "15",
-      rating: lightNovelDetail?.charDevelopmentRating
-        ? `${lightNovelDetail.charDevelopmentRating} - ${
-            ratingDescriptions[lightNovelDetail.charDevelopmentRating]
+      rating: reviewObject.charDevelopmentRating
+        ? `${reviewObject.charDevelopmentRating} - ${
+            ratingDescriptions[reviewObject.charDevelopmentRating]
           }`
         : "N/A"
     },
     {
       title: "Originality",
       weight: "10",
-      rating: lightNovelDetail?.originalityRating
-        ? `${lightNovelDetail.originalityRating} - ${
-            ratingDescriptions[lightNovelDetail.originalityRating]
+      rating: reviewObject.originalityRating
+        ? `${reviewObject.originalityRating} - ${
+            ratingDescriptions[reviewObject.originalityRating]
           }`
         : "N/A"
     }
@@ -145,12 +133,10 @@ export default async function Page({ params }: Props) {
                 <div>Status: {lightNovelDetail.status}</div>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
-                {lightNovelDetail.progressStatus && (
-                  <ProgressStatusBadge
-                    className="text-black border-none"
-                    progressStatus={lightNovelDetail.progressStatus}
-                  />
-                )}
+                <ProgressStatusBadge
+                  className="text-black border-none"
+                  progressStatus={reviewObject.progressStatus}
+                />
                 {lightNovelDetail.genres.map((genre) => (
                   <Badge key={genre.id} variant="secondary">
                     {genre.name}
@@ -188,8 +174,7 @@ export default async function Page({ params }: Props) {
                     <HeartIcon
                       key={`heart-${i}`}
                       className={`w-5 h-5 ${
-                        i <
-                        Math.round((lightNovelDetail.personalScore ?? 0) / 2)
+                        i < Math.round((reviewObject.personalScore ?? 0) / 2)
                           ? "text-yellow-600"
                           : "text-muted-foreground"
                       }`}
@@ -198,37 +183,14 @@ export default async function Page({ params }: Props) {
                 </div>
                 <div className="flex items-center gap-2">
                   <p className="text-lg font-semibold">
-                    {lightNovelDetail.personalScore
-                      ? lightNovelDetail.personalScore.toFixed(2)
+                    {reviewObject.personalScore
+                      ? reviewObject.personalScore.toFixed(2)
                       : "N/A"}
                   </p>
-                  {isMobile ? (
-                    <Popover>
-                      <PopoverTrigger>
-                        <InfoIcon className="w-4 h-4" />
-                      </PopoverTrigger>
-                      <PopoverContent className="w-64">
-                        <RatingDetailContent
-                          details={lightNovelPersonalRatings}
-                          finalScore={lightNovelDetail.personalScore}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  ) : (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <InfoIcon className="w-4 h-4" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <RatingDetailContent
-                            details={lightNovelPersonalRatings}
-                            finalScore={lightNovelDetail.personalScore}
-                          />
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
+                  <RatingDetailContent
+                    details={lightNovelPersonalRatings}
+                    finalScore={reviewObject.personalScore}
+                  />
                 </div>
                 <div className="text-sm text-muted-foreground">
                   (Personal Score)
@@ -279,7 +241,7 @@ export default async function Page({ params }: Props) {
       </header>
       <section className="container space-y-2">
         <h3>My Review</h3>
-        {!lightNovelDetail.review || lightNovelDetail.review === "<p></p>\n" ? (
+        {!reviewObject.review ? (
           <div className="flex flex-col items-center justify-center gap-2 xl:gap-4">
             <Image
               src="/no-review.gif"
@@ -293,7 +255,7 @@ export default async function Page({ params }: Props) {
             </p>
           </div>
         ) : (
-          <ReviewContent review={lightNovelDetail.review} />
+          <ReviewContent review={reviewObject.review} />
         )}
       </section>
       <div className="container">

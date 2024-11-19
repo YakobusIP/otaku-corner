@@ -14,25 +14,32 @@ import { cn } from "@/lib/utils";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 type Props = {
-  filterType?: string;
-  handleFilterType: (key?: string) => void;
+  filterStatusCheck?: string;
+  handleFilterStatusCheck: (key?: string) => void;
 };
 
-export default function FilterType({ filterType, handleFilterType }: Props) {
-  const [isFilterTypeOpen, setIsFilterTypeOpen] = useState(false);
+export default function FilterStatusCheck({
+  filterStatusCheck,
+  handleFilterStatusCheck
+}: Props) {
+  const [isFilterStatusCheckOpen, setIsFilterStatusCheckOpen] = useState(false);
 
   const typeFilters = [
-    { key: "TV", label: "TV" },
-    { key: "OVA", label: "OVA" },
-    { key: "Movie", label: "Movie" }
+    { key: "complete", label: "Completed" },
+    { key: "incomplete", label: "Incomplete" }
   ];
 
   return (
-    <DropdownMenu onOpenChange={(value) => setIsFilterTypeOpen(value)}>
+    <DropdownMenu onOpenChange={(value) => setIsFilterStatusCheckOpen(value)}>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="w-full">
-          Filter by: {filterType || "Type"}
-          {isFilterTypeOpen ? (
+          Filter by:{" "}
+          {filterStatusCheck === "complete"
+            ? "Completed"
+            : filterStatusCheck === "incomplete"
+              ? "Incomplete"
+              : "Status Check"}
+          {isFilterStatusCheckOpen ? (
             <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
           ) : (
             <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
@@ -40,20 +47,20 @@ export default function FilterType({ filterType, handleFilterType }: Props) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => handleFilterType(undefined)}>
-          All Types
+        <DropdownMenuItem onClick={() => handleFilterStatusCheck(undefined)}>
+          All Status Checks
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {typeFilters.map((filter) => {
           return (
             <DropdownMenuItem
               key={filter.key}
-              onClick={() => handleFilterType(filter.key)}
+              onClick={() => handleFilterStatusCheck(filter.key)}
             >
               <CheckIcon
                 className={cn(
                   "mr-2 h-4 w-4",
-                  filterType === filter.key ? "opacity-100" : "opacity-0"
+                  filterStatusCheck === filter.key ? "opacity-100" : "opacity-0"
                 )}
               />
               {filter.label}
