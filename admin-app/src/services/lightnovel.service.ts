@@ -174,6 +174,26 @@ const updateLightNovelVolumesService = async (
   }
 };
 
+const updateLightNovelVolumeProgressService = async (
+  data: { id: string; consumedAt?: Date | null }[]
+): Promise<ApiResponse<MessageResponse>> => {
+  try {
+    const response = await interceptedAxios.put(
+      `${BASE_LIGHTNOVEL_URL}/volume-progress`,
+      { data }
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
 const deleteLightNovelService = async (
   ids: string[]
 ): Promise<ApiResponse<void>> => {
@@ -199,5 +219,6 @@ export {
   updateLightNovelReviewService,
   updateLightNovelProgressStatusService,
   updateLightNovelVolumesService,
+  updateLightNovelVolumeProgressService,
   deleteLightNovelService
 };

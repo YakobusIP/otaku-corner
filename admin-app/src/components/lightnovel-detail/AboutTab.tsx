@@ -1,4 +1,4 @@
-import EditVolumes from "@/components/lightnovel-detail/EditVolumes";
+import EditVolumes from "@/components/lightnovel-detail/EditVolumesModal";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";

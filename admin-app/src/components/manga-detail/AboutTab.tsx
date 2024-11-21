@@ -1,4 +1,4 @@
-import EditChapterVolumes from "@/components/manga-detail/EditChapterVolumes";
+import EditChapterVolumes from "@/components/manga-detail/EditChapterVolumesModal";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";

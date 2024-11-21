@@ -27,6 +27,7 @@ type LightNovelEntity = {
   synopsis: string;
   malUrl: string;
   review: LightNovelReview;
+  volumeProgress: LightNovelVolumes[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -41,9 +42,14 @@ type LightNovelReview = {
   originalityRating?: number | null;
   progressStatus: PROGRESS_STATUS;
   personalScore?: number | null;
-  consumedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+};
+
+type LightNovelVolumes = {
+  id: string;
+  volumeNumber: number;
+  consumedAt?: Date | null;
 };
 
 type LightNovelCreateRequest = {
@@ -85,12 +91,10 @@ type LightNovelList = Pick<
   | "status"
   | "images"
   | "score"
+  | "volumeProgress"
   | "volumesCount"
 > &
-  Pick<
-    LightNovelReview,
-    "progressStatus" | "personalScore" | "review" | "consumedAt"
-  >;
+  Pick<LightNovelReview, "progressStatus" | "personalScore" | "review">;
 
 type LightNovelReviewRequest = Omit<
   LightNovelReview,

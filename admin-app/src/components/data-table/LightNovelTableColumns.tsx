@@ -52,12 +52,18 @@ export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
     header: "Title",
     cell: ({ row }) => {
       const data = row.original;
-      const { images, title, titleJapanese, review, consumedAt, volumesCount } =
-        data;
+      const {
+        images,
+        title,
+        titleJapanese,
+        review,
+        volumeProgress,
+        volumesCount
+      } = data;
 
       const statusChecks = [
         {
-          key: `${title}-manga-volume-status`,
+          key: `${title}-light-novel-volume-status`,
           Trigger: ListIcon,
           condition: !!volumesCount,
           triggerColor: {
@@ -70,7 +76,7 @@ export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
           }
         },
         {
-          key: `${title}-manga-review-status`,
+          key: `${title}-light-novel-review-status`,
           Trigger: NotebookPenIcon,
           condition: !!review,
           triggerColor: {
@@ -83,16 +89,16 @@ export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
           }
         },
         {
-          key: `${title}-manga-date-status`,
+          key: `${title}-light-novel-date-status`,
           Trigger: CalendarDaysIcon,
-          condition: !!consumedAt,
+          condition: volumeProgress.every((volume) => volume.consumedAt),
           triggerColor: {
             success: "text-green-700",
             failed: "text-destructive"
           },
           message: {
-            success: "Consumed date set",
-            failed: "Consumed date missing"
+            success: "All consumed date set",
+            failed: "Some consumed date missing"
           }
         }
       ];

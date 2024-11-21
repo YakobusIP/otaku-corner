@@ -74,7 +74,7 @@ export class StatisticService {
         UNION ALL
         SELECT MIN(EXTRACT(YEAR FROM "consumedAt")) AS min_year,
                MAX(EXTRACT(YEAR FROM "consumedAt")) AS max_year
-        FROM ${Prisma.raw(`"LightNovelReview"`)} WHERE "consumedAt" IS NOT NULL
+        FROM ${Prisma.raw(`"LightNovelVolumes"`)} WHERE "consumedAt" IS NOT NULL
       ) sub
     `;
 
@@ -109,30 +109,23 @@ export class StatisticService {
     try {
       const tables: ValidTable[] = ["Anime", "Manga", "LightNovel"];
 
-      let whereClause: Prisma.Sql;
-      if (year) {
-        whereClause = Prisma.sql`WHERE EXTRACT(YEAR FROM review."consumedAt") = ${year} AND review."consumedAt" IS NOT NULL`;
-      } else {
-        whereClause = Prisma.sql`WHERE review."consumedAt" IS NOT NULL`;
-      }
-
-      let selectPeriod: Prisma.Sql;
-      let groupByClause: Prisma.Sql;
-      let orderByClause: Prisma.Sql;
-
-      if (view === STATISTICS_VIEW.YEARLY) {
-        selectPeriod = Prisma.raw(
-          `EXTRACT(YEAR FROM review."consumedAt") AS period`
-        );
-        groupByClause = Prisma.raw(`period`);
-        orderByClause = Prisma.raw(`period ASC`);
-      } else {
-        selectPeriod = Prisma.raw(
-          `EXTRACT(MONTH FROM review."consumedAt") AS period`
-        );
-        groupByClause = Prisma.raw(`period`);
-        orderByClause = Prisma.raw(`period ASC`);
-      }
+      const tableConfig: Record<
+        ValidTable,
+        { joinClause: Prisma.Sql; consumedAtField: string }
+      > = {
+        Anime: {
+          joinClause: Prisma.sql`"AnimeReview" review ON core."reviewId" = review.id`,
+          consumedAtField: `review."consumedAt"`
+        },
+        Manga: {
+          joinClause: Prisma.sql`"MangaReview" review ON core."reviewId" = review.id`,
+          consumedAtField: `review."consumedAt"`
+        },
+        LightNovel: {
+          joinClause: Prisma.sql`"LightNovelVolumes" volumes ON core."id" = volumes."lightNovelId"`,
+          consumedAtField: `volumes."consumedAt"`
+        }
+      };
 
       const months = [
         "January",
@@ -152,12 +145,30 @@ export class StatisticService {
       const getConsumptionStatistics = async (
         table: ValidTable
       ): Promise<Map<string, number>> => {
+        const config = tableConfig[table];
+        const { joinClause, consumedAtField } = config;
+
+        let whereClause: Prisma.Sql;
+        if (year) {
+          whereClause = Prisma.sql`WHERE EXTRACT(YEAR FROM ${Prisma.raw(consumedAtField)}) = ${year} AND ${Prisma.raw(consumedAtField)} IS NOT NULL`;
+        } else {
+          whereClause = Prisma.sql`WHERE ${Prisma.raw(consumedAtField)} IS NOT NULL`;
+        }
+
+        let periodSelection: Prisma.Sql;
+        if (view === STATISTICS_VIEW.YEARLY) {
+          periodSelection = Prisma.sql`EXTRACT(YEAR FROM ${Prisma.raw(consumedAtField)}) AS period`;
+        } else {
+          periodSelection = Prisma.sql`EXTRACT(MONTH FROM ${Prisma.raw(consumedAtField)}) AS period`;
+        }
+
         const query = Prisma.sql`
-          SELECT ${selectPeriod}, COUNT(*)::INTEGER AS count
-          FROM ${Prisma.raw(`"${table}" core INNER JOIN "${table}Review" review ON core."reviewId" = review.id`)}
+          SELECT ${periodSelection}, COUNT(*)::INTEGER AS count
+          FROM ${Prisma.raw(`"${table}" core`)}
+          INNER JOIN ${joinClause}
           ${whereClause}
-          GROUP BY ${groupByClause}
-          ORDER BY ${orderByClause}
+          GROUP BY period
+          ORDER BY period ASC
         `;
 
         const result = await prisma.$queryRaw<RawMediaConsumption[]>(query);
@@ -488,8 +499,8 @@ export class StatisticService {
         take: 1
       });
 
-      const consumedLightNovelYearlyPromise = prisma.lightNovel.count({
-        where: { review: { consumedAt: { gte: startDate, lte: endDate } } }
+      const consumedLightNovelYearlyPromise = prisma.lightNovelVolumes.count({
+        where: { consumedAt: { gte: startDate, lte: endDate } }
       });
 
       const highestLightNovelPromise = prisma.lightNovel.findMany({
