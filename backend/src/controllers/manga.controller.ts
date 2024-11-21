@@ -24,6 +24,7 @@ export class MangaController {
       const filterTheme = req.query.filterTheme as string;
       const filterMALScore = req.query.filterMALScore as string;
       const filterPersonalScore = req.query.filterPersonalScore as string;
+      const filterStatusCheck = req.query.filterStatusCheck as string;
       const mangas = await this.mangaService.getAllMangas(
         parseInt(currentPage),
         parseInt(limitPerPage),
@@ -34,7 +35,8 @@ export class MangaController {
         filterGenre,
         filterTheme,
         filterMALScore,
-        filterPersonalScore
+        filterPersonalScore,
+        filterStatusCheck
       );
 
       return res.json({ data: mangas });
@@ -90,6 +92,19 @@ export class MangaController {
     try {
       await this.mangaService.updateManga(req.params.id, req.body);
       return res.json({ message: "Manga updated successfully!" });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  updateMangaReview = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await this.mangaService.updateMangaReview(req.params.id, req.body);
+      return res.json({ message: "Manga review updated successfully!" });
     } catch (error) {
       return next(error);
     }

@@ -4,6 +4,7 @@ import FilterAuthor from "@/components/filter-sort-dropdowns/FilterAuthor";
 import FilterGenre from "@/components/filter-sort-dropdowns/FilterGenre";
 import FilterMALScore from "@/components/filter-sort-dropdowns/FilterMALScore";
 import FilterPersonalScore from "@/components/filter-sort-dropdowns/FilterPersonalScore";
+import FilterStatusCheck from "@/components/filter-sort-dropdowns/FilterStatusCheck";
 import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
 import SortDirection from "@/components/filter-sort-dropdowns/SortDirection";
 import {
@@ -90,12 +91,20 @@ export default function LightNovelFilterSortAccordion({
     }));
   };
 
+  const handleFilterStatusCheck = (key?: string) => {
+    setLightNovelFilterSort((prev) => ({
+      ...prev,
+      filterStatusCheck: key
+    }));
+  };
+
   const enableClearAllFilter =
     !lightNovelFilterSort.filterAuthor &&
     !lightNovelFilterSort.filterGenre &&
     !lightNovelFilterSort.filterTheme &&
     !lightNovelFilterSort.filterMALScore &&
-    !lightNovelFilterSort.filterPersonalScore;
+    !lightNovelFilterSort.filterPersonalScore &&
+    !lightNovelFilterSort.filterStatusCheck;
 
   const handleClearAllFilter = () => {
     setLightNovelFilterSort((prev) => ({
@@ -104,7 +113,8 @@ export default function LightNovelFilterSortAccordion({
       filterGenre: undefined,
       filterTheme: undefined,
       filterMALScore: undefined,
-      filterPersonalScore: undefined
+      filterPersonalScore: undefined,
+      filterStatusCheck: undefined
     }));
   };
 
@@ -152,6 +162,10 @@ export default function LightNovelFilterSortAccordion({
               <FilterPersonalScore
                 filterPersonalScore={lightNovelFilterSort.filterPersonalScore}
                 handleFilterPersonalScore={handleFilterPersonalScore}
+              />
+              <FilterStatusCheck
+                filterStatusCheck={lightNovelFilterSort.filterStatusCheck}
+                handleFilterStatusCheck={handleFilterStatusCheck}
               />
               <Button
                 variant="destructive"

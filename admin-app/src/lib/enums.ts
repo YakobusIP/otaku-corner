@@ -17,22 +17,6 @@ export enum PROGRESS_STATUS {
   DROPPED = "Dropped"
 }
 
-export enum BLOCK_TYPES {
-  PARAGRAPH = "unstyled",
-  ORDERED_LIST = "ordered-list-item",
-  UNORDERED_LIST = "unordered-list-item",
-  HEADING_ONE = "header-one",
-  HEADING_TWO = "header-two",
-  HEADING_THREE = "header-three",
-  IMAGE = "atomic"
-}
-
-export enum INLINE_STYLES {
-  BOLD = "BOLD",
-  ITALIC = "ITALIC",
-  UNDERLINE = "UNDERLINE"
-}
-
 export enum ENTITY_TYPE {
   GENRE = "Genre",
   STUDIO = "Studio",

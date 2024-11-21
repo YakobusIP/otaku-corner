@@ -3,9 +3,9 @@ import { useState } from "react";
 import { updateAnimeReviewService } from "@/services/anime.service";
 import { deleteImageService } from "@/services/upload.service";
 
-import DraftEditor from "@/components/DraftEditor";
 import ProgressStatus from "@/components/ProgressStatus";
 import RatingSelect from "@/components/RatingSelect";
+import ReviewEditor from "@/components/ReviewEditor";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import MonthPicker from "@/components/ui/month-picker";
@@ -24,17 +24,11 @@ import {
 
 import { useToast } from "@/hooks/useToast";
 
-import { AnimeDetail, AnimeReview } from "@/types/anime.type";
+import { AnimeDetail, AnimeReviewRequest } from "@/types/anime.type";
 
-import { decorator, extractExistingImages } from "@/lib/draft-utils";
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
-import { createUTCDate } from "@/lib/utils";
+import { createUTCDate, extractImageIds } from "@/lib/utils";
 
-import DOMPurify from "dompurify";
-import { ContentState, EditorState, convertToRaw } from "draft-js";
-import "draft-js/dist/Draft.css";
-import draftToHtml from "draftjs-to-html";
-import htmlToDraft from "html-to-draftjs";
 import { CalendarDaysIcon, Loader2Icon } from "lucide-react";
 
 type Props = {
@@ -44,56 +38,33 @@ type Props = {
 
 export default function ReviewTab({ animeDetail, resetParent }: Props) {
   const toast = useToast();
+  const reviewObject = animeDetail.review;
 
-  let initialEditorState: EditorState;
-  let currentImageIds: string[] = [];
-  if (animeDetail.review) {
-    const sanitizedHTML = DOMPurify.sanitize(animeDetail.review);
-    const blocksFromHtml = htmlToDraft(sanitizedHTML);
-    if (blocksFromHtml) {
-      const { contentBlocks, entityMap } = blocksFromHtml;
-      const contentState = ContentState.createFromBlockArray(
-        contentBlocks,
-        entityMap
-      );
-      initialEditorState = EditorState.createWithContent(
-        contentState,
-        decorator
-      );
+  const [review, setReview] = useState(reviewObject.review ?? undefined);
+  const [uploadedImages, setUploadedImages] = useState<string[]>(
+    extractImageIds(reviewObject.review ?? undefined)
+  );
 
-      const blocks = contentState.getBlocksAsArray();
-
-      currentImageIds = [...extractExistingImages(blocks, contentState)];
-    } else {
-      initialEditorState = EditorState.createEmpty(decorator);
-    }
-  } else {
-    initialEditorState = EditorState.createEmpty(decorator);
-  }
-
-  const [editorState, setEditorState] = useState(initialEditorState);
-  const [uploadedImages, setUploadedImages] =
-    useState<string[]>(currentImageIds);
   const [progressStatus, setProgressStatus] = useState(
-    animeDetail.progressStatus as string
+    reviewObject.progressStatus as string
   );
   const [consumedMonth, setConsumedMonth] = useState<Date | null>(
-    animeDetail.consumedAt ? new Date(animeDetail.consumedAt) : null
+    reviewObject.consumedAt ? new Date(reviewObject.consumedAt) : null
   );
   const [storylineRating, setStorylineRating] = useState(
-    animeDetail.storylineRating || 10
+    reviewObject.storylineRating || 10
   );
   const [qualityRating, setQualityRating] = useState(
-    animeDetail.qualityRating || 10
+    reviewObject.qualityRating || 10
   );
   const [voiceActingRating, setVoiceActingRating] = useState(
-    animeDetail.voiceActingRating || 10
+    reviewObject.voiceActingRating || 10
   );
   const [soundTrackRating, setSoundTrackRating] = useState(
-    animeDetail.soundTrackRating || 10
+    reviewObject.soundTrackRating || 10
   );
   const [charDevelopmentRating, setCharDevelopmentRating] = useState(
-    animeDetail.charDevelopmentRating || 10
+    reviewObject.charDevelopmentRating || 10
   );
 
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
@@ -134,13 +105,7 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
   const handleSubmit = async () => {
     setIsLoadingUpdateReview(true);
 
-    const rawContentState = convertToRaw(editorState.getCurrentContent());
-    const html = draftToHtml(rawContentState);
-
-    const contentState = editorState.getCurrentContent();
-    const blocks = contentState.getBlocksAsArray();
-    const currentImageIds = extractExistingImages(blocks, contentState);
-
+    const currentImageIds = extractImageIds(review);
     const previouslyUploadedImageIds = Object.values(uploadedImages);
     const removedImageIds = previouslyUploadedImageIds.filter(
       (id) => !currentImageIds.includes(id)
@@ -159,8 +124,8 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
         )
       : null;
 
-    const data: AnimeReview = {
-      review: html,
+    const data: AnimeReviewRequest = {
+      review,
       progressStatus: progressStatus as PROGRESS_STATUS,
       consumedAt: adjustedConsumedMonth,
       storylineRating,
@@ -203,10 +168,10 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
               />
             </div>
             <Popover>
-              <PopoverTrigger className="self-end pb-1">
+              <PopoverTrigger className="self-end pb-2">
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger>
+                    <TooltipTrigger asChild>
                       <CalendarDaysIcon
                         className={
                           consumedMonth ? "text-green-700" : "text-red-600"
@@ -246,11 +211,11 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
           </div>
           <RatingSelect ratingFields={ratingFields} />
         </div>
-        <DraftEditor
-          editorState={editorState}
-          setEditorState={setEditorState}
+        <ReviewEditor
+          review={review}
+          setReview={setReview}
           mediaType={MEDIA_TYPE.ANIME}
-          mediaId={animeDetail.id}
+          reviewId={reviewObject.id}
           setUploadedImages={setUploadedImages}
         />
         <Button type="submit" className="mt-4" onClick={handleSubmit}>

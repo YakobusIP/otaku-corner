@@ -66,15 +66,15 @@ export class StatisticService {
       SELECT MIN(min_year) AS min_year, MAX(max_year) AS max_year FROM (
         SELECT MIN(EXTRACT(YEAR FROM "consumedAt")) AS min_year,
                MAX(EXTRACT(YEAR FROM "consumedAt")) AS max_year
-        FROM ${Prisma.raw(`"Anime"`)} WHERE "consumedAt" IS NOT NULL
+        FROM ${Prisma.raw(`"AnimeReview"`)} WHERE "consumedAt" IS NOT NULL
         UNION ALL
         SELECT MIN(EXTRACT(YEAR FROM "consumedAt")) AS min_year,
                MAX(EXTRACT(YEAR FROM "consumedAt")) AS max_year
-        FROM ${Prisma.raw(`"Manga"`)} WHERE "consumedAt" IS NOT NULL
+        FROM ${Prisma.raw(`"MangaReview"`)} WHERE "consumedAt" IS NOT NULL
         UNION ALL
         SELECT MIN(EXTRACT(YEAR FROM "consumedAt")) AS min_year,
                MAX(EXTRACT(YEAR FROM "consumedAt")) AS max_year
-        FROM ${Prisma.raw(`"LightNovel"`)} WHERE "consumedAt" IS NOT NULL
+        FROM ${Prisma.raw(`"LightNovelVolumes"`)} WHERE "consumedAt" IS NOT NULL
       ) sub
     `;
 
@@ -109,26 +109,23 @@ export class StatisticService {
     try {
       const tables: ValidTable[] = ["Anime", "Manga", "LightNovel"];
 
-      let whereClause: Prisma.Sql;
-      if (year) {
-        whereClause = Prisma.sql`WHERE EXTRACT(YEAR FROM "consumedAt") = ${year} AND "consumedAt" IS NOT NULL`;
-      } else {
-        whereClause = Prisma.sql`WHERE "consumedAt" IS NOT NULL`;
-      }
-
-      let selectPeriod: Prisma.Sql;
-      let groupByClause: Prisma.Sql;
-      let orderByClause: Prisma.Sql;
-
-      if (view === STATISTICS_VIEW.YEARLY) {
-        selectPeriod = Prisma.raw(`EXTRACT(YEAR FROM "consumedAt") AS period`);
-        groupByClause = Prisma.raw(`period`);
-        orderByClause = Prisma.raw(`period ASC`);
-      } else {
-        selectPeriod = Prisma.raw(`EXTRACT(MONTH FROM "consumedAt") AS period`);
-        groupByClause = Prisma.raw(`period`);
-        orderByClause = Prisma.raw(`period ASC`);
-      }
+      const tableConfig: Record<
+        ValidTable,
+        { joinClause: Prisma.Sql; consumedAtField: string }
+      > = {
+        Anime: {
+          joinClause: Prisma.sql`"AnimeReview" review ON core."reviewId" = review.id`,
+          consumedAtField: `review."consumedAt"`
+        },
+        Manga: {
+          joinClause: Prisma.sql`"MangaReview" review ON core."reviewId" = review.id`,
+          consumedAtField: `review."consumedAt"`
+        },
+        LightNovel: {
+          joinClause: Prisma.sql`"LightNovelVolumes" volumes ON core."id" = volumes."lightNovelId"`,
+          consumedAtField: `volumes."consumedAt"`
+        }
+      };
 
       const months = [
         "January",
@@ -148,12 +145,30 @@ export class StatisticService {
       const getConsumptionStatistics = async (
         table: ValidTable
       ): Promise<Map<string, number>> => {
+        const config = tableConfig[table];
+        const { joinClause, consumedAtField } = config;
+
+        let whereClause: Prisma.Sql;
+        if (year) {
+          whereClause = Prisma.sql`WHERE EXTRACT(YEAR FROM ${Prisma.raw(consumedAtField)}) = ${year} AND ${Prisma.raw(consumedAtField)} IS NOT NULL`;
+        } else {
+          whereClause = Prisma.sql`WHERE ${Prisma.raw(consumedAtField)} IS NOT NULL`;
+        }
+
+        let periodSelection: Prisma.Sql;
+        if (view === STATISTICS_VIEW.YEARLY) {
+          periodSelection = Prisma.sql`EXTRACT(YEAR FROM ${Prisma.raw(consumedAtField)}) AS period`;
+        } else {
+          periodSelection = Prisma.sql`EXTRACT(MONTH FROM ${Prisma.raw(consumedAtField)}) AS period`;
+        }
+
         const query = Prisma.sql`
-          SELECT ${selectPeriod}, COUNT(*)::INTEGER AS count
-          FROM ${Prisma.raw(`"${table}"`)}
+          SELECT ${periodSelection}, COUNT(*)::INTEGER AS count
+          FROM ${Prisma.raw(`"${table}" core`)}
+          INNER JOIN ${joinClause}
           ${whereClause}
-          GROUP BY ${groupByClause}
-          ORDER BY ${orderByClause}
+          GROUP BY period
+          ORDER BY period ASC
         `;
 
         const result = await prisma.$queryRaw<RawMediaConsumption[]>(query);
@@ -227,19 +242,19 @@ export class StatisticService {
       };
 
       if (media === "anime") {
-        const animeRaw = await prisma.anime.groupBy({
+        const animeRaw = await prisma.animeReview.groupBy({
           by: ["progressStatus"],
           _count: { progressStatus: true }
         });
         updateProgressMap(animeRaw);
       } else if (media === "manga") {
-        const mangaRaw = await prisma.manga.groupBy({
+        const mangaRaw = await prisma.mangaReview.groupBy({
           by: ["progressStatus"],
           _count: { progressStatus: true }
         });
         updateProgressMap(mangaRaw);
       } else if (media === "lightNovel") {
-        const lightNovelRaw = await prisma.lightNovel.groupBy({
+        const lightNovelRaw = await prisma.lightNovelReview.groupBy({
           by: ["progressStatus"],
           _count: { progressStatus: true }
         });
@@ -351,52 +366,73 @@ export class StatisticService {
 
   getAllTimeStatistics = async () => {
     try {
-      const consumedAnimeCountPromise = await prisma.anime.count({
+      const consumedAnimeCountPromise = await prisma.animeReview.count({
         where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
       });
-      const consumedMangaCountPromise = await prisma.manga.count({
+      const consumedMangaCountPromise = await prisma.mangaReview.count({
         where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
       });
-      const consumedLightNovelCountPromise = await prisma.lightNovel.count({
-        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
-      });
+      const consumedLightNovelCountPromise =
+        await prisma.lightNovelReview.count({
+          where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
+        });
 
-      const averageAnimeScoresPromise = await prisma.anime.aggregate({
-        _avg: { score: true, personalScore: true }
+      const averageAnimeMALScoresPromise = await prisma.anime.aggregate({
+        _avg: { score: true }
       });
-      const averageMangaScoresPromise = await prisma.manga.aggregate({
-        _avg: { score: true, personalScore: true }
+      const averageMangaMALScoresPromise = await prisma.manga.aggregate({
+        _avg: { score: true }
       });
-      const averageLightNovelScoresPromise = await prisma.lightNovel.aggregate({
-        _avg: { score: true, personalScore: true }
-      });
+      const averageLightNovelMALScoresPromise =
+        await prisma.lightNovel.aggregate({
+          _avg: { score: true }
+        });
+
+      const averageAnimePersonalScoresPromise =
+        await prisma.animeReview.aggregate({
+          _avg: { personalScore: true }
+        });
+      const averageMangaPersonalScoresPromise =
+        await prisma.mangaReview.aggregate({
+          _avg: { personalScore: true }
+        });
+      const averageLightNovelPersonalScoresPromise =
+        await prisma.lightNovelReview.aggregate({
+          _avg: { personalScore: true }
+        });
 
       const [
         consumedAnimeCount,
         consumedMangaCount,
         consumedLightNovelCount,
-        averageAnimeScores,
-        averageMangaScores,
-        averageLightNovelScores
+        averageAnimeMALScores,
+        averageMangaMALScores,
+        averageLightNovelMALScores,
+        averageAnimePersonalScores,
+        averageMangaPersonalScores,
+        averageLightNovelPersonalScores
       ] = await Promise.all([
         consumedAnimeCountPromise,
         consumedMangaCountPromise,
         consumedLightNovelCountPromise,
-        averageAnimeScoresPromise,
-        averageMangaScoresPromise,
-        averageLightNovelScoresPromise
+        averageAnimeMALScoresPromise,
+        averageMangaMALScoresPromise,
+        averageLightNovelMALScoresPromise,
+        averageAnimePersonalScoresPromise,
+        averageMangaPersonalScoresPromise,
+        averageLightNovelPersonalScoresPromise
       ]);
 
       const malScores = [
-        averageAnimeScores._avg.score,
-        averageMangaScores._avg.score,
-        averageLightNovelScores._avg.score
+        averageAnimeMALScores._avg.score,
+        averageMangaMALScores._avg.score,
+        averageLightNovelMALScores._avg.score
       ];
 
       const personalScores = [
-        averageAnimeScores._avg.personalScore,
-        averageMangaScores._avg.personalScore,
-        averageLightNovelScores._avg.personalScore
+        averageAnimePersonalScores._avg.personalScore,
+        averageMangaPersonalScores._avg.personalScore,
+        averageLightNovelPersonalScores._avg.personalScore
       ];
 
       const validMalScores = malScores.filter((score) => score !== null);
@@ -436,32 +472,44 @@ export class StatisticService {
       const endDate = new Date(currentYear, 11, 31, 23, 59, 59, 9999);
 
       const consumedAnimeYearlyPromise = prisma.anime.count({
-        where: { consumedAt: { gte: startDate, lte: endDate } }
+        where: { review: { consumedAt: { gte: startDate, lte: endDate } } }
       });
 
       const highestAnimePromise = prisma.anime.findMany({
-        select: { images: true, personalScore: true, title: true },
-        orderBy: { personalScore: "desc" },
+        select: {
+          images: true,
+          title: true,
+          review: { select: { personalScore: true } }
+        },
+        orderBy: { review: { personalScore: { sort: "asc", nulls: "last" } } },
         take: 1
       });
 
       const consumedMangaYearlyPromise = prisma.manga.count({
-        where: { consumedAt: { gte: startDate, lte: endDate } }
+        where: { review: { consumedAt: { gte: startDate, lte: endDate } } }
       });
 
       const highestMangaPromise = prisma.manga.findMany({
-        select: { images: true, personalScore: true, title: true },
-        orderBy: { personalScore: "desc" },
+        select: {
+          images: true,
+          title: true,
+          review: { select: { personalScore: true } }
+        },
+        orderBy: { review: { personalScore: { sort: "asc", nulls: "last" } } },
         take: 1
       });
 
-      const consumedLightNovelYearlyPromise = prisma.lightNovel.count({
+      const consumedLightNovelYearlyPromise = prisma.lightNovelVolumes.count({
         where: { consumedAt: { gte: startDate, lte: endDate } }
       });
 
       const highestLightNovelPromise = prisma.lightNovel.findMany({
-        select: { images: true, personalScore: true, title: true },
-        orderBy: { personalScore: "desc" },
+        select: {
+          images: true,
+          title: true,
+          review: { select: { personalScore: true } }
+        },
+        orderBy: { review: { personalScore: { sort: "asc", nulls: "last" } } },
         take: 1
       });
 
@@ -484,7 +532,9 @@ export class StatisticService {
       const prepareResults = (
         count: number,
         highestImages: {
-          personalScore: number | null;
+          review: {
+            personalScore: number | null;
+          };
           title: string;
           images: Prisma.JsonValue;
         }[]
@@ -494,7 +544,9 @@ export class StatisticService {
           images: highestImages.length > 0 ? highestImages[0].images : null,
           title: highestImages.length > 0 ? highestImages[0].title : null,
           score:
-            highestImages.length > 0 ? highestImages[0].personalScore : null
+            highestImages.length > 0
+              ? highestImages[0].review.personalScore
+              : null
         };
       };
 

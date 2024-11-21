@@ -32,7 +32,7 @@ function ProgressStatusBadge({
       value: "ON_HOLD",
       label: PROGRESS_STATUS.ON_HOLD,
       icon: <PauseCircleIcon className="mr-2 h-4 w-4" />,
-      color: "bg-yellow-300 hover:bg-yellow-300/80"
+      color: "bg-yellow-400 hover:bg-yellow-400/80"
     },
     {
       value: "ON_PROGRESS",

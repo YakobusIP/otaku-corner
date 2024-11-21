@@ -7,7 +7,7 @@ import {
   MangaCreateRequest,
   MangaDetail,
   MangaList,
-  MangaReview
+  MangaReviewRequest
 } from "@/types/manga.type";
 
 import interceptedAxios from "@/lib/axios";
@@ -27,7 +27,8 @@ const fetchAllMangaService = async (
   filterGenre?: string,
   filterTheme?: string,
   filterMALScore?: string,
-  filterPersonalScore?: string
+  filterPersonalScore?: string,
+  filterStatusCheck?: string
 ): Promise<ApiResponseList<MangaList[]>> => {
   try {
     const response = await interceptedAxios.get(BASE_MANGA_URL, {
@@ -41,7 +42,8 @@ const fetchAllMangaService = async (
         filterGenre,
         filterTheme,
         filterMALScore,
-        filterPersonalScore
+        filterPersonalScore,
+        filterStatusCheck
       }
     });
     return { success: true, data: response.data.data };
@@ -111,11 +113,11 @@ const addMangaService = async (
 
 const updateMangaReviewService = async (
   id: string,
-  data: MangaReview
+  data: MangaReviewRequest
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
     const response = await interceptedAxios.put(
-      `${BASE_MANGA_URL}/${id}`,
+      `${BASE_MANGA_URL}/${id}/review`,
       data
     );
     return { success: true, data: response.data };
@@ -135,9 +137,10 @@ const updateMangaProgressStatusService = async (
   data: PROGRESS_STATUS
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
-    const response = await interceptedAxios.put(`${BASE_MANGA_URL}/${id}`, {
-      progressStatus: data
-    });
+    const response = await interceptedAxios.put(
+      `${BASE_MANGA_URL}/${id}/review`,
+      { progressStatus: data }
+    );
     return { success: true, data: response.data };
   } catch (error) {
     return {

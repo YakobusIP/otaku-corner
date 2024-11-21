@@ -26,17 +26,30 @@ type LightNovelEntity = {
   themes: string[];
   synopsis: string;
   malUrl: string;
+  review: LightNovelReview;
+  volumeProgress: LightNovelVolumes[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type LightNovelReview = {
+  id: string;
   review?: string | null;
   storylineRating?: number | null;
   worldBuildingRating?: number | null;
   writingStyleRating?: number | null;
   charDevelopmentRating?: number | null;
   originalityRating?: number | null;
-  progressStatus?: PROGRESS_STATUS;
+  progressStatus: PROGRESS_STATUS;
   personalScore?: number | null;
-  consumedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+};
+
+type LightNovelVolumes = {
+  id: string;
+  volumeNumber: number;
+  consumedAt?: Date | null;
 };
 
 type LightNovelCreateRequest = {
@@ -70,32 +83,22 @@ type LightNovelDetail = Omit<
   themes: ThemeEntityPartial[];
 };
 
-type LightNovelList = {
-  id: string;
-  title: string;
-  titleJapanese: string;
-  status: string;
-  images: {
-    image_url: string;
-    large_image_url?: string | null;
-    small_image_url?: string | null;
-  };
-  score: number;
-  progressStatus: PROGRESS_STATUS;
-  personalScore: number | null;
-};
-
-type LightNovelReview = Pick<
+type LightNovelList = Pick<
   LightNovelEntity,
-  | "review"
-  | "consumedAt"
-  | "progressStatus"
-  | "storylineRating"
-  | "worldBuildingRating"
-  | "writingStyleRating"
-  | "charDevelopmentRating"
-  | "originalityRating"
-  | "personalScore"
+  | "id"
+  | "title"
+  | "titleJapanese"
+  | "status"
+  | "images"
+  | "score"
+  | "volumeProgress"
+  | "volumesCount"
+> &
+  Pick<LightNovelReview, "progressStatus" | "personalScore" | "review">;
+
+type LightNovelReviewRequest = Omit<
+  LightNovelReview,
+  "id" | "createdAt" | "updatedAt"
 >;
 
 type LightNovelFilterSort = {
@@ -106,12 +109,13 @@ type LightNovelFilterSort = {
   filterTheme?: string;
   filterMALScore?: string;
   filterPersonalScore?: string;
+  filterStatusCheck?: string;
 };
 
 export type {
   LightNovelCreateRequest,
   LightNovelDetail,
   LightNovelList,
-  LightNovelReview,
+  LightNovelReviewRequest,
   LightNovelFilterSort
 };

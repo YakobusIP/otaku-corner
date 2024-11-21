@@ -23,6 +23,7 @@ export default function FilterType({ filterType, handleFilterType }: Props) {
 
   const typeFilters = [
     { key: "TV", label: "TV" },
+    { key: "OVA", label: "OVA" },
     { key: "Movie", label: "Movie" }
   ];
 

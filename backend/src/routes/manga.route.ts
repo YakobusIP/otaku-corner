@@ -28,6 +28,11 @@ class MangaRouter {
     this.router.get("/duplicate/:id", this.mangaController.getMangaDuplicate);
     this.router.post("/", authMiddleware, this.mangaController.createMangaBulk);
     this.router.put("/:id", authMiddleware, this.mangaController.updateManga);
+    this.router.put(
+      "/:id/review",
+      authMiddleware,
+      this.mangaController.updateMangaReview
+    );
     this.router.delete(
       "/",
       authMiddleware,

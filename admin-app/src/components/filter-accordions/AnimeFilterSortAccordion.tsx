@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction } from "react";
 import FilterGenre from "@/components/filter-sort-dropdowns/FilterGenre";
 import FilterMALScore from "@/components/filter-sort-dropdowns/FilterMALScore";
 import FilterPersonalScore from "@/components/filter-sort-dropdowns/FilterPersonalScore";
+import FilterStatusCheck from "@/components/filter-sort-dropdowns/FilterStatusCheck";
 import FilterStudio from "@/components/filter-sort-dropdowns/FilterStudio";
 import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
 import FilterType from "@/components/filter-sort-dropdowns/FilterType";
@@ -98,13 +99,21 @@ export default function AnimeFilterSortAccordion({
     }));
   };
 
+  const handleFilterStatusCheck = (key?: string) => {
+    setAnimeFilterSort((prev) => ({
+      ...prev,
+      filterStatusCheck: key
+    }));
+  };
+
   const enableClearAllFilter =
     !animeFilterSort.filterGenre &&
     !animeFilterSort.filterStudio &&
     !animeFilterSort.filterTheme &&
     !animeFilterSort.filterMALScore &&
     !animeFilterSort.filterPersonalScore &&
-    !animeFilterSort.filterType;
+    !animeFilterSort.filterType &&
+    !animeFilterSort.filterStatusCheck;
 
   const handleClearAllFilter = () => {
     setAnimeFilterSort((prev) => ({
@@ -114,7 +123,8 @@ export default function AnimeFilterSortAccordion({
       filterTheme: undefined,
       filterMALScore: undefined,
       filterPersonalScore: undefined,
-      filterType: undefined
+      filterType: undefined,
+      filterStatusCheck: undefined
     }));
   };
 
@@ -131,7 +141,7 @@ export default function AnimeFilterSortAccordion({
             </span>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="grid grid-cols-1 grid-rows-8 xl:grid-cols-4 xl:grid-rows-2 gap-4">
+            <div className="grid grid-cols-1 grid-rows-9 xl:grid-cols-5 xl:grid-rows-2 gap-4">
               <SortDirection
                 sortBy={animeFilterSort.sortBy}
                 sortOrder={animeFilterSort.sortOrder}
@@ -166,6 +176,10 @@ export default function AnimeFilterSortAccordion({
               <FilterType
                 filterType={animeFilterSort.filterType}
                 handleFilterType={handleFilterType}
+              />
+              <FilterStatusCheck
+                filterStatusCheck={animeFilterSort.filterStatusCheck}
+                handleFilterStatusCheck={handleFilterStatusCheck}
               />
               <Button
                 variant="destructive"

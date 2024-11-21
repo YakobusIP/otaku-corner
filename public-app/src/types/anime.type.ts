@@ -34,13 +34,20 @@ type AnimeEntity = {
   synopsis: string;
   trailer?: string | null;
   malUrl: string;
+  review: AnimeReview;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type AnimeReview = {
+  id: string;
   review?: string | null;
   storylineRating?: number | null;
   qualityRating?: number | null;
   voiceActingRating?: number | null;
   soundTrackRating?: number | null;
   charDevelopmentRating?: number | null;
-  progressStatus?: PROGRESS_STATUS;
+  progressStatus: PROGRESS_STATUS;
   personalScore?: number | null;
   consumedAt?: Date | null;
   createdAt: Date;
@@ -54,22 +61,23 @@ type AnimeDetail = Omit<AnimeEntity, "genres" | "studios" | "themes"> & {
   themes: ThemeEntityPartial[];
 };
 
-type AnimeList = {
-  id: string;
-  title: string;
-  titleJapanese: string;
-  type: string;
-  status: string;
-  images: {
-    image_url: string;
-    large_image_url?: string | null;
-    small_image_url?: string | null;
+type AnimeList = Pick<
+  AnimeEntity,
+  | "id"
+  | "title"
+  | "titleJapanese"
+  | "rating"
+  | "type"
+  | "status"
+  | "images"
+  | "score"
+> &
+  Pick<
+    AnimeReview,
+    "progressStatus" | "personalScore" | "review" | "consumedAt"
+  > & {
+    fetchedEpisode: number;
   };
-  rating: string;
-  score: number;
-  progressStatus: PROGRESS_STATUS;
-  personalScore: number | null;
-};
 
 type AnimeEpisode = {
   id?: string;

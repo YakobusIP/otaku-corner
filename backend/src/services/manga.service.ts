@@ -34,7 +34,7 @@ export class MangaService {
     private readonly themeService: ThemeService
   ) {}
 
-  private calculatePersonalScore(data: Prisma.MangaUpdateInput) {
+  private calculatePersonalScore(data: Prisma.MangaReviewUpdateInput) {
     const {
       storylineRating,
       artStyleRating,
@@ -77,7 +77,8 @@ export class MangaService {
     filterGenre?: string,
     filterTheme?: string,
     filterMALScore?: string,
-    filterPersonalScore?: string
+    filterPersonalScore?: string,
+    filterStatusCheck?: string
   ) {
     try {
       const lowerCaseQuery = query && query.toLowerCase();
@@ -128,13 +129,38 @@ export class MangaService {
           ...(filterPersonalScore
             ? [
                 {
-                  personalScore: {
-                    gte: scoreRanges[filterPersonalScore].min,
-                    lte: scoreRanges[filterPersonalScore].max
+                  review: {
+                    personalScore: {
+                      gte: scoreRanges[filterPersonalScore].min,
+                      lte: scoreRanges[filterPersonalScore].max
+                    }
                   }
                 }
               ]
-            : [])
+            : []),
+          ...(filterStatusCheck === "complete"
+            ? [
+                {
+                  AND: [
+                    { chaptersCount: { not: null } },
+                    { volumesCount: { not: null } },
+                    { review: { review: { not: null } } },
+                    { review: { consumedAt: { not: null } } }
+                  ]
+                }
+              ]
+            : filterStatusCheck === "incomplete"
+              ? [
+                  {
+                    OR: [
+                      { chaptersCount: null },
+                      { volumesCount: null },
+                      { review: { review: null } },
+                      { review: { consumedAt: null } }
+                    ]
+                  }
+                ]
+              : [])
         ]
       };
 
@@ -153,8 +179,16 @@ export class MangaService {
           images: true,
           status: true,
           score: true,
-          progressStatus: true,
-          personalScore: true
+          review: {
+            select: {
+              review: true,
+              progressStatus: true,
+              personalScore: true,
+              consumedAt: true
+            }
+          },
+          chaptersCount: true,
+          volumesCount: true
         },
         orderBy: {
           title: sortBy === "title" ? sortOrder : undefined,
@@ -164,8 +198,23 @@ export class MangaService {
         skip: (currentPage - 1) * limitPerPage
       });
 
+      const mappedData = data.map((row) => ({
+        id: row.id,
+        title: row.title,
+        titleJapanese: row.titleJapanese,
+        images: row.images,
+        status: row.status,
+        score: row.score,
+        review: row.review?.review,
+        progressStatus: row.review?.progressStatus,
+        personalScore: row.review?.personalScore,
+        consumedAt: row.review?.consumedAt,
+        chaptersCount: row.chaptersCount,
+        volumesCount: row.volumesCount
+      }));
+
       return {
-        data,
+        data: mappedData,
         metadata: {
           currentPage,
           limitPerPage,
@@ -187,6 +236,7 @@ export class MangaService {
       const manga = await prisma.manga.findUnique({
         where: { id },
         include: {
+          review: true,
           authors: { select: { author: { select: { id: true, name: true } } } },
           genres: { select: { genre: { select: { id: true, name: true } } } },
           themes: { select: { theme: { select: { id: true, name: true } } } }
@@ -274,8 +324,17 @@ export class MangaService {
           themeMap[theme.name.toLowerCase()] = theme.id;
         });
 
+        const reviewRecords = await prisma.mangaReview.createManyAndReturn({
+          data: data.map(() => ({}))
+        });
+
+        const mangaDataWithReviews = data.map((manga, index) => ({
+          ...manga,
+          reviewId: reviewRecords[index].id
+        }));
+
         const createdMangas = await prisma.manga.createManyAndReturn({
-          data: data.map(
+          data: mangaDataWithReviews.map(
             ({
               authors: _authors,
               genres: _genres,
@@ -364,9 +423,36 @@ export class MangaService {
 
   async updateManga(id: string, data: Prisma.MangaUpdateInput) {
     try {
-      const mangaData = { ...data };
-      mangaData.personalScore = this.calculatePersonalScore(mangaData);
-      return await prisma.manga.update({ where: { id }, data: mangaData });
+      return await prisma.manga.update({ where: { id }, data });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        throw new NotFoundError("Manga not found!");
+      }
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request body!");
+      }
+
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
+  async updateMangaReview(id: string, data: Prisma.MangaReviewUpdateInput) {
+    try {
+      return await prisma.manga.update({
+        where: { id },
+        data: {
+          review: {
+            update: {
+              ...data,
+              personalScore: this.calculatePersonalScore(data)
+            }
+          }
+        }
+      });
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

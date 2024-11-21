@@ -27,13 +27,20 @@ type MangaEntity = {
   themes: string[];
   synopsis: string;
   malUrl: string;
+  review: MangaReview;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type MangaReview = {
+  id: string;
   review?: string | null;
   storylineRating?: number | null;
   artStyleRating?: number | null;
   charDevelopmentRating?: number | null;
   worldBuildingRating?: number | null;
   originalityRating?: number | null;
-  progressStatus?: PROGRESS_STATUS;
+  progressStatus: PROGRESS_STATUS;
   personalScore?: number | null;
   consumedAt: Date | null;
   createdAt: Date;
@@ -47,20 +54,21 @@ type MangaDetail = Omit<MangaEntity, "authors" | "genres" | "themes"> & {
   themes: ThemeEntityPartial[];
 };
 
-type MangaList = {
-  id: string;
-  title: string;
-  titleJapanese: string;
-  status: string;
-  images: {
-    image_url: string;
-    large_image_url?: string | null;
-    small_image_url?: string | null;
-  };
-  score: number;
-  progressStatus: PROGRESS_STATUS;
-  personalScore: number | null;
-};
+type MangaList = Pick<
+  MangaEntity,
+  | "id"
+  | "title"
+  | "titleJapanese"
+  | "status"
+  | "images"
+  | "score"
+  | "chaptersCount"
+  | "volumesCount"
+> &
+  Pick<
+    MangaReview,
+    "progressStatus" | "personalScore" | "review" | "consumedAt"
+  >;
 
 type MangaFilterSort = {
   sortBy: string;

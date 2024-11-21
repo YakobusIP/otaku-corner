@@ -7,7 +7,7 @@ import {
   LightNovelCreateRequest,
   LightNovelDetail,
   LightNovelList,
-  LightNovelReview
+  LightNovelReviewRequest
 } from "@/types/lightnovel.type";
 
 import interceptedAxios from "@/lib/axios";
@@ -27,7 +27,8 @@ const fetchAllLightNovelService = async (
   filterGenre?: string,
   filterTheme?: string,
   filterMALScore?: string,
-  filterPersonalScore?: string
+  filterPersonalScore?: string,
+  filterStatusCheck?: string
 ): Promise<ApiResponseList<LightNovelList[]>> => {
   try {
     const response = await interceptedAxios.get(BASE_LIGHTNOVEL_URL, {
@@ -41,7 +42,8 @@ const fetchAllLightNovelService = async (
         filterGenre,
         filterTheme,
         filterMALScore,
-        filterPersonalScore
+        filterPersonalScore,
+        filterStatusCheck
       }
     });
     return { success: true, data: response.data.data };
@@ -111,11 +113,11 @@ const addLightNovelService = async (
 
 const updateLightNovelReviewService = async (
   id: string,
-  data: LightNovelReview
+  data: LightNovelReviewRequest
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
     const response = await interceptedAxios.put(
-      `${BASE_LIGHTNOVEL_URL}/${id}`,
+      `${BASE_LIGHTNOVEL_URL}/${id}/review`,
       data
     );
     return { success: true, data: response.data };
@@ -136,7 +138,7 @@ const updateLightNovelProgressStatusService = async (
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
     const response = await interceptedAxios.put(
-      `${BASE_LIGHTNOVEL_URL}/${id}`,
+      `${BASE_LIGHTNOVEL_URL}/${id}/review`,
       { progressStatus: data }
     );
     return { success: true, data: response.data };
@@ -159,6 +161,26 @@ const updateLightNovelVolumesService = async (
     const response = await interceptedAxios.put(
       `${BASE_LIGHTNOVEL_URL}/${id}`,
       { volumesCount }
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
+const updateLightNovelVolumeProgressService = async (
+  data: { id: string; consumedAt?: Date | null }[]
+): Promise<ApiResponse<MessageResponse>> => {
+  try {
+    const response = await interceptedAxios.put(
+      `${BASE_LIGHTNOVEL_URL}/volume-progress`,
+      { data }
     );
     return { success: true, data: response.data };
   } catch (error) {
@@ -197,5 +219,6 @@ export {
   updateLightNovelReviewService,
   updateLightNovelProgressStatusService,
   updateLightNovelVolumesService,
+  updateLightNovelVolumeProgressService,
   deleteLightNovelService
 };

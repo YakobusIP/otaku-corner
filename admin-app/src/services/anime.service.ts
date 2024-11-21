@@ -2,7 +2,7 @@ import {
   AnimeCreateRequest,
   AnimeDetail,
   AnimeList,
-  AnimeReview
+  AnimeReviewRequest
 } from "@/types/anime.type";
 import {
   ApiResponse,
@@ -28,7 +28,8 @@ const fetchAllAnimeService = async (
   filterTheme?: string,
   filterMALScore?: string,
   filterPersonalScore?: string,
-  filterType?: string
+  filterType?: string,
+  filterStatusCheck?: string
 ): Promise<ApiResponseList<AnimeList[]>> => {
   try {
     const response = await interceptedAxios.get(BASE_ANIME_URL, {
@@ -43,7 +44,8 @@ const fetchAllAnimeService = async (
         filterTheme,
         filterMALScore,
         filterPersonalScore,
-        filterType
+        filterType,
+        filterStatusCheck
       }
     });
     return { success: true, data: response.data.data };
@@ -113,11 +115,11 @@ const addAnimeService = async (
 
 const updateAnimeReviewService = async (
   id: string,
-  data: AnimeReview
+  data: AnimeReviewRequest
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
     const response = await interceptedAxios.put(
-      `${BASE_ANIME_URL}/${id}`,
+      `${BASE_ANIME_URL}/${id}/review`,
       data
     );
     return { success: true, data: response.data };
@@ -137,9 +139,10 @@ const updateAnimeProgressStatusService = async (
   data: PROGRESS_STATUS
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
-    const response = await interceptedAxios.put(`${BASE_ANIME_URL}/${id}`, {
-      progressStatus: data
-    });
+    const response = await interceptedAxios.put(
+      `${BASE_ANIME_URL}/${id}/review`,
+      { progressStatus: data }
+    );
     return { success: true, data: response.data };
   } catch (error) {
     return {

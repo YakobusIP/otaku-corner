@@ -17,9 +17,9 @@ export default function AboutTab({ animeDetail }: Props) {
       <div className="flex flex-col gap-4 pt-4">
         <h2>About</h2>
         <div className="flex flex-wrap items-center gap-2">
-          {animeDetail.progressStatus && (
-            <ProgressStatusBadge progressStatus={animeDetail.progressStatus} />
-          )}
+          <ProgressStatusBadge
+            progressStatus={animeDetail.review.progressStatus}
+          />
           <Badge>{animeDetail.type}</Badge>
           <Badge>{animeDetail.status}</Badge>
           <Badge>{animeDetail.rating}</Badge>

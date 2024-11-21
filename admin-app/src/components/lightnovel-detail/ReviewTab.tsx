@@ -3,39 +3,26 @@ import { useState } from "react";
 import { updateLightNovelReviewService } from "@/services/lightnovel.service";
 import { deleteImageService } from "@/services/upload.service";
 
-import DraftEditor from "@/components/DraftEditor";
 import ProgressStatus from "@/components/ProgressStatus";
 import RatingSelect from "@/components/RatingSelect";
+import ReviewEditor from "@/components/ReviewEditor";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import MonthPicker from "@/components/ui/month-picker";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover";
 import { TabsContent } from "@/components/ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
 
 import { useToast } from "@/hooks/useToast";
 
-import { LightNovelDetail, LightNovelReview } from "@/types/lightnovel.type";
+import {
+  LightNovelDetail,
+  LightNovelReviewRequest
+} from "@/types/lightnovel.type";
 
-import { decorator, extractExistingImages } from "@/lib/draft-utils";
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
-import { createUTCDate } from "@/lib/utils";
+import { extractImageIds } from "@/lib/utils";
 
-import DOMPurify from "dompurify";
-import { ContentState, EditorState, convertToRaw } from "draft-js";
-import "draft-js/dist/Draft.css";
-import draftToHtml from "draftjs-to-html";
-import htmlToDraft from "html-to-draftjs";
-import { CalendarDaysIcon, Loader2Icon } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
+
+import VolumeProgressModal from "./VolumeProgressModal";
 
 type Props = {
   lightNovelDetail: LightNovelDetail;
@@ -44,56 +31,30 @@ type Props = {
 
 export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
   const toast = useToast();
+  const reviewObject = lightNovelDetail.review;
 
-  let initialEditorState: EditorState;
-  let currentImageIds: string[] = [];
-  if (lightNovelDetail.review) {
-    const sanitizedHTML = DOMPurify.sanitize(lightNovelDetail.review);
-    const blocksFromHtml = htmlToDraft(sanitizedHTML);
-    if (blocksFromHtml) {
-      const { contentBlocks, entityMap } = blocksFromHtml;
-      const contentState = ContentState.createFromBlockArray(
-        contentBlocks,
-        entityMap
-      );
-      initialEditorState = EditorState.createWithContent(
-        contentState,
-        decorator
-      );
-
-      const blocks = contentState.getBlocksAsArray();
-
-      currentImageIds = [...extractExistingImages(blocks, contentState)];
-    } else {
-      initialEditorState = EditorState.createEmpty(decorator);
-    }
-  } else {
-    initialEditorState = EditorState.createEmpty(decorator);
-  }
-
-  const [editorState, setEditorState] = useState(initialEditorState);
-  const [uploadedImages, setUploadedImages] =
-    useState<string[]>(currentImageIds);
-  const [progressStatus, setProgressStatus] = useState(
-    lightNovelDetail.progressStatus as string
+  const [review, setReview] = useState(reviewObject.review ?? undefined);
+  const [uploadedImages, setUploadedImages] = useState<string[]>(
+    extractImageIds(reviewObject.review ?? undefined)
   );
-  const [consumedMonth, setConsumedMonth] = useState<Date | null>(
-    lightNovelDetail.consumedAt ? new Date(lightNovelDetail.consumedAt) : null
+
+  const [progressStatus, setProgressStatus] = useState(
+    reviewObject.progressStatus as string
   );
   const [storylineRating, setStorylineRating] = useState(
-    lightNovelDetail.storylineRating || 10
+    reviewObject.storylineRating || 10
   );
   const [worldBuildingRating, setWorldBuildingRating] = useState(
-    lightNovelDetail.worldBuildingRating || 10
+    reviewObject.worldBuildingRating || 10
   );
   const [writingStyleRating, setWritingStyleRating] = useState(
-    lightNovelDetail.writingStyleRating || 10
+    reviewObject.writingStyleRating || 10
   );
   const [charDevelopmentRating, setCharDevelopmentRating] = useState(
-    lightNovelDetail.charDevelopmentRating || 10
+    reviewObject.charDevelopmentRating || 10
   );
   const [originalityRating, setOriginalityRating] = useState(
-    lightNovelDetail.originalityRating || 10
+    reviewObject.originalityRating || 10
   );
 
   const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
@@ -134,13 +95,7 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
   const onSubmit = async () => {
     setIsLoadingUpdateReview(true);
 
-    const rawContentState = convertToRaw(editorState.getCurrentContent());
-    const html = draftToHtml(rawContentState);
-
-    const contentState = editorState.getCurrentContent();
-    const blocks = contentState.getBlocksAsArray();
-    const currentImageIds = extractExistingImages(blocks, contentState);
-
+    const currentImageIds = extractImageIds(review);
     const previouslyUploadedImageIds = Object.values(uploadedImages);
     const removedImageIds = previouslyUploadedImageIds.filter(
       (id) => !currentImageIds.includes(id)
@@ -152,17 +107,16 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
       })
     );
 
-    const adjustedConsumedMonth = consumedMonth
-      ? createUTCDate(
-          consumedMonth.getUTCFullYear(),
-          consumedMonth.getUTCMonth()
-        )
-      : null;
+    // const adjustedConsumedMonth = consumedMonth
+    //   ? createUTCDate(
+    //       consumedMonth.getUTCFullYear(),
+    //       consumedMonth.getUTCMonth()
+    //     )
+    //   : null;
 
-    const data: LightNovelReview = {
-      review: html,
+    const data: LightNovelReviewRequest = {
+      review,
       progressStatus: progressStatus as PROGRESS_STATUS,
-      consumedAt: adjustedConsumedMonth,
       storylineRating,
       worldBuildingRating,
       writingStyleRating,
@@ -204,55 +158,18 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
                 setProgressStatus={setProgressStatus}
               />
             </div>
-            <Popover>
-              <PopoverTrigger className="self-end pb-1">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <CalendarDaysIcon
-                        className={
-                          consumedMonth ? "text-green-700" : "text-red-600"
-                        }
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {consumedMonth ? (
-                        <p>
-                          Consumed at{" "}
-                          {consumedMonth.toLocaleString("default", {
-                            month: "long"
-                          })}{" "}
-                          {consumedMonth.getUTCFullYear()}
-                        </p>
-                      ) : (
-                        <p>Consumed date is not set</p>
-                      )}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </PopoverTrigger>
-              <PopoverContent className="w-fit">
-                <p className="text-center font-bold">Month consumed</p>
-                <MonthPicker
-                  currentMonth={
-                    consumedMonth ||
-                    createUTCDate(
-                      new Date().getUTCFullYear(),
-                      new Date().getUTCMonth()
-                    )
-                  }
-                  onMonthChange={(value) => setConsumedMonth(value)}
-                />
-              </PopoverContent>
-            </Popover>
+            <VolumeProgressModal
+              lightNovelDetail={lightNovelDetail}
+              resetParent={resetParent}
+            />
           </div>
           <RatingSelect ratingFields={ratingFields} />
         </div>
-        <DraftEditor
-          editorState={editorState}
-          setEditorState={setEditorState}
+        <ReviewEditor
+          review={review}
+          setReview={setReview}
           mediaType={MEDIA_TYPE.LIGHT_NOVEL}
-          mediaId={lightNovelDetail.id}
+          reviewId={reviewObject.id}
           setUploadedImages={setUploadedImages}
         />
         <Button type="submit" className="mt-4" onClick={onSubmit}>

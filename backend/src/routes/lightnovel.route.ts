@@ -37,9 +37,19 @@ class LightNovelRouter {
       this.lightNovelController.createLightNovelBulk
     );
     this.router.put(
+      "/volume-progress",
+      authMiddleware,
+      this.lightNovelController.updateLightNovelVolumeProgress
+    );
+    this.router.put(
       "/:id",
       authMiddleware,
       this.lightNovelController.updateLightNovel
+    );
+    this.router.put(
+      "/:id/review",
+      authMiddleware,
+      this.lightNovelController.updateLightNovelReview
     );
     this.router.delete(
       "/",

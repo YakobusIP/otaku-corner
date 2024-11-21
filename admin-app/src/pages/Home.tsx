@@ -108,14 +108,14 @@ export default function Home() {
     <main className="flex items-center justify-center w-full min-h-screen">
       <img
         src="/hero_image_left.webp"
-        className="absolute left-0 top-0 w-1/2 max-h-screen"
+        className="absolute top-0 xl:left-0 xl:top-0 w-full xl:w-1/2 max-h-screen"
       />
       <img
         src="/hero_image_right.webp"
-        className="absolute right-0 top-0 w-1/2 max-h-screen"
+        className="absolute bottom-0 xl:right-0 xl:top-0 w-full xl:w-1/2 max-h-screen"
       />
       <div className="relative flex items-center justify-center w-full xl:w-1/2 mx-auto">
-        <Card className="w-1/2">
+        <Card className="xl:w-1/2">
           <CardHeader>
             <CardTitle>Otaku Corner Admin</CardTitle>
             <CardDescription>

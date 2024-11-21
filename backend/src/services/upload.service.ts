@@ -19,20 +19,20 @@ export class UploadService {
     uuid: string,
     url: string,
     type: MEDIA_TYPE,
-    entityId: string
+    reviewId: string
   ) {
     try {
       const data: Prisma.ReviewImageCreateInput = { id: uuid, url };
 
       switch (type) {
         case MEDIA_TYPE.ANIME:
-          data.anime = { connect: { id: entityId } };
+          data.animeReview = { connect: { id: reviewId } };
           break;
         case MEDIA_TYPE.MANGA:
-          data.manga = { connect: { id: entityId } };
+          data.mangaReview = { connect: { id: reviewId } };
           break;
         case MEDIA_TYPE.LIGHT_NOVEL:
-          data.lightNovel = { connect: { id: entityId } };
+          data.lightNovelReview = { connect: { id: reviewId } };
           break;
         default:
           throw new BadRequestError("Invalid media type!");
@@ -116,9 +116,9 @@ export class UploadService {
       }
 
       const urlParts = reviewImage.url.split("/");
-      const filename = `review-images/${urlParts[urlParts.length - 1]}`;
 
       if (env.NODE_ENV === "production") {
+        const filename = `review-images/${urlParts[urlParts.length - 1]}`;
         const file = bucket.file(filename);
         try {
           await file.delete();
@@ -126,6 +126,7 @@ export class UploadService {
           throw new FileStorageError((error as Error).message);
         }
       } else {
+        const filename = urlParts[urlParts.length - 1];
         const localPath = path.join(__dirname, "../uploads", filename);
         try {
           if (existsSync(localPath)) {
