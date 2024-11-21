@@ -122,6 +122,21 @@ export class LightNovelController {
     }
   };
 
+  updateLightNovelVolumeProgress = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await this.lightNovelService.updateLightNovelVolumeProgress(
+        req.body.data
+      );
+      return res.json({ message: "Light novel volumes updated successfully!" });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
   deleteLightNovel = async (
     req: Request,
     res: Response,

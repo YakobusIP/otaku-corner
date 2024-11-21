@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { updateLightNovelVolumesService } from "@/services/lightnovel.service";
+import { updateMangaVolumeAndChaptersService } from "@/services/manga.service";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,27 +17,34 @@ import { Label } from "@/components/ui/label";
 
 import { useToast } from "@/hooks/useToast";
 
-import { LightNovelDetail } from "@/types/lightnovel.type";
+import { MangaDetail } from "@/types/manga.type";
 
 import { Loader2Icon, PencilIcon } from "lucide-react";
 
 type Props = {
-  lightNovelDetail: LightNovelDetail;
+  mangaDetail: MangaDetail;
   resetParent: () => Promise<void>;
 };
 
-export default function EditVolumes({ lightNovelDetail, resetParent }: Props) {
+export default function EditChapterVolumesModal({
+  mangaDetail,
+  resetParent
+}: Props) {
   const toast = useToast();
-  const [volumesCount, setVolumesCount] = useState(
-    lightNovelDetail.volumesCount ?? 0
+  const [chaptersCount, setChaptersCount] = useState(
+    mangaDetail.chaptersCount ?? 0
   );
-  const [isLoadingUpdateLightNovelStats, setIsLoadingUpdateLightNovelStats] =
+  const [volumesCount, setVolumesCount] = useState(
+    mangaDetail.volumesCount ?? 0
+  );
+  const [isLoadingUpdateMangaStats, setIsLoadingUpdateMangaStats] =
     useState(false);
 
-  const updateLightNovelStats = async () => {
-    setIsLoadingUpdateLightNovelStats(true);
-    const response = await updateLightNovelVolumesService(
-      lightNovelDetail.id,
+  const updateMangaStats = async () => {
+    setIsLoadingUpdateMangaStats(true);
+    const response = await updateMangaVolumeAndChaptersService(
+      mangaDetail.id,
+      chaptersCount,
       volumesCount
     );
 
@@ -55,7 +62,7 @@ export default function EditVolumes({ lightNovelDetail, resetParent }: Props) {
       });
     }
 
-    setIsLoadingUpdateLightNovelStats(false);
+    setIsLoadingUpdateMangaStats(false);
   };
 
   return (
@@ -63,16 +70,26 @@ export default function EditVolumes({ lightNovelDetail, resetParent }: Props) {
       <DialogTrigger asChild>
         <Button variant="destructive">
           <PencilIcon className="w-4 h-4 mr-2" />
-          Override Volumes
+          Override Chapter and Volumes
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-1/5">
+      <DialogContent className="w-full xl:w-1/5">
         <DialogHeader>
-          <DialogTitle>Override Volumes</DialogTitle>
+          <DialogTitle>Override Chapter and Volumes</DialogTitle>
           <DialogDescription>
-            Edit <strong>{lightNovelDetail.title}</strong> volumes count.
+            Edit <strong>{mangaDetail.title}</strong> chapter and volumes count.
           </DialogDescription>
         </DialogHeader>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="chapters">Chapters</Label>
+          <Input
+            id="chapters"
+            type="number"
+            placeholder="Chapter count"
+            value={chaptersCount}
+            onChange={(e) => setChaptersCount(parseInt(e.target.value))}
+          />
+        </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="volumes">Volumes</Label>
           <Input
@@ -84,8 +101,8 @@ export default function EditVolumes({ lightNovelDetail, resetParent }: Props) {
           />
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={updateLightNovelStats}>
-            {isLoadingUpdateLightNovelStats && (
+          <Button type="submit" onClick={updateMangaStats}>
+            {isLoadingUpdateMangaStats && (
               <Loader2Icon className="w-4 h-4 animate-spin mr-2" />
             )}
             Save changes

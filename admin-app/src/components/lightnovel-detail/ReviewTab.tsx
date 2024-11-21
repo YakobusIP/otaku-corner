@@ -8,19 +8,7 @@ import RatingSelect from "@/components/RatingSelect";
 import ReviewEditor from "@/components/ReviewEditor";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import MonthPicker from "@/components/ui/month-picker";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover";
 import { TabsContent } from "@/components/ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
 
 import { useToast } from "@/hooks/useToast";
 
@@ -30,9 +18,11 @@ import {
 } from "@/types/lightnovel.type";
 
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
-import { createUTCDate, extractImageIds } from "@/lib/utils";
+import { extractImageIds } from "@/lib/utils";
 
-import { CalendarDaysIcon, Loader2Icon } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
+
+import VolumeProgressModal from "./VolumeProgressModal";
 
 type Props = {
   lightNovelDetail: LightNovelDetail;
@@ -50,9 +40,6 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
 
   const [progressStatus, setProgressStatus] = useState(
     reviewObject.progressStatus as string
-  );
-  const [consumedMonth, setConsumedMonth] = useState<Date | null>(
-    reviewObject.consumedAt ? new Date(reviewObject.consumedAt) : null
   );
   const [storylineRating, setStorylineRating] = useState(
     reviewObject.storylineRating || 10
@@ -120,17 +107,16 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
       })
     );
 
-    const adjustedConsumedMonth = consumedMonth
-      ? createUTCDate(
-          consumedMonth.getUTCFullYear(),
-          consumedMonth.getUTCMonth()
-        )
-      : null;
+    // const adjustedConsumedMonth = consumedMonth
+    //   ? createUTCDate(
+    //       consumedMonth.getUTCFullYear(),
+    //       consumedMonth.getUTCMonth()
+    //     )
+    //   : null;
 
     const data: LightNovelReviewRequest = {
       review,
       progressStatus: progressStatus as PROGRESS_STATUS,
-      consumedAt: adjustedConsumedMonth,
       storylineRating,
       worldBuildingRating,
       writingStyleRating,
@@ -172,47 +158,10 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
                 setProgressStatus={setProgressStatus}
               />
             </div>
-            <Popover>
-              <PopoverTrigger className="self-end pb-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <CalendarDaysIcon
-                        className={
-                          consumedMonth ? "text-green-700" : "text-red-600"
-                        }
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {consumedMonth ? (
-                        <p>
-                          Consumed at{" "}
-                          {consumedMonth.toLocaleString("default", {
-                            month: "long"
-                          })}{" "}
-                          {consumedMonth.getUTCFullYear()}
-                        </p>
-                      ) : (
-                        <p>Consumed date is not set</p>
-                      )}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </PopoverTrigger>
-              <PopoverContent className="w-fit">
-                <p className="text-center font-bold">Month consumed</p>
-                <MonthPicker
-                  currentMonth={
-                    consumedMonth ||
-                    createUTCDate(
-                      new Date().getUTCFullYear(),
-                      new Date().getUTCMonth()
-                    )
-                  }
-                  onMonthChange={(value) => setConsumedMonth(value)}
-                />
-              </PopoverContent>
-            </Popover>
+            <VolumeProgressModal
+              lightNovelDetail={lightNovelDetail}
+              resetParent={resetParent}
+            />
           </div>
           <RatingSelect ratingFields={ratingFields} />
         </div>

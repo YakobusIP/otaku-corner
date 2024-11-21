@@ -148,11 +148,12 @@ model LightNovel {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  authors  LightNovelAuthors[]
-  genres   LightNovelGenres[]
-  themes   LightNovelThemes[]
-  review   LightNovelReview    @relation(fields: [reviewId], references: [id])
-  reviewId String              @unique
+  authors        LightNovelAuthors[]
+  genres         LightNovelGenres[]
+  themes         LightNovelThemes[]
+  volumeProgress LightNovelVolumes[]
+  review         LightNovelReview    @relation(fields: [reviewId], references: [id])
+  reviewId       String              @unique
 }
 
 model LightNovelReview {
@@ -165,12 +166,22 @@ model LightNovelReview {
   originalityRating     Int?
   personalScore         Float?
   progressStatus        ProgressStatus @default(PLANNED)
-  consumedAt            DateTime?      @db.Date
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   reviewImages ReviewImage[] @relation("LightNovelReviewImages")
   lightNovel   LightNovel?
+}
+
+model LightNovelVolumes {
+  id           String     @id @default(uuid())
+  volumeNumber Int
+  consumedAt   DateTime?  @db.Date
+  lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id], onDelete: Cascade)
+  lightNovelId String
+
+  @@unique([volumeNumber, lightNovelId])
 }
 
 model Genre {
