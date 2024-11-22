@@ -15,6 +15,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useToast } from "@/hooks/useToast";
 
@@ -126,16 +127,18 @@ export default function AddMangaDialog({
             setSelectedManga={setSelectedManga}
           />
         </div>
-        <div className="flex flex-wrap w-full gap-4 items-center">
-          {selectedManga.map((manga) => {
-            return (
-              <MangaSmallCard
-                manga={manga}
-                setSelectedManga={setSelectedManga}
-              />
-            );
-          })}
-        </div>
+        <ScrollArea className="max-h-96">
+          <div className="flex flex-wrap w-full gap-4 items-center">
+            {selectedManga.map((manga) => {
+              return (
+                <MangaSmallCard
+                  manga={manga}
+                  setSelectedManga={setSelectedManga}
+                />
+              );
+            })}
+          </div>
+        </ScrollArea>
         {selectedManga.length > 0 && (
           <Button onClick={addManga}>
             {isLoadingAddManga && (
