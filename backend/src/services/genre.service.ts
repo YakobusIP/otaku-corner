@@ -137,6 +137,36 @@ export class GenreService {
     }
   }
 
+  async getOrCreateGenres(names: string[]) {
+    try {
+      const normalizedNames = names.map((name) => name.trim());
+
+      const existingGenres = await prisma.genre.findMany({
+        where: { name: { in: normalizedNames } }
+      });
+
+      const existingNameSet = new Set(existingGenres.map((a) => a.name));
+
+      const newGenreNames = normalizedNames.filter(
+        (name) => !existingNameSet.has(name)
+      );
+
+      let newGenres: Genre[] = [];
+      if (newGenreNames.length > 0) {
+        newGenres = await prisma.genre.createManyAndReturn({
+          data: newGenreNames.map((name) => ({ name })),
+          skipDuplicates: true
+        });
+      }
+
+      const allGenres = [...existingGenres, ...newGenres];
+
+      return allGenres;
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
   async updateGenre(id: string, data: Prisma.GenreUpdateInput) {
     try {
       return await prisma.genre.update({ where: { id }, data });

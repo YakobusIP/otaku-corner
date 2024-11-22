@@ -46,7 +46,8 @@ export const fetchEpisodesQueue = new Queue<FetchEpisodesJobData>(
   {
     redis: {
       host: env.BULL_REDIS_IP,
-      port: env.BULL_REDIS_PORT
+      port: env.BULL_REDIS_PORT,
+      maxRetriesPerRequest: null
     },
     limiter: {
       max: 1,

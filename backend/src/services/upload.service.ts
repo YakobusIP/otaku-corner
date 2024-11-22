@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
-import { generateFilename } from "../utils/generateFilename";
+import { generateFilename } from "../lib/utils";
 import { bucket } from "../lib/storage";
 import { existsSync, unlinkSync, writeFileSync } from "fs";
 import { env } from "../lib/env";

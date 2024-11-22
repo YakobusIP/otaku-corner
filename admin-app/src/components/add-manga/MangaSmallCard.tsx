@@ -83,8 +83,10 @@ export default function MangaSmallCard({ manga, setSelectedManga }: Props) {
         className="w-16 h-24 rounded-md"
       />
       <div className="flex flex-col justify-center">
-        <p className="font-bold">{manga.title}</p>
-        <p className="text-muted-foreground text-xs">{manga.title_japanese}</p>
+        <p className="font-bold line-clamp-2">{manga.title}</p>
+        <p className="text-muted-foreground text-xs line-clamp-1">
+          {manga.title_japanese}
+        </p>
       </div>
       {isDuplicate ? (
         <p className="absolute text-xs text-destructive bottom-2 right-2">

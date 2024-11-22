@@ -135,6 +135,36 @@ export class StudioService {
     }
   }
 
+  async getOrCreateStudios(names: string[]) {
+    try {
+      const normalizedNames = names.map((name) => name.trim());
+
+      const existingStudios = await prisma.studio.findMany({
+        where: { name: { in: normalizedNames } }
+      });
+
+      const existingNameSet = new Set(existingStudios.map((a) => a.name));
+
+      const newStudioNames = normalizedNames.filter(
+        (name) => !existingNameSet.has(name)
+      );
+
+      let newStudios: Studio[] = [];
+      if (newStudioNames.length > 0) {
+        newStudios = await prisma.studio.createManyAndReturn({
+          data: newStudioNames.map((name) => ({ name })),
+          skipDuplicates: true
+        });
+      }
+
+      const allStudios = [...existingStudios, ...newStudios];
+
+      return allStudios;
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
   async updateStudio(id: string, data: Prisma.StudioUpdateInput) {
     try {
       return await prisma.studio.update({ where: { id }, data });
