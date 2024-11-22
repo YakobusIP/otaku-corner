@@ -15,6 +15,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useToast } from "@/hooks/useToast";
 
@@ -132,16 +133,18 @@ export default function AddLightNovelDialog({
             setSelectedLightNovel={setSelectedLightNovel}
           />
         </div>
-        <div className="flex flex-wrap w-full gap-4 items-center">
-          {selectedLightNovel.map((lightNovel) => {
-            return (
-              <LightNovelSmallCard
-                lightNovel={lightNovel}
-                setSelectedLightNovel={setSelectedLightNovel}
-              />
-            );
-          })}
-        </div>
+        <ScrollArea className="h-96">
+          <div className="flex flex-wrap w-full gap-4 items-center">
+            {selectedLightNovel.map((lightNovel) => {
+              return (
+                <LightNovelSmallCard
+                  lightNovel={lightNovel}
+                  setSelectedLightNovel={setSelectedLightNovel}
+                />
+              );
+            })}
+          </div>
+        </ScrollArea>
         {selectedLightNovel.length > 0 && (
           <Button onClick={addLightNovel}>
             {isLoadingAddLightNovel && (

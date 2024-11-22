@@ -91,7 +91,9 @@ export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
         {
           key: `${title}-light-novel-date-status`,
           Trigger: CalendarDaysIcon,
-          condition: volumeProgress.every((volume) => volume.consumedAt),
+          condition:
+            !!volumesCount &&
+            volumeProgress.every((volume) => volume.consumedAt),
           triggerColor: {
             success: "text-green-700",
             failed: "text-destructive"
