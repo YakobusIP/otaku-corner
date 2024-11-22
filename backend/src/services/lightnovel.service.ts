@@ -502,7 +502,16 @@ export class LightNovelService {
 
   async deleteMultipleLightNovels(ids: string[]) {
     try {
-      return await prisma.lightNovel.deleteMany({ where: { id: { in: ids } } });
+      const lightNovelsToDelete = await prisma.lightNovel.findMany({
+        where: { id: { in: ids } },
+        select: { reviewId: true }
+      });
+      const reviewIds = lightNovelsToDelete.map((r) => r.reviewId);
+
+      return await prisma.$transaction([
+        prisma.lightNovel.deleteMany({ where: { id: { in: ids } } }),
+        prisma.lightNovelReview.deleteMany({ where: { id: { in: reviewIds } } })
+      ]);
     } catch (error) {
       throw new InternalServerError((error as Error).message);
     }

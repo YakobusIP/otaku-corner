@@ -476,7 +476,16 @@ export class AnimeService {
 
   async deleteMultipleAnimes(ids: string[]) {
     try {
-      return await prisma.anime.deleteMany({ where: { id: { in: ids } } });
+      const animesToDelete = await prisma.anime.findMany({
+        where: { id: { in: ids } },
+        select: { reviewId: true }
+      });
+      const reviewIds = animesToDelete.map((r) => r.reviewId);
+
+      return await prisma.$transaction([
+        prisma.anime.deleteMany({ where: { id: { in: ids } } }),
+        prisma.animeReview.deleteMany({ where: { id: { in: reviewIds } } })
+      ]);
     } catch (error) {
       throw new InternalServerError((error as Error).message);
     }

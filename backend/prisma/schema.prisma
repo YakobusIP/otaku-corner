@@ -56,7 +56,7 @@ model Anime {
   studios  AnimeStudios[]
   themes   AnimeThemes[]
   episodes AnimeEpisode[]
-  review   AnimeReview    @relation(fields: [reviewId], references: [id])
+  review   AnimeReview    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   reviewId String         @unique
 }
 
@@ -110,7 +110,7 @@ model Manga {
   authors  MangaAuthors[]
   genres   MangaGenres[]
   themes   MangaThemes[]
-  review   MangaReview    @relation(fields: [reviewId], references: [id])
+  review   MangaReview    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   reviewId String         @unique
 }
 
@@ -152,7 +152,7 @@ model LightNovel {
   genres         LightNovelGenres[]
   themes         LightNovelThemes[]
   volumeProgress LightNovelVolumes[]
-  review         LightNovelReview    @relation(fields: [reviewId], references: [id])
+  review         LightNovelReview    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   reviewId       String              @unique
 }
 
