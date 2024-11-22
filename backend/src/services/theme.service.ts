@@ -141,6 +141,36 @@ export class ThemeService {
     }
   }
 
+  async getOrCreateThemes(names: string[]) {
+    try {
+      const normalizedNames = names.map((name) => name.trim());
+
+      const existingThemes = await prisma.theme.findMany({
+        where: { name: { in: normalizedNames } }
+      });
+
+      const existingNameSet = new Set(existingThemes.map((a) => a.name));
+
+      const newThemeNames = normalizedNames.filter(
+        (name) => !existingNameSet.has(name)
+      );
+
+      let newThemes: Theme[] = [];
+      if (newThemeNames.length > 0) {
+        newThemes = await prisma.theme.createManyAndReturn({
+          data: newThemeNames.map((name) => ({ name })),
+          skipDuplicates: true
+        });
+      }
+
+      const allThemes = [...existingThemes, ...newThemes];
+
+      return allThemes;
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
   async updateTheme(id: string, data: Prisma.ThemeUpdateInput) {
     try {
       return await prisma.theme.update({ where: { id }, data });
