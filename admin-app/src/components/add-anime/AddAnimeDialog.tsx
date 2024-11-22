@@ -144,7 +144,7 @@ export default function AddAnimeDialog({
             setSelectedAnime={setSelectedAnime}
           />
         </div>
-        <ScrollArea className="h-96">
+        <ScrollArea className="max-h-96">
           <div className="flex flex-wrap w-full gap-4 items-center">
             {selectedAnime.map((anime) => {
               return (

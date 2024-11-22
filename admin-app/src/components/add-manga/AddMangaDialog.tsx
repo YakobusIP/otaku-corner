@@ -127,7 +127,7 @@ export default function AddMangaDialog({
             setSelectedManga={setSelectedManga}
           />
         </div>
-        <ScrollArea className="h-96">
+        <ScrollArea className="max-h-96">
           <div className="flex flex-wrap w-full gap-4 items-center">
             {selectedManga.map((manga) => {
               return (
