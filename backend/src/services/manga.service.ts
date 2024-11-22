@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Manga, Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { AuthorService } from "./author.service";
 import { GenreService } from "./genre.service";
@@ -9,6 +9,7 @@ import {
   NotFoundError,
   PrismaUniqueError
 } from "../lib/error";
+import { chunkArray } from "../lib/utils";
 
 type CustomMangaCreateInput = Omit<
   Prisma.MangaCreateInput,
@@ -286,125 +287,73 @@ export class MangaService {
 
   async createMangaBulk(data: CustomMangaCreateInput[]) {
     try {
-      const createdMangas = await prisma.$transaction(async (prisma) => {
-        const allAuthors = Array.from(
-          new Set(data.flatMap((manga) => manga.authors.map((s) => s.trim())))
-        );
-        const allGenres = Array.from(
-          new Set(data.flatMap((manga) => manga.genres.map((g) => g.trim())))
-        );
-        const allThemes = Array.from(
-          new Set(data.flatMap((manga) => manga.themes.map((t) => t.trim())))
-        );
+      // Extract unique authors, genres, themes
+      const allAuthors = [
+        ...new Set(data.flatMap((ln) => ln.authors.map((name) => name.trim())))
+      ];
+      const allGenres = [
+        ...new Set(data.flatMap((ln) => ln.genres.map((name) => name.trim())))
+      ];
+      const allThemes = [
+        ...new Set(data.flatMap((ln) => ln.themes.map((name) => name.trim())))
+      ];
 
-        const [authors, genres, themes] = await Promise.all([
-          Promise.all(
-            allAuthors.map((name) => this.authorService.getOrCreateAuthor(name))
-          ),
-          Promise.all(
-            allGenres.map((name) => this.genreService.getOrCreateGenre(name))
-          ),
-          Promise.all(
-            allThemes.map((name) => this.themeService.getOrCreateTheme(name))
-          )
-        ]);
+      // Get or create authors, genres, themes
+      const [authors, genres, themes] = await Promise.all([
+        this.authorService.getOrCreateAuthors(allAuthors),
+        this.genreService.getOrCreateGenres(allGenres),
+        this.themeService.getOrCreateThemes(allThemes)
+      ]);
 
-        const authorMap: Record<string, string> = {};
-        authors.forEach((author) => {
-          authorMap[author.name.toLowerCase()] = author.id;
-        });
-
-        const genreMap: Record<string, string> = {};
-        genres.forEach((genre) => {
-          genreMap[genre.name.toLowerCase()] = genre.id;
-        });
-
-        const themeMap: Record<string, string> = {};
-        themes.forEach((theme) => {
-          themeMap[theme.name.toLowerCase()] = theme.id;
-        });
-
-        const reviewRecords = await prisma.mangaReview.createManyAndReturn({
-          data: data.map(() => ({}))
-        });
-
-        const mangaDataWithReviews = data.map((manga, index) => ({
-          ...manga,
-          reviewId: reviewRecords[index].id
-        }));
-
-        const createdMangas = await prisma.manga.createManyAndReturn({
-          data: mangaDataWithReviews.map(
-            ({
-              authors: _authors,
-              genres: _genres,
-              themes: _themes,
-              ...manga
-            }) => ({
-              ...manga
-            })
-          ),
-          skipDuplicates: true
-        });
-
-        const mangaAuthorsData: Prisma.MangaAuthorsCreateManyInput[] = [];
-        const mangaGenresData: Prisma.MangaGenresCreateManyInput[] = [];
-        const mangaThemesData: Prisma.MangaThemesCreateManyInput[] = [];
-
-        createdMangas.forEach((record) => {
-          const originalManga = data.find((a) => a.malId === record.malId);
-          if (originalManga) {
-            originalManga.authors.forEach((name) => {
-              const authorId = authorMap[name.toLowerCase()];
-              if (authorId) {
-                mangaAuthorsData.push({
-                  mangaId: record.id,
-                  authorId
-                });
-              }
-            });
-
-            originalManga.genres.forEach((name) => {
-              const genreId = genreMap[name.toLowerCase()];
-              if (genreId) {
-                mangaGenresData.push({
-                  mangaId: record.id,
-                  genreId
-                });
-              }
-            });
-
-            originalManga.themes.forEach((name) => {
-              const themeId = themeMap[name.toLowerCase()];
-              if (themeId) {
-                mangaThemesData.push({
-                  mangaId: record.id,
-                  themeId
-                });
-              }
-            });
-          }
-        });
-
-        await Promise.all([
-          prisma.mangaAuthors.createMany({
-            data: mangaAuthorsData,
-            skipDuplicates: true
-          }),
-          prisma.mangaGenres.createMany({
-            data: mangaGenresData,
-            skipDuplicates: true
-          }),
-          prisma.mangaThemes.createMany({
-            data: mangaThemesData,
-            skipDuplicates: true
-          })
-        ]);
-
-        return createdMangas;
+      // Create maps for quick ID lookup
+      const authorMap = new Map<string, string>();
+      authors.forEach((author) => {
+        authorMap.set(author.name.toLowerCase(), author.id);
+      });
+      const genreMap = new Map<string, string>();
+      genres.forEach((genre) => {
+        genreMap.set(genre.name.toLowerCase(), genre.id);
+      });
+      const themeMap = new Map<string, string>();
+      themes.forEach((theme) => {
+        themeMap.set(theme.name.toLowerCase(), theme.id);
       });
 
-      return createdMangas;
+      const dataBatches = chunkArray(data, 5);
+      const createdMangaRecords: Manga[] = [];
+
+      for (const batch of dataBatches) {
+        await prisma.$transaction(async (tx) => {
+          const createMangaPromises = batch.map((ln) => {
+            const authorsCreate = ln.authors.map((name) => ({
+              authorId: authorMap.get(name.trim().toLowerCase())!
+            }));
+
+            const genresCreate = ln.genres.map((name) => ({
+              genreId: genreMap.get(name.trim().toLowerCase())!
+            }));
+
+            const themesCreate = ln.themes.map((name) => ({
+              themeId: themeMap.get(name.trim().toLowerCase())!
+            }));
+
+            return tx.manga.create({
+              data: {
+                ...ln,
+                authors: { createMany: { data: authorsCreate } },
+                genres: { createMany: { data: genresCreate } },
+                themes: { createMany: { data: themesCreate } },
+                review: { create: {} }
+              }
+            });
+          });
+
+          const result = await Promise.all(createMangaPromises);
+          createdMangaRecords.push(...result);
+        });
+      }
+
+      return createdMangaRecords;
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

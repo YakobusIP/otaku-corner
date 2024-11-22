@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Anime, Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { GenreService } from "./genre.service";
 import { StudioService } from "./studio.service";
@@ -9,6 +9,7 @@ import {
   NotFoundError,
   PrismaUniqueError
 } from "../lib/error";
+import { chunkArray } from "../lib/utils";
 
 type CustomAnimeCreateInput = Omit<
   Prisma.AnimeCreateInput,
@@ -315,125 +316,74 @@ export class AnimeService {
 
   async createAnimeBulk(data: CustomAnimeCreateInput[]) {
     try {
-      const createdAnimes = await prisma.$transaction(async (prisma) => {
-        const allGenres = Array.from(
-          new Set(data.flatMap((anime) => anime.genres.map((g) => g.trim())))
-        );
-        const allStudios = Array.from(
-          new Set(data.flatMap((anime) => anime.studios.map((s) => s.trim())))
-        );
-        const allThemes = Array.from(
-          new Set(data.flatMap((anime) => anime.themes.map((t) => t.trim())))
-        );
+      // Extract unique genres, studios, themes
+      const allGenres = [
+        ...new Set(data.flatMap((ln) => ln.genres.map((name) => name.trim())))
+      ];
+      const allStudios = [
+        ...new Set(data.flatMap((ln) => ln.studios.map((name) => name.trim())))
+      ];
+      const allThemes = [
+        ...new Set(data.flatMap((ln) => ln.themes.map((name) => name.trim())))
+      ];
 
-        const [genres, studios, themes] = await Promise.all([
-          Promise.all(
-            allGenres.map((name) => this.genreService.getOrCreateGenre(name))
-          ),
-          Promise.all(
-            allStudios.map((name) => this.studioService.getOrCreateStudio(name))
-          ),
-          Promise.all(
-            allThemes.map((name) => this.themeService.getOrCreateTheme(name))
-          )
-        ]);
+      // Get or create genres, studios, themes
+      const [genres, studios, themes] = await Promise.all([
+        this.genreService.getOrCreateGenres(allGenres),
+        this.studioService.getOrCreateStudios(allStudios),
+        this.themeService.getOrCreateThemes(allThemes)
+      ]);
 
-        const genreMap: Record<string, string> = {};
-        genres.forEach((genre) => {
-          genreMap[genre.name.toLowerCase()] = genre.id;
-        });
-
-        const studioMap: Record<string, string> = {};
-        studios.forEach((studio) => {
-          studioMap[studio.name.toLowerCase()] = studio.id;
-        });
-
-        const themeMap: Record<string, string> = {};
-        themes.forEach((theme) => {
-          themeMap[theme.name.toLowerCase()] = theme.id;
-        });
-
-        const reviewRecords = await prisma.animeReview.createManyAndReturn({
-          data: data.map(() => ({}))
-        });
-
-        const animeDataWithReviews = data.map((anime, index) => ({
-          ...anime,
-          reviewId: reviewRecords[index].id
-        }));
-
-        const createdAnimes = await prisma.anime.createManyAndReturn({
-          data: animeDataWithReviews.map(
-            ({
-              genres: _genres,
-              studios: _studios,
-              themes: _themes,
-              ...anime
-            }) => ({
-              ...anime
-            })
-          ),
-          skipDuplicates: true
-        });
-
-        const animeGenresData: Prisma.AnimeGenresCreateManyInput[] = [];
-        const animeStudiosData: Prisma.AnimeStudiosCreateManyInput[] = [];
-        const animeThemesData: Prisma.AnimeThemesCreateManyInput[] = [];
-
-        createdAnimes.forEach((record) => {
-          const originalAnime = data.find((a) => a.malId === record.malId);
-          if (originalAnime) {
-            originalAnime.genres.forEach((name) => {
-              const genreId = genreMap[name.toLowerCase()];
-              if (genreId) {
-                animeGenresData.push({
-                  animeId: record.id,
-                  genreId
-                });
-              }
-            });
-
-            originalAnime.studios.forEach((name) => {
-              const studioId = studioMap[name.toLowerCase()];
-              if (studioId) {
-                animeStudiosData.push({
-                  animeId: record.id,
-                  studioId
-                });
-              }
-            });
-
-            originalAnime.themes.forEach((name) => {
-              const themeId = themeMap[name.toLowerCase()];
-              if (themeId) {
-                animeThemesData.push({
-                  animeId: record.id,
-                  themeId
-                });
-              }
-            });
-          }
-        });
-
-        await Promise.all([
-          prisma.animeGenres.createMany({
-            data: animeGenresData,
-            skipDuplicates: true
-          }),
-          prisma.animeStudios.createMany({
-            data: animeStudiosData,
-            skipDuplicates: true
-          }),
-          prisma.animeThemes.createMany({
-            data: animeThemesData,
-            skipDuplicates: true
-          })
-        ]);
-
-        return createdAnimes;
+      // Create maps for quick ID lookup
+      const genreMap = new Map<string, string>();
+      genres.forEach((genre) => {
+        genreMap.set(genre.name.toLowerCase(), genre.id);
+      });
+      const studioMap = new Map<string, string>();
+      studios.forEach((studio) => {
+        studioMap.set(studio.name.toLowerCase(), studio.id);
+      });
+      const themeMap = new Map<string, string>();
+      themes.forEach((theme) => {
+        themeMap.set(theme.name.toLowerCase(), theme.id);
       });
 
-      return createdAnimes;
+      const dataBatches = chunkArray(data, 5);
+      const createdAnimeRecords: Anime[] = [];
+
+      for (const batch of dataBatches) {
+        await prisma.$transaction(async (tx) => {
+          const createAnimePromises = batch.map((anime) => {
+            const genresCreate = anime.genres.map((name) => ({
+              genreId: genreMap.get(name.trim().toLowerCase())!
+            }));
+
+            const studiosCreate = anime.studios.map((name) => ({
+              studioId: studioMap.get(name.trim().toLowerCase())!
+            }));
+
+            const themesCreate = anime.themes.map((name) => ({
+              themeId: themeMap.get(name.trim().toLowerCase())!
+            }));
+
+            return tx.anime.create({
+              data: {
+                ...anime,
+                genres: { createMany: { data: genresCreate } },
+                studios: { createMany: { data: studiosCreate } },
+                themes: { createMany: { data: themesCreate } },
+                review: { create: {} },
+                episodes: {}
+              }
+            });
+          });
+
+          const result = await Promise.all(createAnimePromises);
+          createdAnimeRecords.push(...result);
+        });
+      }
+
+      return createdAnimeRecords;
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

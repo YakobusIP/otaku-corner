@@ -6,3 +6,11 @@ export const generateFilename = (originalName: string) => {
   const uuid = uuidv4();
   return [uuid, `${uuid}${extension}`];
 };
+
+export const chunkArray = <T>(array: T[], chunkSize: number) => {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+  return chunks;
+};
