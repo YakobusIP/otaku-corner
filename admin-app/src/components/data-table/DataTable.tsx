@@ -147,7 +147,18 @@ export default function DataTable<TData extends Identifiable, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoadingData ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  <div className="inline-flex items-center justify-center gap-2">
+                    <Loader2Icon className="w-4 h-4 animate-spin" /> Loading...
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -169,17 +180,6 @@ export default function DataTable<TData extends Identifiable, TValue>({
                   ))}
                 </TableRow>
               ))
-            ) : isLoadingData ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  <div className="inline-flex items-center justify-center gap-2">
-                    <Loader2Icon className="w-4 h-4 animate-spin" /> Loading...
-                  </div>
-                </TableCell>
-              </TableRow>
             ) : (
               <TableRow>
                 <TableCell
