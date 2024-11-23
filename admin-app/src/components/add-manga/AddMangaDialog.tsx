@@ -18,9 +18,10 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useToast } from "@/hooks/useToast";
+import useWideScreen from "@/hooks/useWideScreen";
 
 import { Manga } from "@tutkli/jikan-ts";
-import { Loader2Icon, PlusIcon } from "lucide-react";
+import { BookOpenIcon, Loader2Icon } from "lucide-react";
 
 type Props = {
   openDialog: boolean;
@@ -33,10 +34,11 @@ export default function AddMangaDialog({
   setOpenDialog,
   resetParent
 }: Props) {
+  const toast = useToast();
+  const isWideScreen = useWideScreen();
+
   const [selectedManga, setSelectedManga] = useState<Manga[]>([]);
   const [isLoadingAddManga, setIsLoadingAddManga] = useState(false);
-
-  const toast = useToast();
 
   const addManga = async () => {
     setIsLoadingAddManga(true);
@@ -108,8 +110,11 @@ export default function AddMangaDialog({
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button className="w-full xl:w-fit">
-          <PlusIcon className="w-4 h-4" />
+        <Button
+          className="w-full xl:w-fit"
+          variant={isWideScreen ? "default" : "outline"}
+        >
+          <BookOpenIcon className="w-4 h-4" />
           Add Manga
         </Button>
       </DialogTrigger>

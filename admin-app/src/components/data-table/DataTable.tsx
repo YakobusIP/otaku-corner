@@ -1,5 +1,6 @@
 import { Dispatch, Fragment, ReactNode, SetStateAction } from "react";
 
+import DataDeleteButton from "@/components/data-table/DataDeleteButton";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -104,18 +105,11 @@ export default function DataTable<TData extends Identifiable, TValue>({
         ) : (
           <div className="flex flex-col xl:flex-row justify-between items-center gap-2">
             <h2>{title}</h2>
-            <Button
-              variant="destructive"
-              className="flex items-center gap-2 place-self-end w-full xl:w-fit"
-              onClick={() => deleteData()}
-              disabled={Object.keys(rowSelection).length === 0}
-            >
-              {!isLoadingDeleteData && <Trash2Icon className="w-4 h-4" />}
-              {isLoadingDeleteData && (
-                <Loader2Icon className="h-4 w-4 animate-spin" />
-              )}
-              Delete
-            </Button>
+            <DataDeleteButton
+              rowSelection={rowSelection}
+              deleteData={deleteData}
+              isLoadingDeleteData={isLoadingDeleteData}
+            />
           </div>
         )}
         {filterSortComponent}

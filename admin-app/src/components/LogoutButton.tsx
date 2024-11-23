@@ -5,7 +5,6 @@ import { logout } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
 
 import { useToast } from "@/hooks/useToast";
-import useWideScreen from "@/hooks/useWideScreen";
 
 import { setAccessToken } from "@/lib/axios";
 
@@ -17,7 +16,6 @@ export default function LogoutButton() {
 
   const toast = useToast();
   const navigate = useNavigate();
-  const isWideScreen = useWideScreen();
 
   const handleLogout = async () => {
     setIsLoadingLogout(true);
@@ -45,7 +43,7 @@ export default function LogoutButton() {
       ) : (
         <LogOutIcon className="w-4 h-4" />
       )}
-      {isWideScreen && "Logout"}
+      Logout
     </Button>
   );
 }

@@ -18,9 +18,10 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useToast } from "@/hooks/useToast";
+import useWideScreen from "@/hooks/useWideScreen";
 
 import { Anime } from "@tutkli/jikan-ts";
-import { Loader2Icon, PlusIcon } from "lucide-react";
+import { FilmIcon, Loader2Icon } from "lucide-react";
 
 type Props = {
   openDialog: boolean;
@@ -33,10 +34,11 @@ export default function AddAnimeDialog({
   setOpenDialog,
   resetParent
 }: Props) {
+  const toast = useToast();
+  const isWideScreen = useWideScreen();
+
   const [selectedAnime, setSelectedAnime] = useState<Anime[]>([]);
   const [isLoadingAddAnime, setIsLoadingAddAnime] = useState(false);
-
-  const toast = useToast();
 
   const addAnime = async () => {
     setIsLoadingAddAnime(true);
@@ -125,8 +127,11 @@ export default function AddAnimeDialog({
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button className="w-full xl:w-fit">
-          <PlusIcon className="w-4 h-4" />
+        <Button
+          className="w-full xl:w-fit"
+          variant={isWideScreen ? "default" : "outline"}
+        >
+          <FilmIcon className="w-4 h-4" />
           Add Anime
         </Button>
       </DialogTrigger>

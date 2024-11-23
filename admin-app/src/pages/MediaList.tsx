@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from "react";
 
 import {
   deleteAnimeService,
@@ -19,26 +26,17 @@ import {
   fetchAllMangaService
 } from "@/services/manga.service";
 
-import LogoutButton from "@/components/LogoutButton";
-import MediaFilter from "@/components/MediaFilter";
-import AddAnimeDialog from "@/components/add-anime/AddAnimeDialog";
-import AddLightNovelDialog from "@/components/add-lightnovel/AddLightNovelDialog";
-import AddMangaDialog from "@/components/add-manga/AddMangaDialog";
 import { animeColumns } from "@/components/data-table/AnimeTableColumns";
 import DataTable from "@/components/data-table/DataTable";
 import { lightNovelColumns } from "@/components/data-table/LightNovelTableColumns";
 import { mangaColumns } from "@/components/data-table/MangaTableColumns";
-import EntityManagement from "@/components/entity-management/EntityManagement";
 import AnimeFilterSortAccordion from "@/components/filter-accordions/AnimeFilterSortAccordion";
 import LightNovelFilterSortAccordion from "@/components/filter-accordions/LightNovelFilterSortAccordion";
 import MangaFilterSortAccordion from "@/components/filter-accordions/MangaFilterSortAccordion";
-import { Button } from "@/components/ui/button";
 import { DropdownChecked } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
 import { useToast } from "@/hooks/useToast";
-import useWideScreen from "@/hooks/useWideScreen";
 
 import { AnimeFilterSort, AnimeList } from "@/types/anime.type";
 import { MetadataResponse } from "@/types/api.type";
@@ -53,36 +51,29 @@ import { MangaFilterSort, MangaList } from "@/types/manga.type";
 
 import { SORT_ORDER } from "@/lib/enums";
 
-import { ChartNoAxesCombinedIcon, GlobeIcon, SearchIcon } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useDebounce } from "use-debounce";
 
 const PAGINATION_SIZE = 5;
 
 export default function MediaList() {
+  const MediaListNavbar = lazy(() => import("@/components/MediaListNavbar"));
   const [mediaFilters, setMediaFilters] = useState<DropdownChecked[]>([
     true,
     true,
     true
   ]);
 
-  const [openAddAnimeDialog, setOpenAddAnimeDialog] = useState(false);
   const [addedAnimeList, setAddedAnimeList] = useState<AnimeList[]>([]);
   const [animeMetadata, setAnimeMetadata] = useState<MetadataResponse>();
 
-  const [openAddMangaDialog, setOpenAddMangaDialog] = useState(false);
   const [addedMangaList, setAddedMangaList] = useState<MangaList[]>([]);
   const [mangaMetadata, setMangaMetadata] = useState<MetadataResponse>();
 
-  const [openAddLightNovelDialog, setOpenAddLightNovelDialog] = useState(false);
   const [addedLightNovelList, setAddedLightNovelList] = useState<
     LightNovelList[]
   >([]);
   const [lightNovelMetadata, setLightNovelMetadata] =
     useState<MetadataResponse>();
-
-  const [openEntityManagementDialog, setOpenEntityManagementDialog] =
-    useState(false);
 
   const [genreList, setGenreList] = useState<GenreEntity[]>([]);
   const [studioList, setStudioList] = useState<StudioEntity[]>([]);
@@ -127,15 +118,8 @@ export default function MediaList() {
   const [debouncedSearch] = useDebounce(searchMedia, 1000);
 
   const toast = useToast();
-  const isWideScreen = useWideScreen();
 
   const toastRef = useRef(toast.toast);
-
-  const handleMediaFilters = (index: number, checked: DropdownChecked) => {
-    setMediaFilters((prevFilters) =>
-      prevFilters.map((state, i) => (i === index ? checked : state))
-    );
-  };
 
   const fetchAnimeList = useCallback(async () => {
     if (!mediaFilters[0]) return;
@@ -157,6 +141,10 @@ export default function MediaList() {
     if (response.success) {
       setAddedAnimeList(response.data.data);
       setAnimeMetadata(response.data.metadata);
+
+      if (debouncedSearch) {
+        setAnimeListPage(1);
+      }
     } else {
       toastRef.current({
         variant: "destructive",
@@ -186,6 +174,10 @@ export default function MediaList() {
     if (response.success) {
       setAddedMangaList(response.data.data);
       setMangaMetadata(response.data.metadata);
+
+      if (debouncedSearch) {
+        setMangaListPage(1);
+      }
     } else {
       toastRef.current({
         variant: "destructive",
@@ -215,6 +207,10 @@ export default function MediaList() {
     if (response.success) {
       setAddedLightNovelList(response.data.data);
       setLightNovelMetadata(response.data.metadata);
+
+      if (debouncedSearch) {
+        setLightNovelListPage(1);
+      }
     } else {
       toastRef.current({
         variant: "destructive",
@@ -355,27 +351,6 @@ export default function MediaList() {
     await fetchAuthorList();
   }, [fetchGenreList, fetchStudioList, fetchThemeList, fetchAuthorList]);
 
-  const resetAnimeParent = useCallback(async () => {
-    await fetchAnimeList();
-    await fetchGenreList();
-    await fetchStudioList();
-    await fetchThemeList();
-  }, [fetchAnimeList, fetchGenreList, fetchStudioList, fetchThemeList]);
-
-  const resetMangaParent = useCallback(async () => {
-    await fetchMangaList();
-    await fetchAuthorList();
-    await fetchGenreList();
-    await fetchThemeList();
-  }, [fetchMangaList, fetchAuthorList, fetchGenreList, fetchThemeList]);
-
-  const resetLightNovelParent = useCallback(async () => {
-    await fetchLightNovelList();
-    await fetchAuthorList();
-    await fetchGenreList();
-    await fetchThemeList();
-  }, [fetchLightNovelList, fetchAuthorList, fetchGenreList, fetchThemeList]);
-
   useEffect(() => {
     if (mediaFilters[0]) fetchAnimeList();
   }, [mediaFilters, fetchAnimeList]);
@@ -398,66 +373,20 @@ export default function MediaList() {
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <header className="flex flex-col xl:flex-row items-center bg-background border-b">
-        <img src="/logo.png" className="w-32 mt-2 xl:mt-0 ml-0 xl:ml-2" />
-        <div className="flex items-center justify-between w-full p-3 xl:pl-2 xl:pr-4 xl:py-4">
-          <div className="flex flex-col xl:flex-row items-center w-full gap-4">
-            <div className="flex w-full xl:w-fit gap-2 xl:gap-4">
-              <Input
-                type="text"
-                placeholder="Search"
-                startIcon={SearchIcon}
-                parentClassName="w-full xl:w-fit"
-                className="w-full xl:w-[300px]"
-                onChange={(e) => setSearchMedia(e.target.value)}
-              />
-              <MediaFilter
-                mediaFilters={mediaFilters}
-                handleMediaFilters={handleMediaFilters}
-              />
-              {!isWideScreen && <LogoutButton />}
-            </div>
-            <AddAnimeDialog
-              openDialog={openAddAnimeDialog}
-              setOpenDialog={setOpenAddAnimeDialog}
-              resetParent={resetAnimeParent}
-            />
-            <AddMangaDialog
-              openDialog={openAddMangaDialog}
-              setOpenDialog={setOpenAddMangaDialog}
-              resetParent={resetMangaParent}
-            />
-            <AddLightNovelDialog
-              openDialog={openAddLightNovelDialog}
-              setOpenDialog={setOpenAddLightNovelDialog}
-              resetParent={resetLightNovelParent}
-            />
-            <EntityManagement
-              openDialog={openEntityManagementDialog}
-              setOpenDialog={setOpenEntityManagementDialog}
-              resetAuthor={fetchAuthorList}
-              resetGenre={fetchGenreList}
-              resetStudio={fetchStudioList}
-              resetTheme={fetchThemeList}
-            />
-            <Link to="/dashboard" className="w-full xl:w-fit">
-              <Button className="w-full">
-                <ChartNoAxesCombinedIcon className="w-4 h-4" /> Dashboard
-              </Button>
-            </Link>
-            <Link
-              to={import.meta.env.VITE_PUBLIC_APP}
-              className="w-full xl:w-fit"
-              target="_blank"
-            >
-              <Button className="w-full">
-                <GlobeIcon className="w-4 h-4" /> Public App
-              </Button>
-            </Link>
-          </div>
-          {isWideScreen && <LogoutButton />}
-        </div>
-      </header>
+      <Suspense>
+        <MediaListNavbar
+          mediaFilters={mediaFilters}
+          setMediaFilters={setMediaFilters}
+          setSearchMedia={setSearchMedia}
+          fetchAnimeList={fetchAnimeList}
+          fetchGenreList={fetchGenreList}
+          fetchStudioList={fetchStudioList}
+          fetchThemeList={fetchThemeList}
+          fetchMangaList={fetchMangaList}
+          fetchAuthorList={fetchAuthorList}
+          fetchLightNovelList={fetchLightNovelList}
+        />
+      </Suspense>
       <Separator />
       <main className="flex-1">
         <section className="pb-12 pt-8 md:py-16 xl:py-20">
