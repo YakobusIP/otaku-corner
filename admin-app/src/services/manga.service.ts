@@ -26,6 +26,7 @@ const fetchAllMangaService = async (
   filterAuthor?: string,
   filterGenre?: string,
   filterTheme?: string,
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS,
   filterMALScore?: string,
   filterPersonalScore?: string,
   filterStatusCheck?: string
@@ -41,6 +42,7 @@ const fetchAllMangaService = async (
         filterAuthor,
         filterGenre,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
         filterPersonalScore,
         filterStatusCheck

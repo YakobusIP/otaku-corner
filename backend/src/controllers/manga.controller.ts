@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { MangaService } from "../services/manga.service";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProgressStatus } from "@prisma/client";
 import { UnprocessableEntityError } from "../lib/error";
 import { fetchMangaDataQueue } from "../lib/queues/manga.queue";
 
@@ -22,6 +22,8 @@ export class MangaController {
       const filterAuthor = req.query.filterAuthor as string;
       const filterGenre = req.query.filterGenre as string;
       const filterTheme = req.query.filterTheme as string;
+      const filterProgressStatus = req.query
+        .filterProgressStatus as ProgressStatus;
       const filterMALScore = req.query.filterMALScore as string;
       const filterPersonalScore = req.query.filterPersonalScore as string;
       const filterStatusCheck = req.query.filterStatusCheck as string;
@@ -34,6 +36,7 @@ export class MangaController {
         filterAuthor,
         filterGenre,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
         filterPersonalScore,
         filterStatusCheck

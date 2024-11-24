@@ -1,4 +1,4 @@
-import { Manga, Prisma } from "@prisma/client";
+import { Manga, Prisma, ProgressStatus } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { AuthorService } from "./author.service";
 import { GenreService } from "./genre.service";
@@ -77,6 +77,7 @@ export class MangaService {
     filterAuthor?: string,
     filterGenre?: string,
     filterTheme?: string,
+    filterProgressStatus?: ProgressStatus,
     filterMALScore?: string,
     filterPersonalScore?: string,
     filterStatusCheck?: string
@@ -116,6 +117,15 @@ export class MangaService {
             : []),
           ...(filterTheme
             ? [{ themes: { some: { themeId: filterTheme } } }]
+            : []),
+          ...(filterProgressStatus
+            ? [
+                {
+                  review: {
+                    progressStatus: filterProgressStatus
+                  }
+                }
+              ]
             : []),
           ...(filterMALScore
             ? [
@@ -193,7 +203,14 @@ export class MangaService {
         },
         orderBy: {
           title: sortBy === "title" ? sortOrder : undefined,
-          score: sortBy === "score" ? sortOrder : undefined
+          score: sortBy === "score" ? sortOrder : undefined,
+          ...(sortBy === "personal_score"
+            ? {
+                review: {
+                  personalScore: { sort: sortOrder!, nulls: "last" }
+                }
+              }
+            : {})
         },
         take: limitPerPage,
         skip: (currentPage - 1) * limitPerPage

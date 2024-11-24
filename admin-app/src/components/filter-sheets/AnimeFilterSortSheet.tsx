@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction } from "react";
 import FilterGenre from "@/components/filter-sort-dropdowns/FilterGenre";
 import FilterMALScore from "@/components/filter-sort-dropdowns/FilterMALScore";
 import FilterPersonalScore from "@/components/filter-sort-dropdowns/FilterPersonalScore";
+import FilterProgressStatus from "@/components/filter-sort-dropdowns/FilterProgressStatus";
 import FilterStatusCheck from "@/components/filter-sort-dropdowns/FilterStatusCheck";
 import FilterStudio from "@/components/filter-sort-dropdowns/FilterStudio";
 import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
@@ -23,7 +24,7 @@ import useWideScreen from "@/hooks/useWideScreen";
 import { AnimeFilterSort } from "@/types/anime.type";
 import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
 
-import { SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 import { FilterIcon } from "lucide-react";
 
@@ -81,6 +82,13 @@ export default function AnimeFilterSortSheet({
     setAnimeFilterSort((prev) => ({
       ...prev,
       filterTheme: key
+    }));
+  };
+
+  const handleFilterProgressStatus = (key?: keyof typeof PROGRESS_STATUS) => {
+    setAnimeFilterSort((prev) => ({
+      ...prev,
+      filterProgressStatus: key
     }));
   };
 
@@ -147,7 +155,7 @@ export default function AnimeFilterSortSheet({
           <SheetTitle>Anime Filter & Sort</SheetTitle>
         </SheetHeader>
         <ScrollArea className="h-[50vh] xl:h-auto">
-          <div className="grid grid-cols-1 grid-rows-9 xl:grid-cols-5 xl:grid-rows-2 gap-4 mt-2">
+          <div className="grid grid-cols-1 grid-rows-10 xl:grid-cols-5 xl:grid-rows-2 gap-4 mt-2">
             <SortDirection
               sortBy={animeFilterSort.sortBy}
               sortOrder={animeFilterSort.sortOrder}
@@ -170,6 +178,10 @@ export default function AnimeFilterSortSheet({
               isLoadingTheme={isLoadingTheme}
               filterTheme={animeFilterSort.filterTheme}
               handleFilterTheme={handleFilterTheme}
+            />
+            <FilterProgressStatus
+              filterProgressStatus={animeFilterSort.filterProgressStatus}
+              handleFilterProgressStatus={handleFilterProgressStatus}
             />
             <FilterMALScore
               filterMALScore={animeFilterSort.filterMALScore}

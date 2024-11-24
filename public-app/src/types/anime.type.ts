@@ -94,6 +94,7 @@ type AnimeFilterSort = {
   filterGenre?: string;
   filterStudio?: string;
   filterTheme?: string;
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS;
   filterMALScore?: string;
   filterPersonalScore?: string;
   filterType?: string;

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { LightNovelService } from "../services/lightnovel.service";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProgressStatus } from "@prisma/client";
 import { UnprocessableEntityError } from "../lib/error";
 
 export class LightNovelController {
@@ -25,6 +25,8 @@ export class LightNovelController {
       const filterAuthor = req.query.filterAuthor as string;
       const filterGenre = req.query.filterGenre as string;
       const filterTheme = req.query.filterTheme as string;
+      const filterProgressStatus = req.query
+        .filterProgressStatus as ProgressStatus;
       const filterMALScore = req.query.filterMALScore as string;
       const filterPersonalScore = req.query.filterPersonalScore as string;
       const filterStatusCheck = req.query.filterStatusCheck as string;
@@ -37,6 +39,7 @@ export class LightNovelController {
         filterAuthor,
         filterGenre,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
         filterPersonalScore,
         filterStatusCheck

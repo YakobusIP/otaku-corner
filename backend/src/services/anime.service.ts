@@ -1,4 +1,4 @@
-import { Anime, Prisma } from "@prisma/client";
+import { Anime, Prisma, ProgressStatus } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { GenreService } from "./genre.service";
 import { StudioService } from "./studio.service";
@@ -84,6 +84,7 @@ export class AnimeService {
     filterGenre?: string,
     filterStudio?: string,
     filterTheme?: string,
+    filterProgressStatus?: ProgressStatus,
     filterMALScore?: string,
     filterPersonalScore?: string,
     filterType?: string,
@@ -124,6 +125,15 @@ export class AnimeService {
             : []),
           ...(filterTheme
             ? [{ themes: { some: { themeId: filterTheme } } }]
+            : []),
+          ...(filterProgressStatus
+            ? [
+                {
+                  review: {
+                    progressStatus: filterProgressStatus
+                  }
+                }
+              ]
             : []),
           ...(filterMALScore
             ? [
@@ -220,7 +230,14 @@ export class AnimeService {
         },
         orderBy: {
           title: sortBy === "title" ? sortOrder : undefined,
-          score: sortBy === "score" ? sortOrder : undefined
+          score: sortBy === "score" ? sortOrder : undefined,
+          ...(sortBy === "personal_score"
+            ? {
+                review: {
+                  personalScore: { sort: sortOrder!, nulls: "last" }
+                }
+              }
+            : {})
         },
         take: limitPerPage,
         skip: (currentPage - 1) * limitPerPage

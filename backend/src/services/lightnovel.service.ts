@@ -78,6 +78,7 @@ export class LightNovelService {
     filterAuthor?: string,
     filterGenre?: string,
     filterTheme?: string,
+    filterProgressStatus?: ProgressStatus,
     filterMALScore?: string,
     filterPersonalScore?: string,
     filterStatusCheck?: string
@@ -117,6 +118,15 @@ export class LightNovelService {
             : []),
           ...(filterTheme
             ? [{ themes: { some: { themeId: filterTheme } } }]
+            : []),
+          ...(filterProgressStatus
+            ? [
+                {
+                  review: {
+                    progressStatus: filterProgressStatus
+                  }
+                }
+              ]
             : []),
           ...(filterMALScore
             ? [
@@ -197,7 +207,14 @@ export class LightNovelService {
         },
         orderBy: {
           title: sortBy === "title" ? sortOrder : undefined,
-          score: sortBy === "score" ? sortOrder : undefined
+          score: sortBy === "score" ? sortOrder : undefined,
+          ...(sortBy === "personal_score"
+            ? {
+                review: {
+                  personalScore: { sort: sortOrder!, nulls: "last" }
+                }
+              }
+            : {})
         },
         take: limitPerPage,
         skip: (currentPage - 1) * limitPerPage

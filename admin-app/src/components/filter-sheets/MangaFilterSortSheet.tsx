@@ -4,6 +4,7 @@ import FilterAuthor from "@/components/filter-sort-dropdowns/FilterAuthor";
 import FilterGenre from "@/components/filter-sort-dropdowns/FilterGenre";
 import FilterMALScore from "@/components/filter-sort-dropdowns/FilterMALScore";
 import FilterPersonalScore from "@/components/filter-sort-dropdowns/FilterPersonalScore";
+import FilterProgressStatus from "@/components/filter-sort-dropdowns/FilterProgressStatus";
 import FilterStatusCheck from "@/components/filter-sort-dropdowns/FilterStatusCheck";
 import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
 import SortDirection from "@/components/filter-sort-dropdowns/SortDirection";
@@ -22,7 +23,7 @@ import useWideScreen from "@/hooks/useWideScreen";
 import { AuthorEntity, GenreEntity, ThemeEntity } from "@/types/entity.type";
 import { MangaFilterSort } from "@/types/manga.type";
 
-import { SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 import { FilterIcon } from "lucide-react";
 
@@ -80,6 +81,13 @@ export default function MangaFilterSortSheet({
     setMangaFilterSort((prev) => ({
       ...prev,
       filterTheme: key
+    }));
+  };
+
+  const handleFilterProgressStatus = (key?: keyof typeof PROGRESS_STATUS) => {
+    setMangaFilterSort((prev) => ({
+      ...prev,
+      filterProgressStatus: key
     }));
   };
 
@@ -160,6 +168,10 @@ export default function MangaFilterSortSheet({
               isLoadingTheme={isLoadingTheme}
               filterTheme={mangaFilterSort.filterTheme}
               handleFilterTheme={handleFilterTheme}
+            />
+            <FilterProgressStatus
+              filterProgressStatus={mangaFilterSort.filterProgressStatus}
+              handleFilterProgressStatus={handleFilterProgressStatus}
             />
             <FilterMALScore
               filterMALScore={mangaFilterSort.filterMALScore}

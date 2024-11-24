@@ -2,7 +2,7 @@ import { ApiResponse, ApiResponseList } from "@/types/api.type";
 import { LightNovelDetail, LightNovelList } from "@/types/lightnovel.type";
 
 import { axiosClient } from "@/lib/axios";
-import { SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 import { AxiosError } from "axios";
 
@@ -17,6 +17,7 @@ const fetchAllLightNovelService = async (
   filterAuthor?: string,
   filterGenre?: string,
   filterTheme?: string,
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS,
   filterMALScore?: string,
   filterPersonalScore?: string
 ): Promise<ApiResponseList<LightNovelList[]>> => {
@@ -31,6 +32,7 @@ const fetchAllLightNovelService = async (
         filterAuthor,
         filterGenre,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
         filterPersonalScore
       }

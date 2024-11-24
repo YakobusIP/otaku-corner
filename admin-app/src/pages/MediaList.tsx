@@ -135,6 +135,7 @@ export default function MediaList() {
       animeFilterSort.filterGenre,
       animeFilterSort.filterStudio,
       animeFilterSort.filterTheme,
+      animeFilterSort.filterProgressStatus,
       animeFilterSort.filterMALScore,
       animeFilterSort.filterPersonalScore,
       animeFilterSort.filterType,
@@ -169,6 +170,7 @@ export default function MediaList() {
       mangaFilterSort.filterAuthor,
       mangaFilterSort.filterGenre,
       mangaFilterSort.filterTheme,
+      mangaFilterSort.filterProgressStatus,
       mangaFilterSort.filterMALScore,
       mangaFilterSort.filterPersonalScore,
       mangaFilterSort.filterStatusCheck
@@ -202,6 +204,7 @@ export default function MediaList() {
       lightNovelFilterSort.filterAuthor,
       lightNovelFilterSort.filterGenre,
       lightNovelFilterSort.filterTheme,
+      lightNovelFilterSort.filterProgressStatus,
       lightNovelFilterSort.filterMALScore,
       lightNovelFilterSort.filterPersonalScore,
       lightNovelFilterSort.filterStatusCheck

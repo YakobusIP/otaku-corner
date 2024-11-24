@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AnimeService } from "../services/anime.service";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProgressStatus } from "@prisma/client";
 import { UnprocessableEntityError } from "../lib/error";
 import { fetchEpisodesQueue } from "../lib/queues/anime.queue";
 
@@ -22,6 +22,8 @@ export class AnimeController {
       const filterGenre = req.query.filterGenre as string;
       const filterStudio = req.query.filterStudio as string;
       const filterTheme = req.query.filterTheme as string;
+      const filterProgressStatus = req.query
+        .filterProgressStatus as ProgressStatus;
       const filterMALScore = req.query.filterMALScore as string;
       const filterPersonalScore = req.query.filterPersonalScore as string;
       const filterType = req.query.filterType as string;
@@ -35,6 +37,7 @@ export class AnimeController {
         filterGenre,
         filterStudio,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
         filterPersonalScore,
         filterType,

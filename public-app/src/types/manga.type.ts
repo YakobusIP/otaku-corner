@@ -76,6 +76,7 @@ type MangaFilterSort = {
   filterAuthor?: string;
   filterGenre?: string;
   filterTheme?: string;
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS;
   filterMALScore?: string;
   filterPersonalScore?: string;
 };
