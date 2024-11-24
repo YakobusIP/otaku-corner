@@ -37,7 +37,7 @@ type Props = {
   isLoadingTheme: boolean;
 };
 
-export default function MangaFilterSortAccordion({
+export default function MangaFilterSortSheet({
   mangaFilterSort,
   setMangaFilterSort,
   genreList,

@@ -1,11 +1,12 @@
 import { Dispatch, SetStateAction } from "react";
 
-import FilterAuthor from "@/components/filter-sort-dropdowns/FilterAuthor";
 import FilterGenre from "@/components/filter-sort-dropdowns/FilterGenre";
 import FilterMALScore from "@/components/filter-sort-dropdowns/FilterMALScore";
 import FilterPersonalScore from "@/components/filter-sort-dropdowns/FilterPersonalScore";
 import FilterStatusCheck from "@/components/filter-sort-dropdowns/FilterStatusCheck";
+import FilterStudio from "@/components/filter-sort-dropdowns/FilterStudio";
 import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
+import FilterType from "@/components/filter-sort-dropdowns/FilterType";
 import SortDirection from "@/components/filter-sort-dropdowns/SortDirection";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,38 +20,38 @@ import {
 
 import useWideScreen from "@/hooks/useWideScreen";
 
-import { AuthorEntity, GenreEntity, ThemeEntity } from "@/types/entity.type";
-import { LightNovelFilterSort } from "@/types/lightnovel.type";
+import { AnimeFilterSort } from "@/types/anime.type";
+import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
 
 import { SORT_ORDER } from "@/lib/enums";
 
 import { FilterIcon } from "lucide-react";
 
 type Props = {
-  lightNovelFilterSort: LightNovelFilterSort;
-  setLightNovelFilterSort: Dispatch<SetStateAction<LightNovelFilterSort>>;
+  animeFilterSort: AnimeFilterSort;
+  setAnimeFilterSort: Dispatch<SetStateAction<AnimeFilterSort>>;
   genreList: GenreEntity[];
   isLoadingGenre: boolean;
-  authorList: AuthorEntity[];
-  isLoadingAuthor: boolean;
+  studioList: StudioEntity[];
+  isLoadingStudio: boolean;
   themeList: ThemeEntity[];
   isLoadingTheme: boolean;
 };
 
-export default function LightNovelFilterSortAccordion({
-  lightNovelFilterSort,
-  setLightNovelFilterSort,
+export default function AnimeFilterSortSheet({
+  animeFilterSort,
+  setAnimeFilterSort,
   genreList,
   isLoadingGenre,
-  authorList,
-  isLoadingAuthor,
+  studioList,
+  isLoadingStudio,
   themeList,
   isLoadingTheme
 }: Props) {
   const isWideScreen = useWideScreen();
 
   const handleSort = (key: string) => {
-    setLightNovelFilterSort((prev) => ({
+    setAnimeFilterSort((prev) => ({
       ...prev,
       sortBy: key,
       sortOrder:
@@ -62,64 +63,73 @@ export default function LightNovelFilterSortAccordion({
     }));
   };
 
-  const handleFilterAuthor = (key?: string) => {
-    setLightNovelFilterSort((prev) => ({
-      ...prev,
-      filterAuthor: key
-    }));
-  };
-
   const handleFilterGenre = (key?: string) => {
-    setLightNovelFilterSort((prev) => ({
+    setAnimeFilterSort((prev) => ({
       ...prev,
       filterGenre: key
     }));
   };
 
+  const handleFilterStudio = (key?: string) => {
+    setAnimeFilterSort((prev) => ({
+      ...prev,
+      filterStudio: key
+    }));
+  };
+
   const handleFilterTheme = (key?: string) => {
-    setLightNovelFilterSort((prev) => ({
+    setAnimeFilterSort((prev) => ({
       ...prev,
       filterTheme: key
     }));
   };
 
   const handleFilterMALScore = (key?: string) => {
-    setLightNovelFilterSort((prev) => ({
+    setAnimeFilterSort((prev) => ({
       ...prev,
       filterMALScore: key
     }));
   };
 
   const handleFilterPersonalScore = (key?: string) => {
-    setLightNovelFilterSort((prev) => ({
+    setAnimeFilterSort((prev) => ({
       ...prev,
       filterPersonalScore: key
     }));
   };
 
+  const handleFilterType = (key?: string) => {
+    setAnimeFilterSort((prev) => ({
+      ...prev,
+      filterType: key
+    }));
+  };
+
   const handleFilterStatusCheck = (key?: string) => {
-    setLightNovelFilterSort((prev) => ({
+    setAnimeFilterSort((prev) => ({
       ...prev,
       filterStatusCheck: key
     }));
   };
 
   const enableClearAllFilter =
-    !lightNovelFilterSort.filterAuthor &&
-    !lightNovelFilterSort.filterGenre &&
-    !lightNovelFilterSort.filterTheme &&
-    !lightNovelFilterSort.filterMALScore &&
-    !lightNovelFilterSort.filterPersonalScore &&
-    !lightNovelFilterSort.filterStatusCheck;
+    !animeFilterSort.filterGenre &&
+    !animeFilterSort.filterStudio &&
+    !animeFilterSort.filterTheme &&
+    !animeFilterSort.filterMALScore &&
+    !animeFilterSort.filterPersonalScore &&
+    !animeFilterSort.filterType &&
+    !animeFilterSort.filterStatusCheck;
 
   const handleClearAllFilter = () => {
-    setLightNovelFilterSort((prev) => ({
+    setAnimeFilterSort((prev) => ({
       ...prev,
-      filterAuthor: undefined,
       filterGenre: undefined,
+      filterStudio: undefined,
       filterTheme: undefined,
       filterMALScore: undefined,
       filterPersonalScore: undefined,
+      filterType: undefined,
       filterStatusCheck: undefined
     }));
   };
@@ -134,43 +144,47 @@ export default function LightNovelFilterSortAccordion({
       </SheetTrigger>
       <SheetContent side="top">
         <SheetHeader>
-          <SheetTitle>Light Novel Filter & Sort</SheetTitle>
+          <SheetTitle>Anime Filter & Sort</SheetTitle>
         </SheetHeader>
         <ScrollArea className="h-[50vh] xl:h-auto">
           <div className="grid grid-cols-1 grid-rows-9 xl:grid-cols-5 xl:grid-rows-2 gap-4 mt-2">
             <SortDirection
-              sortBy={lightNovelFilterSort.sortBy}
-              sortOrder={lightNovelFilterSort.sortOrder}
+              sortBy={animeFilterSort.sortBy}
+              sortOrder={animeFilterSort.sortOrder}
               handleSort={handleSort}
-            />
-            <FilterAuthor
-              authorList={authorList}
-              isLoadingAuthor={isLoadingAuthor}
-              filterAuthor={lightNovelFilterSort.filterAuthor}
-              handleFilterAuthor={handleFilterAuthor}
             />
             <FilterGenre
               genreList={genreList}
               isLoadingGenre={isLoadingGenre}
-              filterGenre={lightNovelFilterSort.filterGenre}
+              filterGenre={animeFilterSort.filterGenre}
               handleFilterGenre={handleFilterGenre}
+            />
+            <FilterStudio
+              studioList={studioList}
+              isLoadingStudio={isLoadingStudio}
+              filterStudio={animeFilterSort.filterStudio}
+              handleFilterStudio={handleFilterStudio}
             />
             <FilterTheme
               themeList={themeList}
               isLoadingTheme={isLoadingTheme}
-              filterTheme={lightNovelFilterSort.filterTheme}
+              filterTheme={animeFilterSort.filterTheme}
               handleFilterTheme={handleFilterTheme}
             />
             <FilterMALScore
-              filterMALScore={lightNovelFilterSort.filterMALScore}
+              filterMALScore={animeFilterSort.filterMALScore}
               handleFilterMALScore={handleFilterMALScore}
             />
             <FilterPersonalScore
-              filterPersonalScore={lightNovelFilterSort.filterPersonalScore}
+              filterPersonalScore={animeFilterSort.filterPersonalScore}
               handleFilterPersonalScore={handleFilterPersonalScore}
             />
+            <FilterType
+              filterType={animeFilterSort.filterType}
+              handleFilterType={handleFilterType}
+            />
             <FilterStatusCheck
-              filterStatusCheck={lightNovelFilterSort.filterStatusCheck}
+              filterStatusCheck={animeFilterSort.filterStatusCheck}
               handleFilterStatusCheck={handleFilterStatusCheck}
             />
             <Button

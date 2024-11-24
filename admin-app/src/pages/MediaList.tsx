@@ -30,9 +30,9 @@ import { animeColumns } from "@/components/data-table/AnimeTableColumns";
 import DataTable from "@/components/data-table/DataTable";
 import { lightNovelColumns } from "@/components/data-table/LightNovelTableColumns";
 import { mangaColumns } from "@/components/data-table/MangaTableColumns";
-import AnimeFilterSortAccordion from "@/components/filter-accordions/AnimeFilterSortAccordion";
-import LightNovelFilterSortAccordion from "@/components/filter-accordions/LightNovelFilterSortAccordion";
-import MangaFilterSortAccordion from "@/components/filter-accordions/MangaFilterSortAccordion";
+import AnimeFilterSortSheet from "@/components/filter-sheets/AnimeFilterSortSheet";
+import LightNovelFilterSortSheet from "@/components/filter-sheets/LightNovelFilterSortSheet";
+import MangaFilterSortSheet from "@/components/filter-sheets/MangaFilterSortSheet";
 import { DropdownChecked } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 
@@ -56,7 +56,9 @@ import { useDebounce } from "use-debounce";
 const PAGINATION_SIZE = 5;
 
 export default function MediaList() {
-  const MediaListNavbar = lazy(() => import("@/components/MediaListNavbar"));
+  const MediaListNavbar = lazy(
+    () => import("@/components/navbars/MediaListNavbar")
+  );
   const [mediaFilters, setMediaFilters] = useState<DropdownChecked[]>([
     true,
     true,
@@ -405,7 +407,7 @@ export default function MediaList() {
                 setPage={setAnimeListPage}
                 metadata={animeMetadata}
                 filterSortComponent={
-                  <AnimeFilterSortAccordion
+                  <AnimeFilterSortSheet
                     animeFilterSort={animeFilterSort}
                     setAnimeFilterSort={setAnimeFilterSort}
                     genreList={genreList}
@@ -432,7 +434,7 @@ export default function MediaList() {
                 setPage={setMangaListPage}
                 metadata={mangaMetadata}
                 filterSortComponent={
-                  <MangaFilterSortAccordion
+                  <MangaFilterSortSheet
                     mangaFilterSort={mangaFilterSort}
                     setMangaFilterSort={setMangaFilterSort}
                     authorList={authorList}
@@ -459,7 +461,7 @@ export default function MediaList() {
                 setPage={setLightNovelListPage}
                 metadata={lightNovelMetadata}
                 filterSortComponent={
-                  <LightNovelFilterSortAccordion
+                  <LightNovelFilterSortSheet
                     lightNovelFilterSort={lightNovelFilterSort}
                     setLightNovelFilterSort={setLightNovelFilterSort}
                     authorList={authorList}
