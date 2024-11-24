@@ -48,7 +48,7 @@ export default function VolumeProgressModal({
   );
   const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
 
-  const onMonthChange = (value: Date, id: string) => {
+  const onMonthChange = (value: Date, id: number) => {
     const adjustedConsumedMonth = value
       ? createUTCDate(value.getUTCFullYear(), value.getUTCMonth())
       : null;

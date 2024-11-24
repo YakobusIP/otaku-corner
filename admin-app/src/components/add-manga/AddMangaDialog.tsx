@@ -20,6 +20,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/useToast";
 import useWideScreen from "@/hooks/useWideScreen";
 
+import { generateSlug } from "@/lib/utils";
+
 import { Manga } from "@tutkli/jikan-ts";
 import { BookOpenIcon, Loader2Icon } from "lucide-react";
 
@@ -42,50 +44,66 @@ export default function AddMangaDialog({
 
   const addManga = async () => {
     setIsLoadingAddManga(true);
-    const data = selectedManga.map((manga) => ({
-      malId: manga.mal_id,
-      status: manga.status,
-      title: manga.title,
-      titleJapanese: manga.title_japanese,
-      titleSynonyms: manga.title_synonyms
-        ? manga.title_synonyms.map((synonym) => synonym.toLowerCase()).join(" ")
-        : "",
-      published:
-        manga.status === "Upcoming"
-          ? manga.status
-          : `${new Date(manga.published.from).toLocaleDateString("en-US", {
-              day: "numeric",
-              month: "short",
-              year: "numeric"
-            })} to ${
-              manga.published.to
-                ? new Date(manga.published.to).toLocaleDateString("en-US", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric"
-                  })
-                : "?"
-            }`,
-      chaptersCount: manga.chapters,
-      volumesCount: manga.volumes,
-      score: manga.score,
-      images: {
-        image_url: manga.images.webp
-          ? manga.images.webp.image_url
-          : manga.images.jpg.image_url,
-        large_image_url: manga.images.webp
-          ? manga.images.webp.large_image_url
-          : manga.images.jpg.large_image_url,
-        small_image_url: manga.images.webp
-          ? manga.images.webp.small_image_url
-          : manga.images.jpg.small_image_url
-      },
-      authors: manga.authors.map((author) => author.name),
-      genres: manga.genres.map((genre) => genre.name),
-      themes: manga.themes.map((theme) => theme.name),
-      synopsis: manga.synopsis ? manga.synopsis : "No synopsis available",
-      malUrl: manga.url
-    }));
+    const slugCounts: Record<string, number> = {};
+
+    const data = selectedManga.map((manga) => {
+      let slug = generateSlug(manga.title);
+
+      if (slugCounts[slug]) {
+        slugCounts[slug] += 1;
+        slug = `${slug}-${slugCounts[slug]}`;
+      } else {
+        slugCounts[slug] = 1;
+      }
+
+      return {
+        id: manga.mal_id,
+        slug,
+        status: manga.status,
+        title: manga.title,
+        titleJapanese: manga.title_japanese,
+        titleSynonyms: manga.title_synonyms
+          ? manga.title_synonyms
+              .map((synonym) => synonym.toLowerCase())
+              .join(" ")
+          : "",
+        published:
+          manga.status === "Upcoming"
+            ? manga.status
+            : `${new Date(manga.published.from).toLocaleDateString("en-US", {
+                day: "numeric",
+                month: "short",
+                year: "numeric"
+              })} to ${
+                manga.published.to
+                  ? new Date(manga.published.to).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric"
+                    })
+                  : "?"
+              }`,
+        chaptersCount: manga.chapters,
+        volumesCount: manga.volumes,
+        score: manga.score,
+        images: {
+          image_url: manga.images.webp
+            ? manga.images.webp.image_url
+            : manga.images.jpg.image_url,
+          large_image_url: manga.images.webp
+            ? manga.images.webp.large_image_url
+            : manga.images.jpg.large_image_url,
+          small_image_url: manga.images.webp
+            ? manga.images.webp.small_image_url
+            : manga.images.jpg.small_image_url
+        },
+        authors: manga.authors.map((author) => author.name),
+        genres: manga.genres.map((genre) => genre.name),
+        themes: manga.themes.map((theme) => theme.name),
+        synopsis: manga.synopsis ? manga.synopsis : "No synopsis available",
+        malUrl: manga.url
+      };
+    });
 
     const response = await addMangaService(data);
     if (response.success) {

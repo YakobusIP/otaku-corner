@@ -30,7 +30,7 @@ export default function MangaSmallCard({ manga, setSelectedManga }: Props) {
   const [isDuplicate, setIsDuplicate] = useState(false);
 
   const checkMangaDuplicate = useCallback(async () => {
-    const response = await fetchMangaDuplicate(manga.mal_id.toString());
+    const response = await fetchMangaDuplicate(manga.mal_id);
 
     if (response.success) {
       setIsDuplicate(response.data.exists);

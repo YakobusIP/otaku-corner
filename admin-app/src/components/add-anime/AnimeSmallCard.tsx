@@ -30,7 +30,7 @@ export default function AnimeSmallCard({ anime, setSelectedAnime }: Props) {
   const [isDuplicate, setIsDuplicate] = useState(false);
 
   const checkAnimeDuplicate = useCallback(async () => {
-    const response = await fetchAnimeDuplicate(anime.mal_id.toString());
+    const response = await fetchAnimeDuplicate(anime.mal_id);
 
     if (response.success) {
       setIsDuplicate(response.data.exists);

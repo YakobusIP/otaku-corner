@@ -33,9 +33,7 @@ export default function LightNovelSmallCard({
   const [isDuplicate, setIsDuplicate] = useState(false);
 
   const checkLightNovelDuplicate = useCallback(async () => {
-    const response = await fetchLightNovelDuplicate(
-      lightNovel.mal_id.toString()
-    );
+    const response = await fetchLightNovelDuplicate(lightNovel.mal_id);
 
     if (response.success) {
       setIsDuplicate(response.data.exists);

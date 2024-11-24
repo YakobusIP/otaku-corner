@@ -289,7 +289,7 @@ export default function MediaList() {
 
   const deleteAnime = async () => {
     setIsLoadingDeleteAnime(true);
-    const deletedIds = Object.keys(selectedAnimeRows);
+    const deletedIds = Object.keys(selectedAnimeRows).map((id) => parseInt(id));
     const response = await deleteAnimeService(deletedIds);
     if (response.success) {
       fetchAnimeList();
@@ -310,7 +310,7 @@ export default function MediaList() {
 
   const deleteManga = async () => {
     setIsLoadingDeleteManga(true);
-    const deletedIds = Object.keys(selectedMangaRows);
+    const deletedIds = Object.keys(selectedMangaRows).map((id) => parseInt(id));
     const response = await deleteMangaService(deletedIds);
     if (response.success) {
       fetchMangaList();
@@ -331,7 +331,9 @@ export default function MediaList() {
 
   const deleteLightNovel = async () => {
     setIsLoadingDeleteLightNovel(true);
-    const deletedIds = Object.keys(selectedLightNovelRows);
+    const deletedIds = Object.keys(selectedLightNovelRows).map((id) =>
+      parseInt(id)
+    );
     const response = await deleteLightNovelService(deletedIds);
     if (response.success) {
       fetchLightNovelList();

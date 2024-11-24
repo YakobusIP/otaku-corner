@@ -7,8 +7,8 @@ import {
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 type AnimeEntity = {
-  id: string;
-  malId: number;
+  id: number;
+  slug: string;
   type: string;
   status: string;
   rating: string;
@@ -40,8 +40,8 @@ type AnimeEntity = {
 };
 
 type AnimeReview = {
-  id: string;
-  review?: string | null;
+  id: number;
+  reviewText?: string | null;
   storylineRating?: number | null;
   qualityRating?: number | null;
   voiceActingRating?: number | null;
@@ -55,7 +55,7 @@ type AnimeReview = {
 };
 
 type AnimeCreateRequest = {
-  malId: number;
+  id: number;
   type: string;
   status: string;
   rating: string;
@@ -83,7 +83,6 @@ type AnimeCreateRequest = {
 };
 
 type AnimeDetail = Omit<AnimeEntity, "genres" | "studios" | "themes"> & {
-  id: string;
   genres: GenreEntityPartial[];
   studios: StudioEntityPartial[];
   themes: ThemeEntityPartial[];
@@ -92,6 +91,7 @@ type AnimeDetail = Omit<AnimeEntity, "genres" | "studios" | "themes"> & {
 type AnimeList = Pick<
   AnimeEntity,
   | "id"
+  | "slug"
   | "title"
   | "titleJapanese"
   | "rating"
@@ -102,13 +102,13 @@ type AnimeList = Pick<
 > &
   Pick<
     AnimeReview,
-    "progressStatus" | "personalScore" | "review" | "consumedAt"
+    "progressStatus" | "personalScore" | "reviewText" | "consumedAt"
   > & {
     fetchedEpisode: number;
   };
 
 type AnimeEpisode = {
-  id?: string;
+  id: number;
   aired: string;
   number: number;
   title: string;
@@ -121,9 +121,9 @@ type AnimeReviewRequest = Omit<AnimeReview, "id" | "createdAt" | "updatedAt">;
 type AnimeFilterSort = {
   sortBy: string;
   sortOrder: SORT_ORDER;
-  filterGenre?: string;
-  filterStudio?: string;
-  filterTheme?: string;
+  filterGenre?: number;
+  filterStudio?: number;
+  filterTheme?: number;
   filterProgressStatus?: keyof typeof PROGRESS_STATUS;
   filterMALScore?: string;
   filterPersonalScore?: string;

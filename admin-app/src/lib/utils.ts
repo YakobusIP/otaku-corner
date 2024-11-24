@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
+import slugify from "slugify";
 import { twMerge } from "tailwind-merge";
 
 export const cn = (...inputs: ClassValue[]) => {
@@ -34,4 +35,8 @@ export const extractImageIds = (markdown: string | undefined) => {
   }
 
   return ids;
+};
+
+export const generateSlug = (title: string) => {
+  return slugify(title, { remove: /[:?/]/g, lower: true, trim: true });
 };

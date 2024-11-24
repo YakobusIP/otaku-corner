@@ -32,9 +32,11 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
   const toast = useToast();
   const reviewObject = lightNovelDetail.review;
 
-  const [review, setReview] = useState(reviewObject.review ?? undefined);
+  const [reviewText, setReviewText] = useState(
+    reviewObject.reviewText ?? undefined
+  );
   const [uploadedImages, setUploadedImages] = useState<string[]>(
-    extractImageIds(reviewObject.review ?? undefined)
+    extractImageIds(reviewObject.reviewText ?? undefined)
   );
 
   const [progressStatus, setProgressStatus] = useState(
@@ -94,7 +96,7 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
   const onSubmit = async () => {
     setIsLoadingUpdateReview(true);
 
-    const currentImageIds = extractImageIds(review);
+    const currentImageIds = extractImageIds(reviewText);
     const previouslyUploadedImageIds = Object.values(uploadedImages);
     const removedImageIds = previouslyUploadedImageIds.filter(
       (id) => !currentImageIds.includes(id)
@@ -106,15 +108,8 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
       })
     );
 
-    // const adjustedConsumedMonth = consumedMonth
-    //   ? createUTCDate(
-    //       consumedMonth.getUTCFullYear(),
-    //       consumedMonth.getUTCMonth()
-    //     )
-    //   : null;
-
     const data: LightNovelReviewRequest = {
-      review,
+      reviewText,
       progressStatus: progressStatus as PROGRESS_STATUS,
       storylineRating,
       worldBuildingRating,
@@ -165,8 +160,8 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
           <RatingSelect ratingFields={ratingFields} />
         </div>
         <ReviewEditor
-          review={review}
-          setReview={setReview}
+          review={reviewText}
+          setReview={setReviewText}
           mediaType={MEDIA_TYPE.LIGHT_NOVEL}
           reviewId={reviewObject.id}
           setUploadedImages={setUploadedImages}

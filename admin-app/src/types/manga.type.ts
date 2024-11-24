@@ -7,8 +7,8 @@ import {
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 type MangaEntity = {
-  id: string;
-  malId: number;
+  id: number;
+  slug: string;
   status: string;
   title: string;
   titleJapanese: string;
@@ -33,8 +33,8 @@ type MangaEntity = {
 };
 
 type MangaReview = {
-  id: string;
-  review?: string | null;
+  id: number;
+  reviewText?: string | null;
   storylineRating?: number | null;
   artStyleRating?: number | null;
   charDevelopmentRating?: number | null;
@@ -48,7 +48,7 @@ type MangaReview = {
 };
 
 type MangaCreateRequest = {
-  malId: number;
+  id: number;
   status: string;
   title: string;
   titleJapanese: string;
@@ -70,7 +70,6 @@ type MangaCreateRequest = {
 };
 
 type MangaDetail = Omit<MangaEntity, "authors" | "genres" | "themes"> & {
-  id: string;
   authors: AuthorEntityPartial[];
   genres: GenreEntityPartial[];
   themes: ThemeEntityPartial[];
@@ -79,6 +78,7 @@ type MangaDetail = Omit<MangaEntity, "authors" | "genres" | "themes"> & {
 type MangaList = Pick<
   MangaEntity,
   | "id"
+  | "slug"
   | "title"
   | "titleJapanese"
   | "status"
@@ -89,7 +89,7 @@ type MangaList = Pick<
 > &
   Pick<
     MangaReview,
-    "progressStatus" | "personalScore" | "review" | "consumedAt"
+    "progressStatus" | "personalScore" | "reviewText" | "consumedAt"
   >;
 
 type MangaReviewRequest = Omit<MangaReview, "id" | "createdAt" | "updatedAt">;
@@ -97,9 +97,9 @@ type MangaReviewRequest = Omit<MangaReview, "id" | "createdAt" | "updatedAt">;
 type MangaFilterSort = {
   sortBy: string;
   sortOrder: SORT_ORDER;
-  filterAuthor?: string;
-  filterGenre?: string;
-  filterTheme?: string;
+  filterAuthor?: number;
+  filterGenre?: number;
+  filterTheme?: number;
   filterProgressStatus?: keyof typeof PROGRESS_STATUS;
   filterMALScore?: string;
   filterPersonalScore?: string;

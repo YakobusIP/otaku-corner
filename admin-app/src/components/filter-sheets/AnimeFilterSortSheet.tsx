@@ -64,21 +64,21 @@ export default function AnimeFilterSortSheet({
     }));
   };
 
-  const handleFilterGenre = (key?: string) => {
+  const handleFilterGenre = (key?: number) => {
     setAnimeFilterSort((prev) => ({
       ...prev,
       filterGenre: key
     }));
   };
 
-  const handleFilterStudio = (key?: string) => {
+  const handleFilterStudio = (key?: number) => {
     setAnimeFilterSort((prev) => ({
       ...prev,
       filterStudio: key
     }));
   };
 
-  const handleFilterTheme = (key?: string) => {
+  const handleFilterTheme = (key?: number) => {
     setAnimeFilterSort((prev) => ({
       ...prev,
       filterTheme: key

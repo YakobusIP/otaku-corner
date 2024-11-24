@@ -57,7 +57,7 @@ export const animeColumns: ColumnDef<AnimeList>[] = [
         title,
         titleJapanese,
         type,
-        review,
+        reviewText,
         consumedAt,
         fetchedEpisode
       } = data;
@@ -82,7 +82,7 @@ export const animeColumns: ColumnDef<AnimeList>[] = [
         {
           key: `${title}-anime-review-status`,
           Trigger: NotebookPenIcon,
-          condition: !!review,
+          condition: !!reviewText,
           triggerColor: {
             success: "text-green-700",
             failed: "text-destructive"
@@ -187,7 +187,7 @@ export const animeColumns: ColumnDef<AnimeList>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <Link to={"/anime/" + anime.id}>
+            <Link to={`/anime/${anime.id}/${anime.slug}`}>
               <DropdownMenuItem>View details</DropdownMenuItem>
             </Link>
           </DropdownMenuContent>

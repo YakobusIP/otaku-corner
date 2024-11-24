@@ -246,6 +246,7 @@ export class AnimeService {
 
       const mappedData = data.map((row) => ({
         id: row.id,
+        slug: row.slug,
         title: row.title,
         titleJapanese: row.titleJapanese,
         images: row.images,

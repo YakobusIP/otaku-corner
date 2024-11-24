@@ -24,8 +24,8 @@ import {
 type Props = {
   themeList: ThemeEntity[];
   isLoadingTheme: boolean;
-  filterTheme?: string;
-  handleFilterTheme: (key?: string) => void;
+  filterTheme?: number;
+  handleFilterTheme: (key?: number) => void;
 };
 
 export default function FilterTheme({

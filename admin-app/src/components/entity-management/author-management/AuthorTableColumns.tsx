@@ -6,7 +6,7 @@ import { AuthorEntity } from "@/types/entity.type";
 import { ColumnDef } from "@tanstack/react-table";
 
 export const authorColumns = (
-  editEntity: (id: string, entity: string) => void,
+  editEntity: (id: number, entity: string) => void,
   isLoadingEditEntity: boolean
 ): ColumnDef<AuthorEntity>[] => [
   {

@@ -25,7 +25,7 @@ import {
 import { Loader2Icon, Trash2Icon } from "lucide-react";
 
 interface Identifiable {
-  id: string;
+  id: number;
 }
 
 interface DataTableProps<TData extends Identifiable, TValue> {

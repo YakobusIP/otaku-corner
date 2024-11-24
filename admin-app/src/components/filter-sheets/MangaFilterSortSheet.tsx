@@ -63,21 +63,21 @@ export default function MangaFilterSortSheet({
     }));
   };
 
-  const handleFilterAuthor = (key?: string) => {
+  const handleFilterAuthor = (key?: number) => {
     setMangaFilterSort((prev) => ({
       ...prev,
       filterAuthor: key
     }));
   };
 
-  const handleFilterGenre = (key?: string) => {
+  const handleFilterGenre = (key?: number) => {
     setMangaFilterSort((prev) => ({
       ...prev,
       filterGenre: key
     }));
   };
 
-  const handleFilterTheme = (key?: string) => {
+  const handleFilterTheme = (key?: number) => {
     setMangaFilterSort((prev) => ({
       ...prev,
       filterTheme: key

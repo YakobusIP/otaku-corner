@@ -56,7 +56,7 @@ export const mangaColumns: ColumnDef<MangaList>[] = [
         images,
         title,
         titleJapanese,
-        review,
+        reviewText,
         consumedAt,
         chaptersCount,
         volumesCount
@@ -79,7 +79,7 @@ export const mangaColumns: ColumnDef<MangaList>[] = [
         {
           key: `${title}-manga-review-status`,
           Trigger: NotebookPenIcon,
-          condition: !!review,
+          condition: !!reviewText,
           triggerColor: {
             success: "text-green-700",
             failed: "text-destructive"
@@ -179,7 +179,7 @@ export const mangaColumns: ColumnDef<MangaList>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <Link to={"/manga/" + manga.id}>
+            <Link to={`/manga/${manga.id}/${manga.slug}`}>
               <DropdownMenuItem>View details</DropdownMenuItem>
             </Link>
           </DropdownMenuContent>

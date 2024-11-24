@@ -1,6 +1,7 @@
 import {
   Dispatch,
   SetStateAction,
+  memo,
   useCallback,
   useEffect,
   useState
@@ -51,7 +52,7 @@ type Props = {
   fetchLightNovelList: () => Promise<void>;
 };
 
-export default function MediaListNavbar({
+function MediaListNavbar({
   mediaFilters,
   setMediaFilters,
   setSearchMedia,
@@ -249,3 +250,5 @@ export default function MediaListNavbar({
     </header>
   );
 }
+
+export default memo(MediaListNavbar);

@@ -20,6 +20,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/useToast";
 import useWideScreen from "@/hooks/useWideScreen";
 
+import { generateSlug } from "@/lib/utils";
+
 import { Manga } from "@tutkli/jikan-ts";
 import { BookIcon, Loader2Icon } from "lucide-react";
 
@@ -42,56 +44,73 @@ export default function AddLightNovelDialog({
 
   const addLightNovel = async () => {
     setIsLoadingAddLightNovel(true);
-    const data = selectedLightNovel.map((lightNovel) => ({
-      malId: lightNovel.mal_id,
-      status: lightNovel.status,
-      title: lightNovel.title,
-      titleJapanese: lightNovel.title_japanese,
-      titleSynonyms: lightNovel.title_synonyms
-        ? lightNovel.title_synonyms
-            .map((synonym) => synonym.toLowerCase())
-            .join(" ")
-        : "",
-      published:
-        lightNovel.status === "Upcoming"
-          ? lightNovel.status
-          : `${new Date(lightNovel.published.from).toLocaleDateString("en-US", {
-              day: "numeric",
-              month: "short",
-              year: "numeric"
-            })} to ${
-              lightNovel.published.to
-                ? new Date(lightNovel.published.to).toLocaleDateString(
-                    "en-US",
-                    {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric"
-                    }
-                  )
-                : "?"
-            }`,
-      volumesCount: lightNovel.volumes,
-      score: lightNovel.score,
-      images: {
-        image_url: lightNovel.images.webp
-          ? lightNovel.images.webp.image_url
-          : lightNovel.images.jpg.image_url,
-        large_image_url: lightNovel.images.webp
-          ? lightNovel.images.webp.large_image_url
-          : lightNovel.images.jpg.large_image_url,
-        small_image_url: lightNovel.images.webp
-          ? lightNovel.images.webp.small_image_url
-          : lightNovel.images.jpg.small_image_url
-      },
-      authors: lightNovel.authors.map((author) => author.name),
-      genres: lightNovel.genres.map((genre) => genre.name),
-      themes: lightNovel.themes.map((theme) => theme.name),
-      synopsis: lightNovel.synopsis
-        ? lightNovel.synopsis
-        : "No synopsis available",
-      malUrl: lightNovel.url
-    }));
+    const slugCounts: Record<string, number> = {};
+
+    const data = selectedLightNovel.map((lightNovel) => {
+      let slug = generateSlug(lightNovel.title);
+
+      if (slugCounts[slug]) {
+        slugCounts[slug] += 1;
+        slug = `${slug}-${slugCounts[slug]}`;
+      } else {
+        slugCounts[slug] = 1;
+      }
+
+      return {
+        id: lightNovel.mal_id,
+        slug,
+        status: lightNovel.status,
+        title: lightNovel.title,
+        titleJapanese: lightNovel.title_japanese,
+        titleSynonyms: lightNovel.title_synonyms
+          ? lightNovel.title_synonyms
+              .map((synonym) => synonym.toLowerCase())
+              .join(" ")
+          : "",
+        published:
+          lightNovel.status === "Upcoming"
+            ? lightNovel.status
+            : `${new Date(lightNovel.published.from).toLocaleDateString(
+                "en-US",
+                {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric"
+                }
+              )} to ${
+                lightNovel.published.to
+                  ? new Date(lightNovel.published.to).toLocaleDateString(
+                      "en-US",
+                      {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric"
+                      }
+                    )
+                  : "?"
+              }`,
+        volumesCount: lightNovel.volumes,
+        score: lightNovel.score,
+        images: {
+          image_url: lightNovel.images.webp
+            ? lightNovel.images.webp.image_url
+            : lightNovel.images.jpg.image_url,
+          large_image_url: lightNovel.images.webp
+            ? lightNovel.images.webp.large_image_url
+            : lightNovel.images.jpg.large_image_url,
+          small_image_url: lightNovel.images.webp
+            ? lightNovel.images.webp.small_image_url
+            : lightNovel.images.jpg.small_image_url
+        },
+        authors: lightNovel.authors.map((author) => author.name),
+        genres: lightNovel.genres.map((genre) => genre.name),
+        themes: lightNovel.themes.map((theme) => theme.name),
+        synopsis: lightNovel.synopsis
+          ? lightNovel.synopsis
+          : "No synopsis available",
+        malUrl: lightNovel.url
+      };
+    });
 
     const response = await addLightNovelService(data);
     if (response.success) {
