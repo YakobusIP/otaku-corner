@@ -161,7 +161,7 @@ export class AuthorService {
     }
   }
 
-  async updateAuthor(id: string, data: Prisma.AuthorUpdateInput) {
+  async updateAuthor(id: number, data: Prisma.AuthorUpdateInput) {
     try {
       return await prisma.author.update({ where: { id }, data });
     } catch (error) {
@@ -180,7 +180,7 @@ export class AuthorService {
     }
   }
 
-  async deleteAuthor(id: string) {
+  async deleteAuthor(id: number) {
     try {
       return await prisma.author.delete({ where: { id } });
     } catch (error) {
@@ -195,7 +195,7 @@ export class AuthorService {
     }
   }
 
-  async deleteMultipleAuthors(ids: string[]) {
+  async deleteMultipleAuthors(ids: number[]) {
     try {
       return await prisma.author.deleteMany({ where: { id: { in: ids } } });
     } catch (error) {

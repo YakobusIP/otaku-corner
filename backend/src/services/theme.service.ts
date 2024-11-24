@@ -171,7 +171,7 @@ export class ThemeService {
     }
   }
 
-  async updateTheme(id: string, data: Prisma.ThemeUpdateInput) {
+  async updateTheme(id: number, data: Prisma.ThemeUpdateInput) {
     try {
       return await prisma.theme.update({ where: { id }, data });
     } catch (error) {
@@ -190,7 +190,7 @@ export class ThemeService {
     }
   }
 
-  async deleteTheme(id: string) {
+  async deleteTheme(id: number) {
     try {
       return await prisma.theme.delete({ where: { id } });
     } catch (error) {
@@ -205,7 +205,7 @@ export class ThemeService {
     }
   }
 
-  async deleteMultipleThemes(ids: string[]) {
+  async deleteMultipleThemes(ids: number[]) {
     try {
       return await prisma.theme.deleteMany({ where: { id: { in: ids } } });
     } catch (error) {

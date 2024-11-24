@@ -38,7 +38,7 @@ export class ThemeController {
 
   updateTheme = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.themeService.updateTheme(req.params.id, req.body);
+      await this.themeService.updateTheme(parseInt(req.params.id), req.body);
       return res.json({ message: "Theme updated successfully!" });
     } catch (error) {
       return next(error);
@@ -47,7 +47,7 @@ export class ThemeController {
 
   deleteTheme = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.themeService.deleteTheme(req.params.id);
+      await this.themeService.deleteTheme(parseInt(req.params.id));
       return res.status(204).end();
     } catch (error) {
       return next(error);

@@ -38,7 +38,7 @@ export class AuthorController {
 
   updateAuthor = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.authorService.updateAuthor(req.params.id, req.body);
+      await this.authorService.updateAuthor(parseInt(req.params.id), req.body);
       return res.json({ message: "Author updated successfully!" });
     } catch (error) {
       return next(error);
@@ -47,7 +47,7 @@ export class AuthorController {
 
   deleteAuthor = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.authorService.deleteAuthor(req.params.id);
+      await this.authorService.deleteAuthor(parseInt(req.params.id));
       return res.status(204).end();
     } catch (error) {
       return next(error);

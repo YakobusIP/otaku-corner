@@ -74,9 +74,9 @@ export class MangaService {
     query?: string,
     sortBy?: string,
     sortOrder?: Prisma.SortOrder,
-    filterAuthor?: string,
-    filterGenre?: string,
-    filterTheme?: string,
+    filterAuthor?: number,
+    filterGenre?: number,
+    filterTheme?: number,
     filterProgressStatus?: ProgressStatus,
     filterMALScore?: string,
     filterPersonalScore?: string,
@@ -155,7 +155,7 @@ export class MangaService {
                   AND: [
                     { chaptersCount: { not: null } },
                     { volumesCount: { not: null } },
-                    { review: { review: { not: null } } },
+                    { review: { reviewText: { not: null } } },
                     { review: { consumedAt: { not: null } } }
                   ]
                 }
@@ -166,7 +166,7 @@ export class MangaService {
                     OR: [
                       { chaptersCount: null },
                       { volumesCount: null },
-                      { review: { review: null } },
+                      { review: { reviewText: null } },
                       { review: { consumedAt: null } }
                     ]
                   }
@@ -185,6 +185,7 @@ export class MangaService {
         where: filterCriteria,
         select: {
           id: true,
+          slug: true,
           title: true,
           titleJapanese: true,
           images: true,
@@ -192,7 +193,7 @@ export class MangaService {
           score: true,
           review: {
             select: {
-              review: true,
+              reviewText: true,
               progressStatus: true,
               personalScore: true,
               consumedAt: true
@@ -223,7 +224,7 @@ export class MangaService {
         images: row.images,
         status: row.status,
         score: row.score,
-        review: row.review?.review,
+        reviewText: row.review?.reviewText,
         progressStatus: row.review?.progressStatus,
         personalScore: row.review?.personalScore,
         consumedAt: row.review?.consumedAt,
@@ -249,7 +250,7 @@ export class MangaService {
     }
   }
 
-  async getMangaById(id: string) {
+  async getMangaById(id: number) {
     try {
       const manga = await prisma.manga.findUnique({
         where: { id },
@@ -293,7 +294,7 @@ export class MangaService {
   async getMangaDuplicate(id: number) {
     try {
       const manga = await prisma.manga.findUnique({
-        where: { malId: id }
+        where: { id }
       });
 
       return !!manga;
@@ -323,15 +324,15 @@ export class MangaService {
       ]);
 
       // Create maps for quick ID lookup
-      const authorMap = new Map<string, string>();
+      const authorMap = new Map<string, number>();
       authors.forEach((author) => {
         authorMap.set(author.name.toLowerCase(), author.id);
       });
-      const genreMap = new Map<string, string>();
+      const genreMap = new Map<string, number>();
       genres.forEach((genre) => {
         genreMap.set(genre.name.toLowerCase(), genre.id);
       });
-      const themeMap = new Map<string, string>();
+      const themeMap = new Map<string, number>();
       themes.forEach((theme) => {
         themeMap.set(theme.name.toLowerCase(), theme.id);
       });
@@ -387,7 +388,7 @@ export class MangaService {
     }
   }
 
-  async updateManga(id: string, data: Prisma.MangaUpdateInput) {
+  async updateManga(id: number, data: Prisma.MangaUpdateInput) {
     try {
       return await prisma.manga.update({ where: { id }, data });
     } catch (error) {
@@ -406,7 +407,7 @@ export class MangaService {
     }
   }
 
-  async updateMangaReview(id: string, data: Prisma.MangaReviewUpdateInput) {
+  async updateMangaReview(id: number, data: Prisma.MangaReviewUpdateInput) {
     try {
       return await prisma.manga.update({
         where: { id },
@@ -435,7 +436,7 @@ export class MangaService {
     }
   }
 
-  async deleteManga(id: string) {
+  async deleteManga(id: number) {
     try {
       return await prisma.manga.delete({ where: { id } });
     } catch (error) {
@@ -450,18 +451,9 @@ export class MangaService {
     }
   }
 
-  async deleteMultipleMangas(ids: string[]) {
+  async deleteMultipleMangas(ids: number[]) {
     try {
-      const mangasToDelete = await prisma.manga.findMany({
-        where: { id: { in: ids } },
-        select: { reviewId: true }
-      });
-      const reviewIds = mangasToDelete.map((r) => r.reviewId);
-
-      return await prisma.$transaction([
-        prisma.manga.deleteMany({ where: { id: { in: ids } } }),
-        prisma.mangaReview.deleteMany({ where: { id: { in: reviewIds } } })
-      ]);
+      return await prisma.manga.deleteMany({ where: { id: { in: ids } } });
     } catch (error) {
       throw new InternalServerError((error as Error).message);
     }

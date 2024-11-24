@@ -38,7 +38,7 @@ export class GenreController {
 
   updateGenre = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.genreService.updateGenre(req.params.id, req.body);
+      await this.genreService.updateGenre(parseInt(req.params.id), req.body);
       return res.json({ message: "Genre updated successfully!" });
     } catch (error) {
       return next(error);
@@ -47,7 +47,7 @@ export class GenreController {
 
   deleteGenre = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.genreService.deleteGenre(req.params.id);
+      await this.genreService.deleteGenre(parseInt(req.params.id));
       return res.status(204).end();
     } catch (error) {
       return next(error);

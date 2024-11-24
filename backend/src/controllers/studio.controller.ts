@@ -38,7 +38,7 @@ export class StudioController {
 
   updateStudio = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.studioService.updateStudio(req.params.id, req.body);
+      await this.studioService.updateStudio(parseInt(req.params.id), req.body);
       return res.json({ message: "Studio updated successfully!" });
     } catch (error) {
       return next(error);
@@ -47,7 +47,7 @@ export class StudioController {
 
   deleteStudio = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.studioService.deleteStudio(req.params.id);
+      await this.studioService.deleteStudio(parseInt(req.params.id));
       return res.status(204).end();
     } catch (error) {
       return next(error);

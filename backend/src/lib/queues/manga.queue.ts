@@ -14,13 +14,13 @@ const BASE_MANGADEX_URL = "https://api.mangadex.org";
 const SIMILARITY_THRESHOLD = 0.9;
 
 type FetchMangaDataJobData = {
-  manga_id: string;
+  id: number;
   title: string;
   titleJapanese: string;
 };
 
 type FetchMangaStatisticsData = {
-  manga_id: string;
+  id: number;
   mangadex_id: string;
 };
 
@@ -110,7 +110,7 @@ const fetchMangaStatisticsQueue = new Queue<FetchMangaStatisticsData>(
   }
 );
 
-const handleMangaCompleted = async (id: string, manga: MangaDexData) => {
+const handleMangaCompleted = async (id: number, manga: MangaDexData) => {
   const { lastVolume, lastChapter, status } = manga.attributes;
 
   if (status === "completed") {
@@ -130,10 +130,10 @@ const handleMangaCompleted = async (id: string, manga: MangaDexData) => {
   return false;
 };
 
-const processMangaData = async (id: string, manga: MangaDexData) => {
+const processMangaData = async (id: number, manga: MangaDexData) => {
   if (!(await handleMangaCompleted(id, manga))) {
     await fetchMangaStatisticsQueue.add({
-      manga_id: id,
+      id,
       mangadex_id: manga.id
     });
   }
@@ -168,7 +168,7 @@ const processFetchMangaDataQueue = async (job: Job<FetchMangaDataJobData>) => {
               if ("ja" in alt) {
                 if (job.data.titleJapanese === alt["ja"]) {
                   foundHighSimilarity = true;
-                  await processMangaData(job.data.manga_id, manga);
+                  await processMangaData(job.data.id, manga);
                   break;
                 }
 
@@ -178,7 +178,7 @@ const processFetchMangaDataQueue = async (job: Job<FetchMangaDataJobData>) => {
                 );
                 if (similarity > SIMILARITY_THRESHOLD) {
                   foundHighSimilarity = true;
-                  await processMangaData(job.data.manga_id, manga);
+                  await processMangaData(job.data.id, manga);
                   break;
                 }
               }
@@ -193,7 +193,7 @@ const processFetchMangaDataQueue = async (job: Job<FetchMangaDataJobData>) => {
 
             if (similarity > SIMILARITY_THRESHOLD) {
               foundHighSimilarity = true;
-              await processMangaData(job.data.manga_id, manga);
+              await processMangaData(job.data.id, manga);
               break;
             }
           }
@@ -202,11 +202,11 @@ const processFetchMangaDataQueue = async (job: Job<FetchMangaDataJobData>) => {
         // If still unable to find any match, fallback to the 1st item of the array
         if (!foundHighSimilarity) {
           const manga = response.data.data[0];
-          await processMangaData(job.data.manga_id, manga);
+          await processMangaData(job.data.id, manga);
         }
       } else {
         const manga = response.data.data[0];
-        await processMangaData(job.data.manga_id, manga);
+        await processMangaData(job.data.id, manga);
       }
     }
   } catch (error) {
@@ -257,7 +257,7 @@ const processFetchMangaStatisticsQueue = async (
         chaptersCount = Math.floor(chaptersCount);
       }
 
-      await mangaService.updateManga(job.data.manga_id, {
+      await mangaService.updateManga(job.data.id, {
         volumesCount,
         chaptersCount
       });

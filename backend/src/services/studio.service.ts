@@ -165,7 +165,7 @@ export class StudioService {
     }
   }
 
-  async updateStudio(id: string, data: Prisma.StudioUpdateInput) {
+  async updateStudio(id: number, data: Prisma.StudioUpdateInput) {
     try {
       return await prisma.studio.update({ where: { id }, data });
     } catch (error) {
@@ -184,7 +184,7 @@ export class StudioService {
     }
   }
 
-  async deleteStudio(id: string) {
+  async deleteStudio(id: number) {
     try {
       return await prisma.studio.delete({ where: { id } });
     } catch (error) {
@@ -199,7 +199,7 @@ export class StudioService {
     }
   }
 
-  async deleteMultipleStudios(ids: string[]) {
+  async deleteMultipleStudios(ids: number[]) {
     try {
       return await prisma.studio.deleteMany({ where: { id: { in: ids } } });
     } catch (error) {

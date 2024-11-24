@@ -81,9 +81,9 @@ export class AnimeService {
     query?: string,
     sortBy?: string,
     sortOrder?: Prisma.SortOrder,
-    filterGenre?: string,
-    filterStudio?: string,
-    filterTheme?: string,
+    filterGenre?: number,
+    filterStudio?: number,
+    filterTheme?: number,
     filterProgressStatus?: ProgressStatus,
     filterMALScore?: string,
     filterPersonalScore?: string,
@@ -173,7 +173,7 @@ export class AnimeService {
                         }
                       ]
                     },
-                    { review: { review: { not: null } } },
+                    { review: { reviewText: { not: null } } },
                     { review: { consumedAt: { not: null } } }
                   ]
                 }
@@ -188,7 +188,7 @@ export class AnimeService {
                           { episodes: { none: {} } }
                         ]
                       },
-                      { review: { review: null } },
+                      { review: { reviewText: null } },
                       { review: { consumedAt: null } }
                     ]
                   }
@@ -207,6 +207,7 @@ export class AnimeService {
         where: filterCriteria,
         select: {
           id: true,
+          slug: true,
           title: true,
           titleJapanese: true,
           images: true,
@@ -216,7 +217,7 @@ export class AnimeService {
           rating: true,
           review: {
             select: {
-              review: true,
+              reviewText: true,
               progressStatus: true,
               personalScore: true,
               consumedAt: true
@@ -252,7 +253,7 @@ export class AnimeService {
         type: row.type,
         score: row.score,
         rating: row.rating,
-        review: row.review?.review,
+        reviewText: row.review?.reviewText,
         progressStatus: row.review?.progressStatus,
         personalScore: row.review?.personalScore,
         consumedAt: row.review?.consumedAt,
@@ -277,7 +278,7 @@ export class AnimeService {
     }
   }
 
-  async getAnimeById(id: string) {
+  async getAnimeById(id: number) {
     try {
       const anime = await prisma.anime.findUnique({
         where: { id },
@@ -322,7 +323,7 @@ export class AnimeService {
   async getAnimeDuplicate(id: number) {
     try {
       const anime = await prisma.anime.findUnique({
-        where: { malId: id }
+        where: { id }
       });
 
       return !!anime;
@@ -352,15 +353,15 @@ export class AnimeService {
       ]);
 
       // Create maps for quick ID lookup
-      const genreMap = new Map<string, string>();
+      const genreMap = new Map<string, number>();
       genres.forEach((genre) => {
         genreMap.set(genre.name.toLowerCase(), genre.id);
       });
-      const studioMap = new Map<string, string>();
+      const studioMap = new Map<string, number>();
       studios.forEach((studio) => {
         studioMap.set(studio.name.toLowerCase(), studio.id);
       });
-      const themeMap = new Map<string, string>();
+      const themeMap = new Map<string, number>();
       themes.forEach((theme) => {
         themeMap.set(theme.name.toLowerCase(), theme.id);
       });
@@ -428,7 +429,7 @@ export class AnimeService {
     }
   }
 
-  async updateAnime(id: string, data: Prisma.AnimeUpdateInput) {
+  async updateAnime(id: number, data: Prisma.AnimeUpdateInput) {
     try {
       return await prisma.anime.update({ where: { id }, data });
     } catch (error) {
@@ -447,7 +448,7 @@ export class AnimeService {
     }
   }
 
-  async updateAnimeReview(id: string, data: Prisma.AnimeReviewUpdateInput) {
+  async updateAnimeReview(id: number, data: Prisma.AnimeReviewUpdateInput) {
     try {
       return await prisma.anime.update({
         where: { id },
@@ -476,7 +477,7 @@ export class AnimeService {
     }
   }
 
-  async deleteAnime(id: string) {
+  async deleteAnime(id: number) {
     try {
       return await prisma.anime.delete({ where: { id } });
     } catch (error) {
@@ -491,18 +492,9 @@ export class AnimeService {
     }
   }
 
-  async deleteMultipleAnimes(ids: string[]) {
+  async deleteMultipleAnimes(ids: number[]) {
     try {
-      const animesToDelete = await prisma.anime.findMany({
-        where: { id: { in: ids } },
-        select: { reviewId: true }
-      });
-      const reviewIds = animesToDelete.map((r) => r.reviewId);
-
-      return await prisma.$transaction([
-        prisma.anime.deleteMany({ where: { id: { in: ids } } }),
-        prisma.animeReview.deleteMany({ where: { id: { in: reviewIds } } })
-      ]);
+      return await prisma.anime.deleteMany({ where: { id: { in: ids } } });
     } catch (error) {
       throw new InternalServerError((error as Error).message);
     }
