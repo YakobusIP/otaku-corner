@@ -1,4 +1,10 @@
-import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState
+} from "react";
 
 import LogoutButton from "@/components/LogoutButton";
 import MediaFilter from "@/components/MediaFilter";
@@ -30,6 +36,7 @@ import {
   SearchIcon
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useDebounce } from "use-debounce";
 
 type Props = {
   mediaFilters: DropdownChecked[];
@@ -63,6 +70,13 @@ export default function MediaListNavbar({
   const [openAddLightNovelDialog, setOpenAddLightNovelDialog] = useState(false);
   const [openEntityManagementDialog, setOpenEntityManagementDialog] =
     useState(false);
+
+  const [localSearch, setLocalSearch] = useState("");
+  const [debouncedLocalSearch] = useDebounce(localSearch, 1000);
+
+  useEffect(() => {
+    setSearchMedia(debouncedLocalSearch);
+  }, [debouncedLocalSearch, setSearchMedia]);
 
   const handleMediaFilters = (index: number, checked: DropdownChecked) => {
     setMediaFilters((prevFilters) =>
@@ -103,7 +117,8 @@ export default function MediaListNavbar({
               startIcon={SearchIcon}
               parentClassName="w-full xl:w-fit"
               className="w-full xl:w-[300px]"
-              onChange={(e) => setSearchMedia(e.target.value)}
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
             />
             <MediaFilter
               mediaFilters={mediaFilters}
@@ -223,7 +238,8 @@ export default function MediaListNavbar({
           startIcon={SearchIcon}
           parentClassName="w-full xl:w-fit"
           className="w-full xl:w-[300px]"
-          onChange={(e) => setSearchMedia(e.target.value)}
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
         />
         <MediaFilter
           mediaFilters={mediaFilters}
