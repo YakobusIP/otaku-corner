@@ -7,13 +7,17 @@ import FilterPersonalScore from "@/components/filter-sort-dropdowns/FilterPerson
 import FilterStatusCheck from "@/components/filter-sort-dropdowns/FilterStatusCheck";
 import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
 import SortDirection from "@/components/filter-sort-dropdowns/SortDirection";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger
+} from "@/components/ui/sheet";
+
+import useWideScreen from "@/hooks/useWideScreen";
 
 import { AuthorEntity, GenreEntity, ThemeEntity } from "@/types/entity.type";
 import { LightNovelFilterSort } from "@/types/lightnovel.type";
@@ -43,6 +47,8 @@ export default function LightNovelFilterSortAccordion({
   themeList,
   isLoadingTheme
 }: Props) {
+  const isWideScreen = useWideScreen();
+
   const handleSort = (key: string) => {
     setLightNovelFilterSort((prev) => ({
       ...prev,
@@ -119,67 +125,66 @@ export default function LightNovelFilterSortAccordion({
   };
 
   return (
-    <section className="mb-4">
-      <Accordion type="single" collapsible>
-        <AccordionItem value="filter-and-sort">
-          <AccordionTrigger className="hover:no-underline">
-            <span className="flex items-center justify-center gap-2">
-              <FilterIcon />
-              <p className="text-base tracking-normal font-semibold">
-                Filter & Sort
-              </p>
-            </span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="grid grid-cols-1 grid-rows-8 xl:grid-cols-4 xl:grid-rows-2 gap-4">
-              <SortDirection
-                sortBy={lightNovelFilterSort.sortBy}
-                sortOrder={lightNovelFilterSort.sortOrder}
-                handleSort={handleSort}
-              />
-              <FilterAuthor
-                authorList={authorList}
-                isLoadingAuthor={isLoadingAuthor}
-                filterAuthor={lightNovelFilterSort.filterAuthor}
-                handleFilterAuthor={handleFilterAuthor}
-              />
-              <FilterGenre
-                genreList={genreList}
-                isLoadingGenre={isLoadingGenre}
-                filterGenre={lightNovelFilterSort.filterGenre}
-                handleFilterGenre={handleFilterGenre}
-              />
-              <FilterTheme
-                themeList={themeList}
-                isLoadingTheme={isLoadingTheme}
-                filterTheme={lightNovelFilterSort.filterTheme}
-                handleFilterTheme={handleFilterTheme}
-              />
-              <FilterMALScore
-                filterMALScore={lightNovelFilterSort.filterMALScore}
-                handleFilterMALScore={handleFilterMALScore}
-              />
-              <FilterPersonalScore
-                filterPersonalScore={lightNovelFilterSort.filterPersonalScore}
-                handleFilterPersonalScore={handleFilterPersonalScore}
-              />
-              <FilterStatusCheck
-                filterStatusCheck={lightNovelFilterSort.filterStatusCheck}
-                handleFilterStatusCheck={handleFilterStatusCheck}
-              />
-              <Button
-                variant="destructive"
-                size="sm"
-                className="w-full"
-                disabled={enableClearAllFilter}
-                onClick={handleClearAllFilter}
-              >
-                Clear All
-              </Button>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </section>
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline">
+          <FilterIcon className="w-4 h-4" />
+          {isWideScreen && "Filter & Sort"}
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="top">
+        <SheetHeader>
+          <SheetTitle>Light Novel Filter & Sort</SheetTitle>
+        </SheetHeader>
+        <ScrollArea className="h-[50vh] xl:h-auto">
+          <div className="grid grid-cols-1 grid-rows-9 xl:grid-cols-5 xl:grid-rows-2 gap-4 mt-2">
+            <SortDirection
+              sortBy={lightNovelFilterSort.sortBy}
+              sortOrder={lightNovelFilterSort.sortOrder}
+              handleSort={handleSort}
+            />
+            <FilterAuthor
+              authorList={authorList}
+              isLoadingAuthor={isLoadingAuthor}
+              filterAuthor={lightNovelFilterSort.filterAuthor}
+              handleFilterAuthor={handleFilterAuthor}
+            />
+            <FilterGenre
+              genreList={genreList}
+              isLoadingGenre={isLoadingGenre}
+              filterGenre={lightNovelFilterSort.filterGenre}
+              handleFilterGenre={handleFilterGenre}
+            />
+            <FilterTheme
+              themeList={themeList}
+              isLoadingTheme={isLoadingTheme}
+              filterTheme={lightNovelFilterSort.filterTheme}
+              handleFilterTheme={handleFilterTheme}
+            />
+            <FilterMALScore
+              filterMALScore={lightNovelFilterSort.filterMALScore}
+              handleFilterMALScore={handleFilterMALScore}
+            />
+            <FilterPersonalScore
+              filterPersonalScore={lightNovelFilterSort.filterPersonalScore}
+              handleFilterPersonalScore={handleFilterPersonalScore}
+            />
+            <FilterStatusCheck
+              filterStatusCheck={lightNovelFilterSort.filterStatusCheck}
+              handleFilterStatusCheck={handleFilterStatusCheck}
+            />
+            <Button
+              variant="destructive"
+              size="sm"
+              className="w-full"
+              disabled={enableClearAllFilter}
+              onClick={handleClearAllFilter}
+            >
+              Clear All
+            </Button>
+          </div>
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
   );
 }

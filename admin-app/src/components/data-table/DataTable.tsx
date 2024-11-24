@@ -11,6 +11,8 @@ import {
   TableRow
 } from "@/components/ui/table";
 
+import useWideScreen from "@/hooks/useWideScreen";
+
 import { MetadataResponse } from "@/types/api.type";
 
 import {
@@ -77,6 +79,8 @@ export default function DataTable<TData extends Identifiable, TValue>({
     rowCount: metadata?.itemCount || 0
   });
 
+  const isWideScreen = useWideScreen();
+
   return (
     <div>
       <div className="flex flex-col mb-2">
@@ -88,6 +92,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
                 {searchComponent}
                 {addNewDataComponent}
               </div>
+
               <Button
                 variant="destructive"
                 className="flex items-center gap-2 place-self-end w-full xl:w-fit"
@@ -105,14 +110,16 @@ export default function DataTable<TData extends Identifiable, TValue>({
         ) : (
           <div className="flex flex-col xl:flex-row justify-between items-center gap-2">
             <h2>{title}</h2>
-            <DataDeleteButton
-              rowSelection={rowSelection}
-              deleteData={deleteData}
-              isLoadingDeleteData={isLoadingDeleteData}
-            />
+            <div className="flex gap-2 items-end w-full xl:w-fit justify-end xl:justify-normal">
+              {filterSortComponent}
+              <DataDeleteButton
+                rowSelection={rowSelection}
+                deleteData={deleteData}
+                isLoadingDeleteData={isLoadingDeleteData}
+              />
+            </div>
           </div>
         )}
-        {filterSortComponent}
       </div>
       <div className="rounded-md border">
         <Table>
@@ -201,6 +208,9 @@ export default function DataTable<TData extends Identifiable, TValue>({
           >
             Previous
           </Button>
+          <span className="inline-flex items-center border border-input rounded-md px-3 h-9 text-sm font-medium">
+            {page} {isWideScreen && `/ ${metadata?.pageCount || 0}`}
+          </span>
           <Button
             variant="outline"
             size="sm"

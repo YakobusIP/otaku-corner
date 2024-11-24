@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownChecked } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -159,58 +160,60 @@ export default function MediaListNavbar({
           </Button>
         </SheetTrigger>
         <SheetContent side="left">
-          <SheetHeader className="items-center">
-            <img src="/logo.png" className="w-32 my-2" />
-          </SheetHeader>
-          <div className="flex flex-col gap-2 my-2">
-            <Label>Media Control</Label>
-            <AddAnimeDialog
-              openDialog={openAddAnimeDialog}
-              setOpenDialog={setOpenAddAnimeDialog}
-              resetParent={resetAnimeParent}
-            />
-            <AddMangaDialog
-              openDialog={openAddMangaDialog}
-              setOpenDialog={setOpenAddMangaDialog}
-              resetParent={resetMangaParent}
-            />
-            <AddLightNovelDialog
-              openDialog={openAddLightNovelDialog}
-              setOpenDialog={setOpenAddLightNovelDialog}
-              resetParent={resetLightNovelParent}
-            />
-            <Separator />
-            <Label>Entity Control</Label>
-            <EntityManagement
-              openDialog={openEntityManagementDialog}
-              setOpenDialog={setOpenEntityManagementDialog}
-              resetAuthor={fetchAuthorList}
-              resetGenre={fetchGenreList}
-              resetStudio={fetchStudioList}
-              resetTheme={fetchThemeList}
-            />
-            <Separator />
-            <Label>Others</Label>
-            <Link to="/dashboard" className="w-full xl:w-fit">
-              <Button className="w-full" variant="outline">
-                <ChartNoAxesCombinedIcon className="w-4 h-4" /> Dashboard
-              </Button>
-            </Link>
-            <Link
-              to={import.meta.env.VITE_PUBLIC_APP}
-              className="w-full xl:w-fit"
-              target="_blank"
-            >
-              <Button className="w-full" variant="outline">
-                <GlobeIcon className="w-4 h-4" /> Public App
-              </Button>
-            </Link>
-          </div>
-          <SheetFooter>
-            <SheetClose asChild>
-              <LogoutButton />
-            </SheetClose>
-          </SheetFooter>
+          <ScrollArea className="h-full">
+            <SheetHeader className="items-center">
+              <img src="/logo.png" className="w-32 my-2" />
+            </SheetHeader>
+            <div className="flex flex-col gap-2 my-2">
+              <Label>Media Control</Label>
+              <AddAnimeDialog
+                openDialog={openAddAnimeDialog}
+                setOpenDialog={setOpenAddAnimeDialog}
+                resetParent={resetAnimeParent}
+              />
+              <AddMangaDialog
+                openDialog={openAddMangaDialog}
+                setOpenDialog={setOpenAddMangaDialog}
+                resetParent={resetMangaParent}
+              />
+              <AddLightNovelDialog
+                openDialog={openAddLightNovelDialog}
+                setOpenDialog={setOpenAddLightNovelDialog}
+                resetParent={resetLightNovelParent}
+              />
+              <Separator />
+              <Label>Entity Control</Label>
+              <EntityManagement
+                openDialog={openEntityManagementDialog}
+                setOpenDialog={setOpenEntityManagementDialog}
+                resetAuthor={fetchAuthorList}
+                resetGenre={fetchGenreList}
+                resetStudio={fetchStudioList}
+                resetTheme={fetchThemeList}
+              />
+              <Separator />
+              <Label>Others</Label>
+              <Link to="/dashboard" className="w-full xl:w-fit">
+                <Button className="w-full" variant="outline">
+                  <ChartNoAxesCombinedIcon className="w-4 h-4" /> Dashboard
+                </Button>
+              </Link>
+              <Link
+                to={import.meta.env.VITE_PUBLIC_APP}
+                className="w-full xl:w-fit"
+                target="_blank"
+              >
+                <Button className="w-full" variant="outline">
+                  <GlobeIcon className="w-4 h-4" /> Public App
+                </Button>
+              </Link>
+            </div>
+            <SheetFooter>
+              <SheetClose asChild>
+                <LogoutButton fullWidth />
+              </SheetClose>
+            </SheetFooter>
+          </ScrollArea>
         </SheetContent>
       </Sheet>
       <div className="flex w-full xl:w-fit gap-2 xl:gap-4">

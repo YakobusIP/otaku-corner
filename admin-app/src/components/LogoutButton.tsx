@@ -11,7 +11,11 @@ import { setAccessToken } from "@/lib/axios";
 import { Loader2Icon, LogOutIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function LogoutButton() {
+type Props = {
+  fullWidth?: boolean;
+};
+
+export default function LogoutButton({ fullWidth = false }: Props) {
   const [isLoadingLogout, setIsLoadingLogout] = useState(false);
 
   const toast = useToast();
@@ -37,7 +41,11 @@ export default function LogoutButton() {
     setIsLoadingLogout(false);
   };
   return (
-    <Button variant="outline" onClick={handleLogout}>
+    <Button
+      variant="outline"
+      className={fullWidth ? "w-full" : ""}
+      onClick={handleLogout}
+    >
       {isLoadingLogout ? (
         <Loader2Icon className="w-4 h-4 animate-spin" />
       ) : (

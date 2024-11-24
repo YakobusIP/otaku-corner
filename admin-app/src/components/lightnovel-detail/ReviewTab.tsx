@@ -6,6 +6,7 @@ import { deleteImageService } from "@/services/upload.service";
 import ProgressStatus from "@/components/ProgressStatus";
 import RatingSelect from "@/components/RatingSelect";
 import ReviewEditor from "@/components/ReviewEditor";
+import VolumeProgressModal from "@/components/lightnovel-detail/VolumeProgressModal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { TabsContent } from "@/components/ui/tabs";
@@ -21,8 +22,6 @@ import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
 import { extractImageIds } from "@/lib/utils";
 
 import { Loader2Icon } from "lucide-react";
-
-import VolumeProgressModal from "./VolumeProgressModal";
 
 type Props = {
   lightNovelDetail: LightNovelDetail;

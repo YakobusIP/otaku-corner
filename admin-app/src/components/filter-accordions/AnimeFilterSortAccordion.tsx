@@ -8,13 +8,17 @@ import FilterStudio from "@/components/filter-sort-dropdowns/FilterStudio";
 import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
 import FilterType from "@/components/filter-sort-dropdowns/FilterType";
 import SortDirection from "@/components/filter-sort-dropdowns/SortDirection";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger
+} from "@/components/ui/sheet";
+
+import useWideScreen from "@/hooks/useWideScreen";
 
 import { AnimeFilterSort } from "@/types/anime.type";
 import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
@@ -44,6 +48,8 @@ export default function AnimeFilterSortAccordion({
   themeList,
   isLoadingTheme
 }: Props) {
+  const isWideScreen = useWideScreen();
+
   const handleSort = (key: string) => {
     setAnimeFilterSort((prev) => ({
       ...prev,
@@ -129,71 +135,70 @@ export default function AnimeFilterSortAccordion({
   };
 
   return (
-    <section className="mb-4">
-      <Accordion type="single" collapsible>
-        <AccordionItem value="filter-and-sort">
-          <AccordionTrigger className="hover:no-underline">
-            <span className="flex items-center justify-center gap-2">
-              <FilterIcon />
-              <p className="text-base tracking-normal font-semibold">
-                Filter & Sort
-              </p>
-            </span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="grid grid-cols-1 grid-rows-9 xl:grid-cols-5 xl:grid-rows-2 gap-4">
-              <SortDirection
-                sortBy={animeFilterSort.sortBy}
-                sortOrder={animeFilterSort.sortOrder}
-                handleSort={handleSort}
-              />
-              <FilterGenre
-                genreList={genreList}
-                isLoadingGenre={isLoadingGenre}
-                filterGenre={animeFilterSort.filterGenre}
-                handleFilterGenre={handleFilterGenre}
-              />
-              <FilterStudio
-                studioList={studioList}
-                isLoadingStudio={isLoadingStudio}
-                filterStudio={animeFilterSort.filterStudio}
-                handleFilterStudio={handleFilterStudio}
-              />
-              <FilterTheme
-                themeList={themeList}
-                isLoadingTheme={isLoadingTheme}
-                filterTheme={animeFilterSort.filterTheme}
-                handleFilterTheme={handleFilterTheme}
-              />
-              <FilterMALScore
-                filterMALScore={animeFilterSort.filterMALScore}
-                handleFilterMALScore={handleFilterMALScore}
-              />
-              <FilterPersonalScore
-                filterPersonalScore={animeFilterSort.filterPersonalScore}
-                handleFilterPersonalScore={handleFilterPersonalScore}
-              />
-              <FilterType
-                filterType={animeFilterSort.filterType}
-                handleFilterType={handleFilterType}
-              />
-              <FilterStatusCheck
-                filterStatusCheck={animeFilterSort.filterStatusCheck}
-                handleFilterStatusCheck={handleFilterStatusCheck}
-              />
-              <Button
-                variant="destructive"
-                size="sm"
-                className="w-full"
-                disabled={enableClearAllFilter}
-                onClick={handleClearAllFilter}
-              >
-                Clear All
-              </Button>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </section>
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline">
+          <FilterIcon className="w-4 h-4" />
+          {isWideScreen && "Filter & Sort"}
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="top">
+        <SheetHeader>
+          <SheetTitle>Anime Filter & Sort</SheetTitle>
+        </SheetHeader>
+        <ScrollArea className="h-[50vh] xl:h-auto">
+          <div className="grid grid-cols-1 grid-rows-9 xl:grid-cols-5 xl:grid-rows-2 gap-4 mt-2">
+            <SortDirection
+              sortBy={animeFilterSort.sortBy}
+              sortOrder={animeFilterSort.sortOrder}
+              handleSort={handleSort}
+            />
+            <FilterGenre
+              genreList={genreList}
+              isLoadingGenre={isLoadingGenre}
+              filterGenre={animeFilterSort.filterGenre}
+              handleFilterGenre={handleFilterGenre}
+            />
+            <FilterStudio
+              studioList={studioList}
+              isLoadingStudio={isLoadingStudio}
+              filterStudio={animeFilterSort.filterStudio}
+              handleFilterStudio={handleFilterStudio}
+            />
+            <FilterTheme
+              themeList={themeList}
+              isLoadingTheme={isLoadingTheme}
+              filterTheme={animeFilterSort.filterTheme}
+              handleFilterTheme={handleFilterTheme}
+            />
+            <FilterMALScore
+              filterMALScore={animeFilterSort.filterMALScore}
+              handleFilterMALScore={handleFilterMALScore}
+            />
+            <FilterPersonalScore
+              filterPersonalScore={animeFilterSort.filterPersonalScore}
+              handleFilterPersonalScore={handleFilterPersonalScore}
+            />
+            <FilterType
+              filterType={animeFilterSort.filterType}
+              handleFilterType={handleFilterType}
+            />
+            <FilterStatusCheck
+              filterStatusCheck={animeFilterSort.filterStatusCheck}
+              handleFilterStatusCheck={handleFilterStatusCheck}
+            />
+            <Button
+              variant="destructive"
+              size="sm"
+              className="w-full"
+              disabled={enableClearAllFilter}
+              onClick={handleClearAllFilter}
+            >
+              Clear All
+            </Button>
+          </div>
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
   );
 }
