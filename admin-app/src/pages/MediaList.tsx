@@ -33,6 +33,7 @@ import { mangaColumns } from "@/components/data-table/MangaTableColumns";
 import AnimeFilterSortSheet from "@/components/filter-sheets/AnimeFilterSortSheet";
 import LightNovelFilterSortSheet from "@/components/filter-sheets/LightNovelFilterSortSheet";
 import MangaFilterSortSheet from "@/components/filter-sheets/MangaFilterSortSheet";
+import MediaListNavbarSuspense from "@/components/navbars/MediaListNavbarSuspense";
 import { DropdownChecked } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 
@@ -378,7 +379,7 @@ export default function MediaList() {
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <Suspense>
+      <Suspense fallback={<MediaListNavbarSuspense />}>
         <MediaListNavbar
           mediaFilters={mediaFilters}
           setMediaFilters={setMediaFilters}
