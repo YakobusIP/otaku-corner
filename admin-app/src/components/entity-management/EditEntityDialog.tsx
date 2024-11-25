@@ -15,9 +15,9 @@ import { Loader2Icon } from "lucide-react";
 
 type Props = {
   entityType: string;
-  entityId: string;
+  entityId: number;
   entity: string;
-  editHandler: (id: string, entity: string) => void;
+  editHandler: (id: number, entity: string) => void;
   isLoadingEditEntity: boolean;
 };
 

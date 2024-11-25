@@ -25,7 +25,9 @@ export default function AdminLightNovelDetail() {
 
   const fetchLightNovelById = useCallback(async () => {
     setIsLoadingLightNovelDetail(true);
-    const response = await fetchLightNovelByIdService(lightNovelId as string);
+    const response = await fetchLightNovelByIdService(
+      parseInt(lightNovelId as string)
+    );
     if (response.success) {
       setLightNovelDetail(response.data);
     } else {

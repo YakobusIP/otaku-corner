@@ -167,7 +167,7 @@ export class GenreService {
     }
   }
 
-  async updateGenre(id: string, data: Prisma.GenreUpdateInput) {
+  async updateGenre(id: number, data: Prisma.GenreUpdateInput) {
     try {
       return await prisma.genre.update({ where: { id }, data });
     } catch (error) {
@@ -186,7 +186,7 @@ export class GenreService {
     }
   }
 
-  async deleteGenre(id: string) {
+  async deleteGenre(id: number) {
     try {
       return await prisma.genre.delete({ where: { id } });
     } catch (error) {
@@ -201,7 +201,7 @@ export class GenreService {
     }
   }
 
-  async deleteMultipleGenres(ids: string[]) {
+  async deleteMultipleGenres(ids: number[]) {
     try {
       return await prisma.genre.deleteMany({ where: { id: { in: ids } } });
     } catch (error) {

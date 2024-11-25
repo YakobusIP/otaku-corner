@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AnimeService } from "../services/anime.service";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProgressStatus } from "@prisma/client";
 import { UnprocessableEntityError } from "../lib/error";
 import { fetchEpisodesQueue } from "../lib/queues/anime.queue";
 
@@ -19,9 +19,11 @@ export class AnimeController {
       const query = req.query.q as string;
       const sortBy = req.query.sortBy as string;
       const sortOrder = req.query.sortOrder as Prisma.SortOrder;
-      const filterGenre = req.query.filterGenre as string;
-      const filterStudio = req.query.filterStudio as string;
-      const filterTheme = req.query.filterTheme as string;
+      const filterGenre = parseInt(req.query.filterGenre as string);
+      const filterStudio = parseInt(req.query.filterStudio as string);
+      const filterTheme = parseInt(req.query.filterTheme as string);
+      const filterProgressStatus = req.query
+        .filterProgressStatus as ProgressStatus;
       const filterMALScore = req.query.filterMALScore as string;
       const filterPersonalScore = req.query.filterPersonalScore as string;
       const filterType = req.query.filterType as string;
@@ -35,6 +37,7 @@ export class AnimeController {
         filterGenre,
         filterStudio,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
         filterPersonalScore,
         filterType,
@@ -49,7 +52,9 @@ export class AnimeController {
 
   getAnimeById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const anime = await this.animeService.getAnimeById(req.params.id);
+      const anime = await this.animeService.getAnimeById(
+        parseInt(req.params.id)
+      );
       return res.json({ data: anime });
     } catch (error) {
       return next(error);
@@ -78,7 +83,7 @@ export class AnimeController {
 
       animeList.forEach((anime) => {
         if (!["Movie", "OVA"].includes(anime.type)) {
-          fetchEpisodesQueue.add({ anime_id: anime.id, mal_id: anime.malId });
+          fetchEpisodesQueue.add({ id: anime.id });
         }
       });
     } catch (error) {
@@ -88,7 +93,7 @@ export class AnimeController {
 
   updateAnime = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.animeService.updateAnime(req.params.id, req.body);
+      await this.animeService.updateAnime(parseInt(req.params.id), req.body);
       return res.json({ message: "Anime updated successfully!" });
     } catch (error) {
       return next(error);
@@ -101,7 +106,10 @@ export class AnimeController {
     next: NextFunction
   ) => {
     try {
-      await this.animeService.updateAnimeReview(req.params.id, req.body);
+      await this.animeService.updateAnimeReview(
+        parseInt(req.params.id),
+        req.body
+      );
       return res.json({ message: "Anime review updated successfully!" });
     } catch (error) {
       return next(error);
@@ -110,7 +118,7 @@ export class AnimeController {
 
   deleteAnime = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.animeService.deleteAnime(req.params.id);
+      await this.animeService.deleteAnime(parseInt(req.params.id));
       return res.status(204).end();
     } catch (error) {
       return next(error);

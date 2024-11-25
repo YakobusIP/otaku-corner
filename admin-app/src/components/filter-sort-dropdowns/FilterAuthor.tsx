@@ -24,8 +24,8 @@ import {
 type Props = {
   authorList: AuthorEntity[];
   isLoadingAuthor: boolean;
-  filterAuthor?: string;
-  handleFilterAuthor: (key?: string) => void;
+  filterAuthor?: number;
+  handleFilterAuthor: (key?: number) => void;
 };
 
 export default function FilterAuthor({

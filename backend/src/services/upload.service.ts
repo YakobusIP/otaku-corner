@@ -19,7 +19,7 @@ export class UploadService {
     uuid: string,
     url: string,
     type: MEDIA_TYPE,
-    reviewId: string
+    reviewId: number
   ) {
     try {
       const data: Prisma.ReviewImageCreateInput = { id: uuid, url };
@@ -58,7 +58,7 @@ export class UploadService {
   async uploadImage(
     file: Express.Multer.File,
     type: MEDIA_TYPE,
-    entityId: string
+    entityId: number
   ) {
     try {
       const [uuid, filename] = generateFilename(file.originalname);

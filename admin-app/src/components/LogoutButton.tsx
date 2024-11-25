@@ -5,19 +5,21 @@ import { logout } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
 
 import { useToast } from "@/hooks/useToast";
-import useWideScreen from "@/hooks/useWideScreen";
 
 import { setAccessToken } from "@/lib/axios";
 
 import { Loader2Icon, LogOutIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function LogoutButton() {
+type Props = {
+  fullWidth?: boolean;
+};
+
+export default function LogoutButton({ fullWidth = false }: Props) {
   const [isLoadingLogout, setIsLoadingLogout] = useState(false);
 
   const toast = useToast();
   const navigate = useNavigate();
-  const isWideScreen = useWideScreen();
 
   const handleLogout = async () => {
     setIsLoadingLogout(true);
@@ -39,13 +41,17 @@ export default function LogoutButton() {
     setIsLoadingLogout(false);
   };
   return (
-    <Button variant="outline" onClick={handleLogout}>
+    <Button
+      variant="outline"
+      className={fullWidth ? "w-full" : ""}
+      onClick={handleLogout}
+    >
       {isLoadingLogout ? (
         <Loader2Icon className="w-4 h-4 animate-spin" />
       ) : (
         <LogOutIcon className="w-4 h-4" />
       )}
-      {isWideScreen && "Logout"}
+      Logout
     </Button>
   );
 }

@@ -12,7 +12,7 @@ type Props = {
   review: string | undefined;
   setReview: Dispatch<SetStateAction<string | undefined>>;
   mediaType: MEDIA_TYPE;
-  reviewId: string;
+  reviewId: number;
   setUploadedImages: Dispatch<SetStateAction<string[]>>;
 };
 

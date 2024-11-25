@@ -5,6 +5,7 @@ import { Dispatch, SetStateAction } from "react";
 import FilterGenre from "@/components/filter-sort-dropdowns/FilterGenre";
 import FilterMALScore from "@/components/filter-sort-dropdowns/FilterMALScore";
 import FilterPersonalScore from "@/components/filter-sort-dropdowns/FilterPersonalScore";
+import FilterProgressStatus from "@/components/filter-sort-dropdowns/FilterProgressStatus";
 import FilterStudio from "@/components/filter-sort-dropdowns/FilterStudio";
 import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
 import FilterType from "@/components/filter-sort-dropdowns/FilterType";
@@ -20,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { AnimeFilterSort } from "@/types/anime.type";
 import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
 
-import { SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 import { FilterIcon } from "lucide-react";
 
@@ -58,24 +59,31 @@ export default function AnimeFilterSortAccordion({
     }));
   };
 
-  const handleFilterGenre = (key?: string) => {
+  const handleFilterGenre = (key?: number) => {
     setAnimeFilterSort((prev) => ({
       ...prev,
       filterGenre: key
     }));
   };
 
-  const handleFilterStudio = (key?: string) => {
+  const handleFilterStudio = (key?: number) => {
     setAnimeFilterSort((prev) => ({
       ...prev,
       filterStudio: key
     }));
   };
 
-  const handleFilterTheme = (key?: string) => {
+  const handleFilterTheme = (key?: number) => {
     setAnimeFilterSort((prev) => ({
       ...prev,
       filterTheme: key
+    }));
+  };
+
+  const handleFilterProgressStatus = (key?: keyof typeof PROGRESS_STATUS) => {
+    setAnimeFilterSort((prev) => ({
+      ...prev,
+      filterProgressStatus: key
     }));
   };
 
@@ -133,7 +141,7 @@ export default function AnimeFilterSortAccordion({
             </span>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="grid grid-cols-1 grid-rows-8 xl:grid-cols-4 xl:grid-rows-2 gap-4">
+            <div className="grid grid-cols-1 grid-rows-9 xl:grid-cols-5 xl:grid-rows-2 gap-4">
               <SortDirection
                 sortBy={animeFilterSort.sortBy}
                 sortOrder={animeFilterSort.sortOrder}
@@ -156,6 +164,10 @@ export default function AnimeFilterSortAccordion({
                 isLoadingTheme={isLoadingTheme}
                 filterTheme={animeFilterSort.filterTheme}
                 handleFilterTheme={handleFilterTheme}
+              />
+              <FilterProgressStatus
+                filterProgressStatus={animeFilterSort.filterProgressStatus}
+                handleFilterProgressStatus={handleFilterProgressStatus}
               />
               <FilterMALScore
                 filterMALScore={animeFilterSort.filterMALScore}

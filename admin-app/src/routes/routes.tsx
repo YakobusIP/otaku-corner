@@ -31,7 +31,7 @@ export const router = createBrowserRouter([
     )
   },
   {
-    path: "/anime/:animeId",
+    path: "/anime/:animeId/:slug",
     element: (
       <ProtectedRoute>
         <AdminAnimeDetail />
@@ -39,7 +39,7 @@ export const router = createBrowserRouter([
     )
   },
   {
-    path: "/manga/:mangaId",
+    path: "/manga/:mangaId/:slug",
     element: (
       <ProtectedRoute>
         <AdminMangaDetail />
@@ -47,7 +47,7 @@ export const router = createBrowserRouter([
     )
   },
   {
-    path: "/lightnovel/:lightNovelId",
+    path: "/lightnovel/:lightNovelId/:slug",
     element: (
       <ProtectedRoute>
         <AdminLightNovelDetail />

@@ -114,11 +114,11 @@ export class StatisticService {
         { joinClause: Prisma.Sql; consumedAtField: string }
       > = {
         Anime: {
-          joinClause: Prisma.sql`"AnimeReview" review ON core."reviewId" = review.id`,
+          joinClause: Prisma.sql`"AnimeReview" review ON core."id" = review."animeId"`,
           consumedAtField: `review."consumedAt"`
         },
         Manga: {
-          joinClause: Prisma.sql`"MangaReview" review ON core."reviewId" = review.id`,
+          joinClause: Prisma.sql`"MangaReview" review ON core."id" = review."mangaId"`,
           consumedAtField: `review."consumedAt"`
         },
         LightNovel: {
@@ -534,7 +534,7 @@ export class StatisticService {
         highestImages: {
           review: {
             personalScore: number | null;
-          };
+          } | null;
           title: string;
           images: Prisma.JsonValue;
         }[]
@@ -545,7 +545,7 @@ export class StatisticService {
           title: highestImages.length > 0 ? highestImages[0].title : null,
           score:
             highestImages.length > 0
-              ? highestImages[0].review.personalScore
+              ? highestImages[0].review?.personalScore
               : null
         };
       };

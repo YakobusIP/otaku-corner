@@ -75,9 +75,10 @@ export class LightNovelService {
     query?: string,
     sortBy?: string,
     sortOrder?: Prisma.SortOrder,
-    filterAuthor?: string,
-    filterGenre?: string,
-    filterTheme?: string,
+    filterAuthor?: number,
+    filterGenre?: number,
+    filterTheme?: number,
+    filterProgressStatus?: ProgressStatus,
     filterMALScore?: string,
     filterPersonalScore?: string,
     filterStatusCheck?: string
@@ -118,6 +119,15 @@ export class LightNovelService {
           ...(filterTheme
             ? [{ themes: { some: { themeId: filterTheme } } }]
             : []),
+          ...(filterProgressStatus
+            ? [
+                {
+                  review: {
+                    progressStatus: filterProgressStatus
+                  }
+                }
+              ]
+            : []),
           ...(filterMALScore
             ? [
                 {
@@ -145,7 +155,7 @@ export class LightNovelService {
                 {
                   AND: [
                     { volumesCount: { not: null } },
-                    { review: { review: { not: null } } },
+                    { review: { reviewText: { not: null } } },
                     {
                       review: {
                         progressStatus: { not: ProgressStatus.DROPPED }
@@ -160,7 +170,7 @@ export class LightNovelService {
                   {
                     OR: [
                       { volumesCount: null },
-                      { review: { review: null } },
+                      { review: { reviewText: null } },
                       { review: { progressStatus: ProgressStatus.DROPPED } },
                       { volumeProgress: { some: { consumedAt: null } } }
                     ]
@@ -180,6 +190,7 @@ export class LightNovelService {
         where: filterCriteria,
         select: {
           id: true,
+          slug: true,
           title: true,
           titleJapanese: true,
           images: true,
@@ -187,7 +198,7 @@ export class LightNovelService {
           score: true,
           review: {
             select: {
-              review: true,
+              reviewText: true,
               progressStatus: true,
               personalScore: true
             }
@@ -197,7 +208,14 @@ export class LightNovelService {
         },
         orderBy: {
           title: sortBy === "title" ? sortOrder : undefined,
-          score: sortBy === "score" ? sortOrder : undefined
+          score: sortBy === "score" ? sortOrder : undefined,
+          ...(sortBy === "personal_score"
+            ? {
+                review: {
+                  personalScore: { sort: sortOrder!, nulls: "last" }
+                }
+              }
+            : {})
         },
         take: limitPerPage,
         skip: (currentPage - 1) * limitPerPage
@@ -205,12 +223,13 @@ export class LightNovelService {
 
       const mappedData = data.map((row) => ({
         id: row.id,
+        slug: row.slug,
         title: row.title,
         titleJapanese: row.titleJapanese,
         images: row.images,
         status: row.status,
         score: row.score,
-        review: row.review?.review,
+        reviewText: row.review?.reviewText,
         progressStatus: row.review?.progressStatus,
         personalScore: row.review?.personalScore,
         volumeProgress: row.volumeProgress,
@@ -235,7 +254,7 @@ export class LightNovelService {
     }
   }
 
-  async getLightNovelById(id: string) {
+  async getLightNovelById(id: number) {
     try {
       const lightNovel = await prisma.lightNovel.findUnique({
         where: { id },
@@ -280,7 +299,7 @@ export class LightNovelService {
   async getLightNovelDuplicate(id: number) {
     try {
       const lightNovel = await prisma.lightNovel.findUnique({
-        where: { malId: id }
+        where: { id }
       });
 
       return !!lightNovel;
@@ -310,15 +329,15 @@ export class LightNovelService {
       ]);
 
       // Create maps for quick ID lookup
-      const authorMap = new Map<string, string>();
+      const authorMap = new Map<string, number>();
       authors.forEach((author) => {
         authorMap.set(author.name.toLowerCase(), author.id);
       });
-      const genreMap = new Map<string, string>();
+      const genreMap = new Map<string, number>();
       genres.forEach((genre) => {
         genreMap.set(genre.name.toLowerCase(), genre.id);
       });
-      const themeMap = new Map<string, string>();
+      const themeMap = new Map<string, number>();
       themes.forEach((theme) => {
         themeMap.set(theme.name.toLowerCase(), theme.id);
       });
@@ -380,7 +399,7 @@ export class LightNovelService {
     }
   }
 
-  async updateLightNovel(id: string, data: Prisma.LightNovelUpdateInput) {
+  async updateLightNovel(id: number, data: Prisma.LightNovelUpdateInput) {
     try {
       return await prisma.$transaction(async (prisma) => {
         if (data.volumesCount !== undefined && data.volumesCount !== null) {
@@ -428,7 +447,7 @@ export class LightNovelService {
   }
 
   async updateLightNovelReview(
-    id: string,
+    id: number,
     data: Prisma.LightNovelReviewUpdateInput
   ) {
     try {
@@ -460,7 +479,7 @@ export class LightNovelService {
   }
 
   async updateLightNovelVolumeProgress(
-    data: { id: string; consumedAt?: Date | null }[]
+    data: { id: number; consumedAt?: Date | null }[]
   ) {
     try {
       return await prisma.$transaction(async (prisma) => {
@@ -485,7 +504,7 @@ export class LightNovelService {
     }
   }
 
-  async deleteLightNovel(id: string) {
+  async deleteLightNovel(id: number) {
     try {
       return await prisma.lightNovel.delete({ where: { id } });
     } catch (error) {
@@ -500,18 +519,9 @@ export class LightNovelService {
     }
   }
 
-  async deleteMultipleLightNovels(ids: string[]) {
+  async deleteMultipleLightNovels(ids: number[]) {
     try {
-      const lightNovelsToDelete = await prisma.lightNovel.findMany({
-        where: { id: { in: ids } },
-        select: { reviewId: true }
-      });
-      const reviewIds = lightNovelsToDelete.map((r) => r.reviewId);
-
-      return await prisma.$transaction([
-        prisma.lightNovel.deleteMany({ where: { id: { in: ids } } }),
-        prisma.lightNovelReview.deleteMany({ where: { id: { in: reviewIds } } })
-      ]);
+      return await prisma.lightNovel.deleteMany({ where: { id: { in: ids } } });
     } catch (error) {
       throw new InternalServerError((error as Error).message);
     }

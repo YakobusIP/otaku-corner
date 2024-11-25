@@ -1,26 +1,26 @@
 type GenreEntity = {
-  id: string;
+  id: number;
   name: string;
   createdAt: Date;
   updatedAt: Date;
 };
 
 type StudioEntity = {
-  id: string;
+  id: number;
   name: string;
   createdAt: Date;
   updatedAt: Date;
 };
 
 type ThemeEntity = {
-  id: string;
+  id: number;
   name: string;
   createdAt: Date;
   updatedAt: Date;
 };
 
 type AuthorEntity = {
-  id: string;
+  id: number;
   name: string;
   createdAt: Date;
   updatedAt: Date;

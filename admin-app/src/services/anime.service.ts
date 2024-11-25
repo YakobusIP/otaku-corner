@@ -23,9 +23,10 @@ const fetchAllAnimeService = async (
   query?: string,
   sortBy?: string,
   sortOrder?: SORT_ORDER,
-  filterGenre?: string,
-  filterStudio?: string,
-  filterTheme?: string,
+  filterGenre?: number,
+  filterStudio?: number,
+  filterTheme?: number,
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS,
   filterMALScore?: string,
   filterPersonalScore?: string,
   filterType?: string,
@@ -42,6 +43,7 @@ const fetchAllAnimeService = async (
         filterGenre,
         filterStudio,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
         filterPersonalScore,
         filterType,
@@ -61,7 +63,7 @@ const fetchAllAnimeService = async (
 };
 
 const fetchAnimeByIdService = async (
-  id: string
+  id: number
 ): Promise<ApiResponse<AnimeDetail>> => {
   try {
     const response = await interceptedAxios.get(`${BASE_ANIME_URL}/${id}`);
@@ -78,11 +80,11 @@ const fetchAnimeByIdService = async (
 };
 
 const fetchAnimeDuplicate = async (
-  malId: string
+  id: number
 ): Promise<ApiResponse<{ exists: boolean }>> => {
   try {
     const response = await interceptedAxios.get(
-      `${BASE_ANIME_URL}/duplicate/${malId}`
+      `${BASE_ANIME_URL}/duplicate/${id}`
     );
     return { success: true, data: response.data };
   } catch (error) {
@@ -114,7 +116,7 @@ const addAnimeService = async (
 };
 
 const updateAnimeReviewService = async (
-  id: string,
+  id: number,
   data: AnimeReviewRequest
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
@@ -135,7 +137,7 @@ const updateAnimeReviewService = async (
 };
 
 const updateAnimeProgressStatusService = async (
-  id: string,
+  id: number,
   data: PROGRESS_STATUS
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
@@ -156,7 +158,7 @@ const updateAnimeProgressStatusService = async (
 };
 
 const deleteAnimeService = async (
-  ids: string[]
+  ids: number[]
 ): Promise<ApiResponse<void>> => {
   try {
     await interceptedAxios.delete(BASE_ANIME_URL, { data: { ids } });
