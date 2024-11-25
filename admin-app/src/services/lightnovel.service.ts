@@ -23,9 +23,10 @@ const fetchAllLightNovelService = async (
   query?: string,
   sortBy?: string,
   sortOrder?: SORT_ORDER,
-  filterAuthor?: string,
-  filterGenre?: string,
-  filterTheme?: string,
+  filterAuthor?: number,
+  filterGenre?: number,
+  filterTheme?: number,
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS,
   filterMALScore?: string,
   filterPersonalScore?: string,
   filterStatusCheck?: string
@@ -41,6 +42,7 @@ const fetchAllLightNovelService = async (
         filterAuthor,
         filterGenre,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
         filterPersonalScore,
         filterStatusCheck
@@ -59,7 +61,7 @@ const fetchAllLightNovelService = async (
 };
 
 const fetchLightNovelByIdService = async (
-  id: string
+  id: number
 ): Promise<ApiResponse<LightNovelDetail>> => {
   try {
     const response = await interceptedAxios.get(`${BASE_LIGHTNOVEL_URL}/${id}`);
@@ -76,11 +78,11 @@ const fetchLightNovelByIdService = async (
 };
 
 const fetchLightNovelDuplicate = async (
-  malId: string
+  id: number
 ): Promise<ApiResponse<{ exists: boolean }>> => {
   try {
     const response = await interceptedAxios.get(
-      `${BASE_LIGHTNOVEL_URL}/duplicate/${malId}`
+      `${BASE_LIGHTNOVEL_URL}/duplicate/${id}`
     );
     return { success: true, data: response.data };
   } catch (error) {
@@ -112,7 +114,7 @@ const addLightNovelService = async (
 };
 
 const updateLightNovelReviewService = async (
-  id: string,
+  id: number,
   data: LightNovelReviewRequest
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
@@ -133,7 +135,7 @@ const updateLightNovelReviewService = async (
 };
 
 const updateLightNovelProgressStatusService = async (
-  id: string,
+  id: number,
   data: PROGRESS_STATUS
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
@@ -154,7 +156,7 @@ const updateLightNovelProgressStatusService = async (
 };
 
 const updateLightNovelVolumesService = async (
-  id: string,
+  id: number,
   volumesCount: number
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
@@ -175,7 +177,7 @@ const updateLightNovelVolumesService = async (
 };
 
 const updateLightNovelVolumeProgressService = async (
-  data: { id: string; consumedAt?: Date | null }[]
+  data: { id: number; consumedAt?: Date | null }[]
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
     const response = await interceptedAxios.put(
@@ -195,7 +197,7 @@ const updateLightNovelVolumeProgressService = async (
 };
 
 const deleteLightNovelService = async (
-  ids: string[]
+  ids: number[]
 ): Promise<ApiResponse<void>> => {
   try {
     await interceptedAxios.delete(BASE_LIGHTNOVEL_URL, { data: { ids } });

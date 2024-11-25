@@ -1,4 +1,4 @@
-import { ApiResponse, ApiResponseList } from "@/types/api.type";
+import { ApiResponse } from "@/types/api.type";
 
 import { axiosClient } from "@/lib/axios";
 
@@ -25,31 +25,7 @@ const createEntityService = (baseUrl: string) => {
     }
   };
 
-  const fetchAllWithMediaCount = async <T>(
-    currentPage?: number,
-    limitPerPage?: number,
-    query?: string
-  ): Promise<ApiResponseList<T>> => {
-    try {
-      const response = await axiosClient.get(baseUrl, {
-        params: { connected_media: true, currentPage, limitPerPage, q: query }
-      });
-      return { success: true, data: response.data.data };
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError && error.response?.data.error
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
-    }
-  };
-
-  return {
-    fetchAll,
-    fetchAllWithMediaCount
-  };
+  return { fetchAll };
 };
 
 const genreService = createEntityService(BASE_GENRE_URL);

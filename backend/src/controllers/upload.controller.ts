@@ -21,7 +21,7 @@ export class UploadController {
       const { id, url } = await this.uploadService.uploadImage(
         req.file,
         type,
-        reviewId
+        parseInt(reviewId)
       );
 
       return res.status(200).json({ data: { id, url } });

@@ -2,7 +2,7 @@ import { ApiResponse, ApiResponseList } from "@/types/api.type";
 import { MangaDetail, MangaList } from "@/types/manga.type";
 
 import { axiosClient } from "@/lib/axios";
-import { SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 import { AxiosError } from "axios";
 
@@ -14,9 +14,10 @@ const fetchAllMangaService = async (
   query?: string,
   sortBy?: string,
   sortOrder?: SORT_ORDER,
-  filterAuthor?: string,
-  filterGenre?: string,
-  filterTheme?: string,
+  filterAuthor?: number,
+  filterGenre?: number,
+  filterTheme?: number,
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS,
   filterMALScore?: string,
   filterPersonalScore?: string
 ): Promise<ApiResponseList<MangaList[]>> => {
@@ -31,6 +32,7 @@ const fetchAllMangaService = async (
         filterAuthor,
         filterGenre,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
         filterPersonalScore
       }
@@ -48,7 +50,7 @@ const fetchAllMangaService = async (
 };
 
 const fetchMangaByIdService = async (
-  id: string
+  id: number
 ): Promise<ApiResponse<MangaDetail>> => {
   try {
     const response = await axiosClient.get(`${BASE_MANGA_URL}/${id}`);

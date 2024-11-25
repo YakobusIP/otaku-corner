@@ -24,8 +24,8 @@ import {
 type Props = {
   studioList: StudioEntity[];
   isLoadingStudio: boolean;
-  filterStudio?: string;
-  handleFilterStudio: (key?: string) => void;
+  filterStudio?: number;
+  handleFilterStudio: (key?: number) => void;
 };
 
 export default function FilterStudio({

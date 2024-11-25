@@ -6,7 +6,7 @@ import { ThemeEntity } from "@/types/entity.type";
 import { ColumnDef } from "@tanstack/react-table";
 
 export const themeColumns = (
-  editEntity: (id: string, entity: string) => void,
+  editEntity: (id: number, entity: string) => void,
   isLoadingEditEntity: boolean
 ): ColumnDef<ThemeEntity>[] => [
   {

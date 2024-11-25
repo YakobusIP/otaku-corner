@@ -81,6 +81,7 @@ export default function MangaListClient({
       mangaFilterSort.filterAuthor,
       mangaFilterSort.filterGenre,
       mangaFilterSort.filterTheme,
+      mangaFilterSort.filterProgressStatus,
       mangaFilterSort.filterMALScore,
       mangaFilterSort.filterPersonalScore
     );

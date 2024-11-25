@@ -25,11 +25,11 @@ import {
 import { useDebouncedCallback } from "use-debounce";
 
 type Props = {
-  id: string;
+  id: number;
   progressStatus: string;
   setProgressStatus?: Dispatch<SetStateAction<string>>;
   serviceFn?: (
-    id: string,
+    id: number,
     progressStatus: PROGRESS_STATUS
   ) => Promise<ApiResponse<MessageResponse>>;
 };

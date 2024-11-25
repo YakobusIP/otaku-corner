@@ -40,9 +40,11 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
   const toast = useToast();
   const reviewObject = animeDetail.review;
 
-  const [review, setReview] = useState(reviewObject.review ?? undefined);
+  const [reviewText, setReviewText] = useState(
+    reviewObject.reviewText ?? undefined
+  );
   const [uploadedImages, setUploadedImages] = useState<string[]>(
-    extractImageIds(reviewObject.review ?? undefined)
+    extractImageIds(reviewObject.reviewText ?? undefined)
   );
 
   const [progressStatus, setProgressStatus] = useState(
@@ -105,7 +107,7 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
   const handleSubmit = async () => {
     setIsLoadingUpdateReview(true);
 
-    const currentImageIds = extractImageIds(review);
+    const currentImageIds = extractImageIds(reviewText);
     const previouslyUploadedImageIds = Object.values(uploadedImages);
     const removedImageIds = previouslyUploadedImageIds.filter(
       (id) => !currentImageIds.includes(id)
@@ -125,7 +127,7 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
       : null;
 
     const data: AnimeReviewRequest = {
-      review,
+      reviewText,
       progressStatus: progressStatus as PROGRESS_STATUS,
       consumedAt: adjustedConsumedMonth,
       storylineRating,
@@ -212,8 +214,8 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
           <RatingSelect ratingFields={ratingFields} />
         </div>
         <ReviewEditor
-          review={review}
-          setReview={setReview}
+          review={reviewText}
+          setReview={setReviewText}
           mediaType={MEDIA_TYPE.ANIME}
           reviewId={reviewObject.id}
           setUploadedImages={setUploadedImages}

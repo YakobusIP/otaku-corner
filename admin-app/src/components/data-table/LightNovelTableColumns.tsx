@@ -56,7 +56,7 @@ export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
         images,
         title,
         titleJapanese,
-        review,
+        reviewText,
         volumeProgress,
         volumesCount
       } = data;
@@ -78,7 +78,7 @@ export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
         {
           key: `${title}-light-novel-review-status`,
           Trigger: NotebookPenIcon,
-          condition: !!review,
+          condition: !!reviewText,
           triggerColor: {
             success: "text-green-700",
             failed: "text-destructive"
@@ -180,7 +180,7 @@ export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <Link to={"/lightnovel/" + lightNovel.id}>
+            <Link to={`/lightnovel/${lightNovel.id}/${lightNovel.slug}`}>
               <DropdownMenuItem>View details</DropdownMenuItem>
             </Link>
           </DropdownMenuContent>

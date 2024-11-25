@@ -7,8 +7,8 @@ import {
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 type LightNovelEntity = {
-  id: string;
-  malId: number;
+  id: number;
+  slug: string;
   status: string;
   title: string;
   titleJapanese: string;
@@ -32,8 +32,8 @@ type LightNovelEntity = {
 };
 
 type LightNovelReview = {
-  id: string;
-  review?: string | null;
+  id: number;
+  reviewText?: string | null;
   storylineRating?: number | null;
   worldBuildingRating?: number | null;
   writingStyleRating?: number | null;
@@ -50,7 +50,6 @@ type LightNovelDetail = Omit<
   LightNovelEntity,
   "authors" | "genres" | "themes"
 > & {
-  id: string;
   authors: AuthorEntityPartial[];
   genres: GenreEntityPartial[];
   themes: ThemeEntityPartial[];
@@ -59,6 +58,7 @@ type LightNovelDetail = Omit<
 type LightNovelList = Pick<
   LightNovelEntity,
   | "id"
+  | "slug"
   | "title"
   | "titleJapanese"
   | "status"
@@ -68,15 +68,16 @@ type LightNovelList = Pick<
 > &
   Pick<
     LightNovelReview,
-    "progressStatus" | "personalScore" | "review" | "consumedAt"
+    "progressStatus" | "personalScore" | "reviewText" | "consumedAt"
   >;
 
 type LightNovelFilterSort = {
   sortBy: string;
   sortOrder: SORT_ORDER;
-  filterAuthor?: string;
-  filterGenre?: string;
-  filterTheme?: string;
+  filterAuthor?: number;
+  filterGenre?: number;
+  filterTheme?: number;
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS;
   filterMALScore?: string;
   filterPersonalScore?: string;
 };

@@ -15,7 +15,7 @@ type Props = {
 
 export default function AnimeCard({ anime }: Props) {
   return (
-    <Link href={`/anime/${anime.id}`}>
+    <Link href={`/anime/${anime.id}/${anime.slug}`}>
       <Card className="hover:drop-shadow-xl">
         <div className="relative">
           <div className="relative aspect-[3/4] overflow-hidden">

@@ -15,7 +15,7 @@ type Props = {
 
 export default function LightNovelCard({ lightNovel }: Props) {
   return (
-    <Link href={`/light-novel/${lightNovel.id}`}>
+    <Link href={`/light-novel/${lightNovel.id}/${lightNovel.slug}`}>
       <Card className="hover:drop-shadow-xl">
         <div className="relative">
           <div className="relative aspect-[3/4] overflow-hidden">

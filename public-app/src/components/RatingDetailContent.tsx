@@ -11,6 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import { scoreOptions } from "@/lib/constants";
+import { fixFloatingError } from "@/lib/utils";
 
 import { InfoIcon } from "lucide-react";
 
@@ -29,7 +30,9 @@ export default function RatingDetailContent({ details, finalScore }: Props) {
   const selectedFinalScoreLabel =
     finalScore !== null && finalScore !== undefined
       ? scoreOptions.find(
-          (option) => finalScore >= option.min && finalScore <= option.max
+          (option) =>
+            fixFloatingError(finalScore) >= option.min &&
+            fixFloatingError(finalScore) <= option.max
         )
       : null;
 
@@ -57,7 +60,7 @@ export default function RatingDetailContent({ details, finalScore }: Props) {
             <p>Final score:</p>
             <p className="text-left xl:text-right font-bold">
               {finalScore !== null && finalScore !== undefined
-                ? `${finalScore} - ${selectedFinalScoreLabel?.label}`
+                ? `${fixFloatingError(finalScore)} - ${selectedFinalScoreLabel?.label}`
                 : "N/A"}
             </p>
           </span>

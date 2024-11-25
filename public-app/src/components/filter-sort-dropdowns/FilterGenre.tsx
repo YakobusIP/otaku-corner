@@ -24,8 +24,8 @@ import {
 type Props = {
   genreList: GenreEntity[];
   isLoadingGenre: boolean;
-  filterGenre?: string;
-  handleFilterGenre: (key?: string) => void;
+  filterGenre?: number;
+  handleFilterGenre: (key?: number) => void;
 };
 
 export default function FilterGenre({
