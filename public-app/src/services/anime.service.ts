@@ -41,6 +41,7 @@ const fetchAllAnimeService = async (
     });
     return { success: true, data: response.data.data };
   } catch (error) {
+    console.error(error);
     return {
       success: false,
       error:
@@ -58,6 +59,7 @@ const fetchAnimeByIdService = async (
     const response = await axiosClient.get(`${BASE_ANIME_URL}/${id}`);
     return { success: true, data: response.data.data };
   } catch (error) {
+    console.error(error);
     return {
       success: false,
       error:

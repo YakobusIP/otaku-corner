@@ -15,6 +15,7 @@ const createEntityService = (baseUrl: string) => {
       const response = await axiosClient.get(baseUrl);
       return { success: true, data: response.data.data };
     } catch (error) {
+      console.error(error);
       return {
         success: false,
         error:
