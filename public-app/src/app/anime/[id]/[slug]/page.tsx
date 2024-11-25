@@ -34,7 +34,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 type Props = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: number; slug: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -350,7 +350,7 @@ export default async function Page({ params }: Props) {
       <section className="container space-y-2">
         <Separator className="mb-4" />
         <h3>My Review</h3>
-        {!reviewObject.review ? (
+        {!reviewObject.reviewText ? (
           <div className="flex flex-col items-center justify-center gap-2 xl:gap-4">
             <Image
               src="/no-review.gif"
@@ -364,7 +364,7 @@ export default async function Page({ params }: Props) {
             </p>
           </div>
         ) : (
-          <ReviewContent review={reviewObject.review} />
+          <ReviewContent review={reviewObject.reviewText} />
         )}
       </section>
       <div className="flex justify-center mt-12">

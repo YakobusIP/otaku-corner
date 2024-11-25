@@ -1,11 +1,4 @@
-import {
-  Suspense,
-  lazy,
-  useCallback,
-  useEffect,
-  useRef,
-  useState
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   deleteAnimeService,
@@ -33,7 +26,7 @@ import { mangaColumns } from "@/components/data-table/MangaTableColumns";
 import AnimeFilterSortSheet from "@/components/filter-sheets/AnimeFilterSortSheet";
 import LightNovelFilterSortSheet from "@/components/filter-sheets/LightNovelFilterSortSheet";
 import MangaFilterSortSheet from "@/components/filter-sheets/MangaFilterSortSheet";
-import MediaListNavbarSuspense from "@/components/navbars/MediaListNavbarSuspense";
+import MediaListNavbar from "@/components/navbars/MediaListNavbar";
 import { DropdownChecked } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 
@@ -57,9 +50,6 @@ import { useDebounce } from "use-debounce";
 const PAGINATION_SIZE = 5;
 
 export default function MediaList() {
-  const MediaListNavbar = lazy(
-    () => import("@/components/navbars/MediaListNavbar")
-  );
   const [mediaFilters, setMediaFilters] = useState<DropdownChecked[]>([
     true,
     true,
@@ -381,20 +371,18 @@ export default function MediaList() {
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <Suspense fallback={<MediaListNavbarSuspense />}>
-        <MediaListNavbar
-          mediaFilters={mediaFilters}
-          setMediaFilters={setMediaFilters}
-          setSearchMedia={setSearchMedia}
-          fetchAnimeList={fetchAnimeList}
-          fetchGenreList={fetchGenreList}
-          fetchStudioList={fetchStudioList}
-          fetchThemeList={fetchThemeList}
-          fetchMangaList={fetchMangaList}
-          fetchAuthorList={fetchAuthorList}
-          fetchLightNovelList={fetchLightNovelList}
-        />
-      </Suspense>
+      <MediaListNavbar
+        mediaFilters={mediaFilters}
+        setMediaFilters={setMediaFilters}
+        setSearchMedia={setSearchMedia}
+        fetchAnimeList={fetchAnimeList}
+        fetchGenreList={fetchGenreList}
+        fetchStudioList={fetchStudioList}
+        fetchThemeList={fetchThemeList}
+        fetchMangaList={fetchMangaList}
+        fetchAuthorList={fetchAuthorList}
+        fetchLightNovelList={fetchLightNovelList}
+      />
       <Separator />
       <main className="flex-1">
         <section className="pb-12 pt-8 md:py-16 xl:py-20">

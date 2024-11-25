@@ -14,9 +14,9 @@ const fetchAllAnimeService = async (
   query?: string,
   sortBy?: string,
   sortOrder?: SORT_ORDER,
-  filterGenre?: string,
-  filterStudio?: string,
-  filterTheme?: string,
+  filterGenre?: number,
+  filterStudio?: number,
+  filterTheme?: number,
   filterProgressStatus?: keyof typeof PROGRESS_STATUS,
   filterMALScore?: string,
   filterPersonalScore?: string,
@@ -52,7 +52,7 @@ const fetchAllAnimeService = async (
 };
 
 const fetchAnimeByIdService = async (
-  id: string
+  id: number
 ): Promise<ApiResponse<AnimeDetail>> => {
   try {
     const response = await axiosClient.get(`${BASE_ANIME_URL}/${id}`);

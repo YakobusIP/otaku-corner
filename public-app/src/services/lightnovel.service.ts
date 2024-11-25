@@ -14,9 +14,9 @@ const fetchAllLightNovelService = async (
   query?: string,
   sortBy?: string,
   sortOrder?: SORT_ORDER,
-  filterAuthor?: string,
-  filterGenre?: string,
-  filterTheme?: string,
+  filterAuthor?: number,
+  filterGenre?: number,
+  filterTheme?: number,
   filterProgressStatus?: keyof typeof PROGRESS_STATUS,
   filterMALScore?: string,
   filterPersonalScore?: string
@@ -50,7 +50,7 @@ const fetchAllLightNovelService = async (
 };
 
 const fetchLightNovelByIdService = async (
-  id: string
+  id: number
 ): Promise<ApiResponse<LightNovelDetail>> => {
   try {
     const response = await axiosClient.get(`${BASE_LIGHTNOVEL_URL}/${id}`);
