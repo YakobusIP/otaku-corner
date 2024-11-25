@@ -45,6 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching metadata anime:", response.error);
       redirect("/fetch-error");
     }
   };
@@ -65,6 +66,7 @@ export default async function Page({ params }: Props) {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching page anime:", response.error);
       redirect("/fetch-error");
     }
   };

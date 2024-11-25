@@ -37,6 +37,7 @@ export default async function Page() {
     if (response.success) {
       return [response.data.data, response.data.metadata];
     } else {
+      console.error("Error on fetching manga list:", response.error);
       redirect("/fetch-error");
     }
   };
@@ -46,6 +47,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching author list:", response.error);
       redirect("/fetch-error");
     }
   };
@@ -55,6 +57,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching genre list:", response.error);
       redirect("/fetch-error");
     }
   };
@@ -64,6 +67,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching theme list:", response.error);
       redirect("/fetch-error");
     }
   };

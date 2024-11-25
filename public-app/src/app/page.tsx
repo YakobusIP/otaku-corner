@@ -24,6 +24,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching home data:", response.error);
       redirect("/fetch-error");
     }
   };
