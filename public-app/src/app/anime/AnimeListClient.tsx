@@ -81,6 +81,7 @@ export default function AnimeListClient({
       animeFilterSort.filterGenre,
       animeFilterSort.filterStudio,
       animeFilterSort.filterTheme,
+      animeFilterSort.filterProgressStatus,
       animeFilterSort.filterMALScore,
       animeFilterSort.filterPersonalScore,
       animeFilterSort.filterType

@@ -21,10 +21,10 @@ type Props = {
 };
 
 export default function GlobalPagination({ metadata, page, setPage }: Props) {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (window === undefined) return;
+    if (typeof window === "undefined") return;
 
     const handleResize = () => {
       setIsMobile(window.innerWidth < 1024);

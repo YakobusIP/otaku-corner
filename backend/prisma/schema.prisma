@@ -30,29 +30,50 @@ enum QueueStatus {
 }
 
 model Anime {
-  id                    String         @id @default(uuid())
-  malId                 Int            @unique
-  type                  String
-  status                String
-  rating                String
-  season                String?
-  title                 String
-  titleJapanese         String
-  titleSynonyms         String
-  source                String
-  aired                 String
-  broadcast             String
-  episodesCount         Int?
-  duration              String
-  score                 Float?
-  images                Json
-  genres                AnimeGenres[]
-  studios               AnimeStudios[]
-  themes                AnimeThemes[]
-  synopsis              String
-  trailer               String?
-  malUrl                String
-  review                String?
+  id            Int      @id
+  slug          String   @unique
+  type          String
+  status        String
+  rating        String
+  season        String?
+  title         String
+  titleJapanese String
+  titleSynonyms String
+  source        String
+  aired         String
+  broadcast     String
+  episodesCount Int?
+  duration      String
+  score         Float?
+  images        Json
+  synopsis      String
+  trailer       String?
+  malUrl        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  genres   AnimeGenres[]
+  studios  AnimeStudios[]
+  themes   AnimeThemes[]
+  episodes AnimeEpisode[]
+  review   AnimeReview?
+}
+
+model AnimeEpisode {
+  id            Int     @id @default(autoincrement())
+  aired         String
+  number        Int
+  title         String
+  titleJapanese String?
+  titleRomaji   String?
+
+  anime   Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  animeId Int
+}
+
+model AnimeReview {
+  id                    Int            @id @default(autoincrement())
+  reviewText            String?
   storylineRating       Int?
   qualityRating         Int?
   voiceActingRating     Int?
@@ -60,42 +81,41 @@ model Anime {
   charDevelopmentRating Int?
   personalScore         Float?
   progressStatus        ProgressStatus @default(PLANNED)
-  reviewImages          ReviewImage[]  @relation("AnimeReviewImages")
-  episodes              AnimeEpisode[]
   consumedAt            DateTime?      @db.Date
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
-}
 
-model AnimeEpisode {
-  id            String  @id @default(uuid())
-  aired         String
-  number        Int
-  title         String
-  titleJapanese String?
-  titleRomaji   String?
-  anime         Anime   @relation(fields: [animeId], references: [id], onDelete: Cascade)
-  animeId       String
+  reviewImages ReviewImage[] @relation("AnimeReviewImages")
+  anime        Anime         @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  animeId      Int           @unique
 }
 
 model Manga {
-  id                    String         @id @default(uuid())
-  malId                 Int            @unique
-  status                String
-  title                 String
-  titleJapanese         String
-  titleSynonyms         String
-  published             String
-  chaptersCount         Int?
-  volumesCount          Int?
-  score                 Float?
-  images                Json
-  authors               MangaAuthors[]
-  genres                MangaGenres[]
-  themes                MangaThemes[]
-  synopsis              String
-  malUrl                String
-  review                String?
+  id            Int      @id
+  slug          String   @unique
+  status        String
+  title         String
+  titleJapanese String
+  titleSynonyms String
+  published     String
+  chaptersCount Int?
+  volumesCount  Int?
+  score         Float?
+  images        Json
+  synopsis      String
+  malUrl        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  authors MangaAuthors[]
+  genres  MangaGenres[]
+  themes  MangaThemes[]
+  review  MangaReview?
+}
+
+model MangaReview {
+  id                    Int            @id @default(autoincrement())
+  reviewText            String?
   storylineRating       Int?
   artStyleRating        Int?
   charDevelopmentRating Int?
@@ -103,44 +123,69 @@ model Manga {
   originalityRating     Int?
   personalScore         Float?
   progressStatus        ProgressStatus @default(PLANNED)
-  reviewImages          ReviewImage[]  @relation("MangaReviewImages")
   consumedAt            DateTime?      @db.Date
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
+
+  reviewImages ReviewImage[] @relation("MangaReviewImages")
+  manga        Manga         @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  mangaId      Int           @unique
 }
 
 model LightNovel {
-  id                    String              @id @default(uuid())
-  malId                 Int                 @unique
-  status                String
-  title                 String
-  titleJapanese         String
-  titleSynonyms         String
-  published             String
-  volumesCount          Int?
-  score                 Float?
-  images                Json
-  authors               LightNovelAuthors[]
-  genres                LightNovelGenres[]
-  themes                LightNovelThemes[]
-  synopsis              String
-  malUrl                String
-  review                String?
+  id            Int      @id
+  slug          String   @unique
+  status        String
+  title         String
+  titleJapanese String
+  titleSynonyms String
+  published     String
+  volumesCount  Int?
+  score         Float?
+  images        Json
+  synopsis      String
+  malUrl        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  authors        LightNovelAuthors[]
+  genres         LightNovelGenres[]
+  themes         LightNovelThemes[]
+  volumeProgress LightNovelVolumes[]
+  review         LightNovelReview?
+}
+
+model LightNovelReview {
+  id                    Int            @id @default(autoincrement())
+  reviewText            String?
   storylineRating       Int?
   worldBuildingRating   Int?
   writingStyleRating    Int?
   charDevelopmentRating Int?
   originalityRating     Int?
   personalScore         Float?
-  progressStatus        ProgressStatus      @default(PLANNED)
-  reviewImages          ReviewImage[]       @relation("LightNovelReviewImages")
-  consumedAt            DateTime?           @db.Date
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
+  progressStatus        ProgressStatus @default(PLANNED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reviewImages ReviewImage[] @relation("LightNovelReviewImages")
+  lightNovel   LightNovel    @relation(fields: [lightNovelId], references: [id], onDelete: Cascade)
+  lightNovelId Int           @unique
+}
+
+model LightNovelVolumes {
+  id           Int        @id @default(autoincrement())
+  volumeNumber Int
+  consumedAt   DateTime?  @db.Date
+  lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id], onDelete: Cascade)
+  lightNovelId Int
+
+  @@unique([volumeNumber, lightNovelId])
 }
 
 model Genre {
-  id          String             @id @default(uuid())
+  id          Int                @id @default(autoincrement())
   name        String             @unique @db.Citext
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
@@ -150,7 +195,7 @@ model Genre {
 }
 
 model Studio {
-  id        String         @id @default(uuid())
+  id        Int            @id @default(autoincrement())
   name      String         @unique @db.Citext
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
@@ -158,7 +203,7 @@ model Studio {
 }
 
 model Theme {
-  id          String             @id @default(uuid())
+  id          Int                @id @default(autoincrement())
   name        String             @unique @db.Citext
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
@@ -168,7 +213,7 @@ model Theme {
 }
 
 model Author {
-  id          String              @id @default(uuid())
+  id          Int                 @id @default(autoincrement())
   name        String              @unique @db.Citext
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
@@ -177,88 +222,88 @@ model Author {
 }
 
 model AnimeGenres {
-  anime   Anime  @relation(fields: [animeId], references: [id], onDelete: Cascade)
-  animeId String
-  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
-  genreId String
+  anime   Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  animeId Int
+  genre   Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  genreId Int
 
   @@id([animeId, genreId])
 }
 
 model MangaGenres {
-  manga   Manga  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-  mangaId String
-  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
-  genreId String
+  manga   Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  mangaId Int
+  genre   Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  genreId Int
 
   @@id([mangaId, genreId])
 }
 
 model LightNovelGenres {
   lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id], onDelete: Cascade)
-  lightNovelId String
+  lightNovelId Int
   genre        Genre      @relation(fields: [genreId], references: [id], onDelete: Cascade)
-  genreId      String
+  genreId      Int
 
   @@id([lightNovelId, genreId])
 }
 
 model AnimeStudios {
   anime    Anime  @relation(fields: [animeId], references: [id], onDelete: Cascade)
-  animeId  String
+  animeId  Int
   studio   Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
-  studioId String
+  studioId Int
 
   @@id([animeId, studioId])
 }
 
 model AnimeThemes {
-  anime   Anime  @relation(fields: [animeId], references: [id], onDelete: Cascade)
-  animeId String
-  theme   Theme  @relation(fields: [themeId], references: [id], onDelete: Cascade)
-  themeId String
+  anime   Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  animeId Int
+  theme   Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  themeId Int
 
   @@id([animeId, themeId])
 }
 
 model MangaThemes {
-  manga   Manga  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-  mangaId String
-  theme   Theme  @relation(fields: [themeId], references: [id], onDelete: Cascade)
-  themeId String
+  manga   Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  mangaId Int
+  theme   Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  themeId Int
 
   @@id([mangaId, themeId])
 }
 
 model LightNovelThemes {
   lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id], onDelete: Cascade)
-  lightNovelId String
+  lightNovelId Int
   theme        Theme      @relation(fields: [themeId], references: [id], onDelete: Cascade)
-  themeId      String
+  themeId      Int
 
   @@id([lightNovelId, themeId])
 }
 
 model MangaAuthors {
   manga    Manga  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-  mangaId  String
+  mangaId  Int
   author   Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  authorId String
+  authorId Int
 
   @@id([mangaId, authorId])
 }
 
 model LightNovelAuthors {
   lightNovel   LightNovel @relation(fields: [lightNovelId], references: [id], onDelete: Cascade)
-  lightNovelId String
+  lightNovelId Int
   author       Author     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  authorId     String
+  authorId     Int
 
   @@id([lightNovelId, authorId])
 }
 
 model AdminPin {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   pin1      String
   pin2      String
   createdAt DateTime @default(now())
@@ -270,18 +315,18 @@ model ReviewImage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  anime   Anime?  @relation("AnimeReviewImages", fields: [animeId], references: [id])
-  animeId String?
+  animeReview   AnimeReview? @relation("AnimeReviewImages", fields: [animeReviewId], references: [id], onDelete: Cascade)
+  animeReviewId Int?
 
-  manga   Manga?  @relation("MangaReviewImages", fields: [mangaId], references: [id])
-  mangaId String?
+  mangaReview   MangaReview? @relation("MangaReviewImages", fields: [mangaReviewId], references: [id], onDelete: Cascade)
+  mangaReviewId Int?
 
-  lightNovel   LightNovel? @relation("LightNovelReviewImages", fields: [lightNovelId], references: [id])
-  lightNovelId String?
+  lightNovelReview   LightNovelReview? @relation("LightNovelReviewImages", fields: [lightNovelReviewId], references: [id], onDelete: Cascade)
+  lightNovelReviewId Int?
 }
 
 model RequestLog {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   hostname  String
   ip        String?
   method    String
@@ -294,7 +339,7 @@ model RequestLog {
 }
 
 model ErrorLog {
-  id         String    @id @default(uuid())
+  id         Int       @id @default(autoincrement())
   message    String
   type       ErrorType
   statusCode Int?
@@ -304,7 +349,7 @@ model ErrorLog {
 }
 
 model QueueLog {
-  id          String      @id @default(uuid())
+  id          Int         @id @default(autoincrement())
   jobId       String      @unique
   queueName   String
   status      QueueStatus

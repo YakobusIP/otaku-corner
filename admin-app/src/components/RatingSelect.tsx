@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, Fragment, SetStateAction } from "react";
 
 import { Label } from "@/components/ui/label";
 import {
@@ -24,7 +24,7 @@ type Props = {
 
 export default function RatingSelect({ ratingFields }: Props) {
   return (
-    <>
+    <Fragment>
       {ratingFields.map((field) => (
         <div key={field.key} className="flex flex-col gap-2 w-full">
           <Label>{field.label}</Label>
@@ -51,6 +51,6 @@ export default function RatingSelect({ ratingFields }: Props) {
           </Select>
         </div>
       ))}
-    </>
+    </Fragment>
   );
 }

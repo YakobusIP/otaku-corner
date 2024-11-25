@@ -15,7 +15,7 @@ type Props = {
 
 export default function MangaCard({ manga }: Props) {
   return (
-    <Link href={`/manga/${manga.id}`}>
+    <Link href={`/manga/${manga.id}/${manga.slug}`}>
       <Card className="hover:drop-shadow-xl">
         <div className="relative">
           <div className="relative aspect-[3/4] overflow-hidden">

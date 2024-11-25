@@ -33,9 +33,7 @@ export default function LightNovelSmallCard({
   const [isDuplicate, setIsDuplicate] = useState(false);
 
   const checkLightNovelDuplicate = useCallback(async () => {
-    const response = await fetchLightNovelDuplicate(
-      lightNovel.mal_id.toString()
-    );
+    const response = await fetchLightNovelDuplicate(lightNovel.mal_id);
 
     if (response.success) {
       setIsDuplicate(response.data.exists);
@@ -88,8 +86,8 @@ export default function LightNovelSmallCard({
         className="w-16 h-24 rounded-md"
       />
       <div className="flex flex-col justify-center">
-        <p className="font-bold">{lightNovel.title}</p>
-        <p className="text-muted-foreground text-xs">
+        <p className="font-bold line-clamp-2">{lightNovel.title}</p>
+        <p className="text-muted-foreground text-xs line-clamp-1">
           {lightNovel.title_japanese}
         </p>
       </div>

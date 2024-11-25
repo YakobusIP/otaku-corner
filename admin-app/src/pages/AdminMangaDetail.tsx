@@ -24,7 +24,7 @@ export default function AdminMangaDetail() {
 
   const fetchMangaById = useCallback(async () => {
     setIsLoadingMangaDetail(true);
-    const response = await fetchMangaByIdService(mangaId as string);
+    const response = await fetchMangaByIdService(parseInt(mangaId as string));
     if (response.success) {
       setMangaDetail(response.data);
     } else {

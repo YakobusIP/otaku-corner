@@ -30,7 +30,7 @@ export default function MangaSmallCard({ manga, setSelectedManga }: Props) {
   const [isDuplicate, setIsDuplicate] = useState(false);
 
   const checkMangaDuplicate = useCallback(async () => {
-    const response = await fetchMangaDuplicate(manga.mal_id.toString());
+    const response = await fetchMangaDuplicate(manga.mal_id);
 
     if (response.success) {
       setIsDuplicate(response.data.exists);
@@ -83,8 +83,10 @@ export default function MangaSmallCard({ manga, setSelectedManga }: Props) {
         className="w-16 h-24 rounded-md"
       />
       <div className="flex flex-col justify-center">
-        <p className="font-bold">{manga.title}</p>
-        <p className="text-muted-foreground text-xs">{manga.title_japanese}</p>
+        <p className="font-bold line-clamp-2">{manga.title}</p>
+        <p className="text-muted-foreground text-xs line-clamp-1">
+          {manga.title_japanese}
+        </p>
       </div>
       {isDuplicate ? (
         <p className="absolute text-xs text-destructive bottom-2 right-2">

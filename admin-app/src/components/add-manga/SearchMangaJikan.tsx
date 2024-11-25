@@ -58,7 +58,7 @@ export default function SearchMangaJikan({
         type: "Manga"
       });
       setMangaList(response.data);
-    } catch (error) {
+    } catch {
       toastRef.current({
         variant: "destructive",
         title: "Uh oh! Something went wrong",

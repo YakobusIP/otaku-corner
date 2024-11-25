@@ -19,26 +19,18 @@ import {
   fetchAllMangaService
 } from "@/services/manga.service";
 
-import LogoutButton from "@/components/LogoutButton";
-import MediaFilter from "@/components/MediaFilter";
-import AddAnimeDialog from "@/components/add-anime/AddAnimeDialog";
-import AddLightNovelDialog from "@/components/add-lightnovel/AddLightNovelDialog";
-import AddMangaDialog from "@/components/add-manga/AddMangaDialog";
 import { animeColumns } from "@/components/data-table/AnimeTableColumns";
 import DataTable from "@/components/data-table/DataTable";
 import { lightNovelColumns } from "@/components/data-table/LightNovelTableColumns";
 import { mangaColumns } from "@/components/data-table/MangaTableColumns";
-import EntityManagement from "@/components/entity-management/EntityManagement";
-import AnimeFilterSortAccordion from "@/components/filter-accordions/AnimeFilterSortAccordion";
-import LightNovelFilterSortAccordion from "@/components/filter-accordions/LightNovelFilterSortAccordion";
-import MangaFilterSortAccordion from "@/components/filter-accordions/MangaFilterSortAccordion";
-import { Button } from "@/components/ui/button";
+import AnimeFilterSortSheet from "@/components/filter-sheets/AnimeFilterSortSheet";
+import LightNovelFilterSortSheet from "@/components/filter-sheets/LightNovelFilterSortSheet";
+import MangaFilterSortSheet from "@/components/filter-sheets/MangaFilterSortSheet";
+import MediaListNavbar from "@/components/navbars/MediaListNavbar";
 import { DropdownChecked } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
 import { useToast } from "@/hooks/useToast";
-import useWideScreen from "@/hooks/useWideScreen";
 
 import { AnimeFilterSort, AnimeList } from "@/types/anime.type";
 import { MetadataResponse } from "@/types/api.type";
@@ -53,8 +45,6 @@ import { MangaFilterSort, MangaList } from "@/types/manga.type";
 
 import { SORT_ORDER } from "@/lib/enums";
 
-import { ChartNoAxesCombinedIcon, GlobeIcon, SearchIcon } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useDebounce } from "use-debounce";
 
 const PAGINATION_SIZE = 5;
@@ -66,23 +56,17 @@ export default function MediaList() {
     true
   ]);
 
-  const [openAddAnimeDialog, setOpenAddAnimeDialog] = useState(false);
   const [addedAnimeList, setAddedAnimeList] = useState<AnimeList[]>([]);
   const [animeMetadata, setAnimeMetadata] = useState<MetadataResponse>();
 
-  const [openAddMangaDialog, setOpenAddMangaDialog] = useState(false);
   const [addedMangaList, setAddedMangaList] = useState<MangaList[]>([]);
   const [mangaMetadata, setMangaMetadata] = useState<MetadataResponse>();
 
-  const [openAddLightNovelDialog, setOpenAddLightNovelDialog] = useState(false);
   const [addedLightNovelList, setAddedLightNovelList] = useState<
     LightNovelList[]
   >([]);
   const [lightNovelMetadata, setLightNovelMetadata] =
     useState<MetadataResponse>();
-
-  const [openEntityManagementDialog, setOpenEntityManagementDialog] =
-    useState(false);
 
   const [genreList, setGenreList] = useState<GenreEntity[]>([]);
   const [studioList, setStudioList] = useState<StudioEntity[]>([]);
@@ -127,15 +111,8 @@ export default function MediaList() {
   const [debouncedSearch] = useDebounce(searchMedia, 1000);
 
   const toast = useToast();
-  const isWideScreen = useWideScreen();
 
   const toastRef = useRef(toast.toast);
-
-  const handleMediaFilters = (index: number, checked: DropdownChecked) => {
-    setMediaFilters((prevFilters) =>
-      prevFilters.map((state, i) => (i === index ? checked : state))
-    );
-  };
 
   const fetchAnimeList = useCallback(async () => {
     if (!mediaFilters[0]) return;
@@ -149,13 +126,19 @@ export default function MediaList() {
       animeFilterSort.filterGenre,
       animeFilterSort.filterStudio,
       animeFilterSort.filterTheme,
+      animeFilterSort.filterProgressStatus,
       animeFilterSort.filterMALScore,
       animeFilterSort.filterPersonalScore,
-      animeFilterSort.filterType
+      animeFilterSort.filterType,
+      animeFilterSort.filterStatusCheck
     );
     if (response.success) {
       setAddedAnimeList(response.data.data);
       setAnimeMetadata(response.data.metadata);
+
+      if (debouncedSearch) {
+        setAnimeListPage(1);
+      }
     } else {
       toastRef.current({
         variant: "destructive",
@@ -178,12 +161,18 @@ export default function MediaList() {
       mangaFilterSort.filterAuthor,
       mangaFilterSort.filterGenre,
       mangaFilterSort.filterTheme,
+      mangaFilterSort.filterProgressStatus,
       mangaFilterSort.filterMALScore,
-      mangaFilterSort.filterPersonalScore
+      mangaFilterSort.filterPersonalScore,
+      mangaFilterSort.filterStatusCheck
     );
     if (response.success) {
       setAddedMangaList(response.data.data);
       setMangaMetadata(response.data.metadata);
+
+      if (debouncedSearch) {
+        setMangaListPage(1);
+      }
     } else {
       toastRef.current({
         variant: "destructive",
@@ -206,12 +195,18 @@ export default function MediaList() {
       lightNovelFilterSort.filterAuthor,
       lightNovelFilterSort.filterGenre,
       lightNovelFilterSort.filterTheme,
+      lightNovelFilterSort.filterProgressStatus,
       lightNovelFilterSort.filterMALScore,
-      lightNovelFilterSort.filterPersonalScore
+      lightNovelFilterSort.filterPersonalScore,
+      lightNovelFilterSort.filterStatusCheck
     );
     if (response.success) {
       setAddedLightNovelList(response.data.data);
       setLightNovelMetadata(response.data.metadata);
+
+      if (debouncedSearch) {
+        setLightNovelListPage(1);
+      }
     } else {
       toastRef.current({
         variant: "destructive",
@@ -284,7 +279,7 @@ export default function MediaList() {
 
   const deleteAnime = async () => {
     setIsLoadingDeleteAnime(true);
-    const deletedIds = Object.keys(selectedAnimeRows);
+    const deletedIds = Object.keys(selectedAnimeRows).map((id) => parseInt(id));
     const response = await deleteAnimeService(deletedIds);
     if (response.success) {
       fetchAnimeList();
@@ -305,7 +300,7 @@ export default function MediaList() {
 
   const deleteManga = async () => {
     setIsLoadingDeleteManga(true);
-    const deletedIds = Object.keys(selectedMangaRows);
+    const deletedIds = Object.keys(selectedMangaRows).map((id) => parseInt(id));
     const response = await deleteMangaService(deletedIds);
     if (response.success) {
       fetchMangaList();
@@ -326,7 +321,9 @@ export default function MediaList() {
 
   const deleteLightNovel = async () => {
     setIsLoadingDeleteLightNovel(true);
-    const deletedIds = Object.keys(selectedLightNovelRows);
+    const deletedIds = Object.keys(selectedLightNovelRows).map((id) =>
+      parseInt(id)
+    );
     const response = await deleteLightNovelService(deletedIds);
     if (response.success) {
       fetchLightNovelList();
@@ -352,27 +349,6 @@ export default function MediaList() {
     await fetchAuthorList();
   }, [fetchGenreList, fetchStudioList, fetchThemeList, fetchAuthorList]);
 
-  const resetAnimeParent = useCallback(async () => {
-    await fetchAnimeList();
-    await fetchGenreList();
-    await fetchStudioList();
-    await fetchThemeList();
-  }, [fetchAnimeList, fetchGenreList, fetchStudioList, fetchThemeList]);
-
-  const resetMangaParent = useCallback(async () => {
-    await fetchMangaList();
-    await fetchAuthorList();
-    await fetchGenreList();
-    await fetchThemeList();
-  }, [fetchMangaList, fetchAuthorList, fetchGenreList, fetchThemeList]);
-
-  const resetLightNovelParent = useCallback(async () => {
-    await fetchLightNovelList();
-    await fetchAuthorList();
-    await fetchGenreList();
-    await fetchThemeList();
-  }, [fetchLightNovelList, fetchAuthorList, fetchGenreList, fetchThemeList]);
-
   useEffect(() => {
     if (mediaFilters[0]) fetchAnimeList();
   }, [mediaFilters, fetchAnimeList]);
@@ -395,66 +371,18 @@ export default function MediaList() {
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <header className="flex flex-col xl:flex-row items-center bg-background border-b">
-        <img src="/logo.png" className="w-32 mt-2 xl:mt-0 ml-0 xl:ml-2" />
-        <div className="flex items-center justify-between w-full p-3 xl:pl-2 xl:pr-4 xl:py-4">
-          <div className="flex flex-col xl:flex-row items-center w-full gap-4">
-            <div className="flex w-full xl:w-fit gap-2 xl:gap-4">
-              <Input
-                type="text"
-                placeholder="Search"
-                startIcon={SearchIcon}
-                parentClassName="w-full xl:w-fit"
-                className="w-full xl:w-[300px]"
-                onChange={(e) => setSearchMedia(e.target.value)}
-              />
-              <MediaFilter
-                mediaFilters={mediaFilters}
-                handleMediaFilters={handleMediaFilters}
-              />
-              {!isWideScreen && <LogoutButton />}
-            </div>
-            <AddAnimeDialog
-              openDialog={openAddAnimeDialog}
-              setOpenDialog={setOpenAddAnimeDialog}
-              resetParent={resetAnimeParent}
-            />
-            <AddMangaDialog
-              openDialog={openAddMangaDialog}
-              setOpenDialog={setOpenAddMangaDialog}
-              resetParent={resetMangaParent}
-            />
-            <AddLightNovelDialog
-              openDialog={openAddLightNovelDialog}
-              setOpenDialog={setOpenAddLightNovelDialog}
-              resetParent={resetLightNovelParent}
-            />
-            <EntityManagement
-              openDialog={openEntityManagementDialog}
-              setOpenDialog={setOpenEntityManagementDialog}
-              resetAuthor={fetchAuthorList}
-              resetGenre={fetchGenreList}
-              resetStudio={fetchStudioList}
-              resetTheme={fetchThemeList}
-            />
-            <Link to="/dashboard" className="w-full xl:w-fit">
-              <Button className="w-full">
-                <ChartNoAxesCombinedIcon className="w-4 h-4" /> Dashboard
-              </Button>
-            </Link>
-            <Link
-              to={import.meta.env.VITE_PUBLIC_APP}
-              className="w-full xl:w-fit"
-              target="_blank"
-            >
-              <Button className="w-full">
-                <GlobeIcon className="w-4 h-4" /> Public App
-              </Button>
-            </Link>
-          </div>
-          {isWideScreen && <LogoutButton />}
-        </div>
-      </header>
+      <MediaListNavbar
+        mediaFilters={mediaFilters}
+        setMediaFilters={setMediaFilters}
+        setSearchMedia={setSearchMedia}
+        fetchAnimeList={fetchAnimeList}
+        fetchGenreList={fetchGenreList}
+        fetchStudioList={fetchStudioList}
+        fetchThemeList={fetchThemeList}
+        fetchMangaList={fetchMangaList}
+        fetchAuthorList={fetchAuthorList}
+        fetchLightNovelList={fetchLightNovelList}
+      />
       <Separator />
       <main className="flex-1">
         <section className="pb-12 pt-8 md:py-16 xl:py-20">
@@ -473,7 +401,7 @@ export default function MediaList() {
                 setPage={setAnimeListPage}
                 metadata={animeMetadata}
                 filterSortComponent={
-                  <AnimeFilterSortAccordion
+                  <AnimeFilterSortSheet
                     animeFilterSort={animeFilterSort}
                     setAnimeFilterSort={setAnimeFilterSort}
                     genreList={genreList}
@@ -500,7 +428,7 @@ export default function MediaList() {
                 setPage={setMangaListPage}
                 metadata={mangaMetadata}
                 filterSortComponent={
-                  <MangaFilterSortAccordion
+                  <MangaFilterSortSheet
                     mangaFilterSort={mangaFilterSort}
                     setMangaFilterSort={setMangaFilterSort}
                     authorList={authorList}
@@ -527,7 +455,7 @@ export default function MediaList() {
                 setPage={setLightNovelListPage}
                 metadata={lightNovelMetadata}
                 filterSortComponent={
-                  <LightNovelFilterSortAccordion
+                  <LightNovelFilterSortSheet
                     lightNovelFilterSort={lightNovelFilterSort}
                     setLightNovelFilterSort={setLightNovelFilterSort}
                     authorList={authorList}

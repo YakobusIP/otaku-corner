@@ -1,3 +1,4 @@
+import EditChapterVolumes from "@/components/manga-detail/EditChapterVolumesModal";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
@@ -6,8 +7,6 @@ import { TabsContent } from "@/components/ui/tabs";
 import { MangaDetail } from "@/types/manga.type";
 
 import { ExternalLinkIcon, StarIcon } from "lucide-react";
-
-import EditChapterVolumes from "./EditChapterVolumes";
 
 type Props = {
   mangaDetail: MangaDetail;
@@ -20,9 +19,9 @@ export default function AboutTab({ mangaDetail, resetParent }: Props) {
       <div className="flex flex-col gap-4 pt-4">
         <h2>About</h2>
         <div className="flex flex-wrap items-center gap-2">
-          {mangaDetail.progressStatus && (
-            <ProgressStatusBadge progressStatus={mangaDetail.progressStatus} />
-          )}
+          <ProgressStatusBadge
+            progressStatus={mangaDetail.review.progressStatus}
+          />
         </div>
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           <div className="flex flex-col gap-1">

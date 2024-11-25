@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { LightNovelService } from "../services/lightnovel.service";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProgressStatus } from "@prisma/client";
 import { UnprocessableEntityError } from "../lib/error";
 
 export class LightNovelController {
@@ -22,11 +22,14 @@ export class LightNovelController {
       const query = req.query.q as string;
       const sortBy = req.query.sortBy as string;
       const sortOrder = req.query.sortOrder as Prisma.SortOrder;
-      const filterAuthor = req.query.filterAuthor as string;
-      const filterGenre = req.query.filterGenre as string;
-      const filterTheme = req.query.filterTheme as string;
+      const filterAuthor = parseInt(req.query.filterAuthor as string);
+      const filterGenre = parseInt(req.query.filterGenre as string);
+      const filterTheme = parseInt(req.query.filterTheme as string);
+      const filterProgressStatus = req.query
+        .filterProgressStatus as ProgressStatus;
       const filterMALScore = req.query.filterMALScore as string;
       const filterPersonalScore = req.query.filterPersonalScore as string;
+      const filterStatusCheck = req.query.filterStatusCheck as string;
       const lightNovels = await this.lightNovelService.getAllLightNovels(
         parseInt(currentPage),
         parseInt(limitPerPage),
@@ -36,8 +39,10 @@ export class LightNovelController {
         filterAuthor,
         filterGenre,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
-        filterPersonalScore
+        filterPersonalScore,
+        filterStatusCheck
       );
 
       return res.json({ data: lightNovels });
@@ -53,7 +58,7 @@ export class LightNovelController {
   ) => {
     try {
       const lightNovel = await this.lightNovelService.getLightNovelById(
-        req.params.id
+        parseInt(req.params.id)
       );
       return res.json({ data: lightNovel });
     } catch (error) {
@@ -97,8 +102,42 @@ export class LightNovelController {
     next: NextFunction
   ) => {
     try {
-      await this.lightNovelService.updateLightNovel(req.params.id, req.body);
+      await this.lightNovelService.updateLightNovel(
+        parseInt(req.params.id),
+        req.body
+      );
       return res.json({ message: "Light novel updated successfully!" });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  updateLightNovelReview = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await this.lightNovelService.updateLightNovelReview(
+        parseInt(req.params.id),
+        req.body
+      );
+      return res.json({ message: "Light novel review updated successfully!" });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  updateLightNovelVolumeProgress = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await this.lightNovelService.updateLightNovelVolumeProgress(
+        req.body.data
+      );
+      return res.json({ message: "Light novel volumes updated successfully!" });
     } catch (error) {
       return next(error);
     }
@@ -110,7 +149,7 @@ export class LightNovelController {
     next: NextFunction
   ) => {
     try {
-      await this.lightNovelService.deleteLightNovel(req.params.id);
+      await this.lightNovelService.deleteLightNovel(parseInt(req.params.id));
       return res.status(204).end();
     } catch (error) {
       return next(error);

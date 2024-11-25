@@ -10,8 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { env } from "../env";
 
 type FetchEpisodesJobData = {
-  anime_id: string;
-  mal_id: number;
+  id: number;
 };
 
 type JikanEpisode = {
@@ -46,7 +45,8 @@ export const fetchEpisodesQueue = new Queue<FetchEpisodesJobData>(
   {
     redis: {
       host: env.BULL_REDIS_IP,
-      port: env.BULL_REDIS_PORT
+      port: env.BULL_REDIS_PORT,
+      maxRetriesPerRequest: null
     },
     limiter: {
       max: 1,
@@ -68,7 +68,7 @@ const processFetchEpisodesQueue = async (job: Job<FetchEpisodesJobData>) => {
 
   try {
     const response = await axios.get<JikanResponse>(
-      `https://api.jikan.moe/v4/anime/${job.data.mal_id}/episodes`
+      `https://api.jikan.moe/v4/anime/${job.data.id}/episodes`
     );
 
     if (response.status === 200) {
@@ -84,7 +84,7 @@ const processFetchEpisodesQueue = async (job: Job<FetchEpisodesJobData>) => {
         title: episode.title,
         titleJapanese: episode.title_japanese,
         titleRomaji: episode.title_romanji,
-        animeId: job.data.anime_id
+        animeId: job.data.id
       }));
 
       await animeService.addAnimeEpisodes(episodesData);

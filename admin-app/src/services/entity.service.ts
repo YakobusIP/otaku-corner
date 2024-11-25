@@ -68,7 +68,7 @@ const createEntityService = (baseUrl: string) => {
   };
 
   const updateEntity = async (
-    id: string,
+    id: number,
     entity: string
   ): Promise<ApiResponse<MessageResponse>> => {
     try {
@@ -87,7 +87,7 @@ const createEntityService = (baseUrl: string) => {
     }
   };
 
-  const deleteEntity = async (ids: string[]): Promise<ApiResponse<void>> => {
+  const deleteEntity = async (ids: number[]): Promise<ApiResponse<void>> => {
     try {
       await interceptedAxios.delete(baseUrl, { data: { ids } });
       return { success: true, data: undefined };

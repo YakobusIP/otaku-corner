@@ -8,7 +8,7 @@ export class UploadController {
 
   uploadImage = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { type, entityId } = req.body;
+      const { type, reviewId } = req.body;
 
       if (!Object.values(MEDIA_TYPE).includes(type)) {
         throw new BadRequestError("Invalid type specified!");
@@ -21,7 +21,7 @@ export class UploadController {
       const { id, url } = await this.uploadService.uploadImage(
         req.file,
         type,
-        entityId
+        parseInt(reviewId)
       );
 
       return res.status(200).json({ data: { id, url } });

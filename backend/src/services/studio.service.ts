@@ -135,7 +135,37 @@ export class StudioService {
     }
   }
 
-  async updateStudio(id: string, data: Prisma.StudioUpdateInput) {
+  async getOrCreateStudios(names: string[]) {
+    try {
+      const normalizedNames = names.map((name) => name.trim());
+
+      const existingStudios = await prisma.studio.findMany({
+        where: { name: { in: normalizedNames } }
+      });
+
+      const existingNameSet = new Set(existingStudios.map((a) => a.name));
+
+      const newStudioNames = normalizedNames.filter(
+        (name) => !existingNameSet.has(name)
+      );
+
+      let newStudios: Studio[] = [];
+      if (newStudioNames.length > 0) {
+        newStudios = await prisma.studio.createManyAndReturn({
+          data: newStudioNames.map((name) => ({ name })),
+          skipDuplicates: true
+        });
+      }
+
+      const allStudios = [...existingStudios, ...newStudios];
+
+      return allStudios;
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
+  async updateStudio(id: number, data: Prisma.StudioUpdateInput) {
     try {
       return await prisma.studio.update({ where: { id }, data });
     } catch (error) {
@@ -154,7 +184,7 @@ export class StudioService {
     }
   }
 
-  async deleteStudio(id: string) {
+  async deleteStudio(id: number) {
     try {
       return await prisma.studio.delete({ where: { id } });
     } catch (error) {
@@ -169,7 +199,7 @@ export class StudioService {
     }
   }
 
-  async deleteMultipleStudios(ids: string[]) {
+  async deleteMultipleStudios(ids: number[]) {
     try {
       return await prisma.studio.deleteMany({ where: { id: { in: ids } } });
     } catch (error) {

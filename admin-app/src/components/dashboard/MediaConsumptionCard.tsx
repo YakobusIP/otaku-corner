@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import {
   fetchMediaConsumptionService,
@@ -145,12 +145,12 @@ export default function MediaConsumptionCard() {
               >
                 <SelectTrigger className="w-[150px]">
                   {isLoadingYearRange ? (
-                    <>
+                    <Fragment>
                       <div className="flex items-center justify-center gap-2">
                         <Loader2Icon className="w-4 h-4 animate-spin" />
                         Loading...
                       </div>
-                    </>
+                    </Fragment>
                   ) : (
                     <SelectValue />
                   )}

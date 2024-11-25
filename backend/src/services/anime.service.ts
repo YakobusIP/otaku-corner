@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Anime, Prisma, ProgressStatus } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { GenreService } from "./genre.service";
 import { StudioService } from "./studio.service";
@@ -9,6 +9,7 @@ import {
   NotFoundError,
   PrismaUniqueError
 } from "../lib/error";
+import { chunkArray } from "../lib/utils";
 
 type CustomAnimeCreateInput = Omit<
   Prisma.AnimeCreateInput,
@@ -41,7 +42,7 @@ export class AnimeService {
     private readonly themeService: ThemeService
   ) {}
 
-  private calculatePersonalScore(data: Prisma.AnimeUpdateInput) {
+  private calculatePersonalScore(data: Prisma.AnimeReviewUpdateInput) {
     const {
       storylineRating,
       qualityRating,
@@ -80,12 +81,14 @@ export class AnimeService {
     query?: string,
     sortBy?: string,
     sortOrder?: Prisma.SortOrder,
-    filterGenre?: string,
-    filterStudio?: string,
-    filterTheme?: string,
+    filterGenre?: number,
+    filterStudio?: number,
+    filterTheme?: number,
+    filterProgressStatus?: ProgressStatus,
     filterMALScore?: string,
     filterPersonalScore?: string,
-    filterType?: string
+    filterType?: string,
+    filterStatusCheck?: string
   ) {
     try {
       const lowerCaseQuery = query && query.toLowerCase();
@@ -123,6 +126,15 @@ export class AnimeService {
           ...(filterTheme
             ? [{ themes: { some: { themeId: filterTheme } } }]
             : []),
+          ...(filterProgressStatus
+            ? [
+                {
+                  review: {
+                    progressStatus: filterProgressStatus
+                  }
+                }
+              ]
+            : []),
           ...(filterMALScore
             ? [
                 {
@@ -136,14 +148,52 @@ export class AnimeService {
           ...(filterPersonalScore
             ? [
                 {
-                  personalScore: {
-                    gte: scoreRanges[filterPersonalScore].min,
-                    lte: scoreRanges[filterPersonalScore].max
+                  review: {
+                    personalScore: {
+                      gte: scoreRanges[filterPersonalScore].min,
+                      lte: scoreRanges[filterPersonalScore].max
+                    }
                   }
                 }
               ]
             : []),
-          ...(filterType ? [{ type: { equals: filterType } }] : [])
+          ...(filterType ? [{ type: { equals: filterType } }] : []),
+          ...(filterStatusCheck === "complete"
+            ? [
+                {
+                  AND: [
+                    {
+                      OR: [
+                        { type: { in: ["Movie", "OVA"] } },
+                        {
+                          AND: [
+                            { type: { notIn: ["Movie", "OVA"] } },
+                            { episodes: { some: {} } }
+                          ]
+                        }
+                      ]
+                    },
+                    { review: { reviewText: { not: null } } },
+                    { review: { consumedAt: { not: null } } }
+                  ]
+                }
+              ]
+            : filterStatusCheck === "incomplete"
+              ? [
+                  {
+                    OR: [
+                      {
+                        AND: [
+                          { type: { notIn: ["Movie", "OVA"] } },
+                          { episodes: { none: {} } }
+                        ]
+                      },
+                      { review: { reviewText: null } },
+                      { review: { consumedAt: null } }
+                    ]
+                  }
+                ]
+              : [])
         ]
       };
 
@@ -157,6 +207,7 @@ export class AnimeService {
         where: filterCriteria,
         select: {
           id: true,
+          slug: true,
           title: true,
           titleJapanese: true,
           images: true,
@@ -164,19 +215,54 @@ export class AnimeService {
           type: true,
           score: true,
           rating: true,
-          progressStatus: true,
-          personalScore: true
+          review: {
+            select: {
+              reviewText: true,
+              progressStatus: true,
+              personalScore: true,
+              consumedAt: true
+            }
+          },
+          _count: {
+            select: {
+              episodes: true
+            }
+          }
         },
         orderBy: {
           title: sortBy === "title" ? sortOrder : undefined,
-          score: sortBy === "score" ? sortOrder : undefined
+          score: sortBy === "score" ? sortOrder : undefined,
+          ...(sortBy === "personal_score"
+            ? {
+                review: {
+                  personalScore: { sort: sortOrder!, nulls: "last" }
+                }
+              }
+            : {})
         },
         take: limitPerPage,
         skip: (currentPage - 1) * limitPerPage
       });
 
+      const mappedData = data.map((row) => ({
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        titleJapanese: row.titleJapanese,
+        images: row.images,
+        status: row.status,
+        type: row.type,
+        score: row.score,
+        rating: row.rating,
+        reviewText: row.review?.reviewText,
+        progressStatus: row.review?.progressStatus,
+        personalScore: row.review?.personalScore,
+        consumedAt: row.review?.consumedAt,
+        fetchedEpisode: row._count.episodes
+      }));
+
       return {
-        data,
+        data: mappedData,
         metadata: {
           currentPage,
           limitPerPage,
@@ -193,11 +279,12 @@ export class AnimeService {
     }
   }
 
-  async getAnimeById(id: string) {
+  async getAnimeById(id: number) {
     try {
       const anime = await prisma.anime.findUnique({
         where: { id },
         include: {
+          review: true,
           genres: { select: { genre: { select: { id: true, name: true } } } },
           studios: { select: { studio: { select: { id: true, name: true } } } },
           themes: { select: { theme: { select: { id: true, name: true } } } },
@@ -237,7 +324,7 @@ export class AnimeService {
   async getAnimeDuplicate(id: number) {
     try {
       const anime = await prisma.anime.findUnique({
-        where: { malId: id }
+        where: { id }
       });
 
       return !!anime;
@@ -248,116 +335,74 @@ export class AnimeService {
 
   async createAnimeBulk(data: CustomAnimeCreateInput[]) {
     try {
-      const createdAnimes = await prisma.$transaction(async (prisma) => {
-        const allGenres = Array.from(
-          new Set(data.flatMap((anime) => anime.genres.map((g) => g.trim())))
-        );
-        const allStudios = Array.from(
-          new Set(data.flatMap((anime) => anime.studios.map((s) => s.trim())))
-        );
-        const allThemes = Array.from(
-          new Set(data.flatMap((anime) => anime.themes.map((t) => t.trim())))
-        );
+      // Extract unique genres, studios, themes
+      const allGenres = [
+        ...new Set(data.flatMap((ln) => ln.genres.map((name) => name.trim())))
+      ];
+      const allStudios = [
+        ...new Set(data.flatMap((ln) => ln.studios.map((name) => name.trim())))
+      ];
+      const allThemes = [
+        ...new Set(data.flatMap((ln) => ln.themes.map((name) => name.trim())))
+      ];
 
-        const [genres, studios, themes] = await Promise.all([
-          Promise.all(
-            allGenres.map((name) => this.genreService.getOrCreateGenre(name))
-          ),
-          Promise.all(
-            allStudios.map((name) => this.studioService.getOrCreateStudio(name))
-          ),
-          Promise.all(
-            allThemes.map((name) => this.themeService.getOrCreateTheme(name))
-          )
-        ]);
+      // Get or create genres, studios, themes
+      const [genres, studios, themes] = await Promise.all([
+        this.genreService.getOrCreateGenres(allGenres),
+        this.studioService.getOrCreateStudios(allStudios),
+        this.themeService.getOrCreateThemes(allThemes)
+      ]);
 
-        const genreMap: Record<string, string> = {};
-        genres.forEach((genre) => {
-          genreMap[genre.name.toLowerCase()] = genre.id;
-        });
-
-        const studioMap: Record<string, string> = {};
-        studios.forEach((studio) => {
-          studioMap[studio.name.toLowerCase()] = studio.id;
-        });
-
-        const themeMap: Record<string, string> = {};
-        themes.forEach((theme) => {
-          themeMap[theme.name.toLowerCase()] = theme.id;
-        });
-
-        const createdAnimes = await prisma.anime.createManyAndReturn({
-          data: data.map(
-            ({
-              genres: _genres,
-              studios: _studios,
-              themes: _themes,
-              ...anime
-            }) => ({
-              ...anime
-            })
-          ),
-          skipDuplicates: true
-        });
-
-        const animeGenresData: Prisma.AnimeGenresCreateManyInput[] = [];
-        const animeStudiosData: Prisma.AnimeStudiosCreateManyInput[] = [];
-        const animeThemesData: Prisma.AnimeThemesCreateManyInput[] = [];
-
-        createdAnimes.forEach((record) => {
-          const originalAnime = data.find((a) => a.malId === record.malId);
-          if (originalAnime) {
-            originalAnime.genres.forEach((name) => {
-              const genreId = genreMap[name.toLowerCase()];
-              if (genreId) {
-                animeGenresData.push({
-                  animeId: record.id,
-                  genreId
-                });
-              }
-            });
-
-            originalAnime.studios.forEach((name) => {
-              const studioId = studioMap[name.toLowerCase()];
-              if (studioId) {
-                animeStudiosData.push({
-                  animeId: record.id,
-                  studioId
-                });
-              }
-            });
-
-            originalAnime.themes.forEach((name) => {
-              const themeId = themeMap[name.toLowerCase()];
-              if (themeId) {
-                animeThemesData.push({
-                  animeId: record.id,
-                  themeId
-                });
-              }
-            });
-          }
-        });
-
-        await Promise.all([
-          prisma.animeGenres.createMany({
-            data: animeGenresData,
-            skipDuplicates: true
-          }),
-          prisma.animeStudios.createMany({
-            data: animeStudiosData,
-            skipDuplicates: true
-          }),
-          prisma.animeThemes.createMany({
-            data: animeThemesData,
-            skipDuplicates: true
-          })
-        ]);
-
-        return createdAnimes;
+      // Create maps for quick ID lookup
+      const genreMap = new Map<string, number>();
+      genres.forEach((genre) => {
+        genreMap.set(genre.name.toLowerCase(), genre.id);
+      });
+      const studioMap = new Map<string, number>();
+      studios.forEach((studio) => {
+        studioMap.set(studio.name.toLowerCase(), studio.id);
+      });
+      const themeMap = new Map<string, number>();
+      themes.forEach((theme) => {
+        themeMap.set(theme.name.toLowerCase(), theme.id);
       });
 
-      return createdAnimes;
+      const dataBatches = chunkArray(data, 5);
+      const createdAnimeRecords: Anime[] = [];
+
+      for (const batch of dataBatches) {
+        await prisma.$transaction(async (tx) => {
+          const createAnimePromises = batch.map((anime) => {
+            const genresCreate = anime.genres.map((name) => ({
+              genreId: genreMap.get(name.trim().toLowerCase())!
+            }));
+
+            const studiosCreate = anime.studios.map((name) => ({
+              studioId: studioMap.get(name.trim().toLowerCase())!
+            }));
+
+            const themesCreate = anime.themes.map((name) => ({
+              themeId: themeMap.get(name.trim().toLowerCase())!
+            }));
+
+            return tx.anime.create({
+              data: {
+                ...anime,
+                genres: { createMany: { data: genresCreate } },
+                studios: { createMany: { data: studiosCreate } },
+                themes: { createMany: { data: themesCreate } },
+                review: { create: {} },
+                episodes: {}
+              }
+            });
+          });
+
+          const result = await Promise.all(createAnimePromises);
+          createdAnimeRecords.push(...result);
+        });
+      }
+
+      return createdAnimeRecords;
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -385,11 +430,9 @@ export class AnimeService {
     }
   }
 
-  async updateAnime(id: string, data: Prisma.AnimeUpdateInput) {
+  async updateAnime(id: number, data: Prisma.AnimeUpdateInput) {
     try {
-      const animeData = { ...data };
-      animeData.personalScore = this.calculatePersonalScore(animeData);
-      return await prisma.anime.update({ where: { id }, data: animeData });
+      return await prisma.anime.update({ where: { id }, data });
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -406,7 +449,36 @@ export class AnimeService {
     }
   }
 
-  async deleteAnime(id: string) {
+  async updateAnimeReview(id: number, data: Prisma.AnimeReviewUpdateInput) {
+    try {
+      return await prisma.anime.update({
+        where: { id },
+        data: {
+          review: {
+            update: {
+              ...data,
+              personalScore: this.calculatePersonalScore(data)
+            }
+          }
+        }
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        throw new NotFoundError("Anime not found!");
+      }
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestError("Invalid request body!");
+      }
+
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
+  async deleteAnime(id: number) {
     try {
       return await prisma.anime.delete({ where: { id } });
     } catch (error) {
@@ -421,7 +493,7 @@ export class AnimeService {
     }
   }
 
-  async deleteMultipleAnimes(ids: string[]) {
+  async deleteMultipleAnimes(ids: number[]) {
     try {
       return await prisma.anime.deleteMany({ where: { id: { in: ids } } });
     } catch (error) {

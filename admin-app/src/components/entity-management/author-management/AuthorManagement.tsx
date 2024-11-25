@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { authorService } from "@/services/entity.service";
 
 import DataTable from "@/components/data-table/DataTable";
+import AddEntityDialog from "@/components/entity-management/AddEntityDialog";
 import { authorColumns } from "@/components/entity-management/author-management/AuthorTableColumns";
 import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
@@ -14,8 +15,6 @@ import { AuthorWithMediaCount } from "@/types/entity.type";
 
 import { SearchIcon } from "lucide-react";
 import { useDebounce } from "use-debounce";
-
-import AddEntityDialog from "../AddEntityDialog";
 
 type Props = {
   resetParent: () => Promise<void>;
@@ -80,7 +79,7 @@ export default function AuthorManagement({ resetParent }: Props) {
     setIsLoadingAddAuthor(false);
   };
 
-  const editAuthor = async (id: string, name: string) => {
+  const editAuthor = async (id: number, name: string) => {
     setIsLoadingEditAuthor(true);
     const response = await authorService.updateEntity(id, name);
     if (response.success) {
@@ -102,7 +101,9 @@ export default function AuthorManagement({ resetParent }: Props) {
 
   const deleteAuthor = async () => {
     setIsLoadingDeleteAuthor(true);
-    const deletedIds = Object.keys(selectedAuthorRows);
+    const deletedIds = Object.keys(selectedAuthorRows).map((id) =>
+      parseInt(id)
+    );
     const response = await authorService.deleteEntity(deletedIds);
     if (response.success) {
       fetchAuthorList();

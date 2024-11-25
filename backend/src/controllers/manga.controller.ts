@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { MangaService } from "../services/manga.service";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProgressStatus } from "@prisma/client";
 import { UnprocessableEntityError } from "../lib/error";
 import { fetchMangaDataQueue } from "../lib/queues/manga.queue";
 
@@ -19,11 +19,14 @@ export class MangaController {
       const query = req.query.q as string;
       const sortBy = req.query.sortBy as string;
       const sortOrder = req.query.sortOrder as Prisma.SortOrder;
-      const filterAuthor = req.query.filterAuthor as string;
-      const filterGenre = req.query.filterGenre as string;
-      const filterTheme = req.query.filterTheme as string;
+      const filterAuthor = parseInt(req.query.filterAuthor as string);
+      const filterGenre = parseInt(req.query.filterGenre as string);
+      const filterTheme = parseInt(req.query.filterTheme as string);
+      const filterProgressStatus = req.query
+        .filterProgressStatus as ProgressStatus;
       const filterMALScore = req.query.filterMALScore as string;
       const filterPersonalScore = req.query.filterPersonalScore as string;
+      const filterStatusCheck = req.query.filterStatusCheck as string;
       const mangas = await this.mangaService.getAllMangas(
         parseInt(currentPage),
         parseInt(limitPerPage),
@@ -33,8 +36,10 @@ export class MangaController {
         filterAuthor,
         filterGenre,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
-        filterPersonalScore
+        filterPersonalScore,
+        filterStatusCheck
       );
 
       return res.json({ data: mangas });
@@ -45,7 +50,9 @@ export class MangaController {
 
   getMangaById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const manga = await this.mangaService.getMangaById(req.params.id);
+      const manga = await this.mangaService.getMangaById(
+        parseInt(req.params.id)
+      );
       return res.json({ data: manga });
     } catch (error) {
       return next(error);
@@ -75,7 +82,7 @@ export class MangaController {
       mangaList.forEach((manga) => {
         if (manga.status !== "Upcoming") {
           fetchMangaDataQueue.add({
-            manga_id: manga.id,
+            id: manga.id,
             title: manga.title,
             titleJapanese: manga.titleJapanese
           });
@@ -88,8 +95,24 @@ export class MangaController {
 
   updateManga = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.mangaService.updateManga(req.params.id, req.body);
+      await this.mangaService.updateManga(parseInt(req.params.id), req.body);
       return res.json({ message: "Manga updated successfully!" });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  updateMangaReview = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await this.mangaService.updateMangaReview(
+        parseInt(req.params.id),
+        req.body
+      );
+      return res.json({ message: "Manga review updated successfully!" });
     } catch (error) {
       return next(error);
     }
@@ -97,7 +120,7 @@ export class MangaController {
 
   deleteManga = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.mangaService.deleteManga(req.params.id);
+      await this.mangaService.deleteManga(parseInt(req.params.id));
       return res.status(204).end();
     } catch (error) {
       return next(error);

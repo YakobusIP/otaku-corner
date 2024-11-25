@@ -1,8 +1,0 @@
--- AlterTable
-ALTER TABLE "Anime" ALTER COLUMN "personalScore" SET DATA TYPE DOUBLE PRECISION;
-
--- AlterTable
-ALTER TABLE "LightNovel" ALTER COLUMN "personalScore" SET DATA TYPE DOUBLE PRECISION;
-
--- AlterTable
-ALTER TABLE "Manga" ALTER COLUMN "personalScore" SET DATA TYPE DOUBLE PRECISION;

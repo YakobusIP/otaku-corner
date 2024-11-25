@@ -15,11 +15,15 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useToast } from "@/hooks/useToast";
+import useWideScreen from "@/hooks/useWideScreen";
+
+import { generateSlug } from "@/lib/utils";
 
 import { Manga } from "@tutkli/jikan-ts";
-import { Loader2Icon, PlusIcon } from "lucide-react";
+import { BookIcon, Loader2Icon } from "lucide-react";
 
 type Props = {
   openDialog: boolean;
@@ -32,63 +36,81 @@ export default function AddLightNovelDialog({
   setOpenDialog,
   resetParent
 }: Props) {
+  const toast = useToast();
+  const isWideScreen = useWideScreen();
+
   const [selectedLightNovel, setSelectedLightNovel] = useState<Manga[]>([]);
   const [isLoadingAddLightNovel, setIsLoadingAddLightNovel] = useState(false);
 
-  const toast = useToast();
-
   const addLightNovel = async () => {
     setIsLoadingAddLightNovel(true);
-    const data = selectedLightNovel.map((lightNovel) => ({
-      malId: lightNovel.mal_id,
-      status: lightNovel.status,
-      title: lightNovel.title,
-      titleJapanese: lightNovel.title_japanese,
-      titleSynonyms: lightNovel.title_synonyms
-        ? lightNovel.title_synonyms
-            .map((synonym) => synonym.toLowerCase())
-            .join(" ")
-        : "",
-      published:
-        lightNovel.status === "Upcoming"
-          ? lightNovel.status
-          : `${new Date(lightNovel.published.from).toLocaleDateString("en-US", {
-              day: "numeric",
-              month: "short",
-              year: "numeric"
-            })} to ${
-              lightNovel.published.to
-                ? new Date(lightNovel.published.to).toLocaleDateString(
-                    "en-US",
-                    {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric"
-                    }
-                  )
-                : "?"
-            }`,
-      volumesCount: lightNovel.volumes,
-      score: lightNovel.score,
-      images: {
-        image_url: lightNovel.images.webp
-          ? lightNovel.images.webp.image_url
-          : lightNovel.images.jpg.image_url,
-        large_image_url: lightNovel.images.webp
-          ? lightNovel.images.webp.large_image_url
-          : lightNovel.images.jpg.large_image_url,
-        small_image_url: lightNovel.images.webp
-          ? lightNovel.images.webp.small_image_url
-          : lightNovel.images.jpg.small_image_url
-      },
-      authors: lightNovel.authors.map((author) => author.name),
-      genres: lightNovel.genres.map((genre) => genre.name),
-      themes: lightNovel.themes.map((theme) => theme.name),
-      synopsis: lightNovel.synopsis
-        ? lightNovel.synopsis
-        : "No synopsis available",
-      malUrl: lightNovel.url
-    }));
+    const slugCounts: Record<string, number> = {};
+
+    const data = selectedLightNovel.map((lightNovel) => {
+      let slug = generateSlug(lightNovel.title);
+
+      if (slugCounts[slug]) {
+        slugCounts[slug] += 1;
+        slug = `${slug}-${slugCounts[slug]}`;
+      } else {
+        slugCounts[slug] = 1;
+      }
+
+      return {
+        id: lightNovel.mal_id,
+        slug,
+        status: lightNovel.status,
+        title: lightNovel.title,
+        titleJapanese: lightNovel.title_japanese,
+        titleSynonyms: lightNovel.title_synonyms
+          ? lightNovel.title_synonyms
+              .map((synonym) => synonym.toLowerCase())
+              .join(" ")
+          : "",
+        published:
+          lightNovel.status === "Upcoming"
+            ? lightNovel.status
+            : `${new Date(lightNovel.published.from).toLocaleDateString(
+                "en-US",
+                {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric"
+                }
+              )} to ${
+                lightNovel.published.to
+                  ? new Date(lightNovel.published.to).toLocaleDateString(
+                      "en-US",
+                      {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric"
+                      }
+                    )
+                  : "?"
+              }`,
+        volumesCount: lightNovel.volumes,
+        score: lightNovel.score,
+        images: {
+          image_url: lightNovel.images.webp
+            ? lightNovel.images.webp.image_url
+            : lightNovel.images.jpg.image_url,
+          large_image_url: lightNovel.images.webp
+            ? lightNovel.images.webp.large_image_url
+            : lightNovel.images.jpg.large_image_url,
+          small_image_url: lightNovel.images.webp
+            ? lightNovel.images.webp.small_image_url
+            : lightNovel.images.jpg.small_image_url
+        },
+        authors: lightNovel.authors.map((author) => author.name),
+        genres: lightNovel.genres.map((genre) => genre.name),
+        themes: lightNovel.themes.map((theme) => theme.name),
+        synopsis: lightNovel.synopsis
+          ? lightNovel.synopsis
+          : "No synopsis available",
+        malUrl: lightNovel.url
+      };
+    });
 
     const response = await addLightNovelService(data);
     if (response.success) {
@@ -113,8 +135,11 @@ export default function AddLightNovelDialog({
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button className="w-full xl:w-fit">
-          <PlusIcon className="w-4 h-4" />
+        <Button
+          className="w-full xl:w-fit"
+          variant={isWideScreen ? "default" : "outline"}
+        >
+          <BookIcon className="w-4 h-4" />
           Add Light Novel
         </Button>
       </DialogTrigger>
@@ -132,16 +157,18 @@ export default function AddLightNovelDialog({
             setSelectedLightNovel={setSelectedLightNovel}
           />
         </div>
-        <div className="flex flex-wrap w-full gap-4 items-center">
-          {selectedLightNovel.map((lightNovel) => {
-            return (
-              <LightNovelSmallCard
-                lightNovel={lightNovel}
-                setSelectedLightNovel={setSelectedLightNovel}
-              />
-            );
-          })}
-        </div>
+        <ScrollArea className="max-h-96">
+          <div className="flex flex-wrap w-full gap-4 items-center">
+            {selectedLightNovel.map((lightNovel) => {
+              return (
+                <LightNovelSmallCard
+                  lightNovel={lightNovel}
+                  setSelectedLightNovel={setSelectedLightNovel}
+                />
+              );
+            })}
+          </div>
+        </ScrollArea>
         {selectedLightNovel.length > 0 && (
           <Button onClick={addLightNovel}>
             {isLoadingAddLightNovel && (

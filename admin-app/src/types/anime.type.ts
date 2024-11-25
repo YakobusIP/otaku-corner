@@ -7,8 +7,8 @@ import {
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 type AnimeEntity = {
-  id: string;
-  malId: number;
+  id: number;
+  slug: string;
   type: string;
   status: string;
   rating: string;
@@ -34,13 +34,20 @@ type AnimeEntity = {
   synopsis: string;
   trailer?: string | null;
   malUrl: string;
-  review?: string | null;
+  review: AnimeReview;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type AnimeReview = {
+  id: number;
+  reviewText?: string | null;
   storylineRating?: number | null;
   qualityRating?: number | null;
   voiceActingRating?: number | null;
   soundTrackRating?: number | null;
   charDevelopmentRating?: number | null;
-  progressStatus?: PROGRESS_STATUS;
+  progressStatus: PROGRESS_STATUS;
   personalScore?: number | null;
   consumedAt?: Date | null;
   createdAt: Date;
@@ -48,7 +55,7 @@ type AnimeEntity = {
 };
 
 type AnimeCreateRequest = {
-  malId: number;
+  id: number;
   type: string;
   status: string;
   rating: string;
@@ -76,31 +83,32 @@ type AnimeCreateRequest = {
 };
 
 type AnimeDetail = Omit<AnimeEntity, "genres" | "studios" | "themes"> & {
-  id: string;
   genres: GenreEntityPartial[];
   studios: StudioEntityPartial[];
   themes: ThemeEntityPartial[];
 };
 
-type AnimeList = {
-  id: string;
-  title: string;
-  titleJapanese: string;
-  type: string;
-  status: string;
-  images: {
-    image_url: string;
-    large_image_url?: string | null;
-    small_image_url?: string | null;
+type AnimeList = Pick<
+  AnimeEntity,
+  | "id"
+  | "slug"
+  | "title"
+  | "titleJapanese"
+  | "rating"
+  | "type"
+  | "status"
+  | "images"
+  | "score"
+> &
+  Pick<
+    AnimeReview,
+    "progressStatus" | "personalScore" | "reviewText" | "consumedAt"
+  > & {
+    fetchedEpisode: number;
   };
-  rating: string;
-  score: number;
-  progressStatus: PROGRESS_STATUS;
-  personalScore: number | null;
-};
 
 type AnimeEpisode = {
-  id?: string;
+  id: number;
   aired: string;
   number: number;
   title: string;
@@ -108,34 +116,25 @@ type AnimeEpisode = {
   titleRomaji: string;
 };
 
-type AnimeReview = Pick<
-  AnimeEntity,
-  | "review"
-  | "consumedAt"
-  | "progressStatus"
-  | "storylineRating"
-  | "qualityRating"
-  | "voiceActingRating"
-  | "soundTrackRating"
-  | "charDevelopmentRating"
-  | "personalScore"
->;
+type AnimeReviewRequest = Omit<AnimeReview, "id" | "createdAt" | "updatedAt">;
 
 type AnimeFilterSort = {
   sortBy: string;
   sortOrder: SORT_ORDER;
-  filterGenre?: string;
-  filterStudio?: string;
-  filterTheme?: string;
+  filterGenre?: number;
+  filterStudio?: number;
+  filterTheme?: number;
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS;
   filterMALScore?: string;
   filterPersonalScore?: string;
   filterType?: string;
+  filterStatusCheck?: string;
 };
 
 export type {
   AnimeCreateRequest,
   AnimeDetail,
   AnimeList,
-  AnimeReview,
+  AnimeReviewRequest,
   AnimeFilterSort
 };

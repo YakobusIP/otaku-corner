@@ -87,6 +87,7 @@ export default function LightNovelListClient({
       lightNovelFilterSort.filterAuthor,
       lightNovelFilterSort.filterGenre,
       lightNovelFilterSort.filterTheme,
+      lightNovelFilterSort.filterProgressStatus,
       lightNovelFilterSort.filterMALScore,
       lightNovelFilterSort.filterPersonalScore
     );

@@ -1,13 +1,12 @@
+import EditEntityDialog from "@/components/entity-management/EditEntityDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { GenreEntity } from "@/types/entity.type";
 
 import { ColumnDef } from "@tanstack/react-table";
 
-import EditEntityDialog from "../EditEntityDialog";
-
 export const genreColumns = (
-  editEntity: (id: string, entity: string) => void,
+  editEntity: (id: number, entity: string) => void,
   isLoadingEditEntity: boolean
 ): ColumnDef<GenreEntity>[] => [
   {

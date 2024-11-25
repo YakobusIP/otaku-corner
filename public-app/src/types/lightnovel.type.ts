@@ -7,8 +7,8 @@ import {
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 type LightNovelEntity = {
-  id: string;
-  malId: number;
+  id: number;
+  slug: string;
   status: string;
   title: string;
   titleJapanese: string;
@@ -26,13 +26,20 @@ type LightNovelEntity = {
   themes: string[];
   synopsis: string;
   malUrl: string;
-  review?: string | null;
+  review: LightNovelReview;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type LightNovelReview = {
+  id: number;
+  reviewText?: string | null;
   storylineRating?: number | null;
   worldBuildingRating?: number | null;
   writingStyleRating?: number | null;
   charDevelopmentRating?: number | null;
   originalityRating?: number | null;
-  progressStatus?: PROGRESS_STATUS;
+  progressStatus: PROGRESS_STATUS;
   personalScore?: number | null;
   consumedAt: Date | null;
   createdAt: Date;
@@ -43,33 +50,34 @@ type LightNovelDetail = Omit<
   LightNovelEntity,
   "authors" | "genres" | "themes"
 > & {
-  id: string;
   authors: AuthorEntityPartial[];
   genres: GenreEntityPartial[];
   themes: ThemeEntityPartial[];
 };
 
-type LightNovelList = {
-  id: string;
-  title: string;
-  titleJapanese: string;
-  status: string;
-  images: {
-    image_url: string;
-    large_image_url?: string | null;
-    small_image_url?: string | null;
-  };
-  score: number;
-  progressStatus: PROGRESS_STATUS;
-  personalScore: number | null;
-};
+type LightNovelList = Pick<
+  LightNovelEntity,
+  | "id"
+  | "slug"
+  | "title"
+  | "titleJapanese"
+  | "status"
+  | "images"
+  | "score"
+  | "volumesCount"
+> &
+  Pick<
+    LightNovelReview,
+    "progressStatus" | "personalScore" | "reviewText" | "consumedAt"
+  >;
 
 type LightNovelFilterSort = {
   sortBy: string;
   sortOrder: SORT_ORDER;
-  filterAuthor?: string;
-  filterGenre?: string;
-  filterTheme?: string;
+  filterAuthor?: number;
+  filterGenre?: number;
+  filterTheme?: number;
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS;
   filterMALScore?: string;
   filterPersonalScore?: string;
 };

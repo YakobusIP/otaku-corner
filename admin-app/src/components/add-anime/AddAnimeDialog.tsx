@@ -15,11 +15,15 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useToast } from "@/hooks/useToast";
+import useWideScreen from "@/hooks/useWideScreen";
+
+import { generateSlug } from "@/lib/utils";
 
 import { Anime } from "@tutkli/jikan-ts";
-import { Loader2Icon, PlusIcon } from "lucide-react";
+import { FilmIcon, Loader2Icon } from "lucide-react";
 
 type Props = {
   openDialog: boolean;
@@ -32,74 +36,89 @@ export default function AddAnimeDialog({
   setOpenDialog,
   resetParent
 }: Props) {
+  const toast = useToast();
+  const isWideScreen = useWideScreen();
+
   const [selectedAnime, setSelectedAnime] = useState<Anime[]>([]);
   const [isLoadingAddAnime, setIsLoadingAddAnime] = useState(false);
 
-  const toast = useToast();
-
   const addAnime = async () => {
     setIsLoadingAddAnime(true);
-    const data = selectedAnime.map((anime) => ({
-      malId: anime.mal_id,
-      type: anime.type,
-      status: anime.status,
-      rating: anime.rating ?? "Unrated",
-      season: anime.season
-        ? `${anime.season.toUpperCase()} ${anime.year}`
-        : null,
-      title: anime.title,
-      titleJapanese: anime.title_japanese,
-      titleSynonyms: anime.title_synonyms
-        .map((synonym) => synonym.toLowerCase())
-        .join(" "),
-      source: anime.source,
-      aired:
-        anime.type === "TV"
-          ? anime.status === "Not yet aired"
-            ? anime.status
+    const slugCounts: Record<string, number> = {};
+
+    const data = selectedAnime.map((anime) => {
+      let slug = generateSlug(anime.title);
+
+      if (slugCounts[slug]) {
+        slugCounts[slug] += 1;
+        slug = `${slug}-${slugCounts[slug]}`;
+      } else {
+        slugCounts[slug] = 1;
+      }
+
+      return {
+        id: anime.mal_id,
+        slug,
+        type: anime.type,
+        status: anime.status,
+        rating: anime.rating ?? "Unrated",
+        season: anime.season
+          ? `${anime.season.toUpperCase()} ${anime.year}`
+          : null,
+        title: anime.title,
+        titleJapanese: anime.title_japanese,
+        titleSynonyms: anime.title_synonyms
+          .map((synonym) => synonym.toLowerCase())
+          .join(" "),
+        source: anime.source,
+        aired:
+          anime.type === "TV"
+            ? anime.status === "Not yet aired"
+              ? anime.status
+              : `${new Date(anime.aired.from).toLocaleDateString("en-US", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric"
+                })} to ${
+                  anime.aired.to
+                    ? new Date(anime.aired.to).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric"
+                      })
+                    : "?"
+                }`
             : `${new Date(anime.aired.from).toLocaleDateString("en-US", {
                 day: "numeric",
                 month: "short",
                 year: "numeric"
-              })} to ${
-                anime.aired.to
-                  ? new Date(anime.aired.to).toLocaleDateString("en-US", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric"
-                    })
-                  : "?"
-              }`
-          : `${new Date(anime.aired.from).toLocaleDateString("en-US", {
-              day: "numeric",
-              month: "short",
-              year: "numeric"
-            })}`,
-      broadcast: anime.broadcast.string ?? "N/A",
-      episodesCount: anime.episodes,
-      duration: anime.duration,
-      score: anime.score,
-      images: {
-        image_url: anime.images.webp
-          ? anime.images.webp.image_url
-          : anime.images.jpg.image_url,
-        large_image_url: anime.images.webp
-          ? anime.images.webp.large_image_url
-          : anime.images.jpg.large_image_url,
-        small_image_url: anime.images.webp
-          ? anime.images.webp.small_image_url
-          : anime.images.jpg.small_image_url
-      },
-      genres: anime.genres.map((genre) => genre.name),
-      studios: anime.studios.map((studio) => studio.name),
-      themes: anime.themes.map((theme) => theme.name),
-      synopsis: anime.synopsis ? anime.synopsis : "No synopsis available",
-      trailer: anime?.trailer.embed_url?.replace(
-        /(autoplay=)[^&]+/,
-        "autoplay=0"
-      ),
-      malUrl: anime.url
-    }));
+              })}`,
+        broadcast: anime.broadcast.string ?? "N/A",
+        episodesCount: anime.episodes,
+        duration: anime.duration,
+        score: anime.score,
+        images: {
+          image_url: anime.images.webp
+            ? anime.images.webp.image_url
+            : anime.images.jpg.image_url,
+          large_image_url: anime.images.webp
+            ? anime.images.webp.large_image_url
+            : anime.images.jpg.large_image_url,
+          small_image_url: anime.images.webp
+            ? anime.images.webp.small_image_url
+            : anime.images.jpg.small_image_url
+        },
+        genres: anime.genres.map((genre) => genre.name),
+        studios: anime.studios.map((studio) => studio.name),
+        themes: anime.themes.map((theme) => theme.name),
+        synopsis: anime.synopsis ? anime.synopsis : "No synopsis available",
+        trailer: anime?.trailer.embed_url?.replace(
+          /(autoplay=)[^&]+/,
+          "autoplay=0"
+        ),
+        malUrl: anime.url
+      };
+    });
 
     const response = await addAnimeService(data);
     if (response.success) {
@@ -124,8 +143,11 @@ export default function AddAnimeDialog({
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button className="w-full xl:w-fit">
-          <PlusIcon className="w-4 h-4" />
+        <Button
+          className="w-full xl:w-fit"
+          variant={isWideScreen ? "default" : "outline"}
+        >
+          <FilmIcon className="w-4 h-4" />
           Add Anime
         </Button>
       </DialogTrigger>
@@ -143,16 +165,18 @@ export default function AddAnimeDialog({
             setSelectedAnime={setSelectedAnime}
           />
         </div>
-        <div className="flex flex-wrap w-full gap-4 items-center">
-          {selectedAnime.map((anime) => {
-            return (
-              <AnimeSmallCard
-                anime={anime}
-                setSelectedAnime={setSelectedAnime}
-              />
-            );
-          })}
-        </div>
+        <ScrollArea className="max-h-96">
+          <div className="flex flex-wrap w-full gap-4 items-center">
+            {selectedAnime.map((anime) => {
+              return (
+                <AnimeSmallCard
+                  anime={anime}
+                  setSelectedAnime={setSelectedAnime}
+                />
+              );
+            })}
+          </div>
+        </ScrollArea>
         {selectedAnime.length > 0 && (
           <Button onClick={() => addAnime()}>
             {isLoadingAddAnime && (

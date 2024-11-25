@@ -2,7 +2,7 @@ import { AnimeDetail, AnimeList } from "@/types/anime.type";
 import { ApiResponse, ApiResponseList } from "@/types/api.type";
 
 import { axiosClient } from "@/lib/axios";
-import { SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 import { AxiosError } from "axios";
 
@@ -14,9 +14,10 @@ const fetchAllAnimeService = async (
   query?: string,
   sortBy?: string,
   sortOrder?: SORT_ORDER,
-  filterGenre?: string,
-  filterStudio?: string,
-  filterTheme?: string,
+  filterGenre?: number,
+  filterStudio?: number,
+  filterTheme?: number,
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS,
   filterMALScore?: string,
   filterPersonalScore?: string,
   filterType?: string
@@ -32,6 +33,7 @@ const fetchAllAnimeService = async (
         filterGenre,
         filterStudio,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
         filterPersonalScore,
         filterType
@@ -50,7 +52,7 @@ const fetchAllAnimeService = async (
 };
 
 const fetchAnimeByIdService = async (
-  id: string
+  id: number
 ): Promise<ApiResponse<AnimeDetail>> => {
   try {
     const response = await axiosClient.get(`${BASE_ANIME_URL}/${id}`);

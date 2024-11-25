@@ -2,7 +2,7 @@ import {
   AnimeCreateRequest,
   AnimeDetail,
   AnimeList,
-  AnimeReview
+  AnimeReviewRequest
 } from "@/types/anime.type";
 import {
   ApiResponse,
@@ -23,12 +23,14 @@ const fetchAllAnimeService = async (
   query?: string,
   sortBy?: string,
   sortOrder?: SORT_ORDER,
-  filterGenre?: string,
-  filterStudio?: string,
-  filterTheme?: string,
+  filterGenre?: number,
+  filterStudio?: number,
+  filterTheme?: number,
+  filterProgressStatus?: keyof typeof PROGRESS_STATUS,
   filterMALScore?: string,
   filterPersonalScore?: string,
-  filterType?: string
+  filterType?: string,
+  filterStatusCheck?: string
 ): Promise<ApiResponseList<AnimeList[]>> => {
   try {
     const response = await interceptedAxios.get(BASE_ANIME_URL, {
@@ -41,9 +43,11 @@ const fetchAllAnimeService = async (
         filterGenre,
         filterStudio,
         filterTheme,
+        filterProgressStatus,
         filterMALScore,
         filterPersonalScore,
-        filterType
+        filterType,
+        filterStatusCheck
       }
     });
     return { success: true, data: response.data.data };
@@ -59,7 +63,7 @@ const fetchAllAnimeService = async (
 };
 
 const fetchAnimeByIdService = async (
-  id: string
+  id: number
 ): Promise<ApiResponse<AnimeDetail>> => {
   try {
     const response = await interceptedAxios.get(`${BASE_ANIME_URL}/${id}`);
@@ -76,11 +80,11 @@ const fetchAnimeByIdService = async (
 };
 
 const fetchAnimeDuplicate = async (
-  malId: string
+  id: number
 ): Promise<ApiResponse<{ exists: boolean }>> => {
   try {
     const response = await interceptedAxios.get(
-      `${BASE_ANIME_URL}/duplicate/${malId}`
+      `${BASE_ANIME_URL}/duplicate/${id}`
     );
     return { success: true, data: response.data };
   } catch (error) {
@@ -112,12 +116,12 @@ const addAnimeService = async (
 };
 
 const updateAnimeReviewService = async (
-  id: string,
-  data: AnimeReview
+  id: number,
+  data: AnimeReviewRequest
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
     const response = await interceptedAxios.put(
-      `${BASE_ANIME_URL}/${id}`,
+      `${BASE_ANIME_URL}/${id}/review`,
       data
     );
     return { success: true, data: response.data };
@@ -133,13 +137,14 @@ const updateAnimeReviewService = async (
 };
 
 const updateAnimeProgressStatusService = async (
-  id: string,
+  id: number,
   data: PROGRESS_STATUS
 ): Promise<ApiResponse<MessageResponse>> => {
   try {
-    const response = await interceptedAxios.put(`${BASE_ANIME_URL}/${id}`, {
-      progressStatus: data
-    });
+    const response = await interceptedAxios.put(
+      `${BASE_ANIME_URL}/${id}/review`,
+      { progressStatus: data }
+    );
     return { success: true, data: response.data };
   } catch (error) {
     return {
@@ -153,7 +158,7 @@ const updateAnimeProgressStatusService = async (
 };
 
 const deleteAnimeService = async (
-  ids: string[]
+  ids: number[]
 ): Promise<ApiResponse<void>> => {
   try {
     await interceptedAxios.delete(BASE_ANIME_URL, { data: { ids } });

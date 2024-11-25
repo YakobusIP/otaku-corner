@@ -131,7 +131,37 @@ export class AuthorService {
     }
   }
 
-  async updateAuthor(id: string, data: Prisma.AuthorUpdateInput) {
+  async getOrCreateAuthors(names: string[]) {
+    try {
+      const normalizedNames = names.map((name) => name.trim());
+
+      const existingAuthors = await prisma.author.findMany({
+        where: { name: { in: normalizedNames } }
+      });
+
+      const existingNameSet = new Set(existingAuthors.map((a) => a.name));
+
+      const newAuthorNames = normalizedNames.filter(
+        (name) => !existingNameSet.has(name)
+      );
+
+      let newAuthors: Author[] = [];
+      if (newAuthorNames.length > 0) {
+        newAuthors = await prisma.author.createManyAndReturn({
+          data: newAuthorNames.map((name) => ({ name })),
+          skipDuplicates: true
+        });
+      }
+
+      const allAuthors = [...existingAuthors, ...newAuthors];
+
+      return allAuthors;
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
+  async updateAuthor(id: number, data: Prisma.AuthorUpdateInput) {
     try {
       return await prisma.author.update({ where: { id }, data });
     } catch (error) {
@@ -150,7 +180,7 @@ export class AuthorService {
     }
   }
 
-  async deleteAuthor(id: string) {
+  async deleteAuthor(id: number) {
     try {
       return await prisma.author.delete({ where: { id } });
     } catch (error) {
@@ -165,7 +195,7 @@ export class AuthorService {
     }
   }
 
-  async deleteMultipleAuthors(ids: string[]) {
+  async deleteMultipleAuthors(ids: number[]) {
     try {
       return await prisma.author.deleteMany({ where: { id: { in: ids } } });
     } catch (error) {

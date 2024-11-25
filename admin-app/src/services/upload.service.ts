@@ -10,13 +10,13 @@ const BASE_UPLOAD_URL = "/api/upload";
 const uploadImageService = async (
   file: File,
   type: string,
-  entityId: string
+  reviewId: number
 ): Promise<ApiResponse<UploadImage>> => {
   try {
     const form = new FormData();
     form.append("image", file);
     form.append("type", type);
-    form.append("entityId", entityId);
+    form.append("reviewId", reviewId.toString());
 
     const response = await interceptedAxios.post(BASE_UPLOAD_URL, form, {
       headers: {

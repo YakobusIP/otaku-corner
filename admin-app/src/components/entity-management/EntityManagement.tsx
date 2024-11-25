@@ -13,7 +13,10 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import useWideScreen from "@/hooks/useWideScreen";
 
 import { LayersIcon } from "lucide-react";
 
@@ -34,10 +37,15 @@ export default function EntityManagement({
   resetStudio,
   resetTheme
 }: Props) {
+  const isWideScreen = useWideScreen();
+
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button className="w-full xl:w-fit">
+        <Button
+          className="w-full xl:w-fit"
+          variant={isWideScreen ? "default" : "outline"}
+        >
           <LayersIcon className="w-4 h-4" />
           Entity Management
         </Button>
@@ -56,10 +64,12 @@ export default function EntityManagement({
             <TabsTrigger value="studios">Studios</TabsTrigger>
             <TabsTrigger value="themes">Themes</TabsTrigger>
           </TabsList>
-          <AuthorManagement resetParent={resetAuthor} />
-          <GenreManagement resetParent={resetGenre} />
-          <StudioManagement resetParent={resetStudio} />
-          <ThemeManagement resetParent={resetTheme} />
+          <ScrollArea className="h-[28rem]">
+            <AuthorManagement resetParent={resetAuthor} />
+            <GenreManagement resetParent={resetGenre} />
+            <StudioManagement resetParent={resetStudio} />
+            <ThemeManagement resetParent={resetTheme} />
+          </ScrollArea>
         </Tabs>
       </DialogContent>
     </Dialog>

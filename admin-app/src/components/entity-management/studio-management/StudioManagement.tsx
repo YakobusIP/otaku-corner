@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { studioService } from "@/services/entity.service";
 
 import DataTable from "@/components/data-table/DataTable";
+import AddEntityDialog from "@/components/entity-management/AddEntityDialog";
 import { studioColumns } from "@/components/entity-management/studio-management/StudioTableColumns";
 import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
@@ -14,8 +15,6 @@ import { StudioWithMediaCount } from "@/types/entity.type";
 
 import { SearchIcon } from "lucide-react";
 import { useDebounce } from "use-debounce";
-
-import AddEntityDialog from "../AddEntityDialog";
 
 type Props = {
   resetParent: () => Promise<void>;
@@ -80,7 +79,7 @@ export default function StudioManagement({ resetParent }: Props) {
     setIsLoadingAddStudio(false);
   };
 
-  const editStudio = async (id: string, name: string) => {
+  const editStudio = async (id: number, name: string) => {
     setIsLoadingEditStudio(true);
     const response = await studioService.updateEntity(id, name);
     if (response.success) {
@@ -102,7 +101,9 @@ export default function StudioManagement({ resetParent }: Props) {
 
   const deleteStudio = async () => {
     setIsLoadingDeleteStudio(true);
-    const deletedIds = Object.keys(selectedStudioRows);
+    const deletedIds = Object.keys(selectedStudioRows).map((id) =>
+      parseInt(id)
+    );
     const response = await studioService.deleteEntity(deletedIds);
     if (response.success) {
       fetchStudioList();

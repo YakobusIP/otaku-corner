@@ -1,5 +1,6 @@
-import { Dispatch, ReactNode, SetStateAction } from "react";
+import { Dispatch, Fragment, ReactNode, SetStateAction } from "react";
 
+import DataDeleteButton from "@/components/data-table/DataDeleteButton";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -9,6 +10,8 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+
+import useWideScreen from "@/hooks/useWideScreen";
 
 import { MetadataResponse } from "@/types/api.type";
 
@@ -22,7 +25,7 @@ import {
 import { Loader2Icon, Trash2Icon } from "lucide-react";
 
 interface Identifiable {
-  id: string;
+  id: number;
 }
 
 interface DataTableProps<TData extends Identifiable, TValue> {
@@ -76,17 +79,20 @@ export default function DataTable<TData extends Identifiable, TValue>({
     rowCount: metadata?.itemCount || 0
   });
 
+  const isWideScreen = useWideScreen();
+
   return (
     <div>
       <div className="flex flex-col mb-2">
         {searchComponent ? (
-          <>
+          <Fragment>
             <h2>{title}</h2>
             <div className="flex flex-col xl:flex-row justify-between items-center gap-2">
               <div className="flex flex-col xl:flex-row items-center gap-2 w-full xl:w-fit">
                 {searchComponent}
                 {addNewDataComponent}
               </div>
+
               <Button
                 variant="destructive"
                 className="flex items-center gap-2 place-self-end w-full xl:w-fit"
@@ -100,25 +106,20 @@ export default function DataTable<TData extends Identifiable, TValue>({
                 Delete
               </Button>
             </div>
-          </>
+          </Fragment>
         ) : (
           <div className="flex flex-col xl:flex-row justify-between items-center gap-2">
             <h2>{title}</h2>
-            <Button
-              variant="destructive"
-              className="flex items-center gap-2 place-self-end w-full xl:w-fit"
-              onClick={() => deleteData()}
-              disabled={Object.keys(rowSelection).length === 0}
-            >
-              {!isLoadingDeleteData && <Trash2Icon className="w-4 h-4" />}
-              {isLoadingDeleteData && (
-                <Loader2Icon className="h-4 w-4 animate-spin" />
-              )}
-              Delete
-            </Button>
+            <div className="flex gap-2 items-end w-full xl:w-fit justify-end xl:justify-normal">
+              {filterSortComponent}
+              <DataDeleteButton
+                rowSelection={rowSelection}
+                deleteData={deleteData}
+                isLoadingDeleteData={isLoadingDeleteData}
+              />
+            </div>
           </div>
         )}
-        {filterSortComponent}
       </div>
       <div className="rounded-md border">
         <Table>
@@ -147,7 +148,18 @@ export default function DataTable<TData extends Identifiable, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoadingData ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  <div className="inline-flex items-center justify-center gap-2">
+                    <Loader2Icon className="w-4 h-4 animate-spin" /> Loading...
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -169,17 +181,6 @@ export default function DataTable<TData extends Identifiable, TValue>({
                   ))}
                 </TableRow>
               ))
-            ) : isLoadingData ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  <div className="inline-flex items-center justify-center gap-2">
-                    <Loader2Icon className="w-4 h-4 animate-spin" /> Loading...
-                  </div>
-                </TableCell>
-              </TableRow>
             ) : (
               <TableRow>
                 <TableCell
@@ -207,6 +208,9 @@ export default function DataTable<TData extends Identifiable, TValue>({
           >
             Previous
           </Button>
+          <span className="inline-flex items-center border border-input rounded-md px-3 h-9 text-sm font-medium">
+            {page} {isWideScreen && `/ ${metadata?.pageCount || 0}`}
+          </span>
           <Button
             variant="outline"
             size="sm"

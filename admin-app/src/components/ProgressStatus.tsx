@@ -25,11 +25,11 @@ import {
 import { useDebouncedCallback } from "use-debounce";
 
 type Props = {
-  id: string;
+  id: number;
   progressStatus: string;
   setProgressStatus?: Dispatch<SetStateAction<string>>;
   serviceFn?: (
-    id: string,
+    id: number,
     progressStatus: PROGRESS_STATUS
   ) => Promise<ApiResponse<MessageResponse>>;
 };
@@ -54,7 +54,7 @@ export default function ProgressStatus({
       value: "ON_HOLD",
       label: PROGRESS_STATUS.ON_HOLD,
       icon: <PauseCircleIcon className="mr-2 h-4 w-4" />,
-      color: "bg-yellow-300"
+      color: "bg-yellow-400"
     },
     {
       value: "ON_PROGRESS",

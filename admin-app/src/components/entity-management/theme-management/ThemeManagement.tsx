@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { themeService } from "@/services/entity.service";
 
 import DataTable from "@/components/data-table/DataTable";
+import AddEntityDialog from "@/components/entity-management/AddEntityDialog";
 import { themeColumns } from "@/components/entity-management/theme-management/ThemeTableColumns";
 import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
@@ -14,8 +15,6 @@ import { ThemeWithMediaCount } from "@/types/entity.type";
 
 import { SearchIcon } from "lucide-react";
 import { useDebounce } from "use-debounce";
-
-import AddEntityDialog from "../AddEntityDialog";
 
 type Props = {
   resetParent: () => Promise<void>;
@@ -80,7 +79,7 @@ export default function ThemeManagement({ resetParent }: Props) {
     setIsLoadingAddTheme(false);
   };
 
-  const editTheme = async (id: string, name: string) => {
+  const editTheme = async (id: number, name: string) => {
     setIsLoadingEditTheme(true);
     const response = await themeService.updateEntity(id, name);
     if (response.success) {
@@ -102,7 +101,7 @@ export default function ThemeManagement({ resetParent }: Props) {
 
   const deleteTheme = async () => {
     setIsLoadingDeleteTheme(true);
-    const deletedIds = Object.keys(selectedThemeRows);
+    const deletedIds = Object.keys(selectedThemeRows).map((id) => parseInt(id));
     const response = await themeService.deleteEntity(deletedIds);
     if (response.success) {
       fetchThemeList();

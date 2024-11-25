@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { genreService } from "@/services/entity.service";
 
 import DataTable from "@/components/data-table/DataTable";
+import AddEntityDialog from "@/components/entity-management/AddEntityDialog";
 import { genreColumns } from "@/components/entity-management/genre-management/GenreTableColumns";
 import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
@@ -14,8 +15,6 @@ import { GenreWithMediaCount } from "@/types/entity.type";
 
 import { SearchIcon } from "lucide-react";
 import { useDebounce } from "use-debounce";
-
-import AddEntityDialog from "../AddEntityDialog";
 
 type Props = {
   resetParent: () => Promise<void>;
@@ -80,7 +79,7 @@ export default function GenreManagement({ resetParent }: Props) {
     setIsLoadingAddGenre(false);
   };
 
-  const editGenre = async (id: string, name: string) => {
+  const editGenre = async (id: number, name: string) => {
     setIsLoadingEditGenre(true);
     const response = await genreService.updateEntity(id, name);
     if (response.success) {
@@ -102,7 +101,7 @@ export default function GenreManagement({ resetParent }: Props) {
 
   const deleteGenre = async () => {
     setIsLoadingDeleteGenre(true);
-    const deletedIds = Object.keys(selectedGenreRows);
+    const deletedIds = Object.keys(selectedGenreRows).map((id) => parseInt(id));
     const response = await genreService.deleteEntity(deletedIds);
     if (response.success) {
       fetchGenreList();
