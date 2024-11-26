@@ -28,7 +28,11 @@ if (env.NODE_ENV === "development") {
 app.use(
   cors({
     credentials: true,
-    origin: [env.PUBLIC_APP_URL, env.ADMIN_APP_URL]
+    origin: [
+      env.CANONICAL_PUBLIC_APP_URL,
+      env.PUBLIC_APP_URL,
+      env.ADMIN_APP_URL
+    ]
   })
 );
 app.use(json());

@@ -47,7 +47,7 @@ export const router = createBrowserRouter([
     )
   },
   {
-    path: "/lightnovel/:lightNovelId/:slug",
+    path: "/light-novel/:lightNovelId/:slug",
     element: (
       <ProtectedRoute>
         <AdminLightNovelDetail />

@@ -42,6 +42,7 @@ const envSchema = z
     }),
 
     ADMIN_APP_URL: z.string().url(),
+    CANONICAL_PUBLIC_APP_URL: z.string().url(),
     PUBLIC_APP_URL: z.string().url()
   })
   .superRefine((env, ctx) => {
