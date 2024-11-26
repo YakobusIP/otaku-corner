@@ -22,7 +22,10 @@ const PAGINATION_SIZE = 15;
 export const metadata: Metadata = {
   title: "Light Novel Collection | Otaku Corner",
   description:
-    "Explore bearking58's selection of light novels, accompanied by sincere reviews and ratings. Discover captivating narratives and avoid the letdowns with informed opinions."
+    "Explore bearking58's selection of light novels, accompanied by sincere reviews and ratings. Discover captivating narratives and avoid the letdowns with informed opinions.",
+  alternates: {
+    canonical: "/light-novel"
+  }
 };
 
 export default async function Page() {
@@ -39,6 +42,7 @@ export default async function Page() {
     if (response.success) {
       return [response.data.data, response.data.metadata];
     } else {
+      console.error("Error on fetching light novel list:", response.error);
       redirect("/fetch-error");
     }
   };
@@ -48,6 +52,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching author list:", response.error);
       redirect("/fetch-error");
     }
   };
@@ -57,6 +62,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching genre list:", response.error);
       redirect("/fetch-error");
     }
   };
@@ -66,6 +72,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching theme list:", response.error);
       redirect("/fetch-error");
     }
   };

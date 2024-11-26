@@ -31,7 +31,7 @@ jobs:
 
       - name: Build Docker image
         working-directory: ./backend
-        run: docker build --tag ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }} .
+        run: docker build --no-cache --tag ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }} .
 
       - name: Push image to Artifact Registry
         run: docker push ${{ vars.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/otaku-corner/otaku-corner-be:${{ github.sha }}
@@ -58,6 +58,7 @@ jobs:
             --set-env-vars=BULL_REDIS_IP=${{ secrets.BULL_REDIS_IP }} \
             --set-env-vars=BULL_REDIS_PORT=${{ secrets.BULL_REDIS_PORT }} \
             --set-env-vars=ADMIN_APP_URL=${{ vars.ADMIN_APP_URL }} \
+            --set-env-vars=CANONICAL_PUBLIC_APP_URL=${{ vars.CANONICAL_PUBLIC_APP_URL }} \
             --set-env-vars=PUBLIC_APP_URL=${{ vars.PUBLIC_APP_URL }} \
             --port=5000 \
             --min-instances=0 \

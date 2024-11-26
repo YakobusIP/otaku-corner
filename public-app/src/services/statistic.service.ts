@@ -16,6 +16,7 @@ const fetchTopMediaAndYearlyCountService = async (): Promise<
     );
     return { success: true, data: response.data.data };
   } catch (error) {
+    console.error(error);
     return {
       success: false,
       error:

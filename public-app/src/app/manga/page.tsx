@@ -22,7 +22,10 @@ const PAGINATION_SIZE = 15;
 export const metadata: Metadata = {
   title: "Manga Collection | Otaku Corner",
   description:
-    "Browse through bearking58's manga collection, featuring straightforward reviews and ratings. Find compelling stories and steer clear of the duds with helpful insights."
+    "Browse through bearking58's manga collection, featuring straightforward reviews and ratings. Find compelling stories and steer clear of the duds with helpful insights.",
+  alternates: {
+    canonical: "/manga"
+  }
 };
 
 export default async function Page() {
@@ -37,6 +40,7 @@ export default async function Page() {
     if (response.success) {
       return [response.data.data, response.data.metadata];
     } else {
+      console.error("Error on fetching manga list:", response.error);
       redirect("/fetch-error");
     }
   };
@@ -46,6 +50,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching author list:", response.error);
       redirect("/fetch-error");
     }
   };
@@ -55,6 +60,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching genre list:", response.error);
       redirect("/fetch-error");
     }
   };
@@ -64,6 +70,7 @@ export default async function Page() {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching theme list:", response.error);
       redirect("/fetch-error");
     }
   };

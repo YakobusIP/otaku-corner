@@ -6,7 +6,7 @@ import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 import { AxiosError } from "axios";
 
-const BASE_LIGHTNOVEL_URL = "/api/lightnovel";
+const BASE_LIGHTNOVEL_URL = "/api/light-novel";
 
 const fetchAllLightNovelService = async (
   currentPage: number,
@@ -39,6 +39,7 @@ const fetchAllLightNovelService = async (
     });
     return { success: true, data: response.data.data };
   } catch (error) {
+    console.error(error);
     return {
       success: false,
       error:
@@ -56,6 +57,7 @@ const fetchLightNovelByIdService = async (
     const response = await axiosClient.get(`${BASE_LIGHTNOVEL_URL}/${id}`);
     return { success: true, data: response.data.data };
   } catch (error) {
+    console.error(error);
     return {
       success: false,
       error:

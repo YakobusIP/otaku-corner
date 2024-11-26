@@ -28,12 +28,14 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const id = (await params).id;
+  const slug = (await params).slug;
 
   const fetchMangaById = async () => {
     const response = await fetchMangaByIdService(id);
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching metadata manga:", response.error);
       redirect("/fetch-error");
     }
   };
@@ -42,7 +44,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${mangaDetail.title} Manga Review | Otaku Corner`,
-    description: `Delve into bearking58's review of ${mangaDetail.title}, providing a unique perspective and rating. Learn why this manga stands out or falls short in the collection.`
+    description: `Delve into bearking58's review of ${mangaDetail.title}, providing a unique perspective and rating. Learn why this manga stands out or falls short in the collection.`,
+    alternates: {
+      canonical: `/manga/${id}/${slug}`
+    }
   };
 }
 
@@ -54,6 +59,7 @@ export default async function Page({ params }: Props) {
     if (response.success) {
       return response.data;
     } else {
+      console.error("Error on fetching page manga:", response.error);
       redirect("/fetch-error");
     }
   };
