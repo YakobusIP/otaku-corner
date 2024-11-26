@@ -180,7 +180,7 @@ export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <Link to={`/lightnovel/${lightNovel.id}/${lightNovel.slug}`}>
+            <Link to={`/light-novel/${lightNovel.id}/${lightNovel.slug}`}>
               <DropdownMenuItem>View details</DropdownMenuItem>
             </Link>
           </DropdownMenuContent>

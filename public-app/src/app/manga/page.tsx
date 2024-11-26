@@ -22,7 +22,10 @@ const PAGINATION_SIZE = 15;
 export const metadata: Metadata = {
   title: "Manga Collection | Otaku Corner",
   description:
-    "Browse through bearking58's manga collection, featuring straightforward reviews and ratings. Find compelling stories and steer clear of the duds with helpful insights."
+    "Browse through bearking58's manga collection, featuring straightforward reviews and ratings. Find compelling stories and steer clear of the duds with helpful insights.",
+  alternates: {
+    canonical: "/manga"
+  }
 };
 
 export default async function Page() {

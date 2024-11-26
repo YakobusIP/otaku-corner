@@ -49,7 +49,7 @@ if (env.NODE_ENV === "development") {
 
 app.use("/api/anime", AnimeRouter);
 app.use("/api/manga", MangaRouter);
-app.use("/api/lightnovel", LightNovelRouter);
+app.use("/api/light-novel", LightNovelRouter);
 app.use("/api/genre", GenreRouter);
 app.use("/api/studio", StudioRouter);
 app.use("/api/theme", ThemeRouter);

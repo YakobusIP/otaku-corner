@@ -22,7 +22,10 @@ const PAGINATION_SIZE = 15;
 export const metadata: Metadata = {
   title: "Light Novel Collection | Otaku Corner",
   description:
-    "Explore bearking58's selection of light novels, accompanied by sincere reviews and ratings. Discover captivating narratives and avoid the letdowns with informed opinions."
+    "Explore bearking58's selection of light novels, accompanied by sincere reviews and ratings. Discover captivating narratives and avoid the letdowns with informed opinions.",
+  alternates: {
+    canonical: "/light-novel"
+  }
 };
 
 export default async function Page() {

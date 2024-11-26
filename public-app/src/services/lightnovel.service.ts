@@ -6,7 +6,7 @@ import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 import { AxiosError } from "axios";
 
-const BASE_LIGHTNOVEL_URL = "/api/lightnovel";
+const BASE_LIGHTNOVEL_URL = "/api/light-novel";
 
 const fetchAllLightNovelService = async (
   currentPage: number,
