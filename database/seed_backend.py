@@ -51,7 +51,7 @@ async def main():
                             if "anime" in filename
                             else "manga"
                             if "manga" in filename
-                            else "lightnovel"
+                            else "light-novel"
                         )
                         await post_payload(session, payload, media_type)
 

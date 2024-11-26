@@ -39,6 +39,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const id = (await params).id;
+  const slug = (await params).slug;
 
   const fetchAnimeById = async () => {
     const response = await fetchAnimeByIdService(id);
@@ -54,7 +55,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${animeDetail.title} Anime Review | Otaku Corner`,
-    description: `Read bearking58's in-depth review of ${animeDetail.title}, offering a personal perspective and rating. Uncover what makes this anime a hit or miss in the collection.`
+    description: `Read bearking58's in-depth review of ${animeDetail.title}, offering a personal perspective and rating. Uncover what makes this anime a hit or miss in the collection.`,
+    alternates: {
+      canonical: `/anime/${id}/${slug}`
+    }
   };
 }
 

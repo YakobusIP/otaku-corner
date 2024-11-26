@@ -22,7 +22,10 @@ const PAGINATION_SIZE = 15;
 export const metadata: Metadata = {
   title: "Anime Collection | Otaku Corner",
   description:
-    "Explore bearking58's curated anime collection, complete with honest reviews and ratings. Discover new favorites and avoid the misses with insights from an average fan."
+    "Explore bearking58's curated anime collection, complete with honest reviews and ratings. Discover new favorites and avoid the misses with insights from an average fan.",
+  alternates: {
+    canonical: "/anime"
+  }
 };
 
 export default async function Page() {

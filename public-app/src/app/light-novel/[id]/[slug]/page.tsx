@@ -28,6 +28,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const id = (await params).id;
+  const slug = (await params).slug;
 
   const fetchLightNovelById = async () => {
     const response = await fetchLightNovelByIdService(id);
@@ -43,7 +44,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${lightNovelDetail.title} Light Novel Review | Otaku Corner`,
-    description: `Get bearking58's take on ${lightNovelDetail.title}, with a detailed review and rating. Find out what sets this light novel apart or why it may not be worth your time.`
+    description: `Get bearking58's take on ${lightNovelDetail.title}, with a detailed review and rating. Find out what sets this light novel apart or why it may not be worth your time.`,
+    alternates: {
+      canonical: `/light-novel/${id}/${slug}`
+    }
   };
 }
 

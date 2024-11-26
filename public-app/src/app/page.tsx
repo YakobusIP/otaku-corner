@@ -15,7 +15,10 @@ export const metadata: Metadata = {
   title:
     "bearking58 Otaku Corner: Personal Reviews of Anime, Manga, and Light Novels",
   description:
-    "Dive into bearking58's personal otaku media collection, featuring candid reviews and ratings of anime, manga, and light novels. Explore insights from an average Japanese media enthusiast."
+    "Dive into bearking58's personal otaku media collection, featuring candid reviews and ratings of anime, manga, and light novels. Explore insights from an average Japanese media enthusiast.",
+  alternates: {
+    canonical: "/"
+  }
 };
 
 export default async function Page() {
