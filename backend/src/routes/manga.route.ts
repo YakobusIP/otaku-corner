@@ -24,8 +24,10 @@ class MangaRouter {
 
   private initializeRoutes() {
     this.router.get("/", this.mangaController.getAllMangas);
-    this.router.get("/:id", this.mangaController.getMangaById);
+    this.router.get("/total", this.mangaController.getTotalData);
+    this.router.get("/sitemap", this.mangaController.getSitemapData);
     this.router.get("/duplicate/:id", this.mangaController.getMangaDuplicate);
+    this.router.get("/:id", this.mangaController.getMangaById);
     this.router.post("/", authMiddleware, this.mangaController.createMangaBulk);
     this.router.put("/:id", authMiddleware, this.mangaController.updateManga);
     this.router.put(

@@ -42,3 +42,5 @@ export const scoreOptions = [
     max: 10
   }
 ];
+
+export const URL_OF_SITEMAPS = 50000;

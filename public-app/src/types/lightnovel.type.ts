@@ -71,6 +71,11 @@ type LightNovelList = Pick<
     "progressStatus" | "personalScore" | "reviewText" | "consumedAt"
   >;
 
+type LightNovelSitemap = Pick<LightNovelEntity, "id" | "slug"> & {
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 type LightNovelFilterSort = {
   sortBy: string;
   sortOrder: SORT_ORDER;
@@ -82,4 +87,9 @@ type LightNovelFilterSort = {
   filterPersonalScore?: string;
 };
 
-export type { LightNovelDetail, LightNovelList, LightNovelFilterSort };
+export type {
+  LightNovelDetail,
+  LightNovelList,
+  LightNovelSitemap,
+  LightNovelFilterSort
+};

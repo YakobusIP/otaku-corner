@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.otaku-corner.site")
+  metadataBase: new URL(process.env.NEXT_PUBLIC_WEBSITE_URL)
 };
 
 export default async function RootLayout({
