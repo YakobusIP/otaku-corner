@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { ChangeEventHandler } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,11 @@ import Link from "next/link";
 
 type Props = {
   type: MEDIA_TYPE;
-  setSearchMedia: Dispatch<SetStateAction<string>>;
+  searchMedia: string;
+  onChange: ChangeEventHandler<HTMLInputElement>;
 };
 
-export default function ListHeader({ type, setSearchMedia }: Props) {
+export default function ListHeader({ type, searchMedia, onChange }: Props) {
   return (
     <header className="bg-primary text-primary-foreground py-8 px-4 md:px-6">
       <Link href="/">
@@ -37,8 +38,9 @@ export default function ListHeader({ type, setSearchMedia }: Props) {
             <Input
               type="text"
               placeholder={`Search for an ${type.toLowerCase()}...`}
+              value={searchMedia}
               className="w-full max-w-md bg-primary-foreground/10 border-none focus:ring-0 focus:border-none"
-              onChange={(e) => setSearchMedia(e.target.value)}
+              onChange={onChange}
             />
           </div>
         </div>

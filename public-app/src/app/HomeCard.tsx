@@ -3,12 +3,13 @@ import { MEDIA_TYPE } from "@/lib/enums";
 import { ChevronRightIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Url } from "url";
 
 type Props = {
   cardTitle: string;
   amount: number;
   type: MEDIA_TYPE;
-  path: string;
+  path: Pick<Url, "pathname" | "query">;
   image: string;
   mediaTitle: string;
   rating: number | string;

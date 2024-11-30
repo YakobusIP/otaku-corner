@@ -29,22 +29,22 @@ type Props = {
   animeFilterSort: AnimeFilterSort;
   setAnimeFilterSort: Dispatch<SetStateAction<AnimeFilterSort>>;
   genreList: GenreEntity[];
-  isLoadingGenre: boolean;
+  isLoadingGenre?: boolean;
   studioList: StudioEntity[];
-  isLoadingStudio: boolean;
+  isLoadingStudio?: boolean;
   themeList: ThemeEntity[];
-  isLoadingTheme: boolean;
+  isLoadingTheme?: boolean;
 };
 
 export default function AnimeFilterSortAccordion({
   animeFilterSort,
   setAnimeFilterSort,
   genreList,
-  isLoadingGenre,
+  isLoadingGenre = false,
   studioList,
-  isLoadingStudio,
+  isLoadingStudio = false,
   themeList,
-  isLoadingTheme
+  isLoadingTheme = false
 }: Props) {
   const handleSort = (key: string) => {
     setAnimeFilterSort((prev) => ({

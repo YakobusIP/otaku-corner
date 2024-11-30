@@ -6,7 +6,7 @@ import { URL_OF_SITEMAPS } from "@/lib/constants";
 
 import { NextResponse } from "next/server";
 
-export async function generateSitemaps() {
+async function generateSitemaps() {
   const totalAnimeData = await fetchTotalAnimeCount();
   const totalMangaData = await fetchTotalMangaCount();
   const totalLightNovelData = await fetchTotalLightNovelCount();

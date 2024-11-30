@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Pagination,
@@ -14,13 +14,20 @@ import {
 
 import { MetadataResponse } from "@/types/api.type";
 
+import { MEDIA_TYPE } from "@/lib/enums";
+
 type Props = {
+  mediaType: MEDIA_TYPE;
   metadata: MetadataResponse;
-  page: number;
-  setPage: Dispatch<SetStateAction<number>>;
+  handlePageChange: (newPage: number) => void;
 };
 
-export default function GlobalPagination({ metadata, page, setPage }: Props) {
+export default function GlobalPagination({
+  mediaType,
+  metadata,
+  handlePageChange
+}: Props) {
+  const page = metadata.currentPage;
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -75,22 +82,32 @@ export default function GlobalPagination({ metadata, page, setPage }: Props) {
     }
   };
 
-  const pages = generatePageNumbers(metadata.currentPage, metadata.pageCount);
+  const pages = generatePageNumbers(page, metadata.pageCount);
 
-  const handlePageClick = (newPage: number) => {
-    setPage(newPage);
+  const pageLink = (page: number) => {
+    return mediaType === MEDIA_TYPE.ANIME
+      ? `/anime?page=${page}`
+      : mediaType === MEDIA_TYPE.MANGA
+        ? `/manga?page=${page}`
+        : `/light-novel?page=${page}`;
   };
 
-  const handlePreviousPage = () => {
-    if (page > 1) {
-      setPage(page - 1);
-    }
-  };
+  const previousLink =
+    mediaType === MEDIA_TYPE.ANIME
+      ? `/anime?page=${page - 1}`
+      : mediaType === MEDIA_TYPE.MANGA
+        ? `/manga?page=${page - 1}`
+        : `/light-novel?page=${page - 1}`;
 
-  const handleNextPage = () => {
-    if (page < metadata.pageCount) {
-      setPage(page + 1);
-    }
+  const nextLink =
+    mediaType === MEDIA_TYPE.ANIME
+      ? `/anime?page=${page + 1}`
+      : mediaType === MEDIA_TYPE.MANGA
+        ? `/manga?page=${page + 1}`
+        : `/light-novel?page=${page + 1}`;
+
+  const handlePageClick = (page: number) => {
+    handlePageChange(page);
   };
 
   return (
@@ -98,8 +115,9 @@ export default function GlobalPagination({ metadata, page, setPage }: Props) {
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            onClick={handlePreviousPage}
-            isActive={metadata.currentPage === 1}
+            href={previousLink}
+            onClick={() => handlePageClick(page - 1)}
+            isActive={page !== 1}
           />
         </PaginationItem>
         {pages.map((p, index) =>
@@ -110,8 +128,9 @@ export default function GlobalPagination({ metadata, page, setPage }: Props) {
           ) : (
             <PaginationItem key={`page-${p}`}>
               <PaginationLink
+                href={pageLink(p as number)}
                 onClick={() => handlePageClick(p as number)}
-                isActive={p === metadata.currentPage}
+                isActive={p === page}
               >
                 {p}
               </PaginationLink>
@@ -120,8 +139,9 @@ export default function GlobalPagination({ metadata, page, setPage }: Props) {
         )}
         <PaginationItem>
           <PaginationNext
-            onClick={handleNextPage}
-            isActive={metadata.currentPage === metadata.pageCount}
+            href={nextLink}
+            onClick={() => handlePageClick(page + 1)}
+            isActive={page !== metadata.pageCount}
           />
         </PaginationItem>
       </PaginationContent>

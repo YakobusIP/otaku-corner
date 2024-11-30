@@ -4,7 +4,7 @@ import { fetchTopMediaAndYearlyCountService } from "@/services/statistic.service
 
 import { Button } from "@/components/ui/button";
 
-import { MEDIA_TYPE } from "@/lib/enums";
+import { MEDIA_TYPE, SORT_ORDER } from "@/lib/enums";
 
 import { Metadata } from "next";
 import Image from "next/image";
@@ -35,9 +35,30 @@ export default async function Page() {
   const homeData = await fetchHomeData();
 
   const exploreRoutes = [
-    { id: 1, path: "/anime", text: "Explore Anime" },
-    { id: 2, path: "/manga", text: "Explore Manga" },
-    { id: 3, path: "/light-novel", text: "Explore Light Novels" }
+    {
+      id: 1,
+      path: {
+        pathname: "/anime",
+        query: { page: "1", sortBy: "title", sortOrder: SORT_ORDER.ASCENDING }
+      },
+      text: "Explore Anime"
+    },
+    {
+      id: 2,
+      path: {
+        pathname: "/manga",
+        query: { page: "1", sortBy: "title", sortOrder: SORT_ORDER.ASCENDING }
+      },
+      text: "Explore Manga"
+    },
+    {
+      id: 3,
+      path: {
+        pathname: "/light-novel",
+        query: { page: "1", sortBy: "title", sortOrder: SORT_ORDER.ASCENDING }
+      },
+      text: "Explore Light Novels"
+    }
   ];
 
   const topMedias = [
@@ -46,7 +67,10 @@ export default async function Page() {
       cardTitle: "Anime Watched This Year",
       amount: homeData.anime.count,
       type: MEDIA_TYPE.ANIME,
-      path: "/anime",
+      path: {
+        pathname: "/anime",
+        query: { page: "1", sortBy: "title", sortOrder: SORT_ORDER.ASCENDING }
+      },
       image:
         homeData.anime.images?.large_image_url ||
         homeData.anime.images?.image_url ||
@@ -59,7 +83,10 @@ export default async function Page() {
       cardTitle: "Manga Read This Year",
       amount: homeData.manga.count,
       type: MEDIA_TYPE.MANGA,
-      path: "/manga",
+      path: {
+        pathname: "/manga",
+        query: { page: "1", sortBy: "title", sortOrder: SORT_ORDER.ASCENDING }
+      },
       image:
         homeData.manga.images?.large_image_url ||
         homeData.manga.images?.image_url ||
@@ -72,7 +99,10 @@ export default async function Page() {
       cardTitle: "Light Novels Read This Year",
       amount: homeData.lightNovel.count,
       type: MEDIA_TYPE.LIGHT_NOVEL,
-      path: "/light-novel",
+      path: {
+        pathname: "/light-novel",
+        query: { page: "1", sortBy: "title", sortOrder: SORT_ORDER.ASCENDING }
+      },
       image:
         homeData.lightNovel.images?.large_image_url ||
         homeData.lightNovel.images?.image_url ||
