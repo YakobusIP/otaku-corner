@@ -217,20 +217,20 @@ export class MangaService {
         skip: (currentPage - 1) * limitPerPage
       });
 
-      const mappedData = data.map((row) => ({
-        id: row.id,
-        slug: row.slug,
-        title: row.title,
-        titleJapanese: row.titleJapanese,
-        images: row.images,
-        status: row.status,
-        score: row.score,
-        reviewText: row.review?.reviewText,
-        progressStatus: row.review?.progressStatus,
-        personalScore: row.review?.personalScore,
-        consumedAt: row.review?.consumedAt,
-        chaptersCount: row.chaptersCount,
-        volumesCount: row.volumesCount
+      const mappedData = data.map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        titleJapanese: item.titleJapanese,
+        images: item.images,
+        status: item.status,
+        score: item.score,
+        reviewText: item.review?.reviewText,
+        progressStatus: item.review?.progressStatus,
+        personalScore: item.review?.personalScore,
+        consumedAt: item.review?.consumedAt,
+        chaptersCount: item.chaptersCount,
+        volumesCount: item.volumesCount
       }));
 
       return {
@@ -455,6 +455,42 @@ export class MangaService {
   async deleteMultipleMangas(ids: number[]) {
     try {
       return await prisma.manga.deleteMany({ where: { id: { in: ids } } });
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
+  async getTotalData() {
+    try {
+      return await prisma.manga.count();
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
+  async getSitemapData(page: number, limit: number) {
+    try {
+      const data = await prisma.manga.findMany({
+        select: {
+          id: true,
+          slug: true,
+          review: {
+            select: {
+              createdAt: true,
+              updatedAt: true
+            }
+          }
+        },
+        take: limit,
+        skip: (page - 1) * limit
+      });
+
+      return data.map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        createdAt: item.review?.createdAt,
+        updatedAt: item.review?.updatedAt
+      }));
     } catch (error) {
       throw new InternalServerError((error as Error).message);
     }

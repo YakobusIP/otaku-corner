@@ -79,6 +79,11 @@ type AnimeList = Pick<
     fetchedEpisode: number;
   };
 
+type AnimeSitemap = Pick<AnimeEntity, "id" | "slug"> & {
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 type AnimeEpisode = {
   id: number;
   aired: string;
@@ -100,4 +105,4 @@ type AnimeFilterSort = {
   filterType?: string;
 };
 
-export type { AnimeDetail, AnimeList, AnimeFilterSort };
+export type { AnimeDetail, AnimeList, AnimeSitemap, AnimeFilterSort };

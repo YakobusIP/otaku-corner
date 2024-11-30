@@ -30,10 +30,10 @@ import { FilterIcon } from "lucide-react";
 type Props = {
   lightNovelFilterSort: LightNovelFilterSort;
   setLightNovelFilterSort: Dispatch<SetStateAction<LightNovelFilterSort>>;
-  genreList: GenreEntity[];
-  isLoadingGenre: boolean;
   authorList: AuthorEntity[];
   isLoadingAuthor: boolean;
+  genreList: GenreEntity[];
+  isLoadingGenre: boolean;
   themeList: ThemeEntity[];
   isLoadingTheme: boolean;
 };
@@ -41,10 +41,10 @@ type Props = {
 export default function LightNovelFilterSortSheet({
   lightNovelFilterSort,
   setLightNovelFilterSort,
-  genreList,
-  isLoadingGenre,
   authorList,
   isLoadingAuthor,
+  genreList,
+  isLoadingGenre,
   themeList,
   isLoadingTheme
 }: Props) {

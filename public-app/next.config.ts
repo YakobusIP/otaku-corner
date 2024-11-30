@@ -17,7 +17,21 @@ const nextConfig: NextConfig = {
         port: process.env.NODE_ENV === "production" ? "" : "5000"
       }
     ]
-  }
+  },
+  rewrites: async () => [
+    {
+      source: "/sitemap-anime-:id.xml",
+      destination: "/sitemaps.xml/anime/:id"
+    },
+    {
+      source: "/sitemap-manga-:id.xml",
+      destination: "/sitemaps.xml/manga/:id"
+    },
+    {
+      source: "/sitemap-light-novel-:id.xml",
+      destination: "/sitemaps.xml/light-novel/:id"
+    }
+  ]
 };
 
 export default nextConfig;

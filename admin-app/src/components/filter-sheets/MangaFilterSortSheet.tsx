@@ -30,10 +30,10 @@ import { FilterIcon } from "lucide-react";
 type Props = {
   mangaFilterSort: MangaFilterSort;
   setMangaFilterSort: Dispatch<SetStateAction<MangaFilterSort>>;
-  genreList: GenreEntity[];
-  isLoadingGenre: boolean;
   authorList: AuthorEntity[];
   isLoadingAuthor: boolean;
+  genreList: GenreEntity[];
+  isLoadingGenre: boolean;
   themeList: ThemeEntity[];
   isLoadingTheme: boolean;
 };
@@ -41,10 +41,10 @@ type Props = {
 export default function MangaFilterSortSheet({
   mangaFilterSort,
   setMangaFilterSort,
-  genreList,
-  isLoadingGenre,
   authorList,
   isLoadingAuthor,
+  genreList,
+  isLoadingGenre,
   themeList,
   isLoadingTheme
 }: Props) {

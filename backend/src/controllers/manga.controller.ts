@@ -139,4 +139,32 @@ export class MangaController {
       return next(error);
     }
   };
+
+  getTotalData = async (_: Request, res: Response, next: NextFunction) => {
+    try {
+      const count = await this.mangaService.getTotalData();
+      return res.json({ count });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  getSitemapData = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = req.query.page as string;
+      const limit = req.query.limit as string;
+
+      if (!page || !limit) {
+        throw new UnprocessableEntityError("Pagination query params missing!");
+      }
+
+      const manga = await this.mangaService.getSitemapData(
+        parseInt(page),
+        parseInt(limit)
+      );
+      return res.json({ data: manga });
+    } catch (error) {
+      return next(error);
+    }
+  };
 }

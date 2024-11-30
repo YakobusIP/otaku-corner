@@ -168,4 +168,32 @@ export class LightNovelController {
       return next(error);
     }
   };
+
+  getTotalData = async (_: Request, res: Response, next: NextFunction) => {
+    try {
+      const count = await this.lightNovelService.getTotalData();
+      return res.json({ count });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  getSitemapData = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = req.query.page as string;
+      const limit = req.query.limit as string;
+
+      if (!page || !limit) {
+        throw new UnprocessableEntityError("Pagination query params missing!");
+      }
+
+      const lightNovel = await this.lightNovelService.getSitemapData(
+        parseInt(page),
+        parseInt(limit)
+      );
+      return res.json({ data: lightNovel });
+    } catch (error) {
+      return next(error);
+    }
+  };
 }

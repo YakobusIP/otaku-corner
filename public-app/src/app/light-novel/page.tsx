@@ -1,5 +1,3 @@
-import LightNovelListClient from "@/app/light-novel/LightNovelListClient";
-
 import {
   authorService,
   genreService,
@@ -7,16 +5,24 @@ import {
 } from "@/services/entity.service";
 import { fetchAllLightNovelService } from "@/services/lightnovel.service";
 
+import GeneralFooter from "@/components/GeneralFooter";
+import { LightNovelProvider } from "@/components/context/LightNovelContext";
+import LightNovelFilterSortSheet from "@/components/light-novel/LightNovelFilterSortSheet";
+import LightNovelListSection from "@/components/light-novel/LightNovelListSection";
+import LightNovelSearch from "@/components/light-novel/LightNovelSearch";
+
 import { MetadataResponse } from "@/types/api.type";
 import { AuthorEntity, GenreEntity, ThemeEntity } from "@/types/entity.type";
-import type { LightNovelList } from "@/types/lightnovel.type";
+import type {
+  LightNovelFilterSort,
+  LightNovelList
+} from "@/types/lightnovel.type";
 
 import { SORT_ORDER } from "@/lib/enums";
 
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-const START_PAGE = 1;
 const PAGINATION_SIZE = 15;
 
 export const metadata: Metadata = {
@@ -28,16 +34,34 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function Page() {
+type SearchParams = {
+  searchParams: Promise<
+    { page?: string | undefined; q?: string } & LightNovelFilterSort
+  >;
+};
+
+export default async function Page({ searchParams }: SearchParams) {
+  const params = await searchParams;
+  const page = parseInt(params.page || "1");
+  const sortBy = params.sortBy || "title";
+  const sortOrder = params.sortOrder || SORT_ORDER.ASCENDING;
+  const { page: _page, q: query, ...initialLightNovelFilterSort } = params;
+
   const fetchLightNovelList = async (): Promise<
     [LightNovelList[], MetadataResponse]
   > => {
     const response = await fetchAllLightNovelService(
-      START_PAGE,
+      page,
       PAGINATION_SIZE,
-      undefined,
-      "title",
-      SORT_ORDER.ASCENDING
+      query,
+      sortBy,
+      sortOrder,
+      initialLightNovelFilterSort.filterAuthor,
+      initialLightNovelFilterSort.filterGenre,
+      initialLightNovelFilterSort.filterTheme,
+      initialLightNovelFilterSort.filterProgressStatus,
+      initialLightNovelFilterSort.filterMALScore,
+      initialLightNovelFilterSort.filterPersonalScore
     );
     if (response.success) {
       return [response.data.data, response.data.metadata];
@@ -84,12 +108,22 @@ export default async function Page() {
   const initialThemeList = await fetchThemeList();
 
   return (
-    <LightNovelListClient
-      initialLightNovelList={initialLightNovelList}
-      initialLightNovelMetadata={initialLightNovelMetadata}
-      initialAuthorList={initialAuthorList}
-      initialGenreList={initialGenreList}
-      initialThemeList={initialThemeList}
-    />
+    <LightNovelProvider>
+      <div className="flex flex-col min-h-[100dvh]">
+        <LightNovelSearch initialQuery={query || ""} />
+        <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
+          <LightNovelFilterSortSheet
+            authorList={initialAuthorList}
+            genreList={initialGenreList}
+            themeList={initialThemeList}
+          />
+          <LightNovelListSection
+            initialLightNovelList={initialLightNovelList}
+            initialLightNovelMetadata={initialLightNovelMetadata}
+          />
+        </main>
+        <GeneralFooter />
+      </div>
+    </LightNovelProvider>
   );
 }

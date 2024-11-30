@@ -1,5 +1,3 @@
-import MangaListClient from "@/app/manga/MangaListClient";
-
 import {
   authorService,
   genreService,
@@ -7,16 +5,21 @@ import {
 } from "@/services/entity.service";
 import { fetchAllMangaService } from "@/services/manga.service";
 
+import GeneralFooter from "@/components/GeneralFooter";
+import { MangaProvider } from "@/components/context/MangaContext";
+import MangaFilterSortSheet from "@/components/manga/MangaFilterSortSheet";
+import MangaListSection from "@/components/manga/MangaListSection";
+import MangaSearch from "@/components/manga/MangaSearch";
+
 import { MetadataResponse } from "@/types/api.type";
 import { AuthorEntity, GenreEntity, ThemeEntity } from "@/types/entity.type";
-import type { MangaList } from "@/types/manga.type";
+import type { MangaFilterSort, MangaList } from "@/types/manga.type";
 
 import { SORT_ORDER } from "@/lib/enums";
 
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-const START_PAGE = 1;
 const PAGINATION_SIZE = 15;
 
 export const metadata: Metadata = {
@@ -28,14 +31,32 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function Page() {
+type SearchParams = {
+  searchParams: Promise<
+    { page?: string | undefined; q?: string } & MangaFilterSort
+  >;
+};
+
+export default async function Page({ searchParams }: SearchParams) {
+  const params = await searchParams;
+  const page = parseInt(params.page || "1");
+  const sortBy = params.sortBy || "title";
+  const sortOrder = params.sortOrder || SORT_ORDER.ASCENDING;
+  const { page: _page, q: query, ...initialMangaFilterSort } = params;
+
   const fetchMangaList = async (): Promise<[MangaList[], MetadataResponse]> => {
     const response = await fetchAllMangaService(
-      START_PAGE,
+      page,
       PAGINATION_SIZE,
-      undefined,
-      "title",
-      SORT_ORDER.ASCENDING
+      query,
+      sortBy,
+      sortOrder,
+      initialMangaFilterSort.filterAuthor,
+      initialMangaFilterSort.filterGenre,
+      initialMangaFilterSort.filterTheme,
+      initialMangaFilterSort.filterProgressStatus,
+      initialMangaFilterSort.filterMALScore,
+      initialMangaFilterSort.filterPersonalScore
     );
     if (response.success) {
       return [response.data.data, response.data.metadata];
@@ -81,12 +102,22 @@ export default async function Page() {
   const initialThemeList = await fetchThemeList();
 
   return (
-    <MangaListClient
-      initialMangaList={initialMangaList}
-      initialMangaMetadata={initialMangaMetadata}
-      initialAuthorList={initialAuthorList}
-      initialGenreList={initialGenreList}
-      initialThemeList={initialThemeList}
-    />
+    <MangaProvider>
+      <div className="flex flex-col min-h-[100dvh]">
+        <MangaSearch initialQuery={query || ""} />
+        <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
+          <MangaFilterSortSheet
+            authorList={initialAuthorList}
+            genreList={initialGenreList}
+            themeList={initialThemeList}
+          />
+          <MangaListSection
+            initialMangaList={initialMangaList}
+            initialMangaMetadata={initialMangaMetadata}
+          />
+        </main>
+        <GeneralFooter />
+      </div>
+    </MangaProvider>
   );
 }

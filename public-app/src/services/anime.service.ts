@@ -1,4 +1,4 @@
-import { AnimeDetail, AnimeList } from "@/types/anime.type";
+import { AnimeDetail, AnimeList, AnimeSitemap } from "@/types/anime.type";
 import { ApiResponse, ApiResponseList } from "@/types/api.type";
 
 import { axiosClient } from "@/lib/axios";
@@ -70,4 +70,48 @@ const fetchAnimeByIdService = async (
   }
 };
 
-export { fetchAllAnimeService, fetchAnimeByIdService };
+const fetchTotalAnimeCount = async (): Promise<
+  ApiResponse<{ count: number }>
+> => {
+  try {
+    const response = await axiosClient.get(`${BASE_ANIME_URL}/total`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
+const fetchAnimeSitemap = async (
+  page: number,
+  limit: number
+): Promise<ApiResponse<AnimeSitemap[]>> => {
+  try {
+    const response = await axiosClient.get(`${BASE_ANIME_URL}/sitemap`, {
+      params: { page, limit }
+    });
+    return { success: true, data: response.data.data };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      error:
+        error instanceof AxiosError && error.response?.data.error
+          ? error.response?.data.error
+          : "There was a problem with your request."
+    };
+  }
+};
+
+export {
+  fetchAllAnimeService,
+  fetchAnimeByIdService,
+  fetchTotalAnimeCount,
+  fetchAnimeSitemap
+};

@@ -69,6 +69,10 @@ type MangaList = Pick<
     MangaReview,
     "progressStatus" | "personalScore" | "reviewText" | "consumedAt"
   >;
+type MangaSitemap = Pick<MangaEntity, "id" | "slug"> & {
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 type MangaFilterSort = {
   sortBy: string;
@@ -81,4 +85,4 @@ type MangaFilterSort = {
   filterPersonalScore?: string;
 };
 
-export type { MangaDetail, MangaList, MangaFilterSort };
+export type { MangaDetail, MangaList, MangaSitemap, MangaFilterSort };

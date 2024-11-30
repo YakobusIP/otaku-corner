@@ -1,5 +1,3 @@
-import AnimeListClient from "@/app/anime/AnimeListClient";
-
 import { fetchAllAnimeService } from "@/services/anime.service";
 import {
   genreService,
@@ -7,7 +5,13 @@ import {
   themeService
 } from "@/services/entity.service";
 
-import type { AnimeList } from "@/types/anime.type";
+import GeneralFooter from "@/components/GeneralFooter";
+import AnimeFilterSortSheet from "@/components/anime/AnimeFilterSortSheet";
+import AnimeListSection from "@/components/anime/AnimeListSection";
+import AnimeSearch from "@/components/anime/AnimeSearch";
+import { AnimeProvider } from "@/components/context/AnimeContext";
+
+import type { AnimeFilterSort, AnimeList } from "@/types/anime.type";
 import { MetadataResponse } from "@/types/api.type";
 import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
 
@@ -16,7 +20,6 @@ import { SORT_ORDER } from "@/lib/enums";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-const START_PAGE = 1;
 const PAGINATION_SIZE = 15;
 
 export const metadata: Metadata = {
@@ -28,14 +31,33 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function Page() {
+type SearchParams = {
+  searchParams: Promise<
+    { page?: string | undefined; q?: string } & AnimeFilterSort
+  >;
+};
+
+export default async function Page({ searchParams }: SearchParams) {
+  const params = await searchParams;
+  const page = parseInt(params.page || "1");
+  const sortBy = params.sortBy || "title";
+  const sortOrder = params.sortOrder || SORT_ORDER.ASCENDING;
+  const { page: _page, q: query, ...initialAnimeFilterSort } = params;
+
   const fetchAnimeList = async (): Promise<[AnimeList[], MetadataResponse]> => {
     const response = await fetchAllAnimeService(
-      START_PAGE,
+      page,
       PAGINATION_SIZE,
-      undefined,
-      "title",
-      SORT_ORDER.ASCENDING
+      query,
+      sortBy,
+      sortOrder,
+      initialAnimeFilterSort.filterGenre,
+      initialAnimeFilterSort.filterStudio,
+      initialAnimeFilterSort.filterTheme,
+      initialAnimeFilterSort.filterProgressStatus,
+      initialAnimeFilterSort.filterMALScore,
+      initialAnimeFilterSort.filterPersonalScore,
+      initialAnimeFilterSort.filterType
     );
     if (response.success) {
       return [response.data.data, response.data.metadata];
@@ -81,12 +103,22 @@ export default async function Page() {
   const initialThemeList = await fetchThemeList();
 
   return (
-    <AnimeListClient
-      initialAnimeList={initialAnimeList}
-      initialAnimeMetadata={initialAnimeMetadata}
-      initialGenreList={initialGenreList}
-      initialStudioList={initialStudioList}
-      initialThemeList={initialThemeList}
-    />
+    <AnimeProvider>
+      <div className="flex flex-col min-h-[100dvh]">
+        <AnimeSearch initialQuery={query || ""} />
+        <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
+          <AnimeFilterSortSheet
+            genreList={initialGenreList}
+            studioList={initialStudioList}
+            themeList={initialThemeList}
+          />
+          <AnimeListSection
+            initialAnimeList={initialAnimeList}
+            initialAnimeMetadata={initialAnimeMetadata}
+          />
+        </main>
+        <GeneralFooter />
+      </div>
+    </AnimeProvider>
   );
 }

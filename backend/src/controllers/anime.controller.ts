@@ -137,4 +137,32 @@ export class AnimeController {
       return next(error);
     }
   };
+
+  getTotalData = async (_: Request, res: Response, next: NextFunction) => {
+    try {
+      const count = await this.animeService.getTotalData();
+      return res.json({ count });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  getSitemapData = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = req.query.page as string;
+      const limit = req.query.limit as string;
+
+      if (!page || !limit) {
+        throw new UnprocessableEntityError("Pagination query params missing!");
+      }
+
+      const anime = await this.animeService.getSitemapData(
+        parseInt(page),
+        parseInt(limit)
+      );
+      return res.json({ data: anime });
+    } catch (error) {
+      return next(error);
+    }
+  };
 }
