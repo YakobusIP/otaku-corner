@@ -2,16 +2,16 @@
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 
-import { fetchAllAnimeService } from "@/services/anime.service";
+import { fetchAllLightNovelService } from "@/services/lightnovel.service";
 
-import AnimeCard from "@/components/anime/AnimeCard";
-import AnimePagination from "@/components/anime/AnimePagination";
-import { AnimeContext } from "@/components/context/AnimeContext";
+import { LightNovelContext } from "@/components/context/LightNovelContext";
+import LightNovelCard from "@/components/light-novel/LightNovelCard";
+import LightNovelPagination from "@/components/light-novel/LightNovelPagination";
 
 import { useToast } from "@/hooks/useToast";
 
-import type { AnimeList } from "@/types/anime.type";
 import { MetadataResponse } from "@/types/api.type";
+import type { LightNovelList } from "@/types/lightnovel.type";
 
 import { Loader2Icon } from "lucide-react";
 import Image from "next/image";
@@ -19,17 +19,17 @@ import Image from "next/image";
 const PAGINATION_SIZE = 15;
 
 type Props = {
-  initialAnimeList: AnimeList[];
-  initialAnimeMetadata: MetadataResponse;
+  initialLightNovelList: LightNovelList[];
+  initialLightNovelMetadata: MetadataResponse;
 };
 
-export default function AnimeListSection({
-  initialAnimeList,
-  initialAnimeMetadata
+export default function LightNovelListSection({
+  initialLightNovelList,
+  initialLightNovelMetadata
 }: Props) {
-  const context = useContext(AnimeContext);
+  const context = useContext(LightNovelContext);
   if (!context) {
-    throw new Error("AnimeList must be used within an AnimeProvider");
+    throw new Error("LightNovelList must be used within an LightNovelProvider");
   }
 
   const { state } = context;
@@ -37,32 +37,33 @@ export default function AnimeListSection({
   const toast = useToast();
   const toastRef = useRef(toast.toast);
 
-  const [animeList, setAnimeList] = useState<AnimeList[]>(initialAnimeList);
-  const [animeMetadata, setAnimeMetadata] =
-    useState<MetadataResponse>(initialAnimeMetadata);
-  const [isLoadingAnime, setIsLoadingAnime] = useState(false);
+  const [lightNovelList, setLightNovelList] = useState<LightNovelList[]>(
+    initialLightNovelList
+  );
+  const [lightNovelMetadata, setLightNovelMetadata] =
+    useState<MetadataResponse>(initialLightNovelMetadata);
+  const [isLoadingLightNovel, setIsLoadingLightNovel] = useState(false);
 
   const isFirstRender = useRef(true);
 
-  const fetchAnimeList = useCallback(async () => {
-    setIsLoadingAnime(true);
-    const response = await fetchAllAnimeService(
+  const fetchLightNovelList = useCallback(async () => {
+    setIsLoadingLightNovel(true);
+    const response = await fetchAllLightNovelService(
       state.page,
       PAGINATION_SIZE,
       state.query,
       state.filters.sortBy,
       state.filters.sortOrder,
+      state.filters.filterAuthor,
       state.filters.filterGenre,
-      state.filters.filterStudio,
       state.filters.filterTheme,
       state.filters.filterProgressStatus,
       state.filters.filterMALScore,
-      state.filters.filterPersonalScore,
-      state.filters.filterType
+      state.filters.filterPersonalScore
     );
     if (response.success) {
-      setAnimeList(response.data.data);
-      setAnimeMetadata(response.data.metadata);
+      setLightNovelList(response.data.data);
+      setLightNovelMetadata(response.data.metadata);
     } else {
       toastRef.current({
         variant: "destructive",
@@ -70,7 +71,7 @@ export default function AnimeListSection({
         description: response.error
       });
     }
-    setIsLoadingAnime(false);
+    setIsLoadingLightNovel(false);
   }, [state]);
 
   useEffect(() => {
@@ -79,17 +80,17 @@ export default function AnimeListSection({
       return;
     }
 
-    fetchAnimeList();
-  }, [fetchAnimeList]);
+    fetchLightNovelList();
+  }, [fetchLightNovelList]);
 
-  return isLoadingAnime ? (
+  return isLoadingLightNovel ? (
     <section className="flex flex-col items-center justify-center flex-1">
       <div className="flex items-center justify-center gap-2 xl:gap-4">
         <Loader2Icon className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
-        <h2>Fetching animes...</h2>
+        <h2>Fetching light novels...</h2>
       </div>
     </section>
-  ) : animeList.length === 0 ? (
+  ) : lightNovelList.length === 0 ? (
     <section className="flex flex-col items-center justify-center flex-1">
       <div className="flex flex-col items-center justify-center gap-2">
         <Image
@@ -105,11 +106,11 @@ export default function AnimeListSection({
   ) : (
     <section className="flex flex-col items-center justify-center gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {animeList.map((anime) => {
-          return <AnimeCard key={anime.id} anime={anime} />;
+        {lightNovelList.map((lightNovel) => {
+          return <LightNovelCard key={lightNovel.id} lightNovel={lightNovel} />;
         })}
       </div>
-      <AnimePagination animeMetadata={animeMetadata} />
+      <LightNovelPagination lightNovelMetadata={lightNovelMetadata} />
     </section>
   );
 }

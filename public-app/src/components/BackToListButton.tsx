@@ -16,11 +16,12 @@ export default function BackToListButton({ fallbackHref }: Props) {
   const [hasHistory, setHasHistory] = useState(false);
 
   useEffect(() => {
-    setHasHistory(window.history.length > 1);
+    setHasHistory(window.history.length > 2);
   }, []);
 
   const handleClick = (e: BaseSyntheticEvent) => {
     e.preventDefault();
+    console.log(hasHistory);
     if (hasHistory) {
       router.back();
     } else {

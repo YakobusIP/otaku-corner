@@ -2,6 +2,7 @@
 
 import { useContext } from "react";
 
+import { AnimeContext } from "@/components/context/AnimeContext";
 import FilterGenre from "@/components/filter-sort-dropdowns/FilterGenre";
 import FilterMALScore from "@/components/filter-sort-dropdowns/FilterMALScore";
 import FilterPersonalScore from "@/components/filter-sort-dropdowns/FilterPersonalScore";
@@ -25,8 +26,6 @@ import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 import { FilterIcon } from "lucide-react";
-
-import { AnimeContext } from "../context/AnimeContext";
 
 type Props = {
   genreList: GenreEntity[];

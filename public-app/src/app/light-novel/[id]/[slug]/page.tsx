@@ -1,5 +1,6 @@
 import { fetchLightNovelByIdService } from "@/services/lightnovel.service";
 
+import BackToListButton from "@/components/BackToListButton";
 import GeneralFooter from "@/components/GeneralFooter";
 import RatingDetailContent from "@/components/RatingDetailContent";
 import ReviewContent from "@/components/ReviewContent";
@@ -10,16 +11,9 @@ import { Separator } from "@/components/ui/separator";
 
 import { ratingDescriptions } from "@/lib/constants";
 
-import {
-  ArrowLeftIcon,
-  CalendarIcon,
-  HeartIcon,
-  LibraryIcon,
-  StarIcon
-} from "lucide-react";
+import { CalendarIcon, HeartIcon, LibraryIcon, StarIcon } from "lucide-react";
 import { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 type Props = {
@@ -266,13 +260,7 @@ export default async function Page({ params }: Props) {
       </section>
       <div className="container">
         <div className="flex justify-center mt-12">
-          <Link
-            href="/light-novel"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-            Back to Home
-          </Link>
+          <BackToListButton fallbackHref="/light-novel?page=1" />
         </div>
       </div>
       <GeneralFooter />

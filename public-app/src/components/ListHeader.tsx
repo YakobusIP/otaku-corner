@@ -32,7 +32,7 @@ export default function ListHeader({ type, searchMedia, onChange }: Props) {
         <div className="flex flex-col gap-4 text-center xl:text-left">
           <h1 className="max-w-[650px]">{type} Watchlist</h1>
           <h4 className="text-primary-foreground/80 max-w-[650px]">
-            Discover my watched {type.toLowerCase()}s
+            Discover my consumed {type.toLowerCase()}s
           </h4>
           <div className="mt-6">
             <Input

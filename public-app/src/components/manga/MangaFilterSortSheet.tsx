@@ -1,11 +1,13 @@
-import { Dispatch, SetStateAction } from "react";
+"use client";
 
+import { useContext } from "react";
+
+import { MangaContext } from "@/components/context/MangaContext";
 import FilterAuthor from "@/components/filter-sort-dropdowns/FilterAuthor";
 import FilterGenre from "@/components/filter-sort-dropdowns/FilterGenre";
 import FilterMALScore from "@/components/filter-sort-dropdowns/FilterMALScore";
 import FilterPersonalScore from "@/components/filter-sort-dropdowns/FilterPersonalScore";
 import FilterProgressStatus from "@/components/filter-sort-dropdowns/FilterProgressStatus";
-import FilterStatusCheck from "@/components/filter-sort-dropdowns/FilterStatusCheck";
 import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
 import SortDirection from "@/components/filter-sort-dropdowns/SortDirection";
 import { Button } from "@/components/ui/button";
@@ -18,126 +20,139 @@ import {
   SheetTrigger
 } from "@/components/ui/sheet";
 
-import useWideScreen from "@/hooks/useWideScreen";
-
 import { AuthorEntity, GenreEntity, ThemeEntity } from "@/types/entity.type";
-import { MangaFilterSort } from "@/types/manga.type";
 
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
 import { FilterIcon } from "lucide-react";
 
 type Props = {
-  mangaFilterSort: MangaFilterSort;
-  setMangaFilterSort: Dispatch<SetStateAction<MangaFilterSort>>;
   authorList: AuthorEntity[];
-  isLoadingAuthor: boolean;
+  isLoadingAuthor?: boolean;
   genreList: GenreEntity[];
-  isLoadingGenre: boolean;
+  isLoadingGenre?: boolean;
   themeList: ThemeEntity[];
-  isLoadingTheme: boolean;
+  isLoadingTheme?: boolean;
 };
 
 export default function MangaFilterSortSheet({
-  mangaFilterSort,
-  setMangaFilterSort,
   authorList,
-  isLoadingAuthor,
+  isLoadingAuthor = false,
   genreList,
-  isLoadingGenre,
+  isLoadingGenre = false,
   themeList,
-  isLoadingTheme
+  isLoadingTheme = false
 }: Props) {
-  const isWideScreen = useWideScreen();
+  const context = useContext(MangaContext);
+  if (!context) {
+    throw new Error("Filters must be used within an MangaProvider");
+  }
+
+  const { state, setState } = context;
 
   const handleSort = (key: string) => {
-    setMangaFilterSort((prev) => ({
-      ...prev,
-      sortBy: key,
-      sortOrder:
-        prev.sortBy === key
-          ? prev.sortOrder === SORT_ORDER.ASCENDING
-            ? SORT_ORDER.DESCENDING
+    setState({
+      page: 1,
+      filters: {
+        ...state.filters,
+        sortBy: key,
+        sortOrder:
+          state.filters.sortBy === key
+            ? state.filters.sortOrder === SORT_ORDER.ASCENDING
+              ? SORT_ORDER.DESCENDING
+              : SORT_ORDER.ASCENDING
             : SORT_ORDER.ASCENDING
-          : SORT_ORDER.ASCENDING
-    }));
+      }
+    });
   };
 
   const handleFilterAuthor = (key?: number) => {
-    setMangaFilterSort((prev) => ({
-      ...prev,
-      filterAuthor: key
-    }));
+    setState({
+      page: 1,
+      filters: {
+        ...state.filters,
+        filterAuthor: key
+      }
+    });
   };
 
   const handleFilterGenre = (key?: number) => {
-    setMangaFilterSort((prev) => ({
-      ...prev,
-      filterGenre: key
-    }));
+    setState({
+      page: 1,
+      filters: {
+        ...state.filters,
+        filterGenre: key
+      }
+    });
   };
 
   const handleFilterTheme = (key?: number) => {
-    setMangaFilterSort((prev) => ({
-      ...prev,
-      filterTheme: key
-    }));
+    setState({
+      page: 1,
+      filters: {
+        ...state.filters,
+        filterTheme: key
+      }
+    });
   };
 
   const handleFilterProgressStatus = (key?: keyof typeof PROGRESS_STATUS) => {
-    setMangaFilterSort((prev) => ({
-      ...prev,
-      filterProgressStatus: key
-    }));
+    setState({
+      page: 1,
+      filters: {
+        ...state.filters,
+        filterProgressStatus: key
+      }
+    });
   };
 
   const handleFilterMALScore = (key?: string) => {
-    setMangaFilterSort((prev) => ({
-      ...prev,
-      filterMALScore: key
-    }));
+    setState({
+      page: 1,
+      filters: {
+        ...state.filters,
+        filterMALScore: key
+      }
+    });
   };
 
   const handleFilterPersonalScore = (key?: string) => {
-    setMangaFilterSort((prev) => ({
-      ...prev,
-      filterPersonalScore: key
-    }));
-  };
-
-  const handleFilterStatusCheck = (key?: string) => {
-    setMangaFilterSort((prev) => ({
-      ...prev,
-      filterStatusCheck: key
-    }));
+    setState({
+      page: 1,
+      filters: {
+        ...state.filters,
+        filterPersonalScore: key
+      }
+    });
   };
 
   const enableClearAllFilter =
-    !mangaFilterSort.filterAuthor &&
-    !mangaFilterSort.filterGenre &&
-    !mangaFilterSort.filterTheme &&
-    !mangaFilterSort.filterMALScore &&
-    !mangaFilterSort.filterPersonalScore &&
-    !mangaFilterSort.filterStatusCheck;
+    !state.filters.filterAuthor &&
+    !state.filters.filterGenre &&
+    !state.filters.filterTheme &&
+    !state.filters.filterMALScore &&
+    !state.filters.filterPersonalScore;
 
   const handleClearAllFilter = () => {
-    setMangaFilterSort((prev) => ({
-      ...prev,
-      filterAuthor: undefined,
-      filterGenre: undefined,
-      filterTheme: undefined,
-      filterMALScore: undefined,
-      filterPersonalScore: undefined,
-      filterStatusCheck: undefined
-    }));
+    setState({
+      page: 1,
+      filters: {
+        ...state.filters,
+        filterAuthor: undefined,
+        filterGenre: undefined,
+        filterTheme: undefined,
+        filterMALScore: undefined,
+        filterPersonalScore: undefined
+      }
+    });
   };
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" className="w-fit mb-2">
           <FilterIcon className="w-4 h-4" />
-          {isWideScreen && "Filter & Sort"}
+          Filter & Sort
         </Button>
       </SheetTrigger>
       <SheetContent side="top">
@@ -145,45 +160,42 @@ export default function MangaFilterSortSheet({
           <SheetTitle>Manga Filter & Sort</SheetTitle>
         </SheetHeader>
         <ScrollArea className="h-[50vh] xl:h-auto">
-          <div className="grid grid-cols-1 grid-rows-9 xl:grid-cols-5 xl:grid-rows-2 gap-4 mt-2">
+          <div className="grid grid-cols-1 grid-rows-10 xl:grid-cols-5 xl:grid-rows-2 gap-4 mt-2">
             <SortDirection
-              sortBy={mangaFilterSort.sortBy}
-              sortOrder={mangaFilterSort.sortOrder}
+              sortBy={state.filters.sortBy}
+              sortOrder={state.filters.sortOrder}
               handleSort={handleSort}
             />
             <FilterAuthor
               authorList={authorList}
               isLoadingAuthor={isLoadingAuthor}
-              filterAuthor={mangaFilterSort.filterAuthor}
+              filterAuthor={state.filters.filterAuthor}
               handleFilterAuthor={handleFilterAuthor}
             />
             <FilterGenre
               genreList={genreList}
               isLoadingGenre={isLoadingGenre}
-              filterGenre={mangaFilterSort.filterGenre}
+              filterGenre={state.filters.filterGenre}
               handleFilterGenre={handleFilterGenre}
             />
+
             <FilterTheme
               themeList={themeList}
               isLoadingTheme={isLoadingTheme}
-              filterTheme={mangaFilterSort.filterTheme}
+              filterTheme={state.filters.filterTheme}
               handleFilterTheme={handleFilterTheme}
             />
             <FilterProgressStatus
-              filterProgressStatus={mangaFilterSort.filterProgressStatus}
+              filterProgressStatus={state.filters.filterProgressStatus}
               handleFilterProgressStatus={handleFilterProgressStatus}
             />
             <FilterMALScore
-              filterMALScore={mangaFilterSort.filterMALScore}
+              filterMALScore={state.filters.filterMALScore}
               handleFilterMALScore={handleFilterMALScore}
             />
             <FilterPersonalScore
-              filterPersonalScore={mangaFilterSort.filterPersonalScore}
+              filterPersonalScore={state.filters.filterPersonalScore}
               handleFilterPersonalScore={handleFilterPersonalScore}
-            />
-            <FilterStatusCheck
-              filterStatusCheck={mangaFilterSort.filterStatusCheck}
-              handleFilterStatusCheck={handleFilterStatusCheck}
             />
             <Button
               variant="destructive"

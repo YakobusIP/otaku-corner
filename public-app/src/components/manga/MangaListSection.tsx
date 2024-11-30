@@ -2,16 +2,16 @@
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 
-import { fetchAllAnimeService } from "@/services/anime.service";
+import { fetchAllMangaService } from "@/services/manga.service";
 
-import AnimeCard from "@/components/anime/AnimeCard";
-import AnimePagination from "@/components/anime/AnimePagination";
-import { AnimeContext } from "@/components/context/AnimeContext";
+import { MangaContext } from "@/components/context/MangaContext";
+import MangaCard from "@/components/manga/MangaCard";
+import MangaPagination from "@/components/manga/MangaPagination";
 
 import { useToast } from "@/hooks/useToast";
 
-import type { AnimeList } from "@/types/anime.type";
 import { MetadataResponse } from "@/types/api.type";
+import type { MangaList } from "@/types/manga.type";
 
 import { Loader2Icon } from "lucide-react";
 import Image from "next/image";
@@ -19,17 +19,17 @@ import Image from "next/image";
 const PAGINATION_SIZE = 15;
 
 type Props = {
-  initialAnimeList: AnimeList[];
-  initialAnimeMetadata: MetadataResponse;
+  initialMangaList: MangaList[];
+  initialMangaMetadata: MetadataResponse;
 };
 
-export default function AnimeListSection({
-  initialAnimeList,
-  initialAnimeMetadata
+export default function MangaListSection({
+  initialMangaList,
+  initialMangaMetadata
 }: Props) {
-  const context = useContext(AnimeContext);
+  const context = useContext(MangaContext);
   if (!context) {
-    throw new Error("AnimeList must be used within an AnimeProvider");
+    throw new Error("MangaList must be used within an MangaProvider");
   }
 
   const { state } = context;
@@ -37,32 +37,31 @@ export default function AnimeListSection({
   const toast = useToast();
   const toastRef = useRef(toast.toast);
 
-  const [animeList, setAnimeList] = useState<AnimeList[]>(initialAnimeList);
-  const [animeMetadata, setAnimeMetadata] =
-    useState<MetadataResponse>(initialAnimeMetadata);
-  const [isLoadingAnime, setIsLoadingAnime] = useState(false);
+  const [mangaList, setMangaList] = useState<MangaList[]>(initialMangaList);
+  const [mangaMetadata, setMangaMetadata] =
+    useState<MetadataResponse>(initialMangaMetadata);
+  const [isLoadingManga, setIsLoadingManga] = useState(false);
 
   const isFirstRender = useRef(true);
 
-  const fetchAnimeList = useCallback(async () => {
-    setIsLoadingAnime(true);
-    const response = await fetchAllAnimeService(
+  const fetchMangaList = useCallback(async () => {
+    setIsLoadingManga(true);
+    const response = await fetchAllMangaService(
       state.page,
       PAGINATION_SIZE,
       state.query,
       state.filters.sortBy,
       state.filters.sortOrder,
+      state.filters.filterAuthor,
       state.filters.filterGenre,
-      state.filters.filterStudio,
       state.filters.filterTheme,
       state.filters.filterProgressStatus,
       state.filters.filterMALScore,
-      state.filters.filterPersonalScore,
-      state.filters.filterType
+      state.filters.filterPersonalScore
     );
     if (response.success) {
-      setAnimeList(response.data.data);
-      setAnimeMetadata(response.data.metadata);
+      setMangaList(response.data.data);
+      setMangaMetadata(response.data.metadata);
     } else {
       toastRef.current({
         variant: "destructive",
@@ -70,7 +69,7 @@ export default function AnimeListSection({
         description: response.error
       });
     }
-    setIsLoadingAnime(false);
+    setIsLoadingManga(false);
   }, [state]);
 
   useEffect(() => {
@@ -79,17 +78,17 @@ export default function AnimeListSection({
       return;
     }
 
-    fetchAnimeList();
-  }, [fetchAnimeList]);
+    fetchMangaList();
+  }, [fetchMangaList]);
 
-  return isLoadingAnime ? (
+  return isLoadingManga ? (
     <section className="flex flex-col items-center justify-center flex-1">
       <div className="flex items-center justify-center gap-2 xl:gap-4">
         <Loader2Icon className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
-        <h2>Fetching animes...</h2>
+        <h2>Fetching mangas...</h2>
       </div>
     </section>
-  ) : animeList.length === 0 ? (
+  ) : mangaList.length === 0 ? (
     <section className="flex flex-col items-center justify-center flex-1">
       <div className="flex flex-col items-center justify-center gap-2">
         <Image
@@ -105,11 +104,11 @@ export default function AnimeListSection({
   ) : (
     <section className="flex flex-col items-center justify-center gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {animeList.map((anime) => {
-          return <AnimeCard key={anime.id} anime={anime} />;
+        {mangaList.map((manga) => {
+          return <MangaCard key={manga.id} manga={manga} />;
         })}
       </div>
-      <AnimePagination animeMetadata={animeMetadata} />
+      <MangaPagination mangaMetadata={mangaMetadata} />
     </section>
   );
 }

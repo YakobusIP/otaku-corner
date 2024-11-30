@@ -9,6 +9,7 @@ import GeneralFooter from "@/components/GeneralFooter";
 import AnimeFilterSortSheet from "@/components/anime/AnimeFilterSortSheet";
 import AnimeListSection from "@/components/anime/AnimeListSection";
 import AnimeSearch from "@/components/anime/AnimeSearch";
+import { AnimeProvider } from "@/components/context/AnimeContext";
 
 import type { AnimeFilterSort, AnimeList } from "@/types/anime.type";
 import { MetadataResponse } from "@/types/api.type";
@@ -102,20 +103,22 @@ export default async function Page({ searchParams }: SearchParams) {
   const initialThemeList = await fetchThemeList();
 
   return (
-    <div className="flex flex-col min-h-[100dvh]">
-      <AnimeSearch initialQuery={query || ""} />
-      <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
-        <AnimeFilterSortSheet
-          genreList={initialGenreList}
-          studioList={initialStudioList}
-          themeList={initialThemeList}
-        />
-        <AnimeListSection
-          initialAnimeList={initialAnimeList}
-          initialAnimeMetadata={initialAnimeMetadata}
-        />
-      </main>
-      <GeneralFooter />
-    </div>
+    <AnimeProvider>
+      <div className="flex flex-col min-h-[100dvh]">
+        <AnimeSearch initialQuery={query || ""} />
+        <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
+          <AnimeFilterSortSheet
+            genreList={initialGenreList}
+            studioList={initialStudioList}
+            themeList={initialThemeList}
+          />
+          <AnimeListSection
+            initialAnimeList={initialAnimeList}
+            initialAnimeMetadata={initialAnimeMetadata}
+          />
+        </main>
+        <GeneralFooter />
+      </div>
+    </AnimeProvider>
   );
 }
