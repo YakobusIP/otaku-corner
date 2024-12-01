@@ -12,6 +12,7 @@ type Props = {
   path: Pick<Url, "pathname" | "query">;
   image: string;
   mediaTitle: string;
+  topMediaPath: string;
   rating: number | string;
 };
 
@@ -22,6 +23,7 @@ export default function HomeCard({
   path,
   image,
   mediaTitle,
+  topMediaPath,
   rating
 }: Props) {
   return (
@@ -38,17 +40,19 @@ export default function HomeCard({
         View {type.toLowerCase()}s
         <ChevronRightIcon className="h-4 w-4" />
       </Link>
-      <Image
-        src={image}
-        alt="Top Anime"
-        width={300}
-        height={400}
-        className="aspect-[3/4] rounded-lg object-cover"
-      />
-      <div className="flex flex-col">
-        <p className="text-lg font-medium">{mediaTitle}</p>
-        <p className="text-muted-foreground">{rating} / 10</p>
-      </div>
+      <Link href={topMediaPath}>
+        <Image
+          src={image}
+          alt="Top Anime"
+          width={300}
+          height={400}
+          className="aspect-[3/4] rounded-lg object-cover"
+        />
+        <div className="flex flex-col">
+          <p className="text-lg font-medium line-clamp-1">{mediaTitle}</p>
+          <p className="text-muted-foreground">{rating} / 10</p>
+        </div>
+      </Link>
     </div>
   );
 }

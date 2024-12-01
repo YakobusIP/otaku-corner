@@ -477,6 +477,8 @@ export class StatisticService {
 
       const highestAnimePromise = prisma.anime.findMany({
         select: {
+          id: true,
+          slug: true,
           images: true,
           title: true,
           review: { select: { personalScore: true } }
@@ -491,6 +493,8 @@ export class StatisticService {
 
       const highestMangaPromise = prisma.manga.findMany({
         select: {
+          id: true,
+          slug: true,
           images: true,
           title: true,
           review: { select: { personalScore: true } }
@@ -505,6 +509,8 @@ export class StatisticService {
 
       const highestLightNovelPromise = prisma.lightNovel.findMany({
         select: {
+          id: true,
+          slug: true,
           images: true,
           title: true,
           review: { select: { personalScore: true } }
@@ -532,6 +538,8 @@ export class StatisticService {
       const prepareResults = (
         count: number,
         highestImages: {
+          id: number;
+          slug: string;
           review: {
             personalScore: number | null;
           } | null;
@@ -541,6 +549,8 @@ export class StatisticService {
       ) => {
         return {
           count,
+          id: highestImages.length > 0 ? highestImages[0].id : null,
+          slug: highestImages.length > 0 ? highestImages[0].slug : null,
           images: highestImages.length > 0 ? highestImages[0].images : null,
           title: highestImages.length > 0 ? highestImages[0].title : null,
           score:

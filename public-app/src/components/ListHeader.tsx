@@ -37,7 +37,7 @@ export default function ListHeader({ type, searchMedia, onChange }: Props) {
           <div className="mt-6">
             <Input
               type="text"
-              placeholder={`Search for an ${type.toLowerCase()}...`}
+              placeholder={`Search for ${type.toLowerCase()}...`}
               value={searchMedia}
               className="w-full max-w-md bg-primary-foreground/10 border-none focus:ring-0 focus:border-none"
               onChange={onChange}

@@ -1,5 +1,7 @@
 type TopMediaAndYearlyCount = {
   anime: {
+    id: number;
+    slug: string;
     count: number;
     images: {
       image_url: string;
@@ -10,6 +12,8 @@ type TopMediaAndYearlyCount = {
     score: number | null;
   };
   manga: {
+    id: number;
+    slug: string;
     count: number;
     images: {
       image_url: string;
@@ -20,6 +24,8 @@ type TopMediaAndYearlyCount = {
     score: number | null;
   };
   lightNovel: {
+    id: number;
+    slug: string;
     count: number;
     images: {
       image_url: string;
