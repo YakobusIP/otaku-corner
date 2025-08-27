@@ -4,116 +4,113 @@ import {
   LightNovelList,
   LightNovelSitemap
 } from "@/types/lightnovel.type";
+import { StatusFilter } from "@/types/statistic.type";
 
-import { axiosClient } from "@/lib/axios";
+import { axiosClient, handleAxiosError } from "@/lib/axios";
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
-
-import { AxiosError } from "axios";
 
 const BASE_LIGHTNOVEL_URL = "/api/light-novel";
 
-const fetchAllLightNovelService = async (
-  currentPage: number,
-  limitPerPage: number,
-  query?: string,
-  sortBy?: string,
-  sortOrder?: SORT_ORDER,
-  filterAuthor?: number,
-  filterGenre?: number,
-  filterTheme?: number,
-  filterProgressStatus?: keyof typeof PROGRESS_STATUS,
-  filterMALScore?: string,
-  filterPersonalScore?: string
-): Promise<ApiResponseList<LightNovelList[]>> => {
-  try {
-    const response = await axiosClient.get(BASE_LIGHTNOVEL_URL, {
-      params: {
-        currentPage,
-        limitPerPage,
-        q: query,
-        sortBy,
-        sortOrder,
-        filterAuthor,
-        filterGenre,
-        filterTheme,
-        filterProgressStatus,
-        filterMALScore,
-        filterPersonalScore
-      }
-    });
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    console.error(error);
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
+const createLightNovelService = () => {
+  const fetchAll = async (
+    page: number,
+    limit: number,
+    query?: string,
+    sort?: string,
+    order?: SORT_ORDER,
+    author?: number,
+    genre?: number,
+    theme?: number,
+    status?: keyof typeof PROGRESS_STATUS,
+    mal_score?: string,
+    personal_score?: string
+  ) => {
+    try {
+      const response = await axiosClient.get<ApiResponseList<LightNovelList[]>>(
+        BASE_LIGHTNOVEL_URL,
+        {
+          params: {
+            page,
+            limit,
+            q: query,
+            sort,
+            order,
+            author,
+            genre,
+            theme,
+            status,
+            mal_score,
+            personal_score
+          }
+        }
+      );
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchById = async (id: number) => {
+    try {
+      const response = await axiosClient.get<ApiResponse<LightNovelDetail>>(
+        `${BASE_LIGHTNOVEL_URL}/${id}`
+      );
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchTotalCount = async () => {
+    try {
+      const response = await axiosClient.get<{ count: number }>(
+        `${BASE_LIGHTNOVEL_URL}/total`
+      );
+      return response.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchSitemap = async (page: number, limit: number) => {
+    try {
+      const response = await axiosClient.get<ApiResponse<LightNovelSitemap[]>>(
+        `${BASE_LIGHTNOVEL_URL}/sitemap`,
+        {
+          params: { page, limit }
+        }
+      );
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchStatusCounts = async () => {
+    try {
+      const response = await axiosClient.get<ApiResponse<StatusFilter[]>>(
+        `${BASE_LIGHTNOVEL_URL}/status-count`
+      );
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  return {
+    fetchAll,
+    fetchById,
+    fetchTotalCount,
+    fetchSitemap,
+    fetchStatusCounts
+  };
 };
 
-const fetchLightNovelByIdService = async (
-  id: number
-): Promise<ApiResponse<LightNovelDetail>> => {
-  try {
-    const response = await axiosClient.get(`${BASE_LIGHTNOVEL_URL}/${id}`);
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    console.error(error);
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
+const lightNovelService = createLightNovelService();
 
-const fetchTotalLightNovelCount = async (): Promise<
-  ApiResponse<{ count: number }>
-> => {
-  try {
-    const response = await axiosClient.get(`${BASE_LIGHTNOVEL_URL}/total`);
-    return { success: true, data: response.data };
-  } catch (error) {
-    console.error(error);
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-const fetchLightNovelSitemap = async (
-  page: number,
-  limit: number
-): Promise<ApiResponse<LightNovelSitemap[]>> => {
-  try {
-    const response = await axiosClient.get(`${BASE_LIGHTNOVEL_URL}/sitemap`, {
-      params: { page, limit }
-    });
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    console.error(error);
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-export {
-  fetchAllLightNovelService,
-  fetchLightNovelByIdService,
-  fetchTotalLightNovelCount,
-  fetchLightNovelSitemap
-};
+export { lightNovelService };

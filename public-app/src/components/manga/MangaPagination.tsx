@@ -22,8 +22,9 @@ export default function MangaPagination({ mangaMetadata }: Props) {
   const { setState } = context;
 
   const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > mangaMetadata.pageCount) return;
-    setState({ page: newPage });
+    if (newPage >= 1 && newPage < mangaMetadata.pageCount) {
+      setState({ page: newPage });
+    }
   };
 
   return (

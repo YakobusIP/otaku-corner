@@ -4,20 +4,17 @@ import { StudioService } from "../services/studio.service";
 export class StudioController {
   constructor(private readonly studioService: StudioService) {}
 
-  /**
-   * @todo Make currentPage and limitPerPage mandatory (changes in the FE as well)
-   */
   getAllStudios = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const connected_media = req.query.connected_media === "true";
-      const currentPage = req.query.currentPage as string;
-      const limitPerPage = req.query.limitPerPage as string;
+      const page = req.query.page as string;
+      const limit = req.query.limit as string;
       const query = req.query.q as string;
 
       const studios = await this.studioService.getAllStudios(
         connected_media,
-        parseInt(currentPage),
-        parseInt(limitPerPage),
+        parseInt(page),
+        parseInt(limit),
         query
       );
 

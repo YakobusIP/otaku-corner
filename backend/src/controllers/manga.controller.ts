@@ -9,37 +9,36 @@ export class MangaController {
 
   getAllMangas = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const currentPage = req.query.currentPage as string;
-      const limitPerPage = req.query.limitPerPage as string;
+      const page = req.query.page as string;
+      const limit = req.query.limit as string;
 
-      if (!currentPage || !limitPerPage) {
+      if (!page || !limit) {
         throw new UnprocessableEntityError("Pagination query params missing!");
       }
 
       const query = req.query.q as string;
-      const sortBy = req.query.sortBy as string;
-      const sortOrder = req.query.sortOrder as Prisma.SortOrder;
-      const filterAuthor = parseInt(req.query.filterAuthor as string);
-      const filterGenre = parseInt(req.query.filterGenre as string);
-      const filterTheme = parseInt(req.query.filterTheme as string);
-      const filterProgressStatus = req.query
-        .filterProgressStatus as ProgressStatus;
-      const filterMALScore = req.query.filterMALScore as string;
-      const filterPersonalScore = req.query.filterPersonalScore as string;
-      const filterStatusCheck = req.query.filterStatusCheck as string;
+      const sort = req.query.sort as string;
+      const order = req.query.order as Prisma.SortOrder;
+      const author = parseInt(req.query.author as string);
+      const genre = parseInt(req.query.genre as string);
+      const theme = parseInt(req.query.theme as string);
+      const status = req.query.status as ProgressStatus;
+      const mal_score = req.query.mal_score as string;
+      const personal_score = req.query.personal_score as string;
+      const status_check = req.query.status_check as string;
       const mangas = await this.mangaService.getAllMangas(
-        parseInt(currentPage),
-        parseInt(limitPerPage),
+        parseInt(page),
+        parseInt(limit),
         query,
-        sortBy,
-        sortOrder,
-        filterAuthor,
-        filterGenre,
-        filterTheme,
-        filterProgressStatus,
-        filterMALScore,
-        filterPersonalScore,
-        filterStatusCheck
+        sort,
+        order,
+        author,
+        genre,
+        theme,
+        status,
+        mal_score,
+        personal_score,
+        status_check
       );
 
       return res.json({ data: mangas });
@@ -163,6 +162,19 @@ export class MangaController {
         parseInt(limit)
       );
       return res.json({ data: manga });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  getMangaStatusCounts = async (
+    _: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const statusCounts = await this.mangaService.getMangaStatusCounts();
+      return res.json({ data: statusCounts });
     } catch (error) {
       return next(error);
     }

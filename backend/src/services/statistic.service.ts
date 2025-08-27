@@ -477,11 +477,14 @@ export class StatisticService {
 
       const highestAnimePromise = prisma.anime.findMany({
         select: {
+          id: true,
+          slug: true,
           images: true,
           title: true,
+          titleJapanese: true,
           review: { select: { personalScore: true } }
         },
-        orderBy: { review: { personalScore: { sort: "asc", nulls: "last" } } },
+        orderBy: { review: { personalScore: { sort: "desc", nulls: "last" } } },
         take: 1
       });
 
@@ -491,11 +494,14 @@ export class StatisticService {
 
       const highestMangaPromise = prisma.manga.findMany({
         select: {
+          id: true,
+          slug: true,
           images: true,
           title: true,
+          titleJapanese: true,
           review: { select: { personalScore: true } }
         },
-        orderBy: { review: { personalScore: { sort: "asc", nulls: "last" } } },
+        orderBy: { review: { personalScore: { sort: "desc", nulls: "last" } } },
         take: 1
       });
 
@@ -505,11 +511,14 @@ export class StatisticService {
 
       const highestLightNovelPromise = prisma.lightNovel.findMany({
         select: {
+          id: true,
+          slug: true,
           images: true,
           title: true,
+          titleJapanese: true,
           review: { select: { personalScore: true } }
         },
-        orderBy: { review: { personalScore: { sort: "asc", nulls: "last" } } },
+        orderBy: { review: { personalScore: { sort: "desc", nulls: "last" } } },
         take: 1
       });
 
@@ -532,17 +541,24 @@ export class StatisticService {
       const prepareResults = (
         count: number,
         highestImages: {
+          id: number;
+          slug: string;
           review: {
             personalScore: number | null;
           } | null;
           title: string;
+          titleJapanese: string;
           images: Prisma.JsonValue;
         }[]
       ) => {
         return {
           count,
+          id: highestImages.length > 0 ? highestImages[0].id : null,
+          slug: highestImages.length > 0 ? highestImages[0].slug : null,
           images: highestImages.length > 0 ? highestImages[0].images : null,
           title: highestImages.length > 0 ? highestImages[0].title : null,
+          titleJapanese:
+            highestImages.length > 0 ? highestImages[0].titleJapanese : null,
           score:
             highestImages.length > 0
               ? highestImages[0].review?.personalScore

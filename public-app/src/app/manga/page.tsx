@@ -1,24 +1,18 @@
-import {
-  authorService,
-  genreService,
-  themeService
-} from "@/services/entity.service";
-import { fetchAllMangaService } from "@/services/manga.service";
+import { mangaService } from "@/services/manga.service";
 
 import GeneralFooter from "@/components/GeneralFooter";
 import { MangaProvider } from "@/components/context/MangaContext";
-import MangaFilterSortSheet from "@/components/manga/MangaFilterSortSheet";
+import MangaHeader from "@/components/manga/MangaHeader";
 import MangaListSection from "@/components/manga/MangaListSection";
-import MangaSearch from "@/components/manga/MangaSearch";
 
-import { MetadataResponse } from "@/types/api.type";
-import { AuthorEntity, GenreEntity, ThemeEntity } from "@/types/entity.type";
-import type { MangaFilterSort, MangaList } from "@/types/manga.type";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
-import { SORT_ORDER } from "@/lib/enums";
-
+import {
+  HydrationBoundary,
+  QueryClient,
+  dehydrate
+} from "@tanstack/react-query";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 const PAGINATION_SIZE = 15;
 
@@ -32,92 +26,69 @@ export const metadata: Metadata = {
 };
 
 type SearchParams = {
-  searchParams: Promise<
-    { page?: string | undefined; q?: string } & MangaFilterSort
-  >;
+  searchParams: Promise<{ page?: string; q?: string; status?: string }>;
 };
 
 export default async function Page({ searchParams }: SearchParams) {
   const params = await searchParams;
-  const page = parseInt(params.page || "1");
-  const sortBy = params.sortBy || "title";
-  const sortOrder = params.sortOrder || SORT_ORDER.ASCENDING;
-  const { page: _page, q: query, ...initialMangaFilterSort } = params;
+  const page = parseInt(params.page || "1", 10);
+  const query = params.q ?? "";
+  const status = params.status as keyof typeof PROGRESS_STATUS | undefined;
 
-  const fetchMangaList = async (): Promise<[MangaList[], MetadataResponse]> => {
-    const response = await fetchAllMangaService(
-      page,
-      PAGINATION_SIZE,
-      query,
-      sortBy,
-      sortOrder,
-      initialMangaFilterSort.filterAuthor,
-      initialMangaFilterSort.filterGenre,
-      initialMangaFilterSort.filterTheme,
-      initialMangaFilterSort.filterProgressStatus,
-      initialMangaFilterSort.filterMALScore,
-      initialMangaFilterSort.filterPersonalScore
-    );
-    if (response.success) {
-      return [response.data.data, response.data.metadata];
-    } else {
-      console.error("Error on fetching manga list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
+  const sort = "title";
+  const order = SORT_ORDER.ASCENDING;
 
-  const fetchAuthorList = async () => {
-    const response = await authorService.fetchAll<AuthorEntity[]>();
-    if (response.success) {
-      return response.data;
-    } else {
-      console.error("Error on fetching author list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
+  const queryClient = new QueryClient();
 
-  const fetchGenreList = async () => {
-    const response = await genreService.fetchAll<GenreEntity[]>();
-    if (response.success) {
-      return response.data;
-    } else {
-      console.error("Error on fetching genre list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
-
-  const fetchThemeList = async () => {
-    const response = await themeService.fetchAll<ThemeEntity[]>();
-    if (response.success) {
-      return response.data;
-    } else {
-      console.error("Error on fetching theme list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
-
-  const [initialMangaList, initialMangaMetadata] = await fetchMangaList();
-  const initialAuthorList = await fetchAuthorList();
-  const initialGenreList = await fetchGenreList();
-  const initialThemeList = await fetchThemeList();
+  await Promise.all([
+    queryClient.fetchQuery({
+      queryKey: [
+        "mangas",
+        page,
+        PAGINATION_SIZE,
+        query,
+        sort,
+        order,
+        undefined,
+        undefined,
+        undefined,
+        status,
+        undefined,
+        undefined
+      ],
+      queryFn: () =>
+        mangaService.fetchAll(
+          page,
+          PAGINATION_SIZE,
+          query,
+          sort,
+          order,
+          undefined,
+          undefined,
+          undefined,
+          status,
+          undefined,
+          undefined
+        ),
+      retry: false
+    }),
+    queryClient.fetchQuery({
+      queryKey: ["mangaStatusCounts"],
+      queryFn: () => mangaService.fetchStatusCounts(),
+      staleTime: Infinity,
+      retry: false
+    })
+  ]);
 
   return (
-    <MangaProvider>
-      <div className="flex flex-col min-h-[100dvh]">
-        <MangaSearch initialQuery={query || ""} />
-        <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
-          <MangaFilterSortSheet
-            authorList={initialAuthorList}
-            genreList={initialGenreList}
-            themeList={initialThemeList}
-          />
-          <MangaListSection
-            initialMangaList={initialMangaList}
-            initialMangaMetadata={initialMangaMetadata}
-          />
-        </main>
-        <GeneralFooter />
-      </div>
-    </MangaProvider>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <MangaProvider>
+        <div className="flex flex-col min-h-[100dvh] main-gradient-bg">
+          <MangaHeader />
+          <MangaListSection />
+          <GeneralFooter />
+        </div>
+      </MangaProvider>
+    </HydrationBoundary>
   );
 }

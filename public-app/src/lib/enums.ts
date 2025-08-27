@@ -16,3 +16,5 @@ export enum PROGRESS_STATUS {
   COMPLETED = "Completed",
   DROPPED = "Dropped"
 }
+
+export type ProgressStatusKey = keyof typeof PROGRESS_STATUS;

@@ -2,13 +2,13 @@
 
 import { ChangeEvent, useContext, useEffect, useState } from "react";
 
-import ListHeader from "@/components/ListHeader";
 import { LightNovelContext } from "@/components/context/LightNovelContext";
+import { Input } from "@/components/ui/input";
 
-import { MEDIA_TYPE } from "@/lib/enums";
+import { SearchIcon } from "lucide-react";
 
 type Props = {
-  initialQuery: string;
+  initialQuery?: string;
 };
 
 export default function LightNovelSearch({ initialQuery }: Props) {
@@ -30,10 +30,17 @@ export default function LightNovelSearch({ initialQuery }: Props) {
   };
 
   return (
-    <ListHeader
-      type={MEDIA_TYPE.LIGHT_NOVEL}
-      searchMedia={query}
-      onChange={handleChange}
-    />
+    <div className="relative w-full sm:w-auto">
+      <SearchIcon
+        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"
+        size={18}
+      />
+      <Input
+        placeholder="Search light novel..."
+        value={query}
+        onChange={handleChange}
+        className="pl-10 w-full sm:w-64 bg-white/60 backdrop-blur-sm border-white/40 text-slate-800 placeholder:text-slate-600"
+      />
+    </div>
   );
 }

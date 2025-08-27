@@ -68,7 +68,7 @@ export default function AdminLightNovelDetail() {
             }
             width={300}
             height={400}
-            alt="LightNovel Cover"
+            alt="Light Novel Cover"
             className="rounded-xl"
           />
           <div className="flex flex-col gap-4">

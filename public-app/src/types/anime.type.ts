@@ -4,7 +4,7 @@ import {
   ThemeEntityPartial
 } from "@/types/entity.type";
 
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS } from "@/lib/enums";
 
 type AnimeEntity = {
   id: number;
@@ -71,6 +71,8 @@ type AnimeList = Pick<
   | "status"
   | "images"
   | "score"
+  | "season"
+  | "aired"
 > &
   Pick<
     AnimeReview,
@@ -93,16 +95,4 @@ type AnimeEpisode = {
   titleRomaji: string;
 };
 
-type AnimeFilterSort = {
-  sortBy: string;
-  sortOrder: SORT_ORDER;
-  filterGenre?: number;
-  filterStudio?: number;
-  filterTheme?: number;
-  filterProgressStatus?: keyof typeof PROGRESS_STATUS;
-  filterMALScore?: string;
-  filterPersonalScore?: string;
-  filterType?: string;
-};
-
-export type { AnimeDetail, AnimeList, AnimeSitemap, AnimeFilterSort };
+export type { AnimeDetail, AnimeList, AnimeSitemap };

@@ -1,89 +1,117 @@
+"use client";
+
 import { useState } from "react";
+
+import { genreService } from "@/services/entity.service";
 
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
+
+import { useToast } from "@/hooks/useToast";
 
 import { GenreEntity } from "@/types/entity.type";
 
 import { cn } from "@/lib/utils";
 
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  Loader2Icon
-} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 type Props = {
-  genreList: GenreEntity[];
-  isLoadingGenre: boolean;
-  filterGenre?: number;
+  selectedGenre?: number;
   handleFilterGenre: (key?: number) => void;
 };
 
 export default function FilterGenre({
-  genreList,
-  isLoadingGenre,
-  filterGenre,
+  selectedGenre,
   handleFilterGenre
 }: Props) {
-  const [isFilterGenreOpen, setIsFilterGenreOpen] = useState(false);
+  const toast = useToast();
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { data: genreList, error } = useQuery({
+    queryKey: ["genres"],
+    queryFn: () => genreService.fetchAll<GenreEntity[]>(),
+    refetchOnWindowFocus: false,
+    staleTime: 24 * 60 * 60 * 1000
+  });
+
+  if (error) {
+    toast.toast({
+      variant: "destructive",
+      title: "Uh oh! Something went wrong",
+      description: error.message
+    });
+  }
 
   return (
-    <DropdownMenu onOpenChange={(value) => setIsFilterGenreOpen(value)}>
-      <DropdownMenuTrigger asChild>
-        {isLoadingGenre ? (
-          <Button variant="outline" size="sm" className="w-full" disabled>
-            <div className="flex items-center justify-center gap-2">
-              <Loader2Icon className="w-4 h-4 animate-spin" />
-              Fetching genres...
-            </div>
-            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" className="w-full">
+    <Popover open={isOpen} onOpenChange={setIsOpen} modal>
+      <PopoverTrigger asChild>
+        <Button variant="outline" role="combobox" className="w-full">
+          <p className="truncate text-center">
             Filter by:{" "}
-            {genreList.find((genre) => genre.id === filterGenre)?.name ||
+            {genreList?.find((genre) => genre.id === selectedGenre)?.name ||
               "Genre"}
-            {isFilterGenreOpen ? (
-              <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
-            ) : (
-              <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-            )}
-          </Button>
-        )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => handleFilterGenre(undefined)}>
-          All Genres
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <ScrollArea className="h-[200px]">
-          {genreList.map((genre) => {
-            return (
-              <DropdownMenuItem
-                key={genre.id}
-                onClick={() => handleFilterGenre(genre.id)}
-              >
-                <CheckIcon
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    filterGenre === genre.id ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {genre.name}
-              </DropdownMenuItem>
-            );
-          })}
-        </ScrollArea>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          </p>
+          {isOpen ? (
+            <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
+          ) : (
+            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="popover-content-width-full p-0">
+        <Command>
+          <CommandInput placeholder="Search genre..." />
+          <CommandList>
+            <CommandEmpty>No genre found.</CommandEmpty>
+            <CommandGroup>
+              {genreList?.map((genre) => {
+                return (
+                  <CommandItem
+                    key={genre.id}
+                    value={genre.name}
+                    onSelect={(currentValue) => {
+                      const currentValueGenre = genreList.find(
+                        (g) => g.name === currentValue
+                      );
+                      if (currentValueGenre) {
+                        if (currentValueGenre.id === selectedGenre) {
+                          handleFilterGenre(undefined);
+                        } else {
+                          handleFilterGenre(currentValueGenre.id);
+                        }
+                      } else {
+                        handleFilterGenre(undefined);
+                      }
+                    }}
+                  >
+                    <CheckIcon
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedGenre === genre.id ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <p className="whitespace-normal">{genre.name}</p>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

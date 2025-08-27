@@ -9,39 +9,38 @@ export class AnimeController {
 
   getAllAnimes = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const currentPage = req.query.currentPage as string;
-      const limitPerPage = req.query.limitPerPage as string;
+      const page = req.query.page as string;
+      const limit = req.query.limit as string;
 
-      if (!currentPage || !limitPerPage) {
+      if (!page || !limit) {
         throw new UnprocessableEntityError("Pagination query params missing!");
       }
 
       const query = req.query.q as string;
-      const sortBy = req.query.sortBy as string;
-      const sortOrder = req.query.sortOrder as Prisma.SortOrder;
-      const filterGenre = parseInt(req.query.filterGenre as string);
-      const filterStudio = parseInt(req.query.filterStudio as string);
-      const filterTheme = parseInt(req.query.filterTheme as string);
-      const filterProgressStatus = req.query
-        .filterProgressStatus as ProgressStatus;
-      const filterMALScore = req.query.filterMALScore as string;
-      const filterPersonalScore = req.query.filterPersonalScore as string;
-      const filterType = req.query.filterType as string;
-      const filterStatusCheck = req.query.filterStatusCheck as string;
+      const sort = req.query.sort as string;
+      const order = req.query.order as Prisma.SortOrder;
+      const genre = parseInt(req.query.genre as string);
+      const studio = parseInt(req.query.studio as string);
+      const theme = parseInt(req.query.theme as string);
+      const status = req.query.status as ProgressStatus;
+      const mal_score = req.query.mal_score as string;
+      const personal_score = req.query.personal_score as string;
+      const type = req.query.type as string;
+      const status_check = req.query.status_check as string;
       const animes = await this.animeService.getAllAnimes(
-        parseInt(currentPage),
-        parseInt(limitPerPage),
+        parseInt(page),
+        parseInt(limit),
         query,
-        sortBy,
-        sortOrder,
-        filterGenre,
-        filterStudio,
-        filterTheme,
-        filterProgressStatus,
-        filterMALScore,
-        filterPersonalScore,
-        filterType,
-        filterStatusCheck
+        sort,
+        order,
+        genre,
+        studio,
+        theme,
+        status,
+        mal_score,
+        personal_score,
+        type,
+        status_check
       );
 
       return res.json({ data: animes });
@@ -161,6 +160,19 @@ export class AnimeController {
         parseInt(limit)
       );
       return res.json({ data: anime });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  getAnimeStatusCounts = async (
+    _: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const statusCounts = await this.animeService.getAnimeStatusCounts();
+      return res.json({ data: statusCounts });
     } catch (error) {
       return next(error);
     }

@@ -1,8 +1,6 @@
 import { ApiResponse } from "@/types/api.type";
 
-import { axiosClient } from "@/lib/axios";
-
-import { AxiosError } from "axios";
+import { axiosClient, handleAxiosError } from "@/lib/axios";
 
 const BASE_GENRE_URL = "/api/genre";
 const BASE_STUDIO_URL = "/api/studio";
@@ -10,19 +8,12 @@ const BASE_THEME_URL = "/api/theme";
 const BASE_AUTHOR_URL = "/api/author";
 
 const createEntityService = (baseUrl: string) => {
-  const fetchAll = async <T>(): Promise<ApiResponse<T>> => {
+  const fetchAll = async <T>() => {
     try {
-      const response = await axiosClient.get(baseUrl);
-      return { success: true, data: response.data.data };
+      const response = await axiosClient.get<ApiResponse<T>>(baseUrl);
+      return response.data.data;
     } catch (error) {
-      console.error(error);
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError && error.response?.data.error
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
+      throw new Error(handleAxiosError(error));
     }
   };
 

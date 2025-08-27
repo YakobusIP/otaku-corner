@@ -1,12 +1,30 @@
-import { AnimeFilterSort } from "@/types/anime.type";
-import { LightNovelFilterSort } from "@/types/lightnovel.type";
-import { MangaFilterSort } from "@/types/manga.type";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
-type AnimeState = {
-  page: number;
-  query: string;
-  filters: AnimeFilterSort;
-};
+import { z } from "zod";
+
+const statusKeys = Object.keys(PROGRESS_STATUS).filter((key) =>
+  isNaN(Number(key))
+);
+
+const sortOrders = Object.keys(SORT_ORDER).filter((key) => isNaN(Number(key)));
+
+const _AnimeStateSchema = z.object({
+  page: z.number(),
+  query: z.string().optional(),
+  status: z.enum(statusKeys as [string, ...string[]]).optional(),
+  filters: z.object({
+    genre: z.number().optional(),
+    studio: z.number().optional(),
+    theme: z.number().optional(),
+    malScore: z.string().optional(),
+    personalScore: z.string().optional(),
+    type: z.string().optional()
+  }),
+  sort: z.string().optional(),
+  order: z.enum(sortOrders as [string, ...string[]]).optional()
+});
+
+type AnimeState = z.infer<typeof _AnimeStateSchema>;
 
 type AnimeContextProps = {
   state: AnimeState;
@@ -14,11 +32,22 @@ type AnimeContextProps = {
   setState: (newState: Partial<Omit<AnimeState, "query">>) => void;
 };
 
-type MangaState = {
-  page: number;
-  query: string;
-  filters: MangaFilterSort;
-};
+const _MangaStateSchema = z.object({
+  page: z.number(),
+  query: z.string().optional(),
+  status: z.enum(statusKeys as [string, ...string[]]).optional(),
+  filters: z.object({
+    author: z.number().optional(),
+    genre: z.number().optional(),
+    theme: z.number().optional(),
+    malScore: z.string().optional(),
+    personalScore: z.string().optional()
+  }),
+  sort: z.string().optional(),
+  order: z.enum(sortOrders as [string, ...string[]]).optional()
+});
+
+type MangaState = z.infer<typeof _MangaStateSchema>;
 
 type MangaContextProps = {
   state: MangaState;
@@ -26,11 +55,22 @@ type MangaContextProps = {
   setState: (newState: Partial<Omit<MangaState, "query">>) => void;
 };
 
-type LightNovelState = {
-  page: number;
-  query: string;
-  filters: LightNovelFilterSort;
-};
+const _LightNovelStateSchema = z.object({
+  page: z.number(),
+  query: z.string().optional(),
+  status: z.enum(statusKeys as [string, ...string[]]).optional(),
+  filters: z.object({
+    author: z.number().optional(),
+    genre: z.number().optional(),
+    theme: z.number().optional(),
+    malScore: z.string().optional(),
+    personalScore: z.string().optional()
+  }),
+  sort: z.string().optional(),
+  order: z.enum(sortOrders as [string, ...string[]]).optional()
+});
+
+type LightNovelState = z.infer<typeof _LightNovelStateSchema>;
 
 type LightNovelContextProps = {
   state: LightNovelState;

@@ -18,34 +18,34 @@ import { AxiosError } from "axios";
 const BASE_MANGA_URL = "/api/manga";
 
 const fetchAllMangaService = async (
-  currentPage: number,
-  limitPerPage: number,
+  page: number,
+  limit: number,
   query?: string,
-  sortBy?: string,
-  sortOrder?: SORT_ORDER,
-  filterAuthor?: number,
-  filterGenre?: number,
-  filterTheme?: number,
-  filterProgressStatus?: keyof typeof PROGRESS_STATUS,
-  filterMALScore?: string,
-  filterPersonalScore?: string,
-  filterStatusCheck?: string
+  sort?: string,
+  order?: SORT_ORDER,
+  author?: number,
+  genre?: number,
+  theme?: number,
+  status?: keyof typeof PROGRESS_STATUS,
+  mal_score?: string,
+  personal_score?: string,
+  status_check?: string
 ): Promise<ApiResponseList<MangaList[]>> => {
   try {
     const response = await interceptedAxios.get(BASE_MANGA_URL, {
       params: {
-        currentPage,
-        limitPerPage,
+        page,
+        limit,
         q: query,
-        sortBy,
-        sortOrder,
-        filterAuthor,
-        filterGenre,
-        filterTheme,
-        filterProgressStatus,
-        filterMALScore,
-        filterPersonalScore,
-        filterStatusCheck
+        sort,
+        order,
+        author,
+        genre,
+        theme,
+        status,
+        mal_score,
+        personal_score,
+        status_check
       }
     });
     return { success: true, data: response.data.data };

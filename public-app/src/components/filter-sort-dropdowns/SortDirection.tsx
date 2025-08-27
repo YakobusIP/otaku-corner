@@ -11,39 +11,38 @@ import { SORT_ORDER } from "@/lib/enums";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
 type Props = {
-  sortBy: string;
-  sortOrder: SORT_ORDER;
+  sort?: string;
+  order?: SORT_ORDER;
   handleSort: (key: string) => void;
 };
 
-export default function SortDirection({
-  sortBy,
-  sortOrder,
-  handleSort
-}: Props) {
+export default function SortDirection({ sort, order, handleSort }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full">
+        <Button
+          variant="outline"
+          className="w-full sm:w-fit bg-white/60 backdrop-blur-sm border-white/40 text-left"
+        >
           Sort by:{" "}
-          {sortBy === "title"
+          {sort === "title"
             ? "Title"
-            : sortBy === "score"
+            : sort === "score"
               ? "MAL Score"
               : "Personal Score"}
-          {sortOrder === SORT_ORDER.ASCENDING ? (
+          {order === SORT_ORDER.ASCENDING ? (
             <ArrowUpIcon className="ml-2 w-4 h-4" />
           ) : (
             <ArrowDownIcon className="ml-2 w-4 h-4" />
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="dropdown-content-width-full">
         <DropdownMenuItem onClick={() => handleSort("title")}>
           Title
-          {sortBy === "title" && (
+          {sort === "title" && (
             <span className="ml-1">
-              {sortOrder === SORT_ORDER.ASCENDING ? (
+              {order === SORT_ORDER.ASCENDING ? (
                 <ArrowUpIcon className="w-4 h-4" />
               ) : (
                 <ArrowDownIcon className="w-4 h-4" />
@@ -53,9 +52,9 @@ export default function SortDirection({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleSort("score")}>
           MAL Score
-          {sortBy === "score" && (
+          {sort === "score" && (
             <span className="ml-1">
-              {sortOrder === SORT_ORDER.ASCENDING ? (
+              {order === SORT_ORDER.ASCENDING ? (
                 <ArrowUpIcon className="w-4 h-4" />
               ) : (
                 <ArrowDownIcon className="w-4 h-4" />
@@ -65,9 +64,9 @@ export default function SortDirection({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleSort("personal_score")}>
           Personal Score
-          {sortBy === "personal_score" && (
+          {sort === "personal_score" && (
             <span className="ml-1">
-              {sortOrder === SORT_ORDER.ASCENDING ? (
+              {order === SORT_ORDER.ASCENDING ? (
                 <ArrowUpIcon className="w-4 h-4" />
               ) : (
                 <ArrowDownIcon className="w-4 h-4" />

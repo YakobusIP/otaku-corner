@@ -27,6 +27,7 @@ class AnimeRouter {
     this.router.get("/total", this.animeController.getTotalData);
     this.router.get("/sitemap", this.animeController.getSitemapData);
     this.router.get("/duplicate/:id", this.animeController.getAnimeDuplicate);
+    this.router.get("/status-count", this.animeController.getAnimeStatusCounts);
     this.router.get("/:id", this.animeController.getAnimeById);
     this.router.post("/", authMiddleware, this.animeController.createAnimeBulk);
     this.router.put("/:id", authMiddleware, this.animeController.updateAnime);

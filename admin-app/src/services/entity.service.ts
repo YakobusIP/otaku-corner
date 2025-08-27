@@ -30,13 +30,13 @@ const createEntityService = (baseUrl: string) => {
   };
 
   const fetchAllWithMediaCount = async <T>(
-    currentPage?: number,
-    limitPerPage?: number,
+    page?: number,
+    limit?: number,
     query?: string
   ): Promise<ApiResponseList<T>> => {
     try {
       const response = await interceptedAxios.get(baseUrl, {
-        params: { connected_media: true, currentPage, limitPerPage, q: query }
+        params: { connected_media: true, page, limit, q: query }
       });
       return { success: true, data: response.data.data };
     } catch (error) {

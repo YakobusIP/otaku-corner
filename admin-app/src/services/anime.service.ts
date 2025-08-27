@@ -18,36 +18,36 @@ import { AxiosError } from "axios";
 const BASE_ANIME_URL = "/api/anime";
 
 const fetchAllAnimeService = async (
-  currentPage: number,
-  limitPerPage: number,
+  page: number,
+  limit: number,
   query?: string,
-  sortBy?: string,
-  sortOrder?: SORT_ORDER,
-  filterGenre?: number,
-  filterStudio?: number,
-  filterTheme?: number,
-  filterProgressStatus?: keyof typeof PROGRESS_STATUS,
-  filterMALScore?: string,
-  filterPersonalScore?: string,
-  filterType?: string,
-  filterStatusCheck?: string
+  sort?: string,
+  order?: SORT_ORDER,
+  genre?: number,
+  studio?: number,
+  theme?: number,
+  status?: keyof typeof PROGRESS_STATUS,
+  mal_score?: string,
+  personal_score?: string,
+  type?: string,
+  status_check?: string
 ): Promise<ApiResponseList<AnimeList[]>> => {
   try {
     const response = await interceptedAxios.get(BASE_ANIME_URL, {
       params: {
-        currentPage,
-        limitPerPage,
+        page,
+        limit,
         q: query,
-        sortBy,
-        sortOrder,
-        filterGenre,
-        filterStudio,
-        filterTheme,
-        filterProgressStatus,
-        filterMALScore,
-        filterPersonalScore,
-        filterType,
-        filterStatusCheck
+        sort,
+        order,
+        genre,
+        studio,
+        theme,
+        status,
+        mal_score,
+        personal_score,
+        type,
+        status_check
       }
     });
     return { success: true, data: response.data.data };

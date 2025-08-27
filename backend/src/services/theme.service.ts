@@ -14,19 +14,21 @@ interface ThemeWithConnectedMediaCount extends Theme {
 export class ThemeService {
   async getAllThemes(
     connected_media = false,
-    currentPage?: number,
-    limitPerPage?: number,
+    page?: number,
+    limit?: number,
     query?: string
   ) {
     try {
       const lowerCaseQuery = query && query.toLowerCase();
 
-      const filterCriteria: Prisma.ThemeWhereInput = {
-        name: {
-          contains: lowerCaseQuery,
-          mode: "insensitive"
-        }
-      };
+      const filterCriteria: Prisma.ThemeWhereInput = query
+        ? {
+            name: {
+              contains: lowerCaseQuery,
+              mode: "insensitive"
+            }
+          }
+        : {};
 
       const includeCount: Prisma.ThemeInclude = connected_media
         ? {
@@ -40,18 +42,18 @@ export class ThemeService {
           }
         : {};
 
-      if (currentPage && limitPerPage) {
+      if (page && limit) {
         const [itemCount, data] = await prisma.$transaction([
           prisma.theme.count({ where: filterCriteria }),
           prisma.theme.findMany({
             where: filterCriteria,
-            take: limitPerPage,
-            skip: (currentPage - 1) * limitPerPage,
+            take: limit,
+            skip: (page - 1) * limit,
             include: includeCount
           })
         ]);
 
-        const pageCount = Math.ceil(itemCount / limitPerPage);
+        const pageCount = Math.ceil(itemCount / limit);
 
         const themesWithCounts: ThemeWithConnectedMediaCount[] = connected_media
           ? data.map((theme) => ({
@@ -66,8 +68,8 @@ export class ThemeService {
         return {
           data: themesWithCounts,
           metadata: {
-            currentPage,
-            limitPerPage,
+            page,
+            limit,
             pageCount,
             itemCount
           }

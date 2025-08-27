@@ -1,26 +1,20 @@
-import { fetchAllAnimeService } from "@/services/anime.service";
-import {
-  genreService,
-  studioService,
-  themeService
-} from "@/services/entity.service";
+import { animeService } from "@/services/anime.service";
 
 import GeneralFooter from "@/components/GeneralFooter";
-import AnimeFilterSortSheet from "@/components/anime/AnimeFilterSortSheet";
+import AnimeHeader from "@/components/anime/AnimeHeader";
 import AnimeListSection from "@/components/anime/AnimeListSection";
-import AnimeSearch from "@/components/anime/AnimeSearch";
 import { AnimeProvider } from "@/components/context/AnimeContext";
 
-import type { AnimeFilterSort, AnimeList } from "@/types/anime.type";
-import { MetadataResponse } from "@/types/api.type";
-import { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
-import { SORT_ORDER } from "@/lib/enums";
-
+import {
+  HydrationBoundary,
+  QueryClient,
+  dehydrate
+} from "@tanstack/react-query";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
-const PAGINATION_SIZE = 15;
+const PAGINATION_SIZE = 10;
 
 export const metadata: Metadata = {
   title: "Anime Collection | Otaku Corner",
@@ -32,93 +26,71 @@ export const metadata: Metadata = {
 };
 
 type SearchParams = {
-  searchParams: Promise<
-    { page?: string | undefined; q?: string } & AnimeFilterSort
-  >;
+  searchParams: Promise<{ page?: string; q?: string; status?: string }>;
 };
 
 export default async function Page({ searchParams }: SearchParams) {
   const params = await searchParams;
-  const page = parseInt(params.page || "1");
-  const sortBy = params.sortBy || "title";
-  const sortOrder = params.sortOrder || SORT_ORDER.ASCENDING;
-  const { page: _page, q: query, ...initialAnimeFilterSort } = params;
+  const page = parseInt(params.page || "1", 10);
+  const query = params.q ?? "";
+  const status = params.status as keyof typeof PROGRESS_STATUS | undefined;
 
-  const fetchAnimeList = async (): Promise<[AnimeList[], MetadataResponse]> => {
-    const response = await fetchAllAnimeService(
-      page,
-      PAGINATION_SIZE,
-      query,
-      sortBy,
-      sortOrder,
-      initialAnimeFilterSort.filterGenre,
-      initialAnimeFilterSort.filterStudio,
-      initialAnimeFilterSort.filterTheme,
-      initialAnimeFilterSort.filterProgressStatus,
-      initialAnimeFilterSort.filterMALScore,
-      initialAnimeFilterSort.filterPersonalScore,
-      initialAnimeFilterSort.filterType
-    );
-    if (response.success) {
-      return [response.data.data, response.data.metadata];
-    } else {
-      console.error("Error on fetching anime list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
+  const sort = "title";
+  const order = SORT_ORDER.ASCENDING;
 
-  const fetchGenreList = async () => {
-    const response = await genreService.fetchAll<GenreEntity[]>();
-    if (response.success) {
-      return response.data;
-    } else {
-      console.error("Error on fetching genre list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
+  const queryClient = new QueryClient();
 
-  const fetchStudioList = async () => {
-    const response = await studioService.fetchAll<StudioEntity[]>();
-    if (response.success) {
-      return response.data;
-    } else {
-      console.error("Error on fetching studio list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
-
-  const fetchThemeList = async () => {
-    const response = await themeService.fetchAll<ThemeEntity[]>();
-    if (response.success) {
-      return response.data;
-    } else {
-      console.error("Error on fetching theme list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
-
-  const [initialAnimeList, initialAnimeMetadata] = await fetchAnimeList();
-  const initialGenreList = await fetchGenreList();
-  const initialStudioList = await fetchStudioList();
-  const initialThemeList = await fetchThemeList();
+  await Promise.all([
+    queryClient.fetchQuery({
+      queryKey: [
+        "animes",
+        page,
+        PAGINATION_SIZE,
+        query,
+        sort,
+        order,
+        undefined,
+        undefined,
+        undefined,
+        status,
+        undefined,
+        undefined,
+        undefined
+      ],
+      queryFn: () =>
+        animeService.fetchAll(
+          page,
+          PAGINATION_SIZE,
+          query,
+          sort,
+          order,
+          undefined,
+          undefined,
+          undefined,
+          status,
+          undefined,
+          undefined,
+          undefined
+        ),
+      retry: false
+    }),
+    queryClient.fetchQuery({
+      queryKey: ["animeStatusCounts"],
+      queryFn: () => animeService.fetchStatusCounts(),
+      staleTime: Infinity,
+      retry: false
+    })
+  ]);
 
   return (
-    <AnimeProvider>
-      <div className="flex flex-col min-h-[100dvh]">
-        <AnimeSearch initialQuery={query || ""} />
-        <main className="container py-4 xl:py-12 px-4 md:px-6 flex flex-col flex-1">
-          <AnimeFilterSortSheet
-            genreList={initialGenreList}
-            studioList={initialStudioList}
-            themeList={initialThemeList}
-          />
-          <AnimeListSection
-            initialAnimeList={initialAnimeList}
-            initialAnimeMetadata={initialAnimeMetadata}
-          />
-        </main>
-        <GeneralFooter />
-      </div>
-    </AnimeProvider>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <AnimeProvider>
+        <div className="flex flex-col min-h-[100dvh] main-gradient-bg">
+          <AnimeHeader />
+          <AnimeListSection />
+          <GeneralFooter />
+        </div>
+      </AnimeProvider>
+    </HydrationBoundary>
   );
 }

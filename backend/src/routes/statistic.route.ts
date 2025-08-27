@@ -51,11 +51,7 @@ class StatisticRouter {
       authMiddleware,
       this.statisticController.getAuthorConsumption
     );
-    this.router.get(
-      "/all-time",
-      authMiddleware,
-      this.statisticController.getAllTimeStatistics
-    );
+    this.router.get("/all-time", this.statisticController.getAllTimeStatistics);
     this.router.get(
       "/top-media-and-yearly-count",
       this.statisticController.getEachMediaTopScoreAndYearlyCount

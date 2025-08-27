@@ -14,40 +14,46 @@ interface GenreWithConnectedMediaCount extends Genre {
 export class GenreService {
   async getAllGenres(
     connected_media = false,
-    currentPage?: number,
-    limitPerPage?: number,
+    page?: number,
+    limit?: number,
     query?: string
   ) {
     try {
       const lowerCaseQuery = query && query.toLowerCase();
 
-      const filterCriteria: Prisma.GenreWhereInput = {
-        name: {
-          contains: lowerCaseQuery,
-          mode: "insensitive"
-        }
-      };
-
-      const includeCount: Prisma.GenreInclude = connected_media
+      const filterCriteria: Prisma.GenreWhereInput = query
         ? {
-            _count: {
-              select: { animes: true, mangas: true, lightNovels: true }
+            name: {
+              contains: lowerCaseQuery,
+              mode: "insensitive"
             }
           }
         : {};
 
-      if (currentPage && limitPerPage) {
+      const includeCount: Prisma.GenreInclude = connected_media
+        ? {
+            _count: {
+              select: {
+                animes: true,
+                mangas: true,
+                lightNovels: true
+              }
+            }
+          }
+        : {};
+
+      if (page && limit) {
         const [itemCount, data] = await prisma.$transaction([
           prisma.genre.count({ where: filterCriteria }),
           prisma.genre.findMany({
             where: filterCriteria,
-            take: limitPerPage,
-            skip: (currentPage - 1) * limitPerPage,
+            take: limit,
+            skip: (page - 1) * limit,
             include: includeCount
           })
         ]);
 
-        const pageCount = Math.ceil(itemCount / limitPerPage);
+        const pageCount = Math.ceil(itemCount / limit);
 
         const genresWithCounts: GenreWithConnectedMediaCount[] = connected_media
           ? data.map((genre) => ({
@@ -62,8 +68,8 @@ export class GenreService {
         return {
           data: genresWithCounts,
           metadata: {
-            currentPage,
-            limitPerPage,
+            page,
+            limit,
             pageCount,
             itemCount
           }

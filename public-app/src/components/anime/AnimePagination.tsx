@@ -22,8 +22,9 @@ export default function AnimePagination({ animeMetadata }: Props) {
   const { setState } = context;
 
   const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > animeMetadata.pageCount) return;
-    setState({ page: newPage });
+    if (newPage >= 1 && newPage < animeMetadata.pageCount) {
+      setState({ page: newPage });
+    }
   };
 
   return (
