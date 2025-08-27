@@ -481,9 +481,10 @@ export class StatisticService {
           slug: true,
           images: true,
           title: true,
+          titleJapanese: true,
           review: { select: { personalScore: true } }
         },
-        orderBy: { review: { personalScore: { sort: "asc", nulls: "last" } } },
+        orderBy: { review: { personalScore: { sort: "desc", nulls: "last" } } },
         take: 1
       });
 
@@ -497,9 +498,10 @@ export class StatisticService {
           slug: true,
           images: true,
           title: true,
+          titleJapanese: true,
           review: { select: { personalScore: true } }
         },
-        orderBy: { review: { personalScore: { sort: "asc", nulls: "last" } } },
+        orderBy: { review: { personalScore: { sort: "desc", nulls: "last" } } },
         take: 1
       });
 
@@ -513,9 +515,10 @@ export class StatisticService {
           slug: true,
           images: true,
           title: true,
+          titleJapanese: true,
           review: { select: { personalScore: true } }
         },
-        orderBy: { review: { personalScore: { sort: "asc", nulls: "last" } } },
+        orderBy: { review: { personalScore: { sort: "desc", nulls: "last" } } },
         take: 1
       });
 
@@ -544,6 +547,7 @@ export class StatisticService {
             personalScore: number | null;
           } | null;
           title: string;
+          titleJapanese: string;
           images: Prisma.JsonValue;
         }[]
       ) => {
@@ -553,6 +557,8 @@ export class StatisticService {
           slug: highestImages.length > 0 ? highestImages[0].slug : null,
           images: highestImages.length > 0 ? highestImages[0].images : null,
           title: highestImages.length > 0 ? highestImages[0].title : null,
+          titleJapanese:
+            highestImages.length > 0 ? highestImages[0].titleJapanese : null,
           score:
             highestImages.length > 0
               ? highestImages[0].review?.personalScore

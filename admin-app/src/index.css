@@ -106,3 +106,11 @@
     max-height: var(--radix-popover-content-available-height);
   }
 }
+
+ol {
+  list-style: decimal;
+}
+
+ul {
+  list-style: disc;
+}

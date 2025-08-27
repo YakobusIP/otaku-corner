@@ -36,6 +36,14 @@ export class AnimeService {
     charDevelopmentRating: 0.1
   };
 
+  private static readonly progressStatuses: Record<string, string> = {
+    COMPLETED: "Completed",
+    ON_PROGRESS: "On Progress",
+    ON_HOLD: "On Hold",
+    PLANNED: "Planned",
+    DROPPED: "Dropped"
+  };
+
   constructor(
     private readonly genreService: GenreService,
     private readonly studioService: StudioService,
@@ -76,19 +84,19 @@ export class AnimeService {
   }
 
   async getAllAnimes(
-    currentPage: number,
-    limitPerPage: number,
+    page: number,
+    limit: number,
     query?: string,
-    sortBy?: string,
-    sortOrder?: Prisma.SortOrder,
-    filterGenre?: number,
-    filterStudio?: number,
-    filterTheme?: number,
-    filterProgressStatus?: ProgressStatus,
-    filterMALScore?: string,
-    filterPersonalScore?: string,
-    filterType?: string,
-    filterStatusCheck?: string
+    sort?: string,
+    order?: Prisma.SortOrder,
+    genre?: number,
+    studio?: number,
+    theme?: number,
+    status?: ProgressStatus,
+    mal_score?: string,
+    personal_score?: string,
+    type?: string,
+    status_check?: string
   ) {
     try {
       const lowerCaseQuery = query && query.toLowerCase();
@@ -117,48 +125,42 @@ export class AnimeService {
               }
             ]
           },
-          ...(filterGenre
-            ? [{ genres: { some: { genreId: filterGenre } } }]
-            : []),
-          ...(filterStudio
-            ? [{ studios: { some: { studioId: filterStudio } } }]
-            : []),
-          ...(filterTheme
-            ? [{ themes: { some: { themeId: filterTheme } } }]
-            : []),
-          ...(filterProgressStatus
+          ...(genre ? [{ genres: { some: { genreId: genre } } }] : []),
+          ...(studio ? [{ studios: { some: { studioId: studio } } }] : []),
+          ...(theme ? [{ themes: { some: { themeId: theme } } }] : []),
+          ...(status
             ? [
                 {
                   review: {
-                    progressStatus: filterProgressStatus
+                    progressStatus: status
                   }
                 }
               ]
             : []),
-          ...(filterMALScore
+          ...(mal_score
             ? [
                 {
                   score: {
-                    gte: scoreRanges[filterMALScore].min,
-                    lte: scoreRanges[filterMALScore].max
+                    gte: scoreRanges[mal_score].min,
+                    lte: scoreRanges[mal_score].max
                   }
                 }
               ]
             : []),
-          ...(filterPersonalScore
+          ...(personal_score
             ? [
                 {
                   review: {
                     personalScore: {
-                      gte: scoreRanges[filterPersonalScore].min,
-                      lte: scoreRanges[filterPersonalScore].max
+                      gte: scoreRanges[personal_score].min,
+                      lte: scoreRanges[personal_score].max
                     }
                   }
                 }
               ]
             : []),
-          ...(filterType ? [{ type: { equals: filterType } }] : []),
-          ...(filterStatusCheck === "complete"
+          ...(type ? [{ type: { equals: type } }] : []),
+          ...(status_check === "complete"
             ? [
                 {
                   AND: [
@@ -178,7 +180,7 @@ export class AnimeService {
                   ]
                 }
               ]
-            : filterStatusCheck === "incomplete"
+            : status_check === "incomplete"
               ? [
                   {
                     OR: [
@@ -201,7 +203,7 @@ export class AnimeService {
         where: filterCriteria
       });
 
-      const pageCount = Math.ceil(itemCount / limitPerPage);
+      const pageCount = Math.ceil(itemCount / limit);
 
       const data = await prisma.anime.findMany({
         where: filterCriteria,
@@ -215,6 +217,8 @@ export class AnimeService {
           type: true,
           score: true,
           rating: true,
+          season: true,
+          aired: true,
           review: {
             select: {
               reviewText: true,
@@ -230,18 +234,18 @@ export class AnimeService {
           }
         },
         orderBy: {
-          title: sortBy === "title" ? sortOrder : undefined,
-          score: sortBy === "score" ? sortOrder : undefined,
-          ...(sortBy === "personal_score"
+          title: sort === "title" ? order : undefined,
+          score: sort === "score" ? order : undefined,
+          ...(sort === "personal_score"
             ? {
                 review: {
-                  personalScore: { sort: sortOrder!, nulls: "last" }
+                  personalScore: { sort: order!, nulls: "last" }
                 }
               }
             : {})
         },
-        take: limitPerPage,
-        skip: (currentPage - 1) * limitPerPage
+        take: limit,
+        skip: (page - 1) * limit
       });
 
       const mappedData = data.map((item) => ({
@@ -253,6 +257,8 @@ export class AnimeService {
         status: item.status,
         type: item.type,
         score: item.score,
+        season: item.season,
+        aired: item.aired,
         rating: item.rating,
         reviewText: item.review?.reviewText,
         progressStatus: item.review?.progressStatus,
@@ -264,8 +270,8 @@ export class AnimeService {
       return {
         data: mappedData,
         metadata: {
-          currentPage,
-          limitPerPage,
+          page,
+          limit,
           pageCount,
           itemCount
         }
@@ -532,6 +538,40 @@ export class AnimeService {
         createdAt: item.review?.createdAt,
         updatedAt: item.review?.updatedAt
       }));
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
+  async getAnimeStatusCounts() {
+    try {
+      const totalCount = await this.getTotalData();
+
+      const statusCounts = await prisma.animeReview.groupBy({
+        by: ["progressStatus"],
+        _count: true
+      });
+
+      const countsMap = Object.fromEntries(
+        statusCounts.map((count) => [count.progressStatus, count._count])
+      );
+
+      const mappedStatus = Object.keys(AnimeService.progressStatuses).map(
+        (status) => ({
+          label: AnimeService.progressStatuses[status],
+          value: status,
+          count: countsMap[status] ?? 0
+        })
+      );
+
+      return [
+        {
+          label: "All",
+          value: null,
+          count: totalCount
+        },
+        ...mappedStatus
+      ];
     } catch (error) {
       throw new InternalServerError((error as Error).message);
     }

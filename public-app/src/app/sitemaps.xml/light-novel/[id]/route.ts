@@ -1,4 +1,4 @@
-import { fetchLightNovelSitemap } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/lightnovel.service";
 
 import { URL_OF_SITEMAPS } from "@/lib/constants";
 
@@ -12,12 +12,10 @@ type Params = {
 export async function GET(_: Request, { params }: { params: Promise<Params> }) {
   try {
     const id = Number((await params).id) + 1;
-    const data = await fetchLightNovelSitemap(id, URL_OF_SITEMAPS);
-
-    if (!data.success) throw data.error;
+    const data = await lightNovelService.fetchSitemap(id, URL_OF_SITEMAPS);
 
     const sitemapIndexXML = buildSitemapIndex(
-      data.data.map((item) => ({
+      data.map((item) => ({
         url: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/light-novel/${item.id}/${item.slug}`,
         lastModified: item.updatedAt || item.createdAt,
         changeFrequency: "monthly",

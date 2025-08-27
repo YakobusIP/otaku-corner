@@ -4,7 +4,7 @@ import {
   ThemeEntityPartial
 } from "@/types/entity.type";
 
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS } from "@/lib/enums";
 
 type LightNovelEntity = {
   id: number;
@@ -76,20 +76,4 @@ type LightNovelSitemap = Pick<LightNovelEntity, "id" | "slug"> & {
   updatedAt: Date;
 };
 
-type LightNovelFilterSort = {
-  sortBy: string;
-  sortOrder: SORT_ORDER;
-  filterAuthor?: number;
-  filterGenre?: number;
-  filterTheme?: number;
-  filterProgressStatus?: keyof typeof PROGRESS_STATUS;
-  filterMALScore?: string;
-  filterPersonalScore?: string;
-};
-
-export type {
-  LightNovelDetail,
-  LightNovelList,
-  LightNovelSitemap,
-  LightNovelFilterSort
-};
+export type { LightNovelDetail, LightNovelList, LightNovelSitemap };

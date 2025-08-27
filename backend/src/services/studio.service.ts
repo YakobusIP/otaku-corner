@@ -14,19 +14,21 @@ interface StudioWithConnectedMediaCount extends Studio {
 export class StudioService {
   async getAllStudios(
     connected_media = false,
-    currentPage?: number,
-    limitPerPage?: number,
+    page?: number,
+    limit?: number,
     query?: string
   ) {
     try {
       const lowerCaseQuery = query && query.toLowerCase();
 
-      const filterCriteria: Prisma.StudioWhereInput = {
-        name: {
-          contains: lowerCaseQuery,
-          mode: "insensitive"
-        }
-      };
+      const filterCriteria: Prisma.StudioWhereInput = query
+        ? {
+            name: {
+              contains: lowerCaseQuery,
+              mode: "insensitive"
+            }
+          }
+        : {};
 
       const includeCount: Prisma.StudioInclude = connected_media
         ? {
@@ -38,18 +40,18 @@ export class StudioService {
           }
         : {};
 
-      if (currentPage && limitPerPage) {
+      if (page && limit) {
         const [itemCount, data] = await prisma.$transaction([
           prisma.studio.count({ where: filterCriteria }),
           prisma.studio.findMany({
             where: filterCriteria,
-            take: limitPerPage,
-            skip: (currentPage - 1) * limitPerPage,
+            take: limit,
+            skip: (page - 1) * limit,
             include: includeCount
           })
         ]);
 
-        const pageCount = Math.ceil(itemCount / limitPerPage);
+        const pageCount = Math.ceil(itemCount / limit);
 
         const studiosWithCounts: StudioWithConnectedMediaCount[] =
           connected_media
@@ -62,8 +64,8 @@ export class StudioService {
         return {
           data: studiosWithCounts,
           metadata: {
-            currentPage,
-            limitPerPage,
+            page,
+            limit,
             pageCount,
             itemCount
           }

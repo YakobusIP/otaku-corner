@@ -15,18 +15,18 @@ import { cn } from "@/lib/utils";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 type Props = {
-  filterMALScore?: string;
+  selectedMALScore?: string;
   handleFilterMALScore: (key?: string) => void;
 };
 
 export default function FilterMALScore({
-  filterMALScore,
+  selectedMALScore,
   handleFilterMALScore
 }: Props) {
   const [isFilterMALScoreOpen, setIsFilterMALScoreOpen] = useState(false);
 
   const selectedFilterMALScore = scoreOptions.find(
-    (filter) => filter.key === filterMALScore
+    (filter) => filter.key === selectedMALScore
   );
 
   return (
@@ -58,7 +58,7 @@ export default function FilterMALScore({
               <CheckIcon
                 className={cn(
                   "mr-2 h-4 w-4",
-                  filterMALScore === filter.key ? "opacity-100" : "opacity-0"
+                  selectedMALScore === filter.key ? "opacity-100" : "opacity-0"
                 )}
               />
               {filter.optionLabel}

@@ -14,36 +14,38 @@ interface AuthorWithConnectedMediaCount extends Author {
 export class AuthorService {
   async getAllAuthors(
     connected_media = false,
-    currentPage?: number,
-    limitPerPage?: number,
+    page?: number,
+    limit?: number,
     query?: string
   ) {
     try {
       const lowerCaseQuery = query && query.toLowerCase();
 
-      const filterCriteria: Prisma.AuthorWhereInput = {
-        name: {
-          contains: lowerCaseQuery,
-          mode: "insensitive"
-        }
-      };
+      const filterCriteria: Prisma.AuthorWhereInput = query
+        ? {
+            name: {
+              contains: lowerCaseQuery,
+              mode: "insensitive"
+            }
+          }
+        : {};
 
       const includeCount: Prisma.AuthorInclude = connected_media
         ? { _count: { select: { mangas: true, lightNovels: true } } }
         : {};
 
-      if (currentPage && limitPerPage) {
+      if (page && limit) {
         const [itemCount, data] = await prisma.$transaction([
           prisma.author.count({ where: filterCriteria }),
           prisma.author.findMany({
             where: filterCriteria,
-            take: limitPerPage,
-            skip: (currentPage - 1) * limitPerPage,
+            take: limit,
+            skip: (page - 1) * limit,
             include: includeCount
           })
         ]);
 
-        const pageCount = Math.ceil(itemCount / limitPerPage);
+        const pageCount = Math.ceil(itemCount / limit);
 
         const authorsWithCounts: AuthorWithConnectedMediaCount[] =
           connected_media
@@ -57,8 +59,8 @@ export class AuthorService {
         return {
           data: authorsWithCounts,
           metadata: {
-            currentPage,
-            limitPerPage,
+            page,
+            limit,
             pageCount,
             itemCount
           }

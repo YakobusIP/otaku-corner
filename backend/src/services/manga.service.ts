@@ -29,6 +29,14 @@ export class MangaService {
     originalityRating: 0.1
   };
 
+  private static readonly progressStatuses: Record<string, string> = {
+    COMPLETED: "Completed",
+    ON_PROGRESS: "On Progress",
+    ON_HOLD: "On Hold",
+    PLANNED: "Planned",
+    DROPPED: "Dropped"
+  };
+
   constructor(
     private readonly authorService: AuthorService,
     private readonly genreService: GenreService,
@@ -69,18 +77,18 @@ export class MangaService {
   }
 
   async getAllMangas(
-    currentPage: number,
-    limitPerPage: number,
+    page: number,
+    limit: number,
     query?: string,
-    sortBy?: string,
-    sortOrder?: Prisma.SortOrder,
-    filterAuthor?: number,
-    filterGenre?: number,
-    filterTheme?: number,
-    filterProgressStatus?: ProgressStatus,
-    filterMALScore?: string,
-    filterPersonalScore?: string,
-    filterStatusCheck?: string
+    sort?: string,
+    order?: Prisma.SortOrder,
+    author?: number,
+    genre?: number,
+    theme?: number,
+    status?: ProgressStatus,
+    mal_score?: string,
+    personal_score?: string,
+    status_check?: string
   ) {
     try {
       const lowerCaseQuery = query && query.toLowerCase();
@@ -109,47 +117,41 @@ export class MangaService {
               }
             ]
           },
-          ...(filterAuthor
-            ? [{ authors: { some: { authorId: filterAuthor } } }]
-            : []),
-          ...(filterGenre
-            ? [{ genres: { some: { genreId: filterGenre } } }]
-            : []),
-          ...(filterTheme
-            ? [{ themes: { some: { themeId: filterTheme } } }]
-            : []),
-          ...(filterProgressStatus
+          ...(author ? [{ authors: { some: { authorId: author } } }] : []),
+          ...(genre ? [{ genres: { some: { genreId: genre } } }] : []),
+          ...(theme ? [{ themes: { some: { themeId: theme } } }] : []),
+          ...(status
             ? [
                 {
                   review: {
-                    progressStatus: filterProgressStatus
+                    progressStatus: status
                   }
                 }
               ]
             : []),
-          ...(filterMALScore
+          ...(mal_score
             ? [
                 {
                   score: {
-                    gte: scoreRanges[filterMALScore].min,
-                    lte: scoreRanges[filterMALScore].max
+                    gte: scoreRanges[mal_score].min,
+                    lte: scoreRanges[mal_score].max
                   }
                 }
               ]
             : []),
-          ...(filterPersonalScore
+          ...(personal_score
             ? [
                 {
                   review: {
                     personalScore: {
-                      gte: scoreRanges[filterPersonalScore].min,
-                      lte: scoreRanges[filterPersonalScore].max
+                      gte: scoreRanges[personal_score].min,
+                      lte: scoreRanges[personal_score].max
                     }
                   }
                 }
               ]
             : []),
-          ...(filterStatusCheck === "complete"
+          ...(status_check === "complete"
             ? [
                 {
                   AND: [
@@ -160,7 +162,7 @@ export class MangaService {
                   ]
                 }
               ]
-            : filterStatusCheck === "incomplete"
+            : status_check === "incomplete"
               ? [
                   {
                     OR: [
@@ -179,7 +181,7 @@ export class MangaService {
         where: filterCriteria
       });
 
-      const pageCount = Math.ceil(itemCount / limitPerPage);
+      const pageCount = Math.ceil(itemCount / limit);
 
       const data = await prisma.manga.findMany({
         where: filterCriteria,
@@ -203,18 +205,18 @@ export class MangaService {
           volumesCount: true
         },
         orderBy: {
-          title: sortBy === "title" ? sortOrder : undefined,
-          score: sortBy === "score" ? sortOrder : undefined,
-          ...(sortBy === "personal_score"
+          title: sort === "title" ? order : undefined,
+          score: sort === "score" ? order : undefined,
+          ...(sort === "personal_score"
             ? {
                 review: {
-                  personalScore: { sort: sortOrder!, nulls: "last" }
+                  personalScore: { sort: order!, nulls: "last" }
                 }
               }
             : {})
         },
-        take: limitPerPage,
-        skip: (currentPage - 1) * limitPerPage
+        take: limit,
+        skip: (page - 1) * limit
       });
 
       const mappedData = data.map((item) => ({
@@ -236,8 +238,8 @@ export class MangaService {
       return {
         data: mappedData,
         metadata: {
-          currentPage,
-          limitPerPage,
+          page,
+          limit,
           pageCount,
           itemCount
         }
@@ -491,6 +493,40 @@ export class MangaService {
         createdAt: item.review?.createdAt,
         updatedAt: item.review?.updatedAt
       }));
+    } catch (error) {
+      throw new InternalServerError((error as Error).message);
+    }
+  }
+
+  async getMangaStatusCounts() {
+    try {
+      const totalCount = await this.getTotalData();
+
+      const statusCounts = await prisma.mangaReview.groupBy({
+        by: ["progressStatus"],
+        _count: true
+      });
+
+      const countsMap = Object.fromEntries(
+        statusCounts.map((count) => [count.progressStatus, count._count])
+      );
+
+      const mappedStatus = Object.keys(MangaService.progressStatuses).map(
+        (status) => ({
+          label: MangaService.progressStatuses[status],
+          value: status,
+          count: countsMap[status] ?? 0
+        })
+      );
+
+      return [
+        {
+          label: "All",
+          value: null,
+          count: totalCount
+        },
+        ...mappedStatus
+      ];
     } catch (error) {
       throw new InternalServerError((error as Error).message);
     }

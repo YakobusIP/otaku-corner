@@ -1,0 +1,335 @@
+"use client";
+
+import { useState } from "react";
+
+import { lightNovelService } from "@/services/lightnovel.service";
+
+import GeneralFooter from "@/components/GeneralFooter";
+import RatingDetailContent from "@/components/RatingDetailContent";
+import ReviewContent from "@/components/ReviewContent";
+import SpoilerWarningModal from "@/components/SpoilerWarningModal";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
+
+import { useToast } from "@/hooks/useToast";
+
+import { ratingDescriptions } from "@/lib/constants";
+
+import { useQuery } from "@tanstack/react-query";
+import {
+  AlertTriangleIcon,
+  BookOpenIcon,
+  CalendarIcon,
+  ClockIcon,
+  EyeIcon,
+  EyeOffIcon,
+  UserIcon
+} from "lucide-react";
+import Image from "next/image";
+import { notFound } from "next/navigation";
+
+type Props = {
+  id: number;
+};
+
+export default function LightNovelDetail({ id }: Props) {
+  const [showSpoilerWarning, setShowSpoilerWarning] = useState(false);
+  const [spoilersRevealed, setSpoilersRevealed] = useState(false);
+
+  const toast = useToast();
+
+  const { data: lightNovelDetail, error } = useQuery({
+    queryKey: ["lightNovel", id],
+    queryFn: () => lightNovelService.fetchById(id)
+  });
+
+  if (!lightNovelDetail) {
+    notFound();
+  }
+
+  if (error) {
+    toast.toast({
+      variant: "destructive",
+      title: "Uh oh! Something went wrong",
+      description: error.message
+    });
+  }
+
+  const reviewObject = lightNovelDetail.review;
+
+  const lightNovelPersonalRatings = [
+    {
+      title: "Storyline",
+      weight: "30",
+      rating: reviewObject.storylineRating
+        ? `${reviewObject.storylineRating} - ${
+            ratingDescriptions[reviewObject.storylineRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "World Building",
+      weight: "25",
+      rating: reviewObject.worldBuildingRating
+        ? `${reviewObject.worldBuildingRating} - ${
+            ratingDescriptions[reviewObject.worldBuildingRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Writing Style",
+      weight: "20",
+      rating: reviewObject.writingStyleRating
+        ? `${reviewObject.writingStyleRating} - ${
+            ratingDescriptions[reviewObject.writingStyleRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Character Development",
+      weight: "15",
+      rating: reviewObject.charDevelopmentRating
+        ? `${reviewObject.charDevelopmentRating} - ${
+            ratingDescriptions[reviewObject.charDevelopmentRating]
+          }`
+        : "N/A"
+    },
+    {
+      title: "Originality",
+      weight: "10",
+      rating: reviewObject.originalityRating
+        ? `${reviewObject.originalityRating} - ${
+            ratingDescriptions[reviewObject.originalityRating]
+          }`
+        : "N/A"
+    }
+  ];
+
+  const handleRevealSpoilers = () => setShowSpoilerWarning(true);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf]">
+      <div className="container px-4 py-8">
+        <header className="grid lg:grid-cols-1 gap-8 mb-8">
+          <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-shrink-0">
+                  <Image
+                    src={
+                      lightNovelDetail.images.large_image_url ||
+                      lightNovelDetail.images.image_url
+                    }
+                    alt={lightNovelDetail.title}
+                    width={300}
+                    height={400}
+                    className="rounded-lg shadow-xl object-cover border border-slate-200 aspect-[3/4]"
+                    priority
+                  />
+                </div>
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
+                      {lightNovelDetail.title}
+                    </h1>
+                    <p className="text-slate-700 text-lg">
+                      ({lightNovelDetail.titleJapanese})
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {lightNovelDetail.genres.map((genre) => (
+                      <Badge
+                        key={genre.id}
+                        className="bg-slate-800/80 backdrop-blur-sm text-white border border-slate-700/30"
+                      >
+                        {genre.name}
+                      </Badge>
+                    ))}
+                    {lightNovelDetail.themes.map((theme) => (
+                      <Badge
+                        key={theme.id}
+                        className="bg-slate-800/80 backdrop-blur-sm text-white border border-slate-700/30"
+                      >
+                        {theme.name}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <CalendarIcon className="w-5 h-5" />
+                      <div>{lightNovelDetail.published}</div>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <BookOpenIcon className="w-5 h-5" />
+                      <span>
+                        {lightNovelDetail.volumesCount
+                          ? `${lightNovelDetail.volumesCount} chapter(s)`
+                          : "Unknown chapters"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <UserIcon className="w-5 h-5" />
+                      <span>
+                        {lightNovelDetail.authors
+                          .map((author) => author.name)
+                          .join(", ")}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <ClockIcon className="w-5 h-5" />
+                      <span>{lightNovelDetail.status}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
+                      <div className="text-slate-600 text-sm mb-1">
+                        MAL Score
+                      </div>
+                      <div className="text-2xl font-bold text-slate-800">
+                        {lightNovelDetail.score.toFixed(2)}/10
+                      </div>
+                    </div>
+                    <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-slate-600 text-sm mb-1">
+                            My Score
+                          </div>
+                          <div className="text-2xl font-bold text-slate-800">
+                            {reviewObject.personalScore
+                              ? reviewObject.personalScore.toFixed(2)
+                              : "N/A"}
+                            /10
+                          </div>
+                        </div>
+                        <RatingDetailContent
+                          details={lightNovelPersonalRatings}
+                          finalScore={reviewObject.personalScore}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
+                      <div className="text-slate-600 text-sm mb-2">
+                        Reading Status
+                      </div>
+                      <ProgressStatusBadge
+                        className="text-black border-none"
+                        progressStatus={reviewObject.progressStatus}
+                      />
+                    </div>
+                    <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
+                      <div className="text-slate-600 text-sm mb-2">
+                        Series Progress
+                      </div>
+                      <div className="text-slate-800 font-semibold">
+                        {lightNovelDetail.volumesCount
+                          ? `${lightNovelDetail.volumesCount} volume(s)`
+                          : "Unknown volumes"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </header>
+
+        <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl mb-8">
+          <CardHeader>
+            <CardTitle className="text-slate-800">Synopsis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-slate-800 leading-relaxed whitespace-pre-line">
+              {lightNovelDetail.synopsis}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-slate-800">My Review</CardTitle>
+              {!spoilersRevealed && (
+                <Button
+                  onClick={handleRevealSpoilers}
+                  variant="outline"
+                  size="sm"
+                  className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                >
+                  <EyeOffIcon />
+                  Reveal Spoilers
+                </Button>
+              )}
+              {spoilersRevealed && (
+                <Badge className="bg-orange-100 text-orange-800 border border-orange-300 hover:bg-orange-200">
+                  <EyeIcon className="mr-1" size={12} />
+                  Spoilers Visible
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!reviewObject.reviewText ? (
+              <div className="flex flex-col items-center justify-center gap-2 xl:gap-4">
+                <Image
+                  src="/no-review.gif"
+                  width={500}
+                  height={300}
+                  className="w-64 rounded-xl"
+                  alt="No review"
+                  unoptimized
+                />
+                <p className="text-center text-muted-foreground">
+                  No review available
+                </p>
+              </div>
+            ) : (
+              <div className="relative">
+                {!spoilersRevealed && (
+                  <div className="absolute inset-0 z-10 bg-white/95 backdrop-blur-md rounded-lg border-2 border-dashed border-orange-300 flex flex-col items-center text-center p-8">
+                    <AlertTriangleIcon
+                      className="text-orange-500 mb-4"
+                      size={48}
+                    />
+                    <h3 className="text-xl font-bold text-slate-800 mb-2">
+                      Spoiler Warning
+                    </h3>
+                    <p className="text-slate-600 mb-4 max-w-md">
+                      This review contains spoilers that may reveal important
+                      plot points and story outcomes.
+                    </p>
+                    <Button
+                      onClick={handleRevealSpoilers}
+                      className="bg-orange-600 hover:bg-orange-700 text-white"
+                    >
+                      <EyeIcon size={16} />
+                      Click to Reveal Review
+                    </Button>
+                  </div>
+                )}
+                <ReviewContent
+                  review={reviewObject.reviewText}
+                  spoilersRevealed={spoilersRevealed}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <GeneralFooter />
+      <SpoilerWarningModal
+        showSpoilerWarning={showSpoilerWarning}
+        setShowSpoilerWarning={setShowSpoilerWarning}
+        setSpoilersRevealed={setSpoilersRevealed}
+      />
+    </div>
+  );
+}

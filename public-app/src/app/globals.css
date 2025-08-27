@@ -62,25 +62,6 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
-
-  h1 {
-    @apply scroll-m-20 text-4xl font-bold tracking-tight lg:text-5xl;
-  }
-
-  h2 {
-    @apply scroll-m-20 text-3xl font-bold tracking-tight;
-  }
-
-  h3 {
-    @apply scroll-m-20 text-2xl font-semibold tracking-tight;
-  }
-
-  h4 {
-    @apply scroll-m-20 text-xl font-semibold tracking-tight;
-  }
 
   :root {
     --chart-1: 12 76% 61%;
@@ -103,5 +84,14 @@
   .popover-content-width-full {
     width: var(--radix-popover-trigger-width);
     max-height: var(--radix-popover-content-available-height);
+  }
+
+  .dropdown-content-width-full {
+    width: var(--radix-dropdown-menu-trigger-width);
+    max-height: var(--radix-dropdown-menu-content-available-height);
+  }
+
+  .main-gradient-bg {
+    @apply bg-gradient-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf];
   }
 }

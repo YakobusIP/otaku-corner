@@ -2,7 +2,7 @@ import AdminAnimeDetail from "@/pages/AdminAnimeDetail";
 import AdminLightNovelDetail from "@/pages/AdminLightNovelDetail";
 import AdminMangaDetail from "@/pages/AdminMangaDetail";
 import Dashboard from "@/pages/Dashboard";
-import Home from "@/pages/Home.tsx";
+import Login from "@/pages/Login";
 import MediaList from "@/pages/MediaList";
 import NotFoundPage from "@/routes/NotFoundPage";
 import ProtectedRoute from "@/routes/ProtectedRoute";
@@ -12,7 +12,7 @@ import { createBrowserRouter } from "react-router-dom";
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Home />
+    element: <Login />
   },
   {
     path: "/dashboard",

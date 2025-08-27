@@ -32,6 +32,10 @@ class LightNovelRouter {
       "/duplicate/:id",
       this.lightNovelController.getLightNovelDuplicate
     );
+    this.router.get(
+      "/status-count",
+      this.lightNovelController.getLightNovelStatusCounts
+    );
     this.router.get("/:id", this.lightNovelController.getLightNovelById);
     this.router.post(
       "/",

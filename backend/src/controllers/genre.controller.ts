@@ -4,20 +4,17 @@ import { GenreService } from "../services/genre.service";
 export class GenreController {
   constructor(private readonly genreService: GenreService) {}
 
-  /**
-   * @todo Make currentPage and limitPerPage mandatory (changes in the FE as well)
-   */
   getAllGenres = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const connected_media = req.query.connected_media === "true";
-      const currentPage = req.query.currentPage as string;
-      const limitPerPage = req.query.limitPerPage as string;
+      const page = req.query.page as string;
+      const limit = req.query.limit as string;
       const query = req.query.q as string;
 
       const genres = await this.genreService.getAllGenres(
         connected_media,
-        parseInt(currentPage),
-        parseInt(limitPerPage),
+        page ? parseInt(page) : undefined,
+        limit ? parseInt(limit) : undefined,
         query
       );
 

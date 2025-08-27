@@ -4,7 +4,7 @@ import {
   ThemeEntityPartial
 } from "@/types/entity.type";
 
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS } from "@/lib/enums";
 
 type MangaEntity = {
   id: number;
@@ -69,20 +69,10 @@ type MangaList = Pick<
     MangaReview,
     "progressStatus" | "personalScore" | "reviewText" | "consumedAt"
   >;
+
 type MangaSitemap = Pick<MangaEntity, "id" | "slug"> & {
   createdAt: Date;
   updatedAt: Date;
 };
 
-type MangaFilterSort = {
-  sortBy: string;
-  sortOrder: SORT_ORDER;
-  filterAuthor?: number;
-  filterGenre?: number;
-  filterTheme?: number;
-  filterProgressStatus?: keyof typeof PROGRESS_STATUS;
-  filterMALScore?: string;
-  filterPersonalScore?: string;
-};
-
-export type { MangaDetail, MangaList, MangaSitemap, MangaFilterSort };
+export type { MangaDetail, MangaList, MangaSitemap };

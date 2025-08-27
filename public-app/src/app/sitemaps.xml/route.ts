@@ -1,33 +1,34 @@
-import { fetchTotalAnimeCount } from "@/services/anime.service";
-import { fetchTotalLightNovelCount } from "@/services/lightnovel.service";
-import { fetchTotalMangaCount } from "@/services/manga.service";
+import { animeService } from "@/services/anime.service";
+import { lightNovelService } from "@/services/lightnovel.service";
+import { mangaService } from "@/services/manga.service";
 
 import { URL_OF_SITEMAPS } from "@/lib/constants";
 
 import { NextResponse } from "next/server";
 
 async function generateSitemaps() {
-  const totalAnimeData = await fetchTotalAnimeCount();
-  const totalMangaData = await fetchTotalMangaCount();
-  const totalLightNovelData = await fetchTotalLightNovelCount();
+  let totalAnimeData: { count: number };
+  let totalMangaData: { count: number };
+  let totalLightNovelData: { count: number };
 
-  if (
-    !totalAnimeData.success ||
-    !totalMangaData.success ||
-    !totalLightNovelData.success
-  )
+  try {
+    totalAnimeData = await animeService.fetchTotalCount();
+    totalMangaData = await mangaService.fetchTotalCount();
+    totalLightNovelData = await lightNovelService.fetchTotalCount();
+  } catch {
     return [];
+  }
 
   const numberOfAnimeSitemaps = Math.ceil(
-    totalAnimeData.data.count / URL_OF_SITEMAPS
+    totalAnimeData.count / URL_OF_SITEMAPS
   );
 
   const numberOfMangaSitemaps = Math.ceil(
-    totalMangaData.data.count / URL_OF_SITEMAPS
+    totalMangaData.count / URL_OF_SITEMAPS
   );
 
   const numberOfLightNovelSitemaps = Math.ceil(
-    totalLightNovelData.data.count / URL_OF_SITEMAPS
+    totalLightNovelData.count / URL_OF_SITEMAPS
   );
 
   const animeSitemaps = Array.from(

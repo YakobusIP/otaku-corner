@@ -1,3 +1,14 @@
+import { ProgressStatusKey } from "@/lib/enums";
+
+type AllTimeCount = {
+  allMediaCount: number;
+  animeCount: number;
+  mangaCount: number;
+  lightNovelCount: number;
+  averageMalScore: number;
+  averagePersonalScore: number;
+};
+
 type TopMediaAndYearlyCount = {
   anime: {
     id: number;
@@ -9,6 +20,7 @@ type TopMediaAndYearlyCount = {
       small_image_url?: string | null;
     } | null;
     title: string | null;
+    titleJapanese: string | null;
     score: number | null;
   };
   manga: {
@@ -21,6 +33,7 @@ type TopMediaAndYearlyCount = {
       small_image_url?: string | null;
     } | null;
     title: string | null;
+    titleJapanese: string | null;
     score: number | null;
   };
   lightNovel: {
@@ -33,8 +46,15 @@ type TopMediaAndYearlyCount = {
       small_image_url?: string | null;
     } | null;
     title: string | null;
+    titleJapanese: string | null;
     score: number | null;
   };
 };
 
-export type { TopMediaAndYearlyCount };
+type StatusFilter = {
+  label: string;
+  value?: ProgressStatusKey;
+  count: number;
+};
+
+export type { AllTimeCount, TopMediaAndYearlyCount, StatusFilter };

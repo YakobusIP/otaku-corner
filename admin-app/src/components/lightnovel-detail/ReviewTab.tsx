@@ -75,19 +75,19 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
     },
     {
       key: "writingstyle",
-      label: "Voice Acting",
+      label: "Writing Style",
       rating: writingStyleRating,
       setRating: setWritingStyleRating
     },
     {
       key: "characterdevelopment",
-      label: "Soundtrack Rating",
+      label: "Character Development",
       rating: charDevelopmentRating,
       setRating: setCharDevelopmentRating
     },
     {
       key: "originality",
-      label: "Character Development Rating",
+      label: "Originality",
       rating: originalityRating,
       setRating: setOriginalityRating
     }

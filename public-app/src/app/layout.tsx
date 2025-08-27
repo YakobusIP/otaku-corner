@@ -1,3 +1,5 @@
+import Providers from "@/app/providers";
+
 import { Toaster } from "@/components/ui/toaster";
 
 import type { Metadata } from "next";
@@ -16,7 +18,9 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <main>{children}</main>
+        <main>
+          <Providers>{children}</Providers>
+        </main>
         <Toaster />
       </body>
     </html>

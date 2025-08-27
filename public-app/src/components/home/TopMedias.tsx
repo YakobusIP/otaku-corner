@@ -1,93 +1,114 @@
-import { fetchTopMediaAndYearlyCountService } from "@/services/statistic.service";
+"use client";
+
+import { statisticService } from "@/services/statistic.service";
 
 import HomeCard from "@/components/home/HomeCard";
 
-import { MEDIA_TYPE, SORT_ORDER } from "@/lib/enums";
+import { useToast } from "@/hooks/useToast";
 
-import { redirect } from "next/navigation";
+import { MEDIA_TYPE } from "@/lib/enums";
 
-export default async function TopMedias() {
-  const fetchHomeData = async () => {
-    const response = await fetchTopMediaAndYearlyCountService();
-    if (response.success) {
-      return response.data;
-    } else {
-      console.error("Error on fetching home data:", response.error);
-      redirect("/fetch-error");
-    }
-  };
+import { useQuery } from "@tanstack/react-query";
 
-  const homeData = await fetchHomeData();
+export default function TopMedias() {
+  const toast = useToast();
+
+  const { data, error } = useQuery({
+    queryKey: ["topMedias"],
+    queryFn: () => statisticService.fetchTopMediaAndYearlyCount()
+  });
+
+  if (error) {
+    toast.toast({
+      variant: "destructive",
+      title: "Uh oh! Something went wrong",
+      description: error.message
+    });
+  }
 
   const topMedias = [
     {
       id: 1,
       cardTitle: "Anime Watched This Year",
-      amount: homeData.anime.count,
+      amount: data?.anime.count ?? 0,
       type: MEDIA_TYPE.ANIME,
       path: {
         pathname: "/anime",
-        query: { page: "1", sortBy: "title", sortOrder: SORT_ORDER.ASCENDING }
+        query: { page: "1" }
       },
       image:
-        homeData.anime.images?.large_image_url ||
-        homeData.anime.images?.image_url ||
+        data?.anime.images?.large_image_url ||
+        data?.anime.images?.image_url ||
         "/placeholder.svg",
-      mediaTitle: homeData.anime.title || "",
+      mediaEnglishTitle: data?.anime.title || "",
+      mediaJapaneseTitle: data?.anime.titleJapanese || "",
       topMediaPath:
-        homeData.anime.id && homeData.anime.slug
-          ? `/anime/${homeData.anime.id}/${homeData.anime.slug}`
+        data?.anime.id && data?.anime.slug
+          ? `/anime/${data?.anime.id}/${data?.anime.slug}`
           : "/anime",
-      rating: homeData.anime.score ? homeData.anime.score.toFixed(2) : 0
+      rating: data?.anime.score ? data?.anime.score.toFixed(2) : 0
     },
     {
       id: 2,
       cardTitle: "Manga Read This Year",
-      amount: homeData.manga.count,
+      amount: data?.manga.count ?? 0,
       type: MEDIA_TYPE.MANGA,
       path: {
         pathname: "/manga",
-        query: { page: "1", sortBy: "title", sortOrder: SORT_ORDER.ASCENDING }
+        query: { page: "1" }
       },
       image:
-        homeData.manga.images?.large_image_url ||
-        homeData.manga.images?.image_url ||
+        data?.manga.images?.large_image_url ||
+        data?.manga.images?.image_url ||
         "/placeholder.svg",
-      mediaTitle: homeData.manga.title || "",
+      mediaEnglishTitle: data?.manga.title || "",
+      mediaJapaneseTitle: data?.manga.titleJapanese || "",
       topMediaPath:
-        homeData.manga.id && homeData.manga.slug
-          ? `/manga/${homeData.manga.id}/${homeData.manga.slug}`
+        data?.manga.id && data?.manga.slug
+          ? `/manga/${data?.manga.id}/${data?.manga.slug}`
           : "/manga",
-      rating: homeData.manga.score ? homeData.manga.score.toFixed(2) : 0
+      rating: data?.manga.score ? data?.manga.score.toFixed(2) : 0
     },
     {
       id: 3,
       cardTitle: "Light Novels Read This Year",
-      amount: homeData.lightNovel.count,
+      amount: data?.lightNovel.count ?? 0,
       type: MEDIA_TYPE.LIGHT_NOVEL,
       path: {
         pathname: "/light-novel",
-        query: { page: "1", sortBy: "title", sortOrder: SORT_ORDER.ASCENDING }
+        query: { page: "1" }
       },
       image:
-        homeData.lightNovel.images?.large_image_url ||
-        homeData.lightNovel.images?.image_url ||
+        data?.lightNovel.images?.large_image_url ||
+        data?.lightNovel.images?.image_url ||
         "/placeholder.svg",
-      mediaTitle: homeData.lightNovel.title || "",
+      mediaEnglishTitle: data?.lightNovel.title || "",
+      mediaJapaneseTitle: data?.lightNovel.titleJapanese || "",
       topMediaPath:
-        homeData.lightNovel.id && homeData.lightNovel.slug
-          ? `/light-novel/${homeData.lightNovel.id}/${homeData.lightNovel.slug}`
+        data?.lightNovel.id && data?.lightNovel.slug
+          ? `/light-novel/${data?.lightNovel.id}/${data?.lightNovel.slug}`
           : "/light-novel",
-      rating: homeData.lightNovel.score
-        ? homeData.lightNovel.score.toFixed(2)
-        : 0
+      rating: data?.lightNovel.score ? data?.lightNovel.score.toFixed(2) : 0
     }
   ];
 
   return (
-    <section className="py-12 md:py-16 xl:py-20">
-      <div className="container">
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+    <section className="py-16">
+      <div className="container mx-auto px-4 place-items-center">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-4">
+            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              {new Date().getFullYear()}
+            </span>{" "}
+            Progress
+          </h2>
+          <p className="text-slate-700 max-w-2xl mx-auto">
+            Track my journey through anime, manga, and light novels this year
+            with detailed reviews and ratings.
+          </p>
+        </div>
+
+        <div className="grid gap-8 xl:grid-cols-3 max-w-6xl">
           {topMedias.map((media) => {
             return <HomeCard key={media.id} {...media} />;
           })}

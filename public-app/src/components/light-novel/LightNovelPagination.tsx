@@ -22,8 +22,9 @@ export default function LightNovelPagination({ lightNovelMetadata }: Props) {
   const { setState } = context;
 
   const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > lightNovelMetadata.pageCount) return;
-    setState({ page: newPage });
+    if (newPage >= 1 && newPage < lightNovelMetadata.pageCount) {
+      setState({ page: newPage });
+    }
   };
 
   return (

@@ -1,30 +1,39 @@
 import { ApiResponse } from "@/types/api.type";
-import { TopMediaAndYearlyCount } from "@/types/statistic.type";
+import { AllTimeCount, TopMediaAndYearlyCount } from "@/types/statistic.type";
 
-import { axiosClient } from "@/lib/axios";
-
-import { AxiosError } from "axios";
+import { axiosClient, handleAxiosError } from "@/lib/axios";
 
 const BASE_STATISTIC_URL = "/api/statistic";
 
-const fetchTopMediaAndYearlyCountService = async (): Promise<
-  ApiResponse<TopMediaAndYearlyCount>
-> => {
-  try {
-    const response = await axiosClient.get(
-      `${BASE_STATISTIC_URL}/top-media-and-yearly-count`
-    );
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    console.error(error);
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
+const createStatisticService = () => {
+  const fetchAllTime = async () => {
+    try {
+      const response = await axiosClient.get<ApiResponse<AllTimeCount>>(
+        `${BASE_STATISTIC_URL}/all-time`
+      );
+      return response.data.data;
+    } catch (error) {
+      throw new Error(handleAxiosError(error));
+    }
+  };
+
+  const fetchTopMediaAndYearlyCount = async () => {
+    try {
+      const response = await axiosClient.get<
+        ApiResponse<TopMediaAndYearlyCount>
+      >(`${BASE_STATISTIC_URL}/top-media-and-yearly-count`);
+      return response.data.data;
+    } catch (error) {
+      throw new Error(handleAxiosError(error));
+    }
+  };
+
+  return {
+    fetchAllTime,
+    fetchTopMediaAndYearlyCount
+  };
 };
 
-export { fetchTopMediaAndYearlyCountService };
+const statisticService = createStatisticService();
+
+export { statisticService };

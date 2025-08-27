@@ -27,21 +27,13 @@ export default function GlobalPagination({
   metadata,
   handlePageChange
 }: Props) {
-  const page = metadata.currentPage;
+  const page = metadata.page;
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+    setIsMobile(window.innerWidth < 1024);
   }, []);
 
   const generatePageNumbers = (currentPage: number, pageCount: number) => {
@@ -118,6 +110,9 @@ export default function GlobalPagination({
             href={previousLink}
             onClick={() => handlePageClick(page - 1)}
             isActive={page !== 1}
+            aria-disabled={page <= 1}
+            tabIndex={page <= 1 ? -1 : undefined}
+            className={page <= 1 ? "pointer-events-none opacity-50" : undefined}
           />
         </PaginationItem>
         {pages.map((p, index) =>
@@ -141,7 +136,14 @@ export default function GlobalPagination({
           <PaginationNext
             href={nextLink}
             onClick={() => handlePageClick(page + 1)}
-            isActive={page !== metadata.pageCount}
+            isActive={metadata.pageCount !== 0 && page !== metadata.pageCount}
+            aria-disabled={page >= metadata.pageCount}
+            tabIndex={page >= metadata.pageCount ? -1 : undefined}
+            className={
+              page >= metadata.pageCount
+                ? "pointer-events-none opacity-50"
+                : undefined
+            }
           />
         </PaginationItem>
       </PaginationContent>
