@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { fetchLightNovelByIdService } from "@/services/lightnovel.service";
+import {
+  fetchLightNovelByIdService,
+  lightNovelService
+} from "@/services/lightnovel.service";
 
 import AboutTab from "@/components/lightnovel-detail/AboutTab";
 import ReviewTab from "@/components/lightnovel-detail/ReviewTab";
@@ -25,7 +28,7 @@ export default function AdminLightNovelDetail() {
 
   const fetchLightNovelById = useCallback(async () => {
     setIsLoadingLightNovelDetail(true);
-    const response = await fetchLightNovelByIdService(
+    const response = await lightNovelService.fetchById(
       parseInt(lightNovelId as string)
     );
     if (response.success) {

@@ -1,3 +1,5 @@
+import { ProgressStatusKey } from "@/lib/enums";
+
 type MediaConsumption = {
   period: string;
   anime: number;
@@ -51,6 +53,12 @@ type AllTimeStatistic = {
   averagePersonalScore: number;
 };
 
+type StatusFilter = {
+  label: string;
+  value?: ProgressStatusKey;
+  count: number;
+};
+
 export type {
   MediaConsumption,
   MediaProgress,
@@ -59,5 +67,6 @@ export type {
   StudioConsumption,
   ThemeConsumption,
   AuthorConsumption,
-  AllTimeStatistic
+  AllTimeStatistic,
+  StatusFilter
 };

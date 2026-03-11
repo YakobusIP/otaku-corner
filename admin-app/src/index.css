@@ -65,22 +65,8 @@
   }
   body {
     @apply bg-background text-foreground;
-  }
-
-  h1 {
-    @apply scroll-m-20 text-4xl font-bold tracking-tight lg:text-5xl;
-  }
-
-  h2 {
-    @apply scroll-m-20 text-3xl font-bold tracking-tight;
-  }
-
-  h3 {
-    @apply scroll-m-20 text-2xl font-semibold tracking-tight;
-  }
-
-  h4 {
-    @apply scroll-m-20 text-xl font-semibold tracking-tight;
+    background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 50%, #fdfbfb 100%);
+    min-height: 100vh;
   }
 
   :root {
@@ -107,10 +93,24 @@
   }
 }
 
-ol {
-  list-style: decimal;
+.glass {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-ul {
-  list-style: disc;
+.glass-card {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-hover:hover {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
 }

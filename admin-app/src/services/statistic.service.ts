@@ -9,177 +9,132 @@ import {
   ThemeConsumption
 } from "@/types/statistic.type";
 
-import interceptedAxios from "@/lib/axios";
+import interceptedAxios, { handleAxiosError } from "@/lib/axios";
 import { STATISTICS_VIEW } from "@/lib/enums";
-
-import { AxiosError } from "axios";
 
 const BASE_STATISTIC_URL = "/api/statistic";
 
-const fetchYearRangeService = async (): Promise<ApiResponse<number[]>> => {
-  try {
-    const response = await interceptedAxios.get(
-      `${BASE_STATISTIC_URL}/year-range`
-    );
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-const fetchMediaConsumptionService = async (
-  view: STATISTICS_VIEW,
-  year?: string
-): Promise<ApiResponse<MediaConsumption[]>> => {
-  try {
-    let yearParams: string | undefined;
-    if (view === STATISTICS_VIEW.MONTHLY) {
-      yearParams = year;
+const createStatisticService = () => {
+  const fetchYearRange = async () => {
+    try {
+      const response = await interceptedAxios.get<ApiResponse<number[]>>(
+        `${BASE_STATISTIC_URL}/year-range`
+      );
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
     }
-    const response = await interceptedAxios.get(
-      `${BASE_STATISTIC_URL}/media-consumption`,
-      { params: { view: view.toLowerCase(), year: yearParams } }
-    );
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
+  };
+
+  const fetchMediaConsumption = async (
+    view: STATISTICS_VIEW,
+    year?: string
+  ) => {
+    try {
+      let yearParams: string | undefined;
+      if (view === STATISTICS_VIEW.MONTHLY) {
+        yearParams = year;
+      }
+      const response = await interceptedAxios.get<
+        ApiResponse<MediaConsumption[]>
+      >(`${BASE_STATISTIC_URL}/media-consumption`, {
+        params: { view: view.toLowerCase(), year: yearParams }
+      });
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchMediaProgress = async (
+    media: "anime" | "manga" | "lightNovel"
+  ) => {
+    try {
+      const response = await interceptedAxios.get<ApiResponse<MediaProgress[]>>(
+        `${BASE_STATISTIC_URL}/media-progress`,
+        { params: { media } }
+      );
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchGenreConsumption = async () => {
+    try {
+      const response = await interceptedAxios.get<
+        ApiResponse<GenreConsumption[]>
+      >(`${BASE_STATISTIC_URL}/genre-consumption`);
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchStudioConsumption = async () => {
+    try {
+      const response = await interceptedAxios.get<
+        ApiResponse<StudioConsumption[]>
+      >(`${BASE_STATISTIC_URL}/studio-consumption`);
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchThemeConsumption = async () => {
+    try {
+      const response = await interceptedAxios.get<
+        ApiResponse<ThemeConsumption[]>
+      >(`${BASE_STATISTIC_URL}/theme-consumption`);
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchAuthorConsumption = async () => {
+    try {
+      const response = await interceptedAxios.get<
+        ApiResponse<AuthorConsumption[]>
+      >(`${BASE_STATISTIC_URL}/author-consumption`);
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchAllTimeStatistic = async () => {
+    try {
+      const response = await interceptedAxios.get<
+        ApiResponse<AllTimeStatistic>
+      >(`${BASE_STATISTIC_URL}/all-time`);
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  return {
+    fetchYearRange,
+    fetchMediaConsumption,
+    fetchMediaProgress,
+    fetchGenreConsumption,
+    fetchStudioConsumption,
+    fetchThemeConsumption,
+    fetchAuthorConsumption,
+    fetchAllTimeStatistic
+  };
 };
 
-const fetchMediaProgressService = async (
-  media: "anime" | "manga" | "lightNovel"
-): Promise<ApiResponse<MediaProgress[]>> => {
-  try {
-    const response = await interceptedAxios.get(
-      `${BASE_STATISTIC_URL}/media-progress`,
-      { params: { media } }
-    );
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
+const statisticService = createStatisticService();
 
-const fetchGenreConsumptionService = async (): Promise<
-  ApiResponse<GenreConsumption[]>
-> => {
-  try {
-    const response = await interceptedAxios.get(
-      `${BASE_STATISTIC_URL}/genre-consumption`
-    );
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-const fetchStudioConsumptionService = async (): Promise<
-  ApiResponse<StudioConsumption[]>
-> => {
-  try {
-    const response = await interceptedAxios.get(
-      `${BASE_STATISTIC_URL}/studio-consumption`
-    );
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-const fetchThemeConsumptionService = async (): Promise<
-  ApiResponse<ThemeConsumption[]>
-> => {
-  try {
-    const response = await interceptedAxios.get(
-      `${BASE_STATISTIC_URL}/theme-consumption`
-    );
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-const fetchAuthorConsumptionService = async (): Promise<
-  ApiResponse<AuthorConsumption[]>
-> => {
-  try {
-    const response = await interceptedAxios.get(
-      `${BASE_STATISTIC_URL}/author-consumption`
-    );
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-const fetchAllTimeStatisticService = async (): Promise<
-  ApiResponse<AllTimeStatistic>
-> => {
-  try {
-    const response = await interceptedAxios.get(
-      `${BASE_STATISTIC_URL}/all-time`
-    );
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-export {
-  fetchYearRangeService,
-  fetchMediaConsumptionService,
-  fetchMediaProgressService,
-  fetchGenreConsumptionService,
-  fetchStudioConsumptionService,
-  fetchThemeConsumptionService,
-  fetchAuthorConsumptionService,
-  fetchAllTimeStatisticService
-};
+export { statisticService };

@@ -1,476 +1,494 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+// import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  deleteAnimeService,
-  fetchAllAnimeService
-} from "@/services/anime.service";
-import {
-  authorService,
-  genreService,
-  studioService,
-  themeService
-} from "@/services/entity.service";
-import {
-  deleteLightNovelService,
-  fetchAllLightNovelService
-} from "@/services/lightnovel.service";
-import {
-  deleteMangaService,
-  fetchAllMangaService
-} from "@/services/manga.service";
+// import {
+//   deleteAnimeService,
+//   fetchAllAnimeService
+// } from "@/services/anime.service";
+// import {
+//   authorService,
+//   genreService,
+//   studioService,
+//   themeService
+// } from "@/services/entity.service";
+// import {
+//   deleteLightNovelService,
+//   fetchAllLightNovelService
+// } from "@/services/lightnovel.service";
+// import {
+//   deleteMangaService,
+//   fetchAllMangaService
+// } from "@/services/manga.service";
 
-import { animeColumns } from "@/components/data-table/AnimeTableColumns";
-import DataTable from "@/components/data-table/DataTable";
-import { lightNovelColumns } from "@/components/data-table/LightNovelTableColumns";
-import { mangaColumns } from "@/components/data-table/MangaTableColumns";
-import AnimeFilterSortSheet from "@/components/filter-sheets/AnimeFilterSortSheet";
-import LightNovelFilterSortSheet from "@/components/filter-sheets/LightNovelFilterSortSheet";
-import MangaFilterSortSheet from "@/components/filter-sheets/MangaFilterSortSheet";
-import MediaListNavbar from "@/components/navbars/MediaListNavbar";
-import { DropdownChecked } from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
+// import { animeColumns } from "@/components/data-table/AnimeTableColumns";
+// import DataTable from "@/components/data-table/DataTable";
+// import { lightNovelColumns } from "@/components/data-table/LightNovelTableColumns";
+// import { mangaColumns } from "@/components/data-table/MangaTableColumns";
+// import AnimeFilterSortSheet from "@/components/filter-sheets/AnimeFilterSortSheet";
+// import LightNovelFilterSortSheet from "@/components/filter-sheets/LightNovelFilterSortSheet";
+// import MangaFilterSortSheet from "@/components/filter-sheets/MangaFilterSortSheet";
+// import MediaListNavbar from "@/components/navbars/MediaListNavbar";
+// import { Badge } from "@/components/ui/badge";
+// import { Card, CardHeader } from "@/components/ui/card";
+// import { DropdownChecked } from "@/components/ui/dropdown-menu";
+// import { Separator } from "@/components/ui/separator";
+// import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { useToast } from "@/hooks/useToast";
+// import { useToast } from "@/hooks/useToast";
 
-import { AnimeFilterSort, AnimeList } from "@/types/anime.type";
-import { MetadataResponse } from "@/types/api.type";
-import {
-  AuthorEntity,
-  GenreEntity,
-  StudioEntity,
-  ThemeEntity
-} from "@/types/entity.type";
-import { LightNovelFilterSort, LightNovelList } from "@/types/lightnovel.type";
-import { MangaFilterSort, MangaList } from "@/types/manga.type";
+// import { AnimeFilterSort, AnimeList } from "@/types/anime.type";
+// import { MetadataResponse } from "@/types/api.type";
+// import {
+//   AuthorEntity,
+//   GenreEntity,
+//   StudioEntity,
+//   ThemeEntity
+// } from "@/types/entity.type";
+// import { LightNovelFilterSort, LightNovelList } from "@/types/lightnovel.type";
+// import { MangaFilterSort, MangaList } from "@/types/manga.type";
 
-import { SORT_ORDER } from "@/lib/enums";
+// import { SORT_ORDER } from "@/lib/enums";
 
-import { useDebounce } from "use-debounce";
+// import { useDebounce } from "use-debounce";
 
-const PAGINATION_SIZE = 5;
+// const PAGINATION_SIZE = 5;
 
-export default function MediaList() {
-  const [mediaFilters, setMediaFilters] = useState<DropdownChecked[]>([
-    true,
-    true,
-    true
-  ]);
+// export default function MediaList() {
+//   const [mediaFilters, setMediaFilters] = useState<DropdownChecked[]>([
+//     true,
+//     true,
+//     true
+//   ]);
 
-  const [addedAnimeList, setAddedAnimeList] = useState<AnimeList[]>([]);
-  const [animeMetadata, setAnimeMetadata] = useState<MetadataResponse>();
+//   const [addedAnimeList, setAddedAnimeList] = useState<AnimeList[]>([]);
+//   const [animeMetadata, setAnimeMetadata] = useState<MetadataResponse>();
 
-  const [addedMangaList, setAddedMangaList] = useState<MangaList[]>([]);
-  const [mangaMetadata, setMangaMetadata] = useState<MetadataResponse>();
+//   const [addedMangaList, setAddedMangaList] = useState<MangaList[]>([]);
+//   const [mangaMetadata, setMangaMetadata] = useState<MetadataResponse>();
 
-  const [addedLightNovelList, setAddedLightNovelList] = useState<
-    LightNovelList[]
-  >([]);
-  const [lightNovelMetadata, setLightNovelMetadata] =
-    useState<MetadataResponse>();
+//   const [addedLightNovelList, setAddedLightNovelList] = useState<
+//     LightNovelList[]
+//   >([]);
+//   const [lightNovelMetadata, setLightNovelMetadata] =
+//     useState<MetadataResponse>();
 
-  const [genreList, setGenreList] = useState<GenreEntity[]>([]);
-  const [studioList, setStudioList] = useState<StudioEntity[]>([]);
-  const [themeList, setThemeList] = useState<ThemeEntity[]>([]);
-  const [authorList, setAuthorList] = useState<AuthorEntity[]>([]);
+//   const [genreList, setGenreList] = useState<GenreEntity[]>([]);
+//   const [studioList, setStudioList] = useState<StudioEntity[]>([]);
+//   const [themeList, setThemeList] = useState<ThemeEntity[]>([]);
+//   const [authorList, setAuthorList] = useState<AuthorEntity[]>([]);
 
-  const [isLoadingAnime, setIsLoadingAnime] = useState(false);
-  const [isLoadingManga, setIsLoadingManga] = useState(false);
-  const [isLoadingLightNovel, setIsLoadingLightNovel] = useState(false);
-  const [isLoadingGenre, setIsLoadingGenre] = useState(false);
-  const [isLoadingStudio, setIsLoadingStudio] = useState(false);
-  const [isLoadingTheme, setIsLoadingTheme] = useState(false);
-  const [isLoadingAuthor, setIsLoadingAuthor] = useState(false);
-  const [isLoadingDeleteAnime, setIsLoadingDeleteAnime] = useState(false);
-  const [isLoadingDeleteManga, setIsLoadingDeleteManga] = useState(false);
-  const [isLoadingDeleteLightNovel, setIsLoadingDeleteLightNovel] =
-    useState(false);
+//   const [isLoadingAnime, setIsLoadingAnime] = useState(false);
+//   const [isLoadingManga, setIsLoadingManga] = useState(false);
+//   const [isLoadingLightNovel, setIsLoadingLightNovel] = useState(false);
+//   const [isLoadingGenre, setIsLoadingGenre] = useState(false);
+//   const [isLoadingStudio, setIsLoadingStudio] = useState(false);
+//   const [isLoadingTheme, setIsLoadingTheme] = useState(false);
+//   const [isLoadingAuthor, setIsLoadingAuthor] = useState(false);
+//   const [isLoadingDeleteAnime, setIsLoadingDeleteAnime] = useState(false);
+//   const [isLoadingDeleteManga, setIsLoadingDeleteManga] = useState(false);
+//   const [isLoadingDeleteLightNovel, setIsLoadingDeleteLightNovel] =
+//     useState(false);
 
-  const [selectedAnimeRows, setSelectedAnimeRows] = useState({});
-  const [animeListPage, setAnimeListPage] = useState(1);
-  const [animeFilterSort, setAnimeFilterSort] = useState<AnimeFilterSort>({
-    sortBy: "title",
-    sortOrder: SORT_ORDER.ASCENDING
-  });
+//   const [selectedAnimeRows, setSelectedAnimeRows] = useState({});
+//   const [animeListPage, setAnimeListPage] = useState(1);
+//   const [animeFilterSort, setAnimeFilterSort] = useState<AnimeFilterSort>({
+//     sortBy: "title",
+//     sortOrder: SORT_ORDER.ASCENDING
+//   });
 
-  const [selectedMangaRows, setSelectedMangaRows] = useState({});
-  const [mangaListPage, setMangaListPage] = useState(1);
-  const [mangaFilterSort, setMangaFilterSort] = useState<MangaFilterSort>({
-    sortBy: "title",
-    sortOrder: SORT_ORDER.ASCENDING
-  });
+//   const [selectedMangaRows, setSelectedMangaRows] = useState({});
+//   const [mangaListPage, setMangaListPage] = useState(1);
+//   const [mangaFilterSort, setMangaFilterSort] = useState<MangaFilterSort>({
+//     sortBy: "title",
+//     sortOrder: SORT_ORDER.ASCENDING
+//   });
 
-  const [selectedLightNovelRows, setSelectedLightNovelRows] = useState({});
-  const [lightNovelListPage, setLightNovelListPage] = useState(1);
-  const [lightNovelFilterSort, setLightNovelFilterSort] =
-    useState<LightNovelFilterSort>({
-      sortBy: "title",
-      sortOrder: SORT_ORDER.ASCENDING
-    });
+//   const [selectedLightNovelRows, setSelectedLightNovelRows] = useState({});
+//   const [lightNovelListPage, setLightNovelListPage] = useState(1);
+//   const [lightNovelFilterSort, setLightNovelFilterSort] =
+//     useState<LightNovelFilterSort>({
+//       sortBy: "title",
+//       sortOrder: SORT_ORDER.ASCENDING
+//     });
 
-  const [searchMedia, setSearchMedia] = useState("");
-  const [debouncedSearch] = useDebounce(searchMedia, 1000);
+//   const [searchMedia, setSearchMedia] = useState("");
+//   const [debouncedSearch] = useDebounce(searchMedia, 1000);
 
-  const toast = useToast();
+//   const [activeTab, setActiveTab] = useState("anime");
 
-  const toastRef = useRef(toast.toast);
+//   const handleTabChange = (value: string) => {
+//     setActiveTab(value);
+//     setAnimeListPage(1);
+//   };
 
-  const fetchAnimeList = useCallback(async () => {
-    if (!mediaFilters[0]) return;
-    setIsLoadingAnime(true);
-    const response = await fetchAllAnimeService(
-      animeListPage,
-      PAGINATION_SIZE,
-      debouncedSearch,
-      animeFilterSort.sortBy,
-      animeFilterSort.sortOrder,
-      animeFilterSort.filterGenre,
-      animeFilterSort.filterStudio,
-      animeFilterSort.filterTheme,
-      animeFilterSort.filterProgressStatus,
-      animeFilterSort.filterMALScore,
-      animeFilterSort.filterPersonalScore,
-      animeFilterSort.filterType,
-      animeFilterSort.filterStatusCheck
-    );
-    if (response.success) {
-      setAddedAnimeList(response.data.data);
-      setAnimeMetadata(response.data.metadata);
+//   const toast = useToast();
 
-      if (debouncedSearch) {
-        setAnimeListPage(1);
-      }
-    } else {
-      toastRef.current({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingAnime(false);
-  }, [mediaFilters, animeListPage, debouncedSearch, animeFilterSort]);
+//   const toastRef = useRef(toast.toast);
 
-  const fetchMangaList = useCallback(async () => {
-    if (!mediaFilters[1]) return;
-    setIsLoadingManga(true);
-    const response = await fetchAllMangaService(
-      mangaListPage,
-      PAGINATION_SIZE,
-      debouncedSearch,
-      mangaFilterSort.sortBy,
-      mangaFilterSort.sortOrder,
-      mangaFilterSort.filterAuthor,
-      mangaFilterSort.filterGenre,
-      mangaFilterSort.filterTheme,
-      mangaFilterSort.filterProgressStatus,
-      mangaFilterSort.filterMALScore,
-      mangaFilterSort.filterPersonalScore,
-      mangaFilterSort.filterStatusCheck
-    );
-    if (response.success) {
-      setAddedMangaList(response.data.data);
-      setMangaMetadata(response.data.metadata);
+//   const fetchAnimeList = useCallback(async () => {
+//     if (!mediaFilters[0]) return;
+//     setIsLoadingAnime(true);
+//     const response = await fetchAllAnimeService(
+//       animeListPage,
+//       PAGINATION_SIZE,
+//       debouncedSearch,
+//       animeFilterSort.sortBy,
+//       animeFilterSort.sortOrder,
+//       animeFilterSort.filterGenre,
+//       animeFilterSort.filterStudio,
+//       animeFilterSort.filterTheme,
+//       animeFilterSort.filterProgressStatus,
+//       animeFilterSort.filterMALScore,
+//       animeFilterSort.filterPersonalScore,
+//       animeFilterSort.filterType,
+//       animeFilterSort.filterStatusCheck
+//     );
+//     if (response.success) {
+//       setAddedAnimeList(response.data.data);
+//       setAnimeMetadata(response.data.metadata);
 
-      if (debouncedSearch) {
-        setMangaListPage(1);
-      }
-    } else {
-      toastRef.current({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingManga(false);
-  }, [mediaFilters, mangaListPage, debouncedSearch, mangaFilterSort]);
+//       if (debouncedSearch) {
+//         setAnimeListPage(1);
+//       }
+//     } else {
+//       toastRef.current({
+//         variant: "destructive",
+//         title: "Uh oh! Something went wrong",
+//         description: response.error
+//       });
+//     }
+//     setIsLoadingAnime(false);
+//   }, [mediaFilters, animeListPage, debouncedSearch, animeFilterSort]);
 
-  const fetchLightNovelList = useCallback(async () => {
-    if (!mediaFilters[2]) return;
-    setIsLoadingLightNovel(true);
-    const response = await fetchAllLightNovelService(
-      lightNovelListPage,
-      PAGINATION_SIZE,
-      debouncedSearch,
-      lightNovelFilterSort.sortBy,
-      lightNovelFilterSort.sortOrder,
-      lightNovelFilterSort.filterAuthor,
-      lightNovelFilterSort.filterGenre,
-      lightNovelFilterSort.filterTheme,
-      lightNovelFilterSort.filterProgressStatus,
-      lightNovelFilterSort.filterMALScore,
-      lightNovelFilterSort.filterPersonalScore,
-      lightNovelFilterSort.filterStatusCheck
-    );
-    if (response.success) {
-      setAddedLightNovelList(response.data.data);
-      setLightNovelMetadata(response.data.metadata);
+//   const fetchMangaList = useCallback(async () => {
+//     if (!mediaFilters[1]) return;
+//     setIsLoadingManga(true);
+//     const response = await fetchAllMangaService(
+//       mangaListPage,
+//       PAGINATION_SIZE,
+//       debouncedSearch,
+//       mangaFilterSort.sortBy,
+//       mangaFilterSort.sortOrder,
+//       mangaFilterSort.filterAuthor,
+//       mangaFilterSort.filterGenre,
+//       mangaFilterSort.filterTheme,
+//       mangaFilterSort.filterProgressStatus,
+//       mangaFilterSort.filterMALScore,
+//       mangaFilterSort.filterPersonalScore,
+//       mangaFilterSort.filterStatusCheck
+//     );
+//     if (response.success) {
+//       setAddedMangaList(response.data.data);
+//       setMangaMetadata(response.data.metadata);
 
-      if (debouncedSearch) {
-        setLightNovelListPage(1);
-      }
-    } else {
-      toastRef.current({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingLightNovel(false);
-  }, [mediaFilters, lightNovelListPage, debouncedSearch, lightNovelFilterSort]);
+//       if (debouncedSearch) {
+//         setMangaListPage(1);
+//       }
+//     } else {
+//       toastRef.current({
+//         variant: "destructive",
+//         title: "Uh oh! Something went wrong",
+//         description: response.error
+//       });
+//     }
+//     setIsLoadingManga(false);
+//   }, [mediaFilters, mangaListPage, debouncedSearch, mangaFilterSort]);
 
-  const fetchGenreList = useCallback(async () => {
-    setIsLoadingGenre(true);
-    const response = await genreService.fetchAll<GenreEntity[]>();
-    if (response.success) {
-      setGenreList(response.data);
-    } else {
-      toastRef.current({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingGenre(false);
-  }, []);
+//   const fetchLightNovelList = useCallback(async () => {
+//     if (!mediaFilters[2]) return;
+//     setIsLoadingLightNovel(true);
+//     const response = await fetchAllLightNovelService(
+//       lightNovelListPage,
+//       PAGINATION_SIZE,
+//       debouncedSearch,
+//       lightNovelFilterSort.sortBy,
+//       lightNovelFilterSort.sortOrder,
+//       lightNovelFilterSort.filterAuthor,
+//       lightNovelFilterSort.filterGenre,
+//       lightNovelFilterSort.filterTheme,
+//       lightNovelFilterSort.filterProgressStatus,
+//       lightNovelFilterSort.filterMALScore,
+//       lightNovelFilterSort.filterPersonalScore,
+//       lightNovelFilterSort.filterStatusCheck
+//     );
+//     if (response.success) {
+//       setAddedLightNovelList(response.data.data);
+//       setLightNovelMetadata(response.data.metadata);
 
-  const fetchStudioList = useCallback(async () => {
-    setIsLoadingStudio(true);
-    const response = await studioService.fetchAll<StudioEntity[]>();
-    if (response.success) {
-      setStudioList(response.data);
-    } else {
-      toastRef.current({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingStudio(false);
-  }, []);
+//       if (debouncedSearch) {
+//         setLightNovelListPage(1);
+//       }
+//     } else {
+//       toastRef.current({
+//         variant: "destructive",
+//         title: "Uh oh! Something went wrong",
+//         description: response.error
+//       });
+//     }
+//     setIsLoadingLightNovel(false);
+//   }, [mediaFilters, lightNovelListPage, debouncedSearch, lightNovelFilterSort]);
 
-  const fetchThemeList = useCallback(async () => {
-    setIsLoadingTheme(true);
-    const response = await themeService.fetchAll<ThemeEntity[]>();
-    if (response.success) {
-      setThemeList(response.data);
-    } else {
-      toastRef.current({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingTheme(false);
-  }, []);
+//   const fetchGenreList = useCallback(async () => {
+//     setIsLoadingGenre(true);
+//     const response = await genreService.fetchAll<GenreEntity[]>();
+//     if (response.success) {
+//       setGenreList(response.data);
+//     } else {
+//       toastRef.current({
+//         variant: "destructive",
+//         title: "Uh oh! Something went wrong",
+//         description: response.error
+//       });
+//     }
+//     setIsLoadingGenre(false);
+//   }, []);
 
-  const fetchAuthorList = useCallback(async () => {
-    setIsLoadingAuthor(true);
-    const response = await authorService.fetchAll<AuthorEntity[]>();
-    if (response.success) {
-      setAuthorList(response.data);
-    } else {
-      toastRef.current({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingAuthor(false);
-  }, []);
+//   const fetchStudioList = useCallback(async () => {
+//     setIsLoadingStudio(true);
+//     const response = await studioService.fetchAll<StudioEntity[]>();
+//     if (response.success) {
+//       setStudioList(response.data);
+//     } else {
+//       toastRef.current({
+//         variant: "destructive",
+//         title: "Uh oh! Something went wrong",
+//         description: response.error
+//       });
+//     }
+//     setIsLoadingStudio(false);
+//   }, []);
 
-  const deleteAnime = async () => {
-    setIsLoadingDeleteAnime(true);
-    const deletedIds = Object.keys(selectedAnimeRows).map((id) => parseInt(id));
-    const response = await deleteAnimeService(deletedIds);
-    if (response.success) {
-      fetchAnimeList();
-      toast.toast({
-        title: "All set!",
-        description: `${deletedIds.length} anime(s) deleted successfully`
-      });
-    } else {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
-      });
-    }
-    setSelectedAnimeRows({});
-    setIsLoadingDeleteAnime(false);
-  };
+//   const fetchThemeList = useCallback(async () => {
+//     setIsLoadingTheme(true);
+//     const response = await themeService.fetchAll<ThemeEntity[]>();
+//     if (response.success) {
+//       setThemeList(response.data);
+//     } else {
+//       toastRef.current({
+//         variant: "destructive",
+//         title: "Uh oh! Something went wrong",
+//         description: response.error
+//       });
+//     }
+//     setIsLoadingTheme(false);
+//   }, []);
 
-  const deleteManga = async () => {
-    setIsLoadingDeleteManga(true);
-    const deletedIds = Object.keys(selectedMangaRows).map((id) => parseInt(id));
-    const response = await deleteMangaService(deletedIds);
-    if (response.success) {
-      fetchMangaList();
-      toast.toast({
-        title: "All set!",
-        description: `${deletedIds.length} manga(s) deleted successfully`
-      });
-    } else {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
-      });
-    }
-    setSelectedMangaRows({});
-    setIsLoadingDeleteManga(false);
-  };
+//   const fetchAuthorList = useCallback(async () => {
+//     setIsLoadingAuthor(true);
+//     const response = await authorService.fetchAll<AuthorEntity[]>();
+//     if (response.success) {
+//       setAuthorList(response.data);
+//     } else {
+//       toastRef.current({
+//         variant: "destructive",
+//         title: "Uh oh! Something went wrong",
+//         description: response.error
+//       });
+//     }
+//     setIsLoadingAuthor(false);
+//   }, []);
 
-  const deleteLightNovel = async () => {
-    setIsLoadingDeleteLightNovel(true);
-    const deletedIds = Object.keys(selectedLightNovelRows).map((id) =>
-      parseInt(id)
-    );
-    const response = await deleteLightNovelService(deletedIds);
-    if (response.success) {
-      fetchLightNovelList();
-      toast.toast({
-        title: "All set!",
-        description: `${deletedIds.length} light novel(s) deleted successfully`
-      });
-    } else {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
-      });
-    }
-    setSelectedLightNovelRows({});
-    setIsLoadingDeleteLightNovel(false);
-  };
+//   const deleteAnime = async () => {
+//     setIsLoadingDeleteAnime(true);
+//     const deletedIds = Object.keys(selectedAnimeRows).map((id) => parseInt(id));
+//     const response = await deleteAnimeService(deletedIds);
+//     if (response.success) {
+//       fetchAnimeList();
+//       toast.toast({
+//         title: "All set!",
+//         description: `${deletedIds.length} anime(s) deleted successfully`
+//       });
+//     } else {
+//       toast.toast({
+//         variant: "destructive",
+//         title: "Uh oh! Something went wrong",
+//         description: "There was a problem with your request."
+//       });
+//     }
+//     setSelectedAnimeRows({});
+//     setIsLoadingDeleteAnime(false);
+//   };
 
-  const resetFilter = useCallback(async () => {
-    await fetchGenreList();
-    await fetchStudioList();
-    await fetchThemeList();
-    await fetchAuthorList();
-  }, [fetchGenreList, fetchStudioList, fetchThemeList, fetchAuthorList]);
+//   const deleteManga = async () => {
+//     setIsLoadingDeleteManga(true);
+//     const deletedIds = Object.keys(selectedMangaRows).map((id) => parseInt(id));
+//     const response = await deleteMangaService(deletedIds);
+//     if (response.success) {
+//       fetchMangaList();
+//       toast.toast({
+//         title: "All set!",
+//         description: `${deletedIds.length} manga(s) deleted successfully`
+//       });
+//     } else {
+//       toast.toast({
+//         variant: "destructive",
+//         title: "Uh oh! Something went wrong",
+//         description: "There was a problem with your request."
+//       });
+//     }
+//     setSelectedMangaRows({});
+//     setIsLoadingDeleteManga(false);
+//   };
 
-  useEffect(() => {
-    if (mediaFilters[0]) fetchAnimeList();
-  }, [mediaFilters, fetchAnimeList]);
+//   const deleteLightNovel = async () => {
+//     setIsLoadingDeleteLightNovel(true);
+//     const deletedIds = Object.keys(selectedLightNovelRows).map((id) =>
+//       parseInt(id)
+//     );
+//     const response = await deleteLightNovelService(deletedIds);
+//     if (response.success) {
+//       fetchLightNovelList();
+//       toast.toast({
+//         title: "All set!",
+//         description: `${deletedIds.length} light novel(s) deleted successfully`
+//       });
+//     } else {
+//       toast.toast({
+//         variant: "destructive",
+//         title: "Uh oh! Something went wrong",
+//         description: "There was a problem with your request."
+//       });
+//     }
+//     setSelectedLightNovelRows({});
+//     setIsLoadingDeleteLightNovel(false);
+//   };
 
-  useEffect(() => {
-    if (mediaFilters[1]) fetchMangaList();
-  }, [mediaFilters, fetchMangaList]);
+//   const resetFilter = useCallback(async () => {
+//     await fetchGenreList();
+//     await fetchStudioList();
+//     await fetchThemeList();
+//     await fetchAuthorList();
+//   }, [fetchGenreList, fetchStudioList, fetchThemeList, fetchAuthorList]);
 
-  useEffect(() => {
-    if (mediaFilters[2]) fetchLightNovelList();
-  }, [mediaFilters, fetchLightNovelList]);
+//   useEffect(() => {
+//     if (mediaFilters[0]) fetchAnimeList();
+//   }, [mediaFilters, fetchAnimeList]);
 
-  useEffect(() => {
-    resetFilter();
-  }, [resetFilter]);
+//   useEffect(() => {
+//     if (mediaFilters[1]) fetchMangaList();
+//   }, [mediaFilters, fetchMangaList]);
 
-  useEffect(() => {
-    document.title = "Media List | Otaku Corner Admin";
-  }, []);
+//   useEffect(() => {
+//     if (mediaFilters[2]) fetchLightNovelList();
+//   }, [mediaFilters, fetchLightNovelList]);
 
-  return (
-    <div className="flex flex-col min-h-[100dvh]">
-      <MediaListNavbar
-        mediaFilters={mediaFilters}
-        setMediaFilters={setMediaFilters}
-        setSearchMedia={setSearchMedia}
-        fetchAnimeList={fetchAnimeList}
-        fetchGenreList={fetchGenreList}
-        fetchStudioList={fetchStudioList}
-        fetchThemeList={fetchThemeList}
-        fetchMangaList={fetchMangaList}
-        fetchAuthorList={fetchAuthorList}
-        fetchLightNovelList={fetchLightNovelList}
-      />
-      <Separator />
-      <main className="flex-1">
-        <section className="pb-12 pt-8 md:py-16 xl:py-20">
-          <div className="container space-y-4">
-            {mediaFilters[0] && (
-              <DataTable
-                title="Anime"
-                columns={animeColumns}
-                data={addedAnimeList}
-                rowSelection={selectedAnimeRows}
-                setRowSelection={setSelectedAnimeRows}
-                deleteData={deleteAnime}
-                isLoadingData={isLoadingAnime}
-                isLoadingDeleteData={isLoadingDeleteAnime}
-                page={animeListPage}
-                setPage={setAnimeListPage}
-                metadata={animeMetadata}
-                filterSortComponent={
-                  <AnimeFilterSortSheet
-                    animeFilterSort={animeFilterSort}
-                    setAnimeFilterSort={setAnimeFilterSort}
-                    genreList={genreList}
-                    isLoadingGenre={isLoadingGenre}
-                    studioList={studioList}
-                    isLoadingStudio={isLoadingStudio}
-                    themeList={themeList}
-                    isLoadingTheme={isLoadingTheme}
-                  />
-                }
-              />
-            )}
-            {mediaFilters[1] && (
-              <DataTable
-                title="Manga"
-                columns={mangaColumns}
-                data={addedMangaList}
-                rowSelection={selectedMangaRows}
-                setRowSelection={setSelectedMangaRows}
-                deleteData={deleteManga}
-                isLoadingData={isLoadingManga}
-                isLoadingDeleteData={isLoadingDeleteManga}
-                page={mangaListPage}
-                setPage={setMangaListPage}
-                metadata={mangaMetadata}
-                filterSortComponent={
-                  <MangaFilterSortSheet
-                    mangaFilterSort={mangaFilterSort}
-                    setMangaFilterSort={setMangaFilterSort}
-                    authorList={authorList}
-                    isLoadingAuthor={isLoadingAuthor}
-                    genreList={genreList}
-                    isLoadingGenre={isLoadingGenre}
-                    themeList={themeList}
-                    isLoadingTheme={isLoadingTheme}
-                  />
-                }
-              />
-            )}
-            {mediaFilters[2] && (
-              <DataTable
-                title="Light Novel"
-                columns={lightNovelColumns}
-                data={addedLightNovelList}
-                rowSelection={selectedLightNovelRows}
-                setRowSelection={setSelectedLightNovelRows}
-                deleteData={deleteLightNovel}
-                isLoadingData={isLoadingLightNovel}
-                isLoadingDeleteData={isLoadingDeleteLightNovel}
-                page={lightNovelListPage}
-                setPage={setLightNovelListPage}
-                metadata={lightNovelMetadata}
-                filterSortComponent={
-                  <LightNovelFilterSortSheet
-                    lightNovelFilterSort={lightNovelFilterSort}
-                    setLightNovelFilterSort={setLightNovelFilterSort}
-                    authorList={authorList}
-                    isLoadingAuthor={isLoadingAuthor}
-                    genreList={genreList}
-                    isLoadingGenre={isLoadingGenre}
-                    themeList={themeList}
-                    isLoadingTheme={isLoadingTheme}
-                  />
-                }
-              />
-            )}
-          </div>
-        </section>
-      </main>
-    </div>
-  );
-}
+//   useEffect(() => {
+//     resetFilter();
+//   }, [resetFilter]);
+
+//   useEffect(() => {
+//     document.title = "Media List | Otaku Corner Admin";
+//   }, []);
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-[#a1c4fd] via-[#c2e9fb] to-[#fdfbfb]">
+//       <MediaListNavbar
+//         mediaFilters={mediaFilters}
+//         setMediaFilters={setMediaFilters}
+//         setSearchMedia={setSearchMedia}
+//         fetchAnimeList={fetchAnimeList}
+//         fetchGenreList={fetchGenreList}
+//         fetchStudioList={fetchStudioList}
+//         fetchThemeList={fetchThemeList}
+//         fetchMangaList={fetchMangaList}
+//         fetchAuthorList={fetchAuthorList}
+//         fetchLightNovelList={fetchLightNovelList}
+//       />
+//       <Separator />
+
+//       <main className="space-y-4 md:space-y-6">
+//         <div className="space-y-4">
+//           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+//             <div>
+//               <h1 className="text-2xl md:text-3xl font-bold text-foreground text-balance">
+//                 Media Review Dashboard
+//               </h1>
+//               <p className="text-sm md:text-base text-muted-foreground mt-1">
+//                 Manage your anime, manga, and light novel reviews
+//               </p>
+//             </div>
+
+//             <AddMediaModal onAddMedia={handleAddMedia}>
+//               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+//                 <Plus className="h-4 w-4 mr-2" />
+//                 Add Media
+//               </Button>
+//             </AddMediaModal>
+//           </div>
+
+//           <div className="flex flex-wrap gap-2">
+//             {(
+//               [
+//                 ["anime", "Anime"],
+//                 ["manga", "Manga"],
+//                 ["light-novel", "Light Novel"]
+//               ] as [MediaType, string][]
+//             ).map(([type, label]) => {
+//               const count = getTypeCount(type);
+//               const isActive = selectedType === type;
+//               return (
+//                 <button
+//                   key={type}
+//                   onClick={() => handleMediaTypeChange(type)}
+//                   className={`
+//                   inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background
+//                   transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+//                   focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-4
+//                   ${
+//                     isActive
+//                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
+//                       : "border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+//                   }
+//                 `}
+//                 >
+//                   {label}
+//                   <Badge
+//                     variant="secondary"
+//                     className={`ml-2 h-5 px-1.5 text-xs ${
+//                       isActive
+//                         ? "bg-primary-foreground/20 text-primary-foreground"
+//                         : "bg-muted text-muted-foreground"
+//                     }`}
+//                   >
+//                     {count}
+//                   </Badge>
+//                 </button>
+//               );
+//             })}
+//           </div>
+//         </div>
+
+//         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+//           <div className="flex flex-1 gap-3 max-w-md">
+//             <div className="relative flex-1">
+//               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+//               <Input
+//                 placeholder="Search media..."
+//                 value={searchQuery}
+//                 onChange={(e) => setSearchQuery(e.target.value)}
+//                 className="pl-9 h-9"
+//               />
+//             </div>
+//           </div>
+
+//           <div className="flex gap-3">
+//             <Select
+//               value={sortBy}
+//               onValueChange={(value: SortOption) => setSortBy(value)}
+//             >
+//               <SelectTrigger className="w-[180px] h-9">
+//                 <SelectValue placeholder="Sort by" />
+//               </SelectTrigger>
+//               <SelectContent>
+//                 <SelectItem value="title">Sort by Title</SelectItem>
+//                 <SelectItem value="mal-score">Sort by MAL Score</SelectItem>
+//                 <SelectItem value="personal-score">
+//                   Sort by Personal Score
+//                 </SelectItem>
+//               </SelectContent>
+//             </Select>
+//           </div>
+//         </div>
+//       </main>
+//     </div>
+//   );
+// }

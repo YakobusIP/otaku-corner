@@ -28,3 +28,5 @@ export enum STATISTICS_VIEW {
   YEARLY = "Yearly",
   MONTHLY = "Monthly"
 }
+
+export type ProgressStatusKey = keyof typeof PROGRESS_STATUS;

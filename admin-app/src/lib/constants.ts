@@ -1,3 +1,5 @@
+import { ScoreOption } from "@/types/general.type";
+
 export const ratingDescriptions: { [key: number]: string } = {
   0: "Abysmal",
   1: "Terrible",
@@ -12,7 +14,7 @@ export const ratingDescriptions: { [key: number]: string } = {
   10: "Masterpiece"
 };
 
-export const scoreOptions = [
+export const scoreOptions: ScoreOption[] = [
   {
     key: "poor",
     label: "Poor",

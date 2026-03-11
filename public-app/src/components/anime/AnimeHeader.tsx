@@ -208,7 +208,7 @@ export default function AnimeHeader() {
 
         {showAdvancedFilters && (
           <AnimeAdvancedFilters
-            setShowAdvanceFilters={setShowAdvancedFilters}
+            setShowAdvancedFilters={setShowAdvancedFilters}
           />
         )}
       </div>

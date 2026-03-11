@@ -1,3 +1,5 @@
+import { ApiResponseError } from "@/types/api.type";
+
 import axios, { AxiosError, AxiosInstance } from "axios";
 import type { AxiosRequestConfig } from "axios";
 
@@ -123,3 +125,12 @@ interceptedAxios.interceptors.response.use(
 );
 
 export default interceptedAxios;
+
+export const handleAxiosError = (error: unknown) => {
+  console.error(error);
+  if (error instanceof AxiosError && error.response?.data) {
+    const responseData = error.response.data as ApiResponseError;
+    return responseData.error;
+  }
+  return "There was a problem with your request.";
+};

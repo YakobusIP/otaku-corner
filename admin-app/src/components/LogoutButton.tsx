@@ -1,6 +1,4 @@
-import { useState } from "react";
-
-import { logout } from "@/services/auth.service";
+import { authService } from "@/services/auth.service";
 
 import { Button } from "@/components/ui/button";
 
@@ -8,6 +6,7 @@ import { useToast } from "@/hooks/useToast";
 
 import { setAccessToken } from "@/lib/axios";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, LogOutIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -16,37 +15,42 @@ type Props = {
 };
 
 export default function LogoutButton({ fullWidth = false }: Props) {
-  const [isLoadingLogout, setIsLoadingLogout] = useState(false);
-
+  const queryClient = useQueryClient();
   const toast = useToast();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    setIsLoadingLogout(true);
-    const response = await logout();
-    if (response.success) {
+  const mutation = useMutation({
+    mutationFn: authService.logout,
+    onSuccess: (response) => {
       setAccessToken(null);
-      navigate("/");
+      queryClient.clear();
+      navigate("/", { replace: true });
       toast.toast({
         title: "All set!",
         description: response.data.message
       });
-    } else {
+    },
+    onError: (error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: response.error
+        description: error.message
       });
     }
-    setIsLoadingLogout(false);
+  });
+
+  const handleLogout = () => {
+    mutation.mutate();
   };
+
   return (
     <Button
       variant="outline"
       className={fullWidth ? "w-full" : ""}
       onClick={handleLogout}
+      disabled={mutation.isPending}
     >
-      {isLoadingLogout ? (
+      {mutation.isPending ? (
         <Loader2Icon className="w-4 h-4 animate-spin" />
       ) : (
         <LogOutIcon className="w-4 h-4" />

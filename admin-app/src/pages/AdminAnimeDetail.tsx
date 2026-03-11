@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { fetchAnimeByIdService } from "@/services/anime.service";
+import { animeService } from "@/services/anime.service";
 
 import AboutTab from "@/components/anime-detail/AboutTab";
 import EpisodeTab from "@/components/anime-detail/EpisodeTab";
@@ -25,7 +25,7 @@ export default function AdminAnimeDetail() {
 
   const fetchAnimeById = useCallback(async () => {
     setIsLoadingAnimeDetail(true);
-    const response = await fetchAnimeByIdService(parseInt(animeId as string));
+    const response = await animeService.fetchById(parseInt(animeId as string));
     if (response.success) {
       setAnimeDetail(response.data);
     } else {

@@ -99,6 +99,8 @@ type AnimeList = Pick<
   | "status"
   | "images"
   | "score"
+  | "season"
+  | "aired"
 > &
   Pick<
     AnimeReview,

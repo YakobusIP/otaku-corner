@@ -38,6 +38,8 @@ import {
 import { Link } from "react-router-dom";
 import { useDebounce } from "use-debounce";
 
+import { Badge } from "../ui/badge";
+
 type Props = {
   mediaFilters: DropdownChecked[];
   setMediaFilters: Dispatch<SetStateAction<DropdownChecked[]>>;
@@ -105,76 +107,198 @@ export default function MediaListNavbar({
     await fetchThemeList();
   }, [fetchLightNovelList, fetchAuthorList, fetchGenreList, fetchThemeList]);
 
+  // return isWideScreen ? (
+  //   <header className="flex items-center bg-background border-b">
+  //     <img src="/logo.png" className="w-32 mt-0 ml-2" />
+  //     <div className="flex items-center justify-between w-full p-3 xl:pl-2 xl:pr-4 xl:py-4">
+  //       <div className="flex flex-col xl:flex-row items-center w-full gap-4">
+  //         <div className="flex w-full xl:w-fit gap-2 xl:gap-4">
+  //           <Input
+  //             type="text"
+  //             placeholder="Search"
+  //             startIcon={SearchIcon}
+  //             parentClassName="w-full xl:w-fit"
+  //             className="w-full xl:w-[300px]"
+  //             value={localSearch}
+  //             onChange={(e) => setLocalSearch(e.target.value)}
+  //           />
+  //           <MediaFilter
+  //             mediaFilters={mediaFilters}
+  //             handleMediaFilters={handleMediaFilters}
+  //           />
+  //         </div>
+  //         <AddAnimeDialog
+  //           openDialog={openAddAnimeDialog}
+  //           setOpenDialog={setOpenAddAnimeDialog}
+  //           resetParent={resetAnimeParent}
+  //         />
+  //         <AddMangaDialog
+  //           openDialog={openAddMangaDialog}
+  //           setOpenDialog={setOpenAddMangaDialog}
+  //           resetParent={resetMangaParent}
+  //         />
+  //         <AddLightNovelDialog
+  //           openDialog={openAddLightNovelDialog}
+  //           setOpenDialog={setOpenAddLightNovelDialog}
+  //           resetParent={resetLightNovelParent}
+  //         />
+  //         <EntityManagement
+  //           openDialog={openEntityManagementDialog}
+  //           setOpenDialog={setOpenEntityManagementDialog}
+  //           resetAuthor={fetchAuthorList}
+  //           resetGenre={fetchGenreList}
+  //           resetStudio={fetchStudioList}
+  //           resetTheme={fetchThemeList}
+  //         />
+  //         <Link to="/dashboard" className="w-full xl:w-fit">
+  //           <Button className="w-full">
+  //             <ChartNoAxesCombinedIcon className="w-4 h-4" /> Dashboard
+  //           </Button>
+  //         </Link>
+  //         <Link
+  //           to={import.meta.env.VITE_PUBLIC_APP}
+  //           className="w-full xl:w-fit"
+  //           target="_blank"
+  //         >
+  //           <Button className="w-full">
+  //             <GlobeIcon className="w-4 h-4" /> Public App
+  //           </Button>
+  //         </Link>
+  //       </div>
+  //       <LogoutButton />
+  //     </div>
+  //   </header>
+  // ) : (
+  //   <header className="flex items-center justify-between bg-background border-b p-2 gap-2">
+  //     <Sheet>
+  //       <SheetTrigger asChild>
+  //         <Button variant="ghost" size="icon">
+  //           <MenuIcon className="w-4 h-4" />
+  //         </Button>
+  //       </SheetTrigger>
+  //       <SheetContent side="left">
+  //         <ScrollArea className="h-full">
+  //           <SheetHeader className="items-center">
+  //             <img src="/logo.png" className="w-32 my-2" />
+  //           </SheetHeader>
+  //           <div className="flex flex-col gap-2 my-2">
+  //             <Label>Media Control</Label>
+  //             <AddAnimeDialog
+  //               openDialog={openAddAnimeDialog}
+  //               setOpenDialog={setOpenAddAnimeDialog}
+  //               resetParent={resetAnimeParent}
+  //             />
+  //             <AddMangaDialog
+  //               openDialog={openAddMangaDialog}
+  //               setOpenDialog={setOpenAddMangaDialog}
+  //               resetParent={resetMangaParent}
+  //             />
+  //             <AddLightNovelDialog
+  //               openDialog={openAddLightNovelDialog}
+  //               setOpenDialog={setOpenAddLightNovelDialog}
+  //               resetParent={resetLightNovelParent}
+  //             />
+  //             <Separator />
+  //             <Label>Entity Control</Label>
+  //             <EntityManagement
+  //               openDialog={openEntityManagementDialog}
+  //               setOpenDialog={setOpenEntityManagementDialog}
+  //               resetAuthor={fetchAuthorList}
+  //               resetGenre={fetchGenreList}
+  //               resetStudio={fetchStudioList}
+  //               resetTheme={fetchThemeList}
+  //             />
+  //             <Separator />
+  //             <Label>Others</Label>
+  //             <Link to="/dashboard" className="w-full xl:w-fit">
+  //               <Button className="w-full" variant="outline">
+  //                 <ChartNoAxesCombinedIcon className="w-4 h-4" /> Dashboard
+  //               </Button>
+  //             </Link>
+  //             <Link
+  //               to={import.meta.env.VITE_PUBLIC_APP}
+  //               className="w-full xl:w-fit"
+  //               target="_blank"
+  //             >
+  //               <Button className="w-full" variant="outline">
+  //                 <GlobeIcon className="w-4 h-4" /> Public App
+  //               </Button>
+  //             </Link>
+  //           </div>
+  //           <SheetFooter>
+  //             <SheetClose asChild>
+  //               <LogoutButton fullWidth />
+  //             </SheetClose>
+  //           </SheetFooter>
+  //         </ScrollArea>
+  //       </SheetContent>
+  //     </Sheet>
+  //     <div className="flex w-full xl:w-fit gap-2 xl:gap-4">
+  //       <Input
+  //         type="text"
+  //         placeholder="Search"
+  //         startIcon={SearchIcon}
+  //         parentClassName="w-full xl:w-fit"
+  //         className="w-full xl:w-[300px]"
+  //         value={localSearch}
+  //         onChange={(e) => setLocalSearch(e.target.value)}
+  //       />
+  //       <MediaFilter
+  //         mediaFilters={mediaFilters}
+  //         handleMediaFilters={handleMediaFilters}
+  //       />
+  //     </div>
+  //   </header>
+  // );
+
   return isWideScreen ? (
-    <header className="flex items-center bg-background border-b">
-      <img src="/logo.png" className="w-32 mt-0 ml-2" />
-      <div className="flex items-center justify-between w-full p-3 xl:pl-2 xl:pr-4 xl:py-4">
-        <div className="flex flex-col xl:flex-row items-center w-full gap-4">
-          <div className="flex w-full xl:w-fit gap-2 xl:gap-4">
-            <Input
-              type="text"
-              placeholder="Search"
-              startIcon={SearchIcon}
-              parentClassName="w-full xl:w-fit"
-              className="w-full xl:w-[300px]"
-              value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
-            />
-            <MediaFilter
-              mediaFilters={mediaFilters}
-              handleMediaFilters={handleMediaFilters}
-            />
+    <nav className="glass border-b border-white/20 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <img src="/logo.png" className="w-32 my-2" />
+            <Badge
+              variant="secondary"
+              className="text-xs text-white bg-pink-500 rounded-lg hover:bg-pink-600"
+            >
+              Admin
+            </Badge>
           </div>
-          <AddAnimeDialog
-            openDialog={openAddAnimeDialog}
-            setOpenDialog={setOpenAddAnimeDialog}
-            resetParent={resetAnimeParent}
-          />
-          <AddMangaDialog
-            openDialog={openAddMangaDialog}
-            setOpenDialog={setOpenAddMangaDialog}
-            resetParent={resetMangaParent}
-          />
-          <AddLightNovelDialog
-            openDialog={openAddLightNovelDialog}
-            setOpenDialog={setOpenAddLightNovelDialog}
-            resetParent={resetLightNovelParent}
-          />
-          <EntityManagement
-            openDialog={openEntityManagementDialog}
-            setOpenDialog={setOpenEntityManagementDialog}
-            resetAuthor={fetchAuthorList}
-            resetGenre={fetchGenreList}
-            resetStudio={fetchStudioList}
-            resetTheme={fetchThemeList}
-          />
-          <Link to="/dashboard" className="w-full xl:w-fit">
-            <Button className="w-full">
-              <ChartNoAxesCombinedIcon className="w-4 h-4" /> Dashboard
+
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* <AddMediaModal /> */}
+            <EntityManagement
+              openDialog={openEntityManagementDialog}
+              setOpenDialog={setOpenEntityManagementDialog}
+              resetAuthor={fetchAuthorList}
+              resetGenre={fetchGenreList}
+              resetStudio={fetchStudioList}
+              resetTheme={fetchThemeList}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="glass-card border-white/30 bg-transparent hidden sm:flex"
+            >
+              <GlobeIcon className="w-4 h-4" />
+              Public App
             </Button>
-          </Link>
-          <Link
-            to={import.meta.env.VITE_PUBLIC_APP}
-            className="w-full xl:w-fit"
-            target="_blank"
-          >
-            <Button className="w-full">
-              <GlobeIcon className="w-4 h-4" /> Public App
-            </Button>
-          </Link>
+          </div>
         </div>
-        <LogoutButton />
       </div>
-    </header>
+    </nav>
   ) : (
-    <header className="flex items-center justify-between bg-background border-b p-2 gap-2">
+    <nav className="glass border-b border-white/20 sticky top-0 z-50 flex items-center">
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon">
             <MenuIcon className="w-4 h-4" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left">
+        <SheetContent
+          side="left"
+          className="bg-gradient-to-br from-[#a1c4fd] via-[#c2e9fb] to-[#fdfbfb]"
+        >
           <ScrollArea className="h-full">
             <SheetHeader className="items-center">
               <img src="/logo.png" className="w-32 my-2" />
@@ -218,8 +342,13 @@ export default function MediaListNavbar({
                 className="w-full xl:w-fit"
                 target="_blank"
               >
-                <Button className="w-full" variant="outline">
-                  <GlobeIcon className="w-4 h-4" /> Public App
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="glass-card border-white/30 bg-transparent hidden sm:flex"
+                >
+                  <GlobeIcon className="w-4 h-4" />
+                  Public App
                 </Button>
               </Link>
             </div>
@@ -231,21 +360,14 @@ export default function MediaListNavbar({
           </ScrollArea>
         </SheetContent>
       </Sheet>
-      <div className="flex w-full xl:w-fit gap-2 xl:gap-4">
-        <Input
-          type="text"
-          placeholder="Search"
-          startIcon={SearchIcon}
-          parentClassName="w-full xl:w-fit"
-          className="w-full xl:w-[300px]"
-          value={localSearch}
-          onChange={(e) => setLocalSearch(e.target.value)}
-        />
-        <MediaFilter
-          mediaFilters={mediaFilters}
-          handleMediaFilters={handleMediaFilters}
-        />
+      <div className="flex items-center space-x-2 sm:space-x-4">
+        <Badge
+          variant="secondary"
+          className="text-xs text-white bg-pink-500 rounded-lg hover:bg-pink-600"
+        >
+          Admin
+        </Badge>
       </div>
-    </header>
+    </nav>
   );
 }

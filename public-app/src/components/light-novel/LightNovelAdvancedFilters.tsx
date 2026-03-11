@@ -13,11 +13,11 @@ import { Button } from "@/components/ui/button";
 import { XIcon } from "lucide-react";
 
 type Props = {
-  setShowAdvanceFilters: Dispatch<SetStateAction<boolean>>;
+  setShowAdvancedFilters: Dispatch<SetStateAction<boolean>>;
 };
 
 export default function LightNovelAdvancedFilters({
-  setShowAdvanceFilters
+  setShowAdvancedFilters
 }: Props) {
   const context = useContext(LightNovelContext);
   if (!context) {
@@ -59,7 +59,7 @@ export default function LightNovelAdvancedFilters({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setShowAdvanceFilters(false)}
+          onClick={() => setShowAdvancedFilters(false)}
           className="text-slate-600 hover:text-slate-800"
         >
           <XIcon size={16} />

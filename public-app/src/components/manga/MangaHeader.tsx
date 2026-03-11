@@ -205,7 +205,7 @@ export default function MangaHeader() {
 
         {showAdvancedFilters && (
           <MangaAdvancedFilters
-            setShowAdvanceFilters={setShowAdvancedFilters}
+            setShowAdvancedFilters={setShowAdvancedFilters}
           />
         )}
       </div>

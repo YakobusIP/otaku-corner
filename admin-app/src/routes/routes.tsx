@@ -1,6 +1,7 @@
 import AdminAnimeDetail from "@/pages/AdminAnimeDetail";
 import AdminLightNovelDetail from "@/pages/AdminLightNovelDetail";
 import AdminMangaDetail from "@/pages/AdminMangaDetail";
+import AnimeList from "@/pages/AnimeList";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
 import MediaList from "@/pages/MediaList";
@@ -19,6 +20,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Dashboard />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/anime",
+    element: (
+      <ProtectedRoute>
+        <AnimeList />
       </ProtectedRoute>
     )
   },

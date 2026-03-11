@@ -10,197 +10,159 @@ import {
   MangaReviewRequest
 } from "@/types/manga.type";
 
-import interceptedAxios from "@/lib/axios";
+import interceptedAxios, { handleAxiosError } from "@/lib/axios";
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
-
-import { AxiosError } from "axios";
 
 const BASE_MANGA_URL = "/api/manga";
 
-const fetchAllMangaService = async (
-  page: number,
-  limit: number,
-  query?: string,
-  sort?: string,
-  order?: SORT_ORDER,
-  author?: number,
-  genre?: number,
-  theme?: number,
-  status?: keyof typeof PROGRESS_STATUS,
-  mal_score?: string,
-  personal_score?: string,
-  status_check?: string
-): Promise<ApiResponseList<MangaList[]>> => {
-  try {
-    const response = await interceptedAxios.get(BASE_MANGA_URL, {
-      params: {
-        page,
-        limit,
-        q: query,
-        sort,
-        order,
-        author,
-        genre,
-        theme,
-        status,
-        mal_score,
-        personal_score,
-        status_check
-      }
-    });
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
+const createMangaService = () => {
+  const fetchAll = async (
+    page: number,
+    limit: number,
+    query?: string,
+    sort?: string,
+    order?: SORT_ORDER,
+    author?: number,
+    genre?: number,
+    theme?: number,
+    status?: keyof typeof PROGRESS_STATUS,
+    mal_score?: string,
+    personal_score?: string,
+    status_check?: string
+  ) => {
+    try {
+      const response = await interceptedAxios.get<ApiResponseList<MangaList[]>>(
+        BASE_MANGA_URL,
+        {
+          params: {
+            page,
+            limit,
+            q: query,
+            sort,
+            order,
+            author,
+            genre,
+            theme,
+            status,
+            mal_score,
+            personal_score,
+            status_check
+          }
+        }
+      );
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchById = async (id: number) => {
+    try {
+      const response = await interceptedAxios.get<ApiResponse<MangaDetail>>(
+        `${BASE_MANGA_URL}/${id}`
+      );
+      return response.data.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchDuplicate = async (id: number) => {
+    try {
+      const response = await interceptedAxios.get<
+        ApiResponse<{ exists: boolean }>
+      >(`${BASE_MANGA_URL}/duplicate/${id}`);
+      return response.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const create = async (data: MangaCreateRequest[]) => {
+    try {
+      const response = await interceptedAxios.post<
+        ApiResponse<MessageResponse>
+      >(BASE_MANGA_URL, { data });
+      return response.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const updateReview = async (id: number, data: MangaReviewRequest) => {
+    try {
+      const response = await interceptedAxios.put<ApiResponse<MessageResponse>>(
+        `${BASE_MANGA_URL}/${id}/review`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const updateProgressStatus = async (id: number, data: PROGRESS_STATUS) => {
+    try {
+      const response = await interceptedAxios.put<ApiResponse<MessageResponse>>(
+        `${BASE_MANGA_URL}/${id}/review`,
+        { progressStatus: data }
+      );
+      return response.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const updateVolumeAndChapters = async (
+    id: number,
+    chaptersCount: number,
+    volumesCount: number
+  ) => {
+    try {
+      const response = await interceptedAxios.put<ApiResponse<MessageResponse>>(
+        `${BASE_MANGA_URL}/${id}`,
+        {
+          chaptersCount,
+          volumesCount
+        }
+      );
+      return response.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const remove = async (ids: number[]) => {
+    try {
+      await interceptedAxios.delete<ApiResponse<void>>(BASE_MANGA_URL, {
+        data: { ids }
+      });
+      return undefined;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  return {
+    fetchAll,
+    fetchById,
+    fetchDuplicate,
+    create,
+    updateReview,
+    updateProgressStatus,
+    updateVolumeAndChapters,
+    remove
+  };
 };
 
-const fetchMangaByIdService = async (
-  id: number
-): Promise<ApiResponse<MangaDetail>> => {
-  try {
-    const response = await interceptedAxios.get(`${BASE_MANGA_URL}/${id}`);
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
+const mangaService = createMangaService();
 
-const fetchMangaDuplicate = async (
-  id: number
-): Promise<ApiResponse<{ exists: boolean }>> => {
-  try {
-    const response = await interceptedAxios.get(
-      `${BASE_MANGA_URL}/duplicate/${id}`
-    );
-    return { success: true, data: response.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-const addMangaService = async (
-  data: MangaCreateRequest[]
-): Promise<ApiResponse<MessageResponse>> => {
-  try {
-    const response = await interceptedAxios.post(BASE_MANGA_URL, { data });
-    return { success: true, data: response.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-const updateMangaReviewService = async (
-  id: number,
-  data: MangaReviewRequest
-): Promise<ApiResponse<MessageResponse>> => {
-  try {
-    const response = await interceptedAxios.put(
-      `${BASE_MANGA_URL}/${id}/review`,
-      data
-    );
-    return { success: true, data: response.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-const updateMangaProgressStatusService = async (
-  id: number,
-  data: PROGRESS_STATUS
-): Promise<ApiResponse<MessageResponse>> => {
-  try {
-    const response = await interceptedAxios.put(
-      `${BASE_MANGA_URL}/${id}/review`,
-      { progressStatus: data }
-    );
-    return { success: true, data: response.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-const updateMangaVolumeAndChaptersService = async (
-  id: number,
-  chaptersCount: number,
-  volumesCount: number
-): Promise<ApiResponse<MessageResponse>> => {
-  try {
-    const response = await interceptedAxios.put(`${BASE_MANGA_URL}/${id}`, {
-      chaptersCount,
-      volumesCount
-    });
-    return { success: true, data: response.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-const deleteMangaService = async (
-  ids: number[]
-): Promise<ApiResponse<void>> => {
-  try {
-    await interceptedAxios.delete(BASE_MANGA_URL, { data: { ids } });
-    return { success: true, data: undefined };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-export {
-  fetchAllMangaService,
-  fetchMangaByIdService,
-  fetchMangaDuplicate,
-  addMangaService,
-  updateMangaReviewService,
-  updateMangaProgressStatusService,
-  updateMangaVolumeAndChaptersService,
-  deleteMangaService
-};
+export { mangaService };

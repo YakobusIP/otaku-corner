@@ -207,7 +207,7 @@ export default function LightNovelHeader() {
 
         {showAdvancedFilters && (
           <LightNovelAdvancedFilters
-            setShowAdvanceFilters={setShowAdvancedFilters}
+            setShowAdvancedFilters={setShowAdvancedFilters}
           />
         )}
       </div>

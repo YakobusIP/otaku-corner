@@ -1,72 +1,37 @@
-import { useState } from "react";
-
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import FilterPopover from "@/components/filter-sort-dropdowns/FilterPopover";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
-import { cn } from "@/lib/utils";
-
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 type Props = {
-  filterProgressStatus?: keyof typeof PROGRESS_STATUS;
+  selectedProgressStatus?: keyof typeof PROGRESS_STATUS;
   handleFilterProgressStatus: (key?: keyof typeof PROGRESS_STATUS) => void;
 };
 
+type ProgressOption = {
+  key: keyof typeof PROGRESS_STATUS;
+  label: string;
+};
+
+const items: ProgressOption[] = (
+  Object.keys(PROGRESS_STATUS) as Array<keyof typeof PROGRESS_STATUS>
+).map((k) => ({ key: k, label: PROGRESS_STATUS[k] }));
+
 export default function FilterProgressStatus({
-  filterProgressStatus,
+  selectedProgressStatus,
   handleFilterProgressStatus
 }: Props) {
-  const [isFilterProgressStatusOpen, setIsFilterProgressStatusOpen] =
-    useState(false);
-
   return (
-    <DropdownMenu
-      onOpenChange={(value) => setIsFilterProgressStatusOpen(value)}
-    >
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full">
-          Filter by:{" "}
-          {filterProgressStatus
-            ? PROGRESS_STATUS[filterProgressStatus]
-            : "Progress Status"}
-          {isFilterProgressStatusOpen ? (
-            <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
-          ) : (
-            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-          )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => handleFilterProgressStatus(undefined)}>
-          All Progress Status
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {(
-          Object.keys(PROGRESS_STATUS) as Array<keyof typeof PROGRESS_STATUS>
-        ).map((filter) => {
-          return (
-            <DropdownMenuItem
-              key={filter}
-              onClick={() => handleFilterProgressStatus(filter)}
-            >
-              <CheckIcon
-                className={cn(
-                  "mr-2 h-4 w-4",
-                  filterProgressStatus === filter ? "opacity-100" : "opacity-0"
-                )}
-              />
-              {PROGRESS_STATUS[filter]}
-            </DropdownMenuItem>
-          );
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <FilterPopover<ProgressOption, ProgressOption["key"]>
+      selectedKey={selectedProgressStatus}
+      onChange={(key) => handleFilterProgressStatus(key)}
+      items={items}
+      getKey={(s) => s.key}
+      getLabel={(s) => s.label}
+      placeholder="Search status check..."
+      buttonFallbackLabel="Status check"
+      emptyText="No status check found."
+      showAllOption
+      allOptionLabel="All status checks"
+    />
   );
 }

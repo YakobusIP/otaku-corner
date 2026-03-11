@@ -14,10 +14,12 @@ import { Button } from "@/components/ui/button";
 import { XIcon } from "lucide-react";
 
 type Props = {
-  setShowAdvanceFilters: Dispatch<SetStateAction<boolean>>;
+  setShowAdvancedFilters: Dispatch<SetStateAction<boolean>>;
 };
 
-export default function AnimeAdvancedFilters({ setShowAdvanceFilters }: Props) {
+export default function AnimeAdvancedFilters({
+  setShowAdvancedFilters
+}: Props) {
   const context = useContext(AnimeContext);
   if (!context) {
     throw new Error("Filters must be used within an AnimeProvider");
@@ -58,7 +60,7 @@ export default function AnimeAdvancedFilters({ setShowAdvanceFilters }: Props) {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setShowAdvanceFilters(false)}
+          onClick={() => setShowAdvancedFilters(false)}
           className="text-slate-600 hover:text-slate-800"
         >
           <XIcon size={16} />

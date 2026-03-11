@@ -4,9 +4,7 @@ import {
   MessageResponse
 } from "@/types/api.type";
 
-import interceptedAxios from "@/lib/axios";
-
-import { AxiosError } from "axios";
+import interceptedAxios, { handleAxiosError } from "@/lib/axios";
 
 const BASE_GENRE_URL = "/api/genre";
 const BASE_STUDIO_URL = "/api/studio";
@@ -14,18 +12,13 @@ const BASE_THEME_URL = "/api/theme";
 const BASE_AUTHOR_URL = "/api/author";
 
 const createEntityService = (baseUrl: string) => {
-  const fetchAll = async <T>(): Promise<ApiResponse<T>> => {
+  const fetchAll = async <T>() => {
     try {
-      const response = await interceptedAxios.get(baseUrl);
-      return { success: true, data: response.data.data };
+      const response = await interceptedAxios.get<ApiResponse<T>>(baseUrl);
+      return response.data.data;
     } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError && error.response?.data.error
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
+      const message = handleAxiosError(error);
+      throw new Error(message);
     }
   };
 
@@ -33,81 +26,63 @@ const createEntityService = (baseUrl: string) => {
     page?: number,
     limit?: number,
     query?: string
-  ): Promise<ApiResponseList<T>> => {
+  ) => {
     try {
-      const response = await interceptedAxios.get(baseUrl, {
+      const response = await interceptedAxios.get<ApiResponseList<T>>(baseUrl, {
         params: { connected_media: true, page, limit, q: query }
       });
-      return { success: true, data: response.data.data };
+      return response.data.data;
     } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError && error.response?.data.error
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
+      const message = handleAxiosError(error);
+      throw new Error(message);
     }
   };
 
-  const addEntity = async (
-    entity: string
-  ): Promise<ApiResponse<MessageResponse>> => {
+  const create = async (entity: string) => {
     try {
-      const response = await interceptedAxios.post(baseUrl, { name: entity });
-      return { success: true, data: response.data };
+      const response = await interceptedAxios.post<
+        ApiResponse<MessageResponse>
+      >(baseUrl, { name: entity });
+      return response.data;
     } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError && error.response?.data.error
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
+      const message = handleAxiosError(error);
+      throw new Error(message);
     }
   };
 
-  const updateEntity = async (
-    id: number,
-    entity: string
-  ): Promise<ApiResponse<MessageResponse>> => {
+  const update = async (id: number, entity: string) => {
     try {
-      const response = await interceptedAxios.put(`${baseUrl}/${id}`, {
-        name: entity
+      const response = await interceptedAxios.put<ApiResponse<MessageResponse>>(
+        `${baseUrl}/${id}`,
+        {
+          name: entity
+        }
+      );
+      return response.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const remove = async (ids: number[]) => {
+    try {
+      await interceptedAxios.delete<ApiResponse<void>>(baseUrl, {
+        data: { ids }
       });
-      return { success: true, data: response.data };
+      return undefined;
     } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError && error.response?.data.error
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
-    }
-  };
-
-  const deleteEntity = async (ids: number[]): Promise<ApiResponse<void>> => {
-    try {
-      await interceptedAxios.delete(baseUrl, { data: { ids } });
-      return { success: true, data: undefined };
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
+      const message = handleAxiosError(error);
+      throw new Error(message);
     }
   };
 
   return {
     fetchAll,
     fetchAllWithMediaCount,
-    addEntity,
-    updateEntity,
-    deleteEntity
+    create,
+    update,
+    remove
   };
 };
 
