@@ -1,5 +1,4 @@
 import {
-  Controller,
   Get,
   Post,
   Put,
@@ -10,23 +9,16 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
-  UseGuards,
 } from "@nestjs/common";
 import {
-  ApiTags,
   ApiOperation,
   ApiResponse,
   ApiParam,
   ApiBody,
   ApiQuery,
-  ApiBearerAuth,
-  ApiBadRequestResponse,
-  ApiUnauthorizedResponse,
-  ApiForbiddenResponse,
-  ApiNotFoundResponse,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { Public } from "@/common/decorators/public.decorator";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { PaginationQueryDto, BulkDeleteDto } from "@/common/dto";
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
 import { GenresService } from "@/genre/genres.service";
@@ -37,14 +29,11 @@ import {
   PaginatedGenresResponseDto,
 } from "@/genre/dto";
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@ApiBadRequestResponse({ description: "Validation failed" })
-@ApiUnauthorizedResponse({ description: "Unauthorized" })
-@ApiForbiddenResponse({ description: "Forbidden" })
-@ApiNotFoundResponse({ description: "Genre not found" })
-@ApiTags("genres")
-@Controller("genres")
+@AuthenticatedApiController({
+  tag: "Genres",
+  path: "genres",
+  errors: { notFound: "Genre not found" },
+})
 export class GenresController extends BaseCrudController<
   CreateGenreDto,
   UpdateGenreDto,

@@ -1,34 +1,27 @@
 import {
-  Controller,
   Post,
   Delete,
   Body,
   Param,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
 import {
-  ApiTags,
   ApiOperation,
   ApiResponse,
   ApiParam,
   ApiConsumes,
-  ApiBearerAuth,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiNotFoundResponse,
 } from "@nestjs/swagger";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { UploadService } from "@/upload/upload.service";
 import { UploadImageDto, UploadResponseDto } from "@/upload/dto";
 import { MediaType } from "@/upload/enums/media-type.enum";
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@ApiTags("upload")
-@Controller("upload")
+@AuthenticatedApiController({ tag: "Upload", path: "upload" })
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 

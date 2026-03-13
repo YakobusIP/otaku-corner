@@ -1,5 +1,4 @@
 import {
-  Controller,
   Get,
   Post,
   Put,
@@ -10,22 +9,10 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
-  UseGuards,
 } from "@nestjs/common";
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiBody,
-  ApiBearerAuth,
-  ApiBadRequestResponse,
-  ApiUnauthorizedResponse,
-  ApiForbiddenResponse,
-  ApiNotFoundResponse,
-} from "@nestjs/swagger";
-import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { ApiOperation, ApiResponse, ApiParam, ApiBody } from "@nestjs/swagger";
 import { Public } from "@/common/decorators/public.decorator";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { PaginationQueryDto, BulkDeleteDto } from "@/common/dto";
 import { LightNovelService } from "@/light-novel/light-novel.service";
 import {
@@ -38,14 +25,11 @@ import {
   LightNovelDetailResponseDto,
 } from "@/light-novel/dto";
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@ApiBadRequestResponse({ description: "Validation failed" })
-@ApiUnauthorizedResponse({ description: "Unauthorized" })
-@ApiForbiddenResponse({ description: "Forbidden" })
-@ApiNotFoundResponse({ description: "Light novel not found" })
-@ApiTags("light-novels")
-@Controller("light-novels")
+@AuthenticatedApiController({
+  tag: "Light Novels",
+  path: "light-novels",
+  errors: { notFound: "Light novel not found" },
+})
 export class LightNovelController {
   constructor(private readonly service: LightNovelService) {}
 

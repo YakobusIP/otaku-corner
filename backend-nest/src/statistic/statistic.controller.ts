@@ -1,13 +1,7 @@
-import { Controller, Get, Query, UseGuards } from "@nestjs/common";
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiUnauthorizedResponse,
-} from "@nestjs/swagger";
-import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { Get, Query } from "@nestjs/common";
+import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { Public } from "@/common/decorators/public.decorator";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { StatisticService } from "@/statistic/statistic.service";
 import { StatisticsView } from "@/statistic/enums/statistics-view.enum";
 import {
@@ -15,11 +9,7 @@ import {
   MediaProgressQueryDto,
 } from "@/statistic/dto";
 
-@Controller("statistic")
-@ApiTags("statistic")
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@ApiUnauthorizedResponse({ description: "Unauthorized" })
+@AuthenticatedApiController({ tag: "Statistic", path: "statistic" })
 export class StatisticController {
   constructor(private readonly statisticService: StatisticService) {}
 

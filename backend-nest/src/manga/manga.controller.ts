@@ -1,5 +1,4 @@
 import {
-  Controller,
   Get,
   Post,
   Put,
@@ -10,23 +9,16 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
-  UseGuards,
 } from "@nestjs/common";
 import {
-  ApiTags,
   ApiOperation,
   ApiResponse,
   ApiParam,
   ApiBody,
-  ApiBearerAuth,
-  ApiBadRequestResponse,
-  ApiUnauthorizedResponse,
-  ApiForbiddenResponse,
-  ApiNotFoundResponse,
   ApiQuery,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { Public } from "@/common/decorators/public.decorator";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { PaginationQueryDto, BulkDeleteDto } from "@/common/dto";
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
 import { MangaService } from "@/manga/manga.service";
@@ -41,14 +33,11 @@ import {
   MangaDetailResponseDto,
 } from "@/manga/dto";
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@ApiBadRequestResponse({ description: "Validation failed" })
-@ApiUnauthorizedResponse({ description: "Unauthorized" })
-@ApiForbiddenResponse({ description: "Forbidden" })
-@ApiNotFoundResponse({ description: "Manga not found" })
-@ApiTags("mangas")
-@Controller("mangas")
+@AuthenticatedApiController({
+  tag: "Mangas",
+  path: "mangas",
+  errors: { notFound: "Manga not found" },
+})
 export class MangaController extends BaseCrudController<
   CreateMangaItemDto,
   UpdateMangaDto,

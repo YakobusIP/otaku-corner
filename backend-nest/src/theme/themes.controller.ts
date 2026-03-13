@@ -1,5 +1,4 @@
 import {
-  Controller,
   Get,
   Post,
   Put,
@@ -10,23 +9,16 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
-  UseGuards,
 } from "@nestjs/common";
 import {
-  ApiTags,
   ApiOperation,
   ApiResponse,
   ApiParam,
   ApiBody,
   ApiQuery,
-  ApiBearerAuth,
-  ApiBadRequestResponse,
-  ApiUnauthorizedResponse,
-  ApiForbiddenResponse,
-  ApiNotFoundResponse,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { Public } from "@/common/decorators/public.decorator";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { PaginationQueryDto, BulkDeleteDto } from "@/common/dto";
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
 import { ThemesService } from "@/theme/themes.service";
@@ -37,14 +29,11 @@ import {
   PaginatedThemesResponseDto,
 } from "@/theme/dto";
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@ApiBadRequestResponse({ description: "Validation failed" })
-@ApiUnauthorizedResponse({ description: "Unauthorized" })
-@ApiForbiddenResponse({ description: "Forbidden" })
-@ApiNotFoundResponse({ description: "Theme not found" })
-@ApiTags("themes")
-@Controller("themes")
+@AuthenticatedApiController({
+  tag: "Themes",
+  path: "themes",
+  errors: { notFound: "Theme not found" },
+})
 export class ThemesController extends BaseCrudController<
   CreateThemeDto,
   UpdateThemeDto,

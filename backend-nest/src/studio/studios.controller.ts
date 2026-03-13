@@ -1,5 +1,4 @@
 import {
-  Controller,
   Get,
   Post,
   Put,
@@ -10,23 +9,16 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
-  UseGuards,
 } from "@nestjs/common";
 import {
-  ApiTags,
   ApiOperation,
   ApiResponse,
   ApiParam,
   ApiBody,
   ApiQuery,
-  ApiBearerAuth,
-  ApiBadRequestResponse,
-  ApiUnauthorizedResponse,
-  ApiForbiddenResponse,
-  ApiNotFoundResponse,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { Public } from "@/common/decorators/public.decorator";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { PaginationQueryDto, BulkDeleteDto } from "@/common/dto";
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
 import { StudiosService } from "@/studio/studios.service";
@@ -37,14 +29,11 @@ import {
   PaginatedStudiosResponseDto,
 } from "@/studio/dto";
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@ApiBadRequestResponse({ description: "Validation failed" })
-@ApiUnauthorizedResponse({ description: "Unauthorized" })
-@ApiForbiddenResponse({ description: "Forbidden" })
-@ApiNotFoundResponse({ description: "Studio not found" })
-@ApiTags("studios")
-@Controller("studios")
+@AuthenticatedApiController({
+  tag: "Studios",
+  path: "studios",
+  errors: { notFound: "Studio not found" },
+})
 export class StudiosController extends BaseCrudController<
   CreateStudioDto,
   UpdateStudioDto,
