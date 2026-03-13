@@ -1,8 +1,4 @@
-import {
-  ApiResponse,
-  ApiResponseList,
-  MessageResponse
-} from "@/types/api.type";
+import { MetadataResponse } from "@/types/api.type";
 import {
   LightNovelCreateRequest,
   LightNovelDetail,
@@ -13,7 +9,18 @@ import {
 import interceptedAxios, { handleAxiosError } from "@/lib/axios";
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
-const BASE_LIGHTNOVEL_URL = "/api/light-novel";
+const BASE_LIGHTNOVEL_URL = "/api/light-novels";
+type ServiceResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
+type PaginatedBody<T> = {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
 
 const createLightNovelService = () => {
   const fetchAll = async (
@@ -32,24 +39,33 @@ const createLightNovelService = () => {
   ) => {
     try {
       const response = await interceptedAxios.get<
-        ApiResponseList<LightNovelList[]>
+        PaginatedBody<LightNovelList>
       >(BASE_LIGHTNOVEL_URL, {
         params: {
           page,
           limit,
-          q: query,
+          query,
           sort,
           order,
           author,
           genre,
           theme,
           status,
-          mal_score,
-          personal_score,
-          status_check
+          malScore: mal_score,
+          personalScore: personal_score,
+          statusCheck: status_check
         }
       });
-      return response.data.data;
+      const body = response.data;
+      return {
+        data: body.data,
+        metadata: {
+          page: body.page,
+          limit: body.limit,
+          pageCount: body.totalPages,
+          itemCount: body.total
+        } satisfies MetadataResponse
+      };
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -58,10 +74,10 @@ const createLightNovelService = () => {
 
   const fetchById = async (id: number) => {
     try {
-      const response = await interceptedAxios.get<
-        ApiResponse<LightNovelDetail>
-      >(`${BASE_LIGHTNOVEL_URL}/${id}`);
-      return response.data.data;
+      const response = await interceptedAxios.get<LightNovelDetail>(
+        `${BASE_LIGHTNOVEL_URL}/${id}`
+      );
+      return response.data;
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -70,10 +86,10 @@ const createLightNovelService = () => {
 
   const fetchDuplicate = async (id: number) => {
     try {
-      const response = await interceptedAxios.get<
-        ApiResponse<{ exists: boolean }>
-      >(`${BASE_LIGHTNOVEL_URL}/duplicate/${id}`);
-      return response.data;
+      const response = await interceptedAxios.get<boolean>(
+        `${BASE_LIGHTNOVEL_URL}/duplicate/${id}`
+      );
+      return { exists: response.data };
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -82,9 +98,10 @@ const createLightNovelService = () => {
 
   const create = async (data: LightNovelCreateRequest[]) => {
     try {
-      const response = await interceptedAxios.post<
-        ApiResponse<MessageResponse>
-      >(BASE_LIGHTNOVEL_URL, { data });
+      const response = await interceptedAxios.post<number[]>(
+        `${BASE_LIGHTNOVEL_URL}/bulk`,
+        { data }
+      );
       return response.data;
     } catch (error) {
       const message = handleAxiosError(error);
@@ -94,7 +111,7 @@ const createLightNovelService = () => {
 
   const updateReview = async (id: number, data: LightNovelReviewRequest) => {
     try {
-      const response = await interceptedAxios.put<ApiResponse<MessageResponse>>(
+      const response = await interceptedAxios.put<{ message?: string }>(
         `${BASE_LIGHTNOVEL_URL}/${id}/review`,
         data
       );
@@ -107,7 +124,7 @@ const createLightNovelService = () => {
 
   const updateProgressStatus = async (id: number, data: PROGRESS_STATUS) => {
     try {
-      const response = await interceptedAxios.put<ApiResponse<MessageResponse>>(
+      const response = await interceptedAxios.put<{ message?: string }>(
         `${BASE_LIGHTNOVEL_URL}/${id}/review`,
         { progressStatus: data }
       );
@@ -120,7 +137,7 @@ const createLightNovelService = () => {
 
   const updateVolumes = async (id: number, volumesCount: number) => {
     try {
-      const response = await interceptedAxios.put<ApiResponse<MessageResponse>>(
+      const response = await interceptedAxios.put<{ message?: string }>(
         `${BASE_LIGHTNOVEL_URL}/${id}`,
         { volumesCount }
       );
@@ -135,7 +152,7 @@ const createLightNovelService = () => {
     data: { id: number; consumedAt?: Date | null }[]
   ) => {
     try {
-      const response = await interceptedAxios.put<ApiResponse<MessageResponse>>(
+      const response = await interceptedAxios.put<{ message?: string }>(
         `${BASE_LIGHTNOVEL_URL}/volume-progress`,
         { data }
       );
@@ -148,7 +165,7 @@ const createLightNovelService = () => {
 
   const remove = async (ids: number[]) => {
     try {
-      await interceptedAxios.delete<ApiResponse<void>>(BASE_LIGHTNOVEL_URL, {
+      await interceptedAxios.delete(BASE_LIGHTNOVEL_URL, {
         data: { ids }
       });
       return undefined;
@@ -173,4 +190,92 @@ const createLightNovelService = () => {
 
 const lightNovelService = createLightNovelService();
 
-export { lightNovelService };
+const fetchLightNovelByIdService = async (
+  id: number
+): Promise<ServiceResult<LightNovelDetail>> => {
+  try {
+    return { success: true, data: await lightNovelService.fetchById(id) };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+};
+
+const fetchLightNovelDuplicate = async (
+  id: number
+): Promise<ServiceResult<{ exists: boolean }>> => {
+  try {
+    return { success: true, data: await lightNovelService.fetchDuplicate(id) };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+};
+
+const addLightNovelService = async (
+  data: LightNovelCreateRequest[]
+): Promise<ServiceResult<number[]>> => {
+  try {
+    return { success: true, data: await lightNovelService.create(data) };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+};
+
+const updateLightNovelReviewService = async (
+  id: number,
+  data: LightNovelReviewRequest
+): Promise<ServiceResult<{ message?: string }>> => {
+  try {
+    return { success: true, data: await lightNovelService.updateReview(id, data) };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+};
+
+const updateLightNovelProgressStatusService = async (
+  id: number,
+  progressStatus: PROGRESS_STATUS
+): Promise<ServiceResult<{ message?: string }>> => {
+  try {
+    return {
+      success: true,
+      data: await lightNovelService.updateProgressStatus(id, progressStatus)
+    };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+};
+
+const updateLightNovelVolumesService = async (
+  id: number,
+  volumesCount: number
+): Promise<ServiceResult<{ message?: string }>> => {
+  try {
+    return { success: true, data: await lightNovelService.updateVolumes(id, volumesCount) };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+};
+
+const updateLightNovelVolumeProgressService = async (
+  data: { id: number; consumedAt?: Date | null }[]
+): Promise<ServiceResult<{ message?: string }>> => {
+  try {
+    return {
+      success: true,
+      data: await lightNovelService.updateVolumeProgress(data)
+    };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+};
+
+export {
+  lightNovelService,
+  fetchLightNovelByIdService,
+  fetchLightNovelDuplicate,
+  addLightNovelService,
+  updateLightNovelReviewService,
+  updateLightNovelProgressStatusService,
+  updateLightNovelVolumesService,
+  updateLightNovelVolumeProgressService
+};

@@ -148,7 +148,7 @@ export default function EntityConsumptionCard() {
   ]);
 
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-card/80 backdrop-blur-xl border-border/60">
       <CardHeader className="flex flex-col items-stretch justify-between space-y-0 p-0 2xl:flex-row">
         <div className="flex flex-col justify-center gap-1 px-6 py-5 2xl:py-6">
           <CardTitle>{activeChart} Consumption</CardTitle>

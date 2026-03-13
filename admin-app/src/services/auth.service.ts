@@ -1,4 +1,4 @@
-import { ApiResponse, MessageResponse } from "@/types/api.type";
+import { MessageResponse } from "@/types/api.type";
 
 import interceptedAxios, { handleAxiosError } from "@/lib/axios";
 
@@ -6,51 +6,59 @@ const BASE_AUTH_URL = "/api/auth";
 
 type LoginResponse = {
   accessToken: string;
+  refreshToken?: string;
 };
 
+type ServiceResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
 const createAuthService = () => {
-  const login = async (pin1: string, pin2: string) => {
-    try {
-      const response = await interceptedAxios.post<ApiResponse<LoginResponse>>(
-        `${BASE_AUTH_URL}/login`,
-        {
-          pin1,
-          pin2
-        }
-      );
-      return response.data;
-    } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
-    }
+  const loginRaw = async (pin1: string, pin2: string) => {
+    const response = await interceptedAxios.post<LoginResponse>(
+      `${BASE_AUTH_URL}/login`,
+      {
+        pin1,
+        pin2
+      }
+    );
+    return response.data;
   };
+
   const logout = async () => {
-    try {
-      const response = await interceptedAxios.post<
-        ApiResponse<MessageResponse>
-      >(`${BASE_AUTH_URL}/logout`);
-      return response.data;
-    } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
-    }
+    const response = await interceptedAxios.post<MessageResponse>(
+      `${BASE_AUTH_URL}/logout`
+    );
+    return response.data;
   };
 
-  const validateToken = async () => {
-    try {
-      await interceptedAxios.get<ApiResponse<undefined>>(
-        `${BASE_AUTH_URL}/validate-token`
-      );
-      return undefined;
-    } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
-    }
+  const validateTokenRaw = async () => {
+    await interceptedAxios.get(`${BASE_AUTH_URL}/me`);
   };
 
-  return { login, logout, validateToken };
+  return { loginRaw, logout, validateTokenRaw };
 };
 
 const authService = createAuthService();
 
-export { authService };
+const login = async (
+  pin1: string,
+  pin2: string
+): Promise<ServiceResult<LoginResponse>> => {
+  try {
+    return { success: true, data: await authService.loginRaw(pin1, pin2) };
+  } catch (error) {
+    return { success: false, error: handleAxiosError(error) };
+  }
+};
+
+const validateToken = async (): Promise<ServiceResult<undefined>> => {
+  try {
+    await authService.validateTokenRaw();
+    return { success: true, data: undefined };
+  } catch (error) {
+    return { success: false, error: handleAxiosError(error) };
+  }
+};
+
+export { authService, login, validateToken };

@@ -132,7 +132,7 @@ export default function AnimeHeader() {
   ].filter((f) => f !== undefined).length;
 
   return (
-    <div className="sticky top-0 z-50 bg-white/20 backdrop-blur-xl border-b border-white/30">
+    <div className="sticky top-0 z-50 bg-card/60 backdrop-blur-xl border-b border-border/60 rounded-xl">
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
@@ -140,18 +140,18 @@ export default function AnimeHeader() {
               asChild
               variant="ghost"
               size="sm"
-              className="text-slate0800 hover:bg-white/20"
+              className="hover:bg-muted/40"
             >
-              <Link to="/">
+              <Link to="/media">
                 <ArrowLeftIcon size={16} />
-                Home
+                Media
               </Link>
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-slate-800">
+              <h1 className="text-2xl font-bold text-foreground">
                 Anime Watchlist
               </h1>
-              <p className="text-slate-700 text-sm">
+              <p className="text-muted-foreground text-sm">
                 {animeMetadata?.itemCount} of{" "}
                 {statusFilters?.find((status) => status.label === "All")?.count}{" "}
                 animes
@@ -171,7 +171,7 @@ export default function AnimeHeader() {
               <Button
                 variant="outline"
                 onClick={() => setShowAdvancedFilters((prev) => !prev)}
-                className="bg-white/60 backdrop-blur-sm border-white/40 text-slate-800 hover:bg-white/80 relative"
+                className="bg-card/70 backdrop-blur-sm border-border/60 text-foreground hover:bg-card relative"
               >
                 <SlidersHorizontalIcon size={16} />
                 Filters
@@ -195,8 +195,8 @@ export default function AnimeHeader() {
                 onClick={() => handleStatus(filter.value)}
                 className={
                   status === filter.value
-                    ? "bg-slate-800 text-white hover:bg-slate-700 whitespace-nowrap"
-                    : "text-slate-700 hover:bg-white/30 whitespace-nowrap"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90 whitespace-nowrap"
+                    : "text-muted-foreground hover:bg-muted/40 whitespace-nowrap"
                 }
               >
                 {filter.label}

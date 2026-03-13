@@ -1,20 +1,29 @@
-import {
-  ApiResponse,
-  ApiResponseList,
-  MessageResponse
-} from "@/types/api.type";
+import { MetadataResponse } from "@/types/api.type";
 
 import interceptedAxios, { handleAxiosError } from "@/lib/axios";
 
-const BASE_GENRE_URL = "/api/genre";
-const BASE_STUDIO_URL = "/api/studio";
-const BASE_THEME_URL = "/api/theme";
-const BASE_AUTHOR_URL = "/api/author";
+const BASE_GENRE_URL = "/api/genres";
+const BASE_STUDIO_URL = "/api/studios";
+const BASE_THEME_URL = "/api/themes";
+const BASE_AUTHOR_URL = "/api/authors";
+type ServiceResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
+type PaginatedBody<T> = {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+type EntityResponse = { id: number; name: string };
 
 const createEntityService = (baseUrl: string) => {
   const fetchAll = async <T>() => {
     try {
-      const response = await interceptedAxios.get<ApiResponse<T>>(baseUrl);
+      const response = await interceptedAxios.get<PaginatedBody<T>>(baseUrl);
       return response.data.data;
     } catch (error) {
       const message = handleAxiosError(error);
@@ -28,61 +37,70 @@ const createEntityService = (baseUrl: string) => {
     query?: string
   ) => {
     try {
-      const response = await interceptedAxios.get<ApiResponseList<T>>(baseUrl, {
-        params: { connected_media: true, page, limit, q: query }
+      const response = await interceptedAxios.get<PaginatedBody<T>>(baseUrl, {
+        params: { page, limit, query }
       });
-      return response.data.data;
-    } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
-    }
-  };
-
-  const create = async (entity: string) => {
-    try {
-      const response = await interceptedAxios.post<
-        ApiResponse<MessageResponse>
-      >(baseUrl, { name: entity });
-      return response.data;
-    } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
-    }
-  };
-
-  const update = async (id: number, entity: string) => {
-    try {
-      const response = await interceptedAxios.put<ApiResponse<MessageResponse>>(
-        `${baseUrl}/${id}`,
-        {
-          name: entity
+      const body = response.data;
+      return {
+        success: true,
+        data: {
+          data: body.data,
+          metadata: {
+            page: body.page,
+            limit: body.limit,
+            pageCount: body.totalPages,
+            itemCount: body.total
+          } satisfies MetadataResponse
         }
-      );
-      return response.data;
+      } as const;
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return { success: false, error: handleAxiosError(error) } as const;
     }
   };
 
-  const remove = async (ids: number[]) => {
+  const addEntity = async (
+    entity: string
+  ): Promise<ServiceResult<EntityResponse>> => {
     try {
-      await interceptedAxios.delete<ApiResponse<void>>(baseUrl, {
-        data: { ids }
+      const response = await interceptedAxios.post<EntityResponse>(baseUrl, {
+        name: entity
       });
-      return undefined;
+      return { success: true, data: response.data };
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return { success: false, error: handleAxiosError(error) };
+    }
+  };
+
+  const updateEntity = async (
+    id: number,
+    entity: string
+  ): Promise<ServiceResult<EntityResponse>> => {
+    try {
+      const response = await interceptedAxios.put<EntityResponse>(
+        `${baseUrl}/${id}`,
+        { name: entity }
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: handleAxiosError(error) };
+    }
+  };
+
+  const deleteEntity = async (ids: number[]): Promise<ServiceResult<void>> => {
+    try {
+      await interceptedAxios.delete(baseUrl, { data: { ids } });
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: handleAxiosError(error) };
     }
   };
 
   return {
     fetchAll,
     fetchAllWithMediaCount,
-    create,
-    update,
-    remove
+    addEntity,
+    updateEntity,
+    deleteEntity
   };
 };
 

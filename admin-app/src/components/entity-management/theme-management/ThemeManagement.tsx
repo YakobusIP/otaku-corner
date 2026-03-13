@@ -65,7 +65,7 @@ export default function ThemeManagement({ resetParent }: Props) {
       fetchThemeList();
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: "Theme added successfully"
       });
       resetParent();
       setIsOpenAddTheme(false);
@@ -86,7 +86,7 @@ export default function ThemeManagement({ resetParent }: Props) {
       fetchThemeList();
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: "Theme updated successfully"
       });
       resetParent();
     } else {

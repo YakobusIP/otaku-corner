@@ -109,7 +109,10 @@ export default function AddMangaDialog({
     if (response.success) {
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description:
+          response.data.length === 1
+            ? "Manga added successfully"
+            : `${response.data.length} manga added successfully`
       });
 
       setSelectedManga([]);

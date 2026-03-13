@@ -1,10 +1,9 @@
 import AdminAnimeDetail from "@/pages/AdminAnimeDetail";
 import AdminLightNovelDetail from "@/pages/AdminLightNovelDetail";
 import AdminMangaDetail from "@/pages/AdminMangaDetail";
-import AnimeList from "@/pages/AnimeList";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
-import MediaList from "@/pages/MediaList";
+import MediaLibraryPage from "@/pages/MediaLibraryPage";
 import NotFoundPage from "@/routes/NotFoundPage";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import UnauthorizedPage from "@/routes/UnauthorizedPage";
@@ -24,10 +23,18 @@ export const router = createBrowserRouter([
     )
   },
   {
+    path: "/media",
+    element: (
+      <ProtectedRoute>
+        <MediaLibraryPage />
+      </ProtectedRoute>
+    )
+  },
+  {
     path: "/anime",
     element: (
       <ProtectedRoute>
-        <AnimeList />
+        <MediaLibraryPage />
       </ProtectedRoute>
     )
   },
@@ -35,7 +42,7 @@ export const router = createBrowserRouter([
     path: "/media-list",
     element: (
       <ProtectedRoute>
-        <MediaList />
+        <MediaLibraryPage />
       </ProtectedRoute>
     )
   },

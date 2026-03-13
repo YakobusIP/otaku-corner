@@ -65,7 +65,7 @@ export default function AuthorManagement({ resetParent }: Props) {
       fetchAuthorList();
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: "Author added successfully"
       });
       resetParent();
       setIsOpenAddAuthor(false);
@@ -86,7 +86,7 @@ export default function AuthorManagement({ resetParent }: Props) {
       fetchAuthorList();
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: "Author updated successfully"
       });
       resetParent();
     } else {

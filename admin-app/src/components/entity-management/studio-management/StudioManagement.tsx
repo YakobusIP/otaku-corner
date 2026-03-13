@@ -65,7 +65,7 @@ export default function StudioManagement({ resetParent }: Props) {
       fetchStudioList();
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: "Studio added successfully"
       });
       resetParent();
       setIsOpenAddStudio(false);
@@ -86,7 +86,7 @@ export default function StudioManagement({ resetParent }: Props) {
       fetchStudioList();
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: "Studio updated successfully"
       });
       resetParent();
     } else {

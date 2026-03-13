@@ -20,7 +20,7 @@ export default function SortDirection({ sort, order, handleSort }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full">
+        <Button variant="outline" size="default" className="h-10 w-auto min-w-[170px]">
           Sort by:{" "}
           {sort === "title"
             ? "Title"

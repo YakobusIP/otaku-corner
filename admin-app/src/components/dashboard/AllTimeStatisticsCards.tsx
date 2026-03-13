@@ -46,7 +46,7 @@ export default function AllTimeStatisticsCards() {
     <div className="grid grid-cols-1 grid-rows-6 xl:grid-cols-2 xl:grid-rows-3-auto gap-4 w-full xl:w-fit">
       {!isLoadingAllTimeStatistic && allTimeStatistic ? (
         <Fragment>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <CardTitle>Total Media Count</CardTitle>
               <CardDescription>Lifetime media consumed</CardDescription>
@@ -55,7 +55,7 @@ export default function AllTimeStatisticsCards() {
               <h2>{allTimeStatistic.allMediaCount}</h2>
             </CardContent>
           </Card>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <CardTitle>Anime Count</CardTitle>
               <CardDescription>Lifetime anime watched</CardDescription>
@@ -64,7 +64,7 @@ export default function AllTimeStatisticsCards() {
               <h2>{allTimeStatistic.animeCount}</h2>
             </CardContent>
           </Card>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <CardTitle>Manga Count</CardTitle>
               <CardDescription>Lifetime manga read</CardDescription>
@@ -73,7 +73,7 @@ export default function AllTimeStatisticsCards() {
               <h2>{allTimeStatistic.mangaCount}</h2>
             </CardContent>
           </Card>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <CardTitle>Light Novel Count</CardTitle>
               <CardDescription>Lifetime light novel read</CardDescription>
@@ -82,7 +82,7 @@ export default function AllTimeStatisticsCards() {
               <h2>{allTimeStatistic.lightNovelCount}</h2>
             </CardContent>
           </Card>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <CardTitle>Average MAL Score</CardTitle>
               <CardDescription>
@@ -93,7 +93,7 @@ export default function AllTimeStatisticsCards() {
               <h2>{allTimeStatistic.averageMalScore.toFixed(2)}</h2>
             </CardContent>
           </Card>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <CardTitle>Average Personal Score</CardTitle>
               <CardDescription>Lifetime average personal score</CardDescription>
@@ -105,7 +105,7 @@ export default function AllTimeStatisticsCards() {
         </Fragment>
       ) : (
         <Fragment>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <Skeleton className="h-[25px] w-[120px]" />
               <Skeleton className="h-[20px] w-[180px]" />
@@ -114,7 +114,7 @@ export default function AllTimeStatisticsCards() {
               <Skeleton className="h-[35px] w-[90px]" />
             </CardContent>
           </Card>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <Skeleton className="h-[25px] w-[120px]" />
               <Skeleton className="h-[20px] w-[180px]" />
@@ -123,7 +123,7 @@ export default function AllTimeStatisticsCards() {
               <Skeleton className="h-[35px] w-[90px]" />
             </CardContent>
           </Card>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <Skeleton className="h-[25px] w-[120px]" />
               <Skeleton className="h-[20px] w-[180px]" />
@@ -132,7 +132,7 @@ export default function AllTimeStatisticsCards() {
               <Skeleton className="h-[35px] w-[90px]" />
             </CardContent>
           </Card>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <Skeleton className="h-[25px] w-[120px]" />
               <Skeleton className="h-[20px] w-[180px]" />
@@ -141,7 +141,7 @@ export default function AllTimeStatisticsCards() {
               <Skeleton className="h-[35px] w-[90px]" />
             </CardContent>
           </Card>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <Skeleton className="h-[25px] w-[120px]" />
               <Skeleton className="h-[20px] w-[180px]" />
@@ -150,7 +150,7 @@ export default function AllTimeStatisticsCards() {
               <Skeleton className="h-[35px] w-[90px]" />
             </CardContent>
           </Card>
-          <Card className="w-full xl:w-[300px]">
+          <Card className="w-full xl:w-[300px] bg-card/80 backdrop-blur-xl border-border/60">
             <CardHeader>
               <Skeleton className="h-[25px] w-[120px]" />
               <Skeleton className="h-[20px] w-[180px]" />

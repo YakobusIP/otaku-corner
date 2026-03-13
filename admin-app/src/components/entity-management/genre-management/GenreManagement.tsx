@@ -65,7 +65,7 @@ export default function GenreManagement({ resetParent }: Props) {
       fetchGenreList();
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: "Genre added successfully"
       });
       resetParent();
       setIsOpenAddGenre(false);
@@ -86,7 +86,7 @@ export default function GenreManagement({ resetParent }: Props) {
       fetchGenreList();
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: "Genre updated successfully"
       });
       resetParent();
     } else {

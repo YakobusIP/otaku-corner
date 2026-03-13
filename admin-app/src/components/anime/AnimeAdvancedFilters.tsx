@@ -54,14 +54,14 @@ export default function AnimeAdvancedFilters({
   };
 
   return (
-    <div className="mt-4 p-4 bg-white/60 backdrop-blur-xl rounded-lg border border-white/40 animate-in slide-in-from-top-2">
+    <div className="mt-4 p-4 bg-card/70 backdrop-blur-xl rounded-lg border border-border/60 animate-in slide-in-from-top-2">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-slate-800">Advanced Filters</h3>
+        <h3 className="font-semibold text-foreground">Advanced Filters</h3>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setShowAdvancedFilters(false)}
-          className="text-slate-600 hover:text-slate-800"
+          className="text-muted-foreground hover:text-foreground"
         >
           <XIcon size={16} />
         </Button>
@@ -69,7 +69,7 @@ export default function AnimeAdvancedFilters({
 
       <div className="grid grid=cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">
             Genre
           </label>
           <FilterGenre
@@ -79,7 +79,7 @@ export default function AnimeAdvancedFilters({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">
             Studio
           </label>
           <FilterStudio
@@ -89,7 +89,7 @@ export default function AnimeAdvancedFilters({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">
             Theme
           </label>
           <FilterTheme
@@ -99,7 +99,7 @@ export default function AnimeAdvancedFilters({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">
             MAL Score
           </label>
           <FilterMALScore
@@ -109,7 +109,7 @@ export default function AnimeAdvancedFilters({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">
             Personal Score
           </label>
           <FilterPersonalScore
@@ -119,7 +119,7 @@ export default function AnimeAdvancedFilters({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">
             Type
           </label>
           <FilterType
@@ -129,7 +129,7 @@ export default function AnimeAdvancedFilters({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">
             Status Check
           </label>
           <FilterStatusCheck
@@ -141,7 +141,7 @@ export default function AnimeAdvancedFilters({
         <div className="flex items-end">
           <Button
             variant="outline"
-            className="w-full border-slate-300 text-slate-700 hover:bg-slate-100"
+            className="w-full"
             disabled={enableClearAllFilter}
             onClick={handleClearAllFilter}
           >

@@ -124,7 +124,10 @@ export default function AddAnimeDialog({
     if (response.success) {
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description:
+          response.data.length === 1
+            ? "Anime added successfully"
+            : `${response.data.length} anime added successfully`
       });
 
       setSelectedAnime([]);

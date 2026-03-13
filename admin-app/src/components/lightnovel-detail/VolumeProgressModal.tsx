@@ -71,7 +71,7 @@ export default function VolumeProgressModal({
       resetParent();
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: response.data?.message ?? "Volume progress updated successfully"
       });
     } else {
       toast.toast({

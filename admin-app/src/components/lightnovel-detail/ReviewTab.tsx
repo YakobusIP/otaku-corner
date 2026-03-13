@@ -124,7 +124,7 @@ export default function ReviewTab({ lightNovelDetail, resetParent }: Props) {
     if (response.success) {
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: response.data?.message ?? "Review saved successfully"
       });
       setUploadedImages([...currentImageIds]);
       resetParent();

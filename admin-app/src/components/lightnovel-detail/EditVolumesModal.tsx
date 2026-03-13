@@ -77,7 +77,7 @@ export default function EditVolumesModal({
       resetParent();
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: response.data?.message ?? "Volumes updated successfully"
       });
     } else {
       toast.toast({

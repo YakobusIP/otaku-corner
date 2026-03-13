@@ -1,9 +1,12 @@
-import { ApiResponse, MessageResponse } from "@/types/api.type";
+import { MessageResponse } from "@/types/api.type";
 import { UploadImage } from "@/types/upload.type";
 
 import interceptedAxios, { handleAxiosError } from "@/lib/axios";
 
 const BASE_UPLOAD_URL = "/api/upload";
+type ServiceResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };
 
 const createUploadService = () => {
   const upload = async (file: File, type: string, reviewId: number) => {
@@ -13,7 +16,7 @@ const createUploadService = () => {
       form.append("type", type);
       form.append("reviewId", reviewId.toString());
 
-      const response = await interceptedAxios.post<ApiResponse<UploadImage>>(
+      const response = await interceptedAxios.post<UploadImage>(
         BASE_UPLOAD_URL,
         form,
         {
@@ -22,7 +25,7 @@ const createUploadService = () => {
           }
         }
       );
-      return response.data.data;
+      return response.data;
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -31,9 +34,9 @@ const createUploadService = () => {
 
   const remove = async (id: string) => {
     try {
-      const response = await interceptedAxios.delete<
-        ApiResponse<MessageResponse>
-      >(`${BASE_UPLOAD_URL}/${id}`);
+      const response = await interceptedAxios.delete<MessageResponse>(
+        `${BASE_UPLOAD_URL}/${id}`
+      );
       return response.data;
     } catch (error) {
       const message = handleAxiosError(error);
@@ -46,4 +49,26 @@ const createUploadService = () => {
 
 const uploadService = createUploadService();
 
-export { uploadService };
+const uploadImageService = async (
+  file: File,
+  type: string,
+  reviewId: number
+): Promise<ServiceResult<UploadImage>> => {
+  try {
+    return { success: true, data: await uploadService.upload(file, type, reviewId) };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+};
+
+const deleteImageService = async (
+  id: string
+): Promise<ServiceResult<MessageResponse>> => {
+  try {
+    return { success: true, data: await uploadService.remove(id) };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+};
+
+export { uploadService, uploadImageService, deleteImageService };

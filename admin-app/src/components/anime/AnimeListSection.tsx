@@ -84,7 +84,7 @@ export default function AnimeListSection() {
   }, []);
 
   return (
-    <div className="glass-card rounded-lg overflow-hidden">
+    <div className="rounded-lg overflow-hidden bg-card/70 backdrop-blur-xl border border-border/60">
       <div className="divide-y divide-border/50">
         {animeList?.map((anime) => <AnimeRow key={anime.id} anime={anime} />)}
       </div>

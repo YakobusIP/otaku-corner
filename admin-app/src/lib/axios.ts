@@ -95,7 +95,7 @@ interceptedAxios.interceptors.response.use(
       return new Promise((resolve, reject) => {
         axios
           .get(
-            `${import.meta.env.VITE_AXIOS_BASE_URL}/api/auth/refresh-token`,
+            `${import.meta.env.VITE_AXIOS_BASE_URL}/api/auth/refresh`,
             {
               withCredentials: true
             }
@@ -129,8 +129,14 @@ export default interceptedAxios;
 export const handleAxiosError = (error: unknown) => {
   console.error(error);
   if (error instanceof AxiosError && error.response?.data) {
-    const responseData = error.response.data as ApiResponseError;
-    return responseData.error;
+    const data = error.response.data as
+      | ApiResponseError
+      | { message?: string | string[] };
+    if (typeof (data as ApiResponseError).error === "string")
+      return (data as ApiResponseError).error;
+    const msg = (data as { message?: string | string[] }).message;
+    if (typeof msg === "string") return msg;
+    if (Array.isArray(msg) && msg.length) return msg[0];
   }
   return "There was a problem with your request.";
 };

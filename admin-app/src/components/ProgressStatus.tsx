@@ -87,7 +87,7 @@ export default function ProgressStatus({
       if (response.success) {
         toast.toast({
           title: "All set!",
-          description: response.data.message
+          description: response.data?.message ?? "Progress status updated successfully"
         });
       } else {
         toast.toast({

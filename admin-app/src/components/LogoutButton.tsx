@@ -21,13 +21,13 @@ export default function LogoutButton({ fullWidth = false }: Props) {
 
   const mutation = useMutation({
     mutationFn: authService.logout,
-    onSuccess: (response) => {
+    onSuccess: (data) => {
       setAccessToken(null);
       queryClient.clear();
       navigate("/", { replace: true });
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: data?.message ?? "Logged out successfully"
       });
     },
     onError: (error) => {

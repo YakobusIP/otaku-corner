@@ -136,7 +136,7 @@ export default function ProgressStatusCard() {
   }, [fetchMediaProgressData]);
 
   return (
-    <Card className="w-full xl:w-2/5 2xl:w-1/5">
+    <Card className="w-full xl:w-2/5 2xl:w-1/5 bg-card/80 backdrop-blur-xl border-border/60">
       <CardHeader className="flex flex-col items-stretch justify-between space-y-0 p-0">
         <div className="flex flex-col justify-center gap-1 px-6 py-5">
           <CardTitle>Progress Status</CardTitle>

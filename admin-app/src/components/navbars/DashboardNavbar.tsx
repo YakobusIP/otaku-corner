@@ -32,9 +32,9 @@ export default function DashboardNavbar() {
               <GlobeIcon className="w-4 h-4" /> Public App
             </Button>
           </Link>
-          <Link to="/media-list" className="w-full xl:w-fit">
+          <Link to="/media" className="w-full xl:w-fit">
             <Button className="w-full">
-              <LayoutListIcon className="w-4 h-4" /> Media List
+              <LayoutListIcon className="w-4 h-4" /> Media Library
             </Button>
           </Link>
         </div>
@@ -64,9 +64,9 @@ export default function DashboardNavbar() {
                   <GlobeIcon className="w-4 h-4" /> Public App
                 </Button>
               </Link>
-              <Link to="/media-list" className="w-full xl:w-fit">
+              <Link to="/media" className="w-full xl:w-fit">
                 <Button className="w-full" variant="outline">
-                  <LayoutListIcon className="w-4 h-4" /> Media List
+                  <LayoutListIcon className="w-4 h-4" /> Media Library
                 </Button>
               </Link>
             </div>

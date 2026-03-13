@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 
 import { animeService } from "@/services/anime.service";
+import { lightNovelService } from "@/services/lightnovel.service";
+import { mangaService } from "@/services/manga.service";
 
 import { AnimeFilterSort } from "@/types/anime.type";
 import { LightNovelFilterSort } from "@/types/lightnovel.type";
@@ -47,40 +49,79 @@ export const useMediaList = () => {
         page,
         limit,
         query,
-        sort: animeFilters.sortBy,
-        order: animeFilters.sortOrder,
-        genre: animeFilters.filterGenre,
-        studio: animeFilters.filterStudio,
-        theme: animeFilters.filterTheme,
-        status: animeFilters.filterProgressStatus,
-        mal_score: animeFilters.filterMALScore,
-        personal_score: animeFilters.filterPersonalScore,
-        type: animeFilters.filterType,
-        status_check: animeFilters.filterStatusCheck
+        sortBy: animeFilters.sortBy ?? "title",
+        sortOrder: animeFilters.sortOrder ?? SORT_ORDER.ASCENDING,
+        filterGenre: animeFilters.filterGenre,
+        filterStudio: animeFilters.filterStudio,
+        filterTheme: animeFilters.filterTheme,
+        filterProgressStatus: animeFilters.filterProgressStatus,
+        filterMALScore: animeFilters.filterMALScore,
+        filterPersonalScore: animeFilters.filterPersonalScore,
+        filterType: animeFilters.filterType,
+        filterStatusCheck: animeFilters.filterStatusCheck
       })
   });
 
   const mangaListQuery = useQuery({
     queryKey: mediaListKeys.mangasWithFilters(mangaFilters),
     queryFn: () =>
-      mangaService.list({
+      mangaService.fetchAll(
         page,
         limit,
         query,
-        sort: mangaFilters.sortBy,
-        order: mangaFilters.sortOrder
-      })
+        mangaFilters.sortBy,
+        mangaFilters.sortOrder
+      )
   });
 
   const lightNovelListQuery = useQuery({
     queryKey: mediaListKeys.lightNovelsWithFilters(lightNovelFilters),
     queryFn: () =>
-      lightNovelService.list({
+      lightNovelService.fetchAll(
         page,
         limit,
         query,
-        sort: lightNovelFilters.sortBy,
-        order: lightNovelFilters.sortOrder
-      })
+        lightNovelFilters.sortBy,
+        lightNovelFilters.sortOrder
+      )
   });
+
+  const listQuery = useMemo(() => {
+    if (currentMedia === "anime") return animeListQuery;
+    if (currentMedia === "manga") return mangaListQuery;
+    if (currentMedia === "light-novel") return lightNovelListQuery;
+
+    return {
+      isLoading:
+        animeListQuery.isLoading ||
+        mangaListQuery.isLoading ||
+        lightNovelListQuery.isLoading,
+      data: {
+        anime: animeListQuery.data,
+        manga: mangaListQuery.data,
+        lightNovel: lightNovelListQuery.data
+      }
+    };
+  }, [animeListQuery, currentMedia, lightNovelListQuery, mangaListQuery]);
+
+  return {
+    page,
+    setPage,
+    limit,
+    setLimit,
+    query,
+    setQuery,
+    animeFilters,
+    setAnimeFilters,
+    mangaFilters,
+    setMangaFilters,
+    lightNovelFilters,
+    setLightNovelFilters,
+    currentMedia,
+    setCurrentMedia,
+    animeListQuery,
+    mangaListQuery,
+    lightNovelListQuery,
+    listQuery
+  };
 };

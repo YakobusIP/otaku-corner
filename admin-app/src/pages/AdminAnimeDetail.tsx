@@ -52,7 +52,7 @@ export default function AdminAnimeDetail() {
 
   return !isLoadingAnimeDetail && animeDetail ? (
     <div className="flex flex-col min-h-[100dvh]">
-      <Link to="/media-list">
+      <Link to="/media">
         <Button variant="outline" className="absolute top-4 left-4">
           <ArrowLeftIcon className="w-4 h-4" /> Back to list
         </Button>

@@ -116,7 +116,10 @@ export default function AddLightNovelDialog({
     if (response.success) {
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description:
+          response.data.length === 1
+            ? "Light novel added successfully"
+            : `${response.data.length} light novels added successfully`
       });
 
       setSelectedLightNovel([]);

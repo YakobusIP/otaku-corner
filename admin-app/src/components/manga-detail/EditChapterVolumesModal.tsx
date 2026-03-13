@@ -52,7 +52,7 @@ export default function EditChapterVolumesModal({
       resetParent();
       toast.toast({
         title: "All set!",
-        description: response.data.message
+        description: response.data?.message ?? "Chapters and volumes updated successfully"
       });
     } else {
       toast.toast({
