@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+
 import { ProgressStatus } from "@prisma/client";
 
 export class MangaListResponseDto {
@@ -13,13 +14,13 @@ export class MangaListResponseDto {
 
   @ApiProperty({
     description: "Japanese title",
-    example: "ベルセルク",
+    example: "ベルセルク"
   })
   titleJapanese: string;
 
   @ApiProperty({
     description: "Image URLs",
-    example: { image_url: "https://example.com/image.jpg" },
+    example: { image_url: "https://example.com/image.jpg" }
   })
   images: object;
 
@@ -34,7 +35,7 @@ export class MangaListResponseDto {
 
   @ApiPropertyOptional({
     description: "Progress status",
-    enum: ProgressStatus,
+    enum: ProgressStatus
   })
   progressStatus?: ProgressStatus | null;
 
@@ -54,7 +55,7 @@ export class MangaListResponseDto {
 export class PaginatedMangaResponseDto {
   @ApiProperty({
     description: "List of manga",
-    type: [MangaListResponseDto],
+    type: [MangaListResponseDto]
   })
   data: MangaListResponseDto[];
 

@@ -1,15 +1,16 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+
+import { Type } from "class-transformer";
 import {
+  ArrayMinSize,
+  IsArray,
   IsInt,
-  IsString,
-  IsOptional,
   IsNumber,
   IsObject,
-  IsArray,
-  ValidateNested,
-  ArrayMinSize,
+  IsOptional,
+  IsString,
+  ValidateNested
 } from "class-validator";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
 
 export class CreateAnimeEpisodeDto {
   @ApiProperty({ description: "Episode aired date", example: "2024-01-01" })
@@ -26,7 +27,7 @@ export class CreateAnimeEpisodeDto {
 
   @ApiPropertyOptional({
     description: "Episode title in Japanese",
-    example: "始まり",
+    example: "始まり"
   })
   @IsOptional()
   @IsString()
@@ -34,7 +35,7 @@ export class CreateAnimeEpisodeDto {
 
   @ApiPropertyOptional({
     description: "Episode title in Romaji",
-    example: "Hajimari",
+    example: "Hajimari"
   })
   @IsOptional()
   @IsString()
@@ -73,14 +74,14 @@ export class CreateAnimeItemDto {
 
   @ApiProperty({
     description: "Japanese title",
-    example: "カウボーイビバップ",
+    example: "カウボーイビバップ"
   })
   @IsString()
   titleJapanese: string;
 
   @ApiProperty({
     description: "Title synonyms (comma-separated)",
-    example: "CB",
+    example: "CB"
   })
   @IsString()
   titleSynonyms: string;
@@ -91,14 +92,14 @@ export class CreateAnimeItemDto {
 
   @ApiProperty({
     description: "Aired date range",
-    example: "Apr 3, 1998 to Apr 24, 1999",
+    example: "Apr 3, 1998 to Apr 24, 1999"
   })
   @IsString()
   aired: string;
 
   @ApiProperty({
     description: "Broadcast schedule",
-    example: "Saturdays at 01:00 (JST)",
+    example: "Saturdays at 01:00 (JST)"
   })
   @IsString()
   broadcast: string;
@@ -119,7 +120,7 @@ export class CreateAnimeItemDto {
 
   @ApiProperty({
     description: "Image URLs as JSON object",
-    example: { image_url: "https://example.com/image.jpg" },
+    example: { image_url: "https://example.com/image.jpg" }
   })
   @IsObject()
   images: object;
@@ -130,7 +131,7 @@ export class CreateAnimeItemDto {
 
   @ApiPropertyOptional({
     description: "Trailer URL",
-    example: "https://youtube.com/watch?v=xxx",
+    example: "https://youtube.com/watch?v=xxx"
   })
   @IsOptional()
   @IsString()
@@ -138,14 +139,14 @@ export class CreateAnimeItemDto {
 
   @ApiProperty({
     description: "MAL URL",
-    example: "https://myanimelist.net/anime/1/Cowboy_Bebop",
+    example: "https://myanimelist.net/anime/1/Cowboy_Bebop"
   })
   @IsString()
   malUrl: string;
 
   @ApiProperty({
     description: "Episodes data",
-    type: [CreateAnimeEpisodeDto],
+    type: [CreateAnimeEpisodeDto]
   })
   @IsArray()
   @ValidateNested({ each: true })
@@ -154,7 +155,7 @@ export class CreateAnimeItemDto {
 
   @ApiProperty({
     description: "Genre names",
-    example: ["Action", "Adventure"],
+    example: ["Action", "Adventure"]
   })
   @IsArray()
   @IsString({ each: true })
@@ -162,7 +163,7 @@ export class CreateAnimeItemDto {
 
   @ApiProperty({
     description: "Studio names",
-    example: ["Sunrise"],
+    example: ["Sunrise"]
   })
   @IsArray()
   @IsString({ each: true })
@@ -170,7 +171,7 @@ export class CreateAnimeItemDto {
 
   @ApiProperty({
     description: "Theme names",
-    example: ["Space"],
+    example: ["Space"]
   })
   @IsArray()
   @IsString({ each: true })
@@ -180,7 +181,7 @@ export class CreateAnimeItemDto {
 export class CreateAnimeBulkDto {
   @ApiProperty({
     description: "Array of anime to create",
-    type: [CreateAnimeItemDto],
+    type: [CreateAnimeItemDto]
   })
   @IsArray()
   @ArrayMinSize(1)

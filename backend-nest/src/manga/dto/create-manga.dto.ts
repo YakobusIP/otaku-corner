@@ -1,15 +1,16 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+
+import { Type } from "class-transformer";
 import {
+  ArrayMinSize,
+  IsArray,
   IsInt,
-  IsString,
-  IsOptional,
   IsNumber,
   IsObject,
-  IsArray,
-  ValidateNested,
-  ArrayMinSize,
+  IsOptional,
+  IsString,
+  ValidateNested
 } from "class-validator";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
 
 export class CreateMangaItemDto {
   @ApiProperty({ description: "MAL ID", example: 1 })
@@ -30,21 +31,21 @@ export class CreateMangaItemDto {
 
   @ApiProperty({
     description: "Japanese title",
-    example: "ベルセルク",
+    example: "ベルセルク"
   })
   @IsString()
   titleJapanese: string;
 
   @ApiProperty({
     description: "Title synonyms (comma-separated)",
-    example: "Berserk: The Prototype",
+    example: "Berserk: The Prototype"
   })
   @IsString()
   titleSynonyms: string;
 
   @ApiProperty({
     description: "Published date range",
-    example: "Aug 25, 1989 to Sep 10, 2021",
+    example: "Aug 25, 1989 to Sep 10, 2021"
   })
   @IsString()
   published: string;
@@ -66,7 +67,7 @@ export class CreateMangaItemDto {
 
   @ApiProperty({
     description: "Image URLs as JSON object",
-    example: { image_url: "https://example.com/image.jpg" },
+    example: { image_url: "https://example.com/image.jpg" }
   })
   @IsObject()
   images: object;
@@ -77,14 +78,14 @@ export class CreateMangaItemDto {
 
   @ApiProperty({
     description: "MAL URL",
-    example: "https://myanimelist.net/manga/2/Berserk",
+    example: "https://myanimelist.net/manga/2/Berserk"
   })
   @IsString()
   malUrl: string;
 
   @ApiProperty({
     description: "Author names",
-    example: ["Miura, Kentarou"],
+    example: ["Miura, Kentarou"]
   })
   @IsArray()
   @IsString({ each: true })
@@ -92,7 +93,7 @@ export class CreateMangaItemDto {
 
   @ApiProperty({
     description: "Genre names",
-    example: ["Action", "Adventure"],
+    example: ["Action", "Adventure"]
   })
   @IsArray()
   @IsString({ each: true })
@@ -100,7 +101,7 @@ export class CreateMangaItemDto {
 
   @ApiProperty({
     description: "Theme names",
-    example: ["Military"],
+    example: ["Military"]
   })
   @IsArray()
   @IsString({ each: true })
@@ -110,7 +111,7 @@ export class CreateMangaItemDto {
 export class CreateMangaBulkDto {
   @ApiProperty({
     description: "Array of manga to create",
-    type: [CreateMangaItemDto],
+    type: [CreateMangaItemDto]
   })
   @IsArray()
   @ArrayMinSize(1)

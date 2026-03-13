@@ -1,17 +1,20 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
+import { JwtService, JwtSignOptions } from "@nestjs/jwt";
+
 import { PrismaService } from "@/prisma/prisma.service";
-import * as bcrypt from "bcrypt";
-import { LoginDto, AuthResponseDto, RefreshResponseDto } from "@/auth/dto";
+
+import { AuthResponseDto, LoginDto, RefreshResponseDto } from "@/auth/dto";
 import { JwtPayload } from "@/auth/strategies/jwt.strategy";
+
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private configService: ConfigService,
+    private configService: ConfigService
   ) {}
 
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
@@ -30,13 +33,13 @@ export class AuthService {
 
     const accessToken = await this.generateAccessToken(
       storedPins.id,
-      storedPins.createdAt,
+      storedPins.createdAt
     );
     const refreshToken = await this.generateRefreshToken(storedPins.id);
 
     return {
       accessToken,
-      refreshToken,
+      refreshToken
     };
   }
 
@@ -45,8 +48,8 @@ export class AuthService {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(
         refreshToken,
         {
-          secret: this.configService.get<string>("REFRESH_TOKEN_SECRET"),
-        },
+          secret: this.configService.get<string>("REFRESH_TOKEN_SECRET")
+        }
       );
 
       if (payload.type !== "refresh") {
@@ -56,7 +59,7 @@ export class AuthService {
       const accessToken = await this.generateAccessToken(payload.sub);
 
       return {
-        accessToken,
+        accessToken
       };
     } catch {
       throw new UnauthorizedException("Invalid refresh token");
@@ -65,24 +68,24 @@ export class AuthService {
 
   async validateUser(userId: number): Promise<boolean> {
     const storedPins = await this.prisma.adminPin.findUnique({
-      where: { id: userId },
+      where: { id: userId }
     });
 
     return storedPins !== null;
   }
 
   async getUserById(
-    userId: number,
+    userId: number
   ): Promise<{ id: number; createdAt: Date } | null> {
     return this.prisma.adminPin.findUnique({
       where: { id: userId },
-      select: { id: true, createdAt: true },
+      select: { id: true, createdAt: true }
     });
   }
 
   private async generateAccessToken(
     userId: number,
-    createdAt?: Date,
+    createdAt?: Date
   ): Promise<string> {
     const user =
       createdAt !== undefined
@@ -96,34 +99,34 @@ export class AuthService {
     const payload: JwtPayload = {
       sub: userId,
       type: "access",
-      createdAt: user.createdAt.toISOString(),
+      createdAt: user.createdAt.toISOString()
     };
 
     const secret = this.configService.get<string>("ACCESS_TOKEN_SECRET");
     const expiresIn = this.configService.get<string>(
-      "ACCESS_TOKEN_DURATION",
+      "ACCESS_TOKEN_DURATION"
     ) as JwtSignOptions["expiresIn"];
 
     return this.jwtService.signAsync(payload, {
       secret,
-      expiresIn,
+      expiresIn
     });
   }
 
   private async generateRefreshToken(userId: number): Promise<string> {
     const payload: JwtPayload = {
       sub: userId,
-      type: "refresh",
+      type: "refresh"
     };
 
     const secret = this.configService.get<string>("REFRESH_TOKEN_SECRET");
     const expiresIn = this.configService.get<string>(
-      "REFRESH_TOKEN_DURATION",
+      "REFRESH_TOKEN_DURATION"
     ) as JwtSignOptions["expiresIn"];
 
     return this.jwtService.signAsync(payload, {
       secret,
-      expiresIn,
+      expiresIn
     });
   }
 }

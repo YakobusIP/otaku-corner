@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { ProgressStatus } from "@prisma/client";
+
 import { PaginatedResponseDto } from "@/common/dto";
+
+import { ProgressStatus } from "@prisma/client";
 
 export class VolumeProgressItemDto {
   @ApiProperty({ description: "Volume number", example: 1 })
@@ -9,7 +11,7 @@ export class VolumeProgressItemDto {
   @ApiPropertyOptional({
     description: "Date consumed",
     example: "2024-06-15",
-    nullable: true,
+    nullable: true
   })
   consumedAt: Date | null;
 }
@@ -23,19 +25,19 @@ export class LightNovelListResponseDto {
 
   @ApiProperty({
     description: "Light novel title",
-    example: "Sword Art Online",
+    example: "Sword Art Online"
   })
   title: string;
 
   @ApiProperty({
     description: "Japanese title",
-    example: "ソードアート・オンライン",
+    example: "ソードアート・オンライン"
   })
   titleJapanese: string;
 
   @ApiProperty({
     description: "Image URLs",
-    example: { image_url: "https://example.com/image.jpg" },
+    example: { image_url: "https://example.com/image.jpg" }
   })
   images: object;
 
@@ -50,7 +52,7 @@ export class LightNovelListResponseDto {
 
   @ApiPropertyOptional({
     description: "Progress status",
-    enum: ProgressStatus,
+    enum: ProgressStatus
   })
   progressStatus?: ProgressStatus | null;
 
@@ -59,14 +61,14 @@ export class LightNovelListResponseDto {
 
   @ApiProperty({
     description: "Volume progress entries",
-    type: [VolumeProgressItemDto],
+    type: [VolumeProgressItemDto]
   })
   volumeProgress: VolumeProgressItemDto[];
 
   @ApiPropertyOptional({
     description: "Number of volumes",
     example: 27,
-    nullable: true,
+    nullable: true
   })
   volumesCount?: number | null;
 }
@@ -74,7 +76,7 @@ export class LightNovelListResponseDto {
 export class PaginatedLightNovelResponseDto extends PaginatedResponseDto<LightNovelListResponseDto> {
   @ApiProperty({
     description: "List of light novels",
-    type: [LightNovelListResponseDto],
+    type: [LightNovelListResponseDto]
   })
   declare data: LightNovelListResponseDto[];
 }

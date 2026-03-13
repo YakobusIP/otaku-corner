@@ -1,19 +1,20 @@
-import { applyDecorators, Controller, UseGuards } from "@nestjs/common";
+import { Controller, UseGuards, applyDecorators } from "@nestjs/common";
 import {
-  ApiTags,
-  ApiBearerAuth,
   ApiBadRequestResponse,
-  ApiUnauthorizedResponse,
+  ApiBearerAuth,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
+  ApiTags,
+  ApiUnauthorizedResponse
 } from "@nestjs/swagger";
+
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 
 const DEFAULT_ERRORS = {
   badRequest: "Validation failed",
   unauthorized: "Unauthorized",
   forbidden: "Forbidden",
-  notFound: "Not found",
+  notFound: "Not found"
 } as const;
 
 export interface AuthenticatedApiControllerOptions {
@@ -28,7 +29,7 @@ export interface AuthenticatedApiControllerOptions {
 }
 
 export function AuthenticatedApiController(
-  options: AuthenticatedApiControllerOptions,
+  options: AuthenticatedApiControllerOptions
 ) {
   const { tag, path, errors = {} } = options;
   const messages = { ...DEFAULT_ERRORS, ...errors };
@@ -41,6 +42,6 @@ export function AuthenticatedApiController(
     ApiForbiddenResponse({ description: messages.forbidden }),
     ApiNotFoundResponse({ description: messages.notFound }),
     ApiTags(tag),
-    Controller(path),
+    Controller(path)
   );
 }

@@ -1,13 +1,15 @@
 import { Get, Query } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { Public } from "@/common/decorators/public.decorator";
+
 import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
-import { StatisticService } from "@/statistic/statistic.service";
-import { StatisticsView } from "@/statistic/enums/statistics-view.enum";
+import { Public } from "@/common/decorators/public.decorator";
+
 import {
   MediaConsumptionQueryDto,
-  MediaProgressQueryDto,
+  MediaProgressQueryDto
 } from "@/statistic/dto";
+import { StatisticsView } from "@/statistic/enums/statistics-view.enum";
+import { StatisticService } from "@/statistic/statistic.service";
 
 @AuthenticatedApiController({ tag: "Statistic", path: "statistic" })
 export class StatisticController {
@@ -26,7 +28,7 @@ export class StatisticController {
   getMediaConsumption(@Query() query: MediaConsumptionQueryDto) {
     return this.statisticService.getMediaConsumption(
       query.view as StatisticsView,
-      query.year,
+      query.year
     );
   }
 
@@ -48,7 +50,7 @@ export class StatisticController {
   @ApiOperation({ summary: "Get top studio consumption statistics" })
   @ApiResponse({
     status: 200,
-    description: "Studio consumption data retrieved",
+    description: "Studio consumption data retrieved"
   })
   getStudioConsumption() {
     return this.statisticService.getStudioConsumption();
@@ -65,7 +67,7 @@ export class StatisticController {
   @ApiOperation({ summary: "Get top author consumption statistics" })
   @ApiResponse({
     status: 200,
-    description: "Author consumption data retrieved",
+    description: "Author consumption data retrieved"
   })
   getAuthorConsumption() {
     return this.statisticService.getAuthorConsumption();
@@ -82,11 +84,11 @@ export class StatisticController {
   @Public()
   @Get("top-media-and-yearly-count")
   @ApiOperation({
-    summary: "Get top-rated media and yearly consumption count",
+    summary: "Get top-rated media and yearly consumption count"
   })
   @ApiResponse({
     status: 200,
-    description: "Top media and yearly count retrieved",
+    description: "Top media and yearly count retrieved"
   })
   getTopMediaAndYearlyCount() {
     return this.statisticService.getTopMediaAndYearlyCount();

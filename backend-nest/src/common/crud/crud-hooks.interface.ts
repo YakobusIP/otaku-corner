@@ -3,7 +3,7 @@ import { CrudContext } from "@/common/crud/types";
 export interface CrudHooks<
   TCreateDto = unknown,
   TUpdateDto = unknown,
-  TResponse = unknown,
+  TResponse = unknown
 > {
   beforeCreate?(ctx: CrudContext<TCreateDto, TResponse>): Promise<void>;
   afterCreate?(ctx: CrudContext<TCreateDto, TResponse>): Promise<void>;

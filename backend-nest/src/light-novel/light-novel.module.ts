@@ -1,10 +1,12 @@
 import { Module } from "@nestjs/common";
-import { LightNovelController } from "@/light-novel/light-novel.controller";
-import { LightNovelService } from "@/light-novel/light-novel.service";
+
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
-import { LightNovelQueryBuilder } from "@/light-novel/light-novel-query-builder";
+
 import { AuthorsModule } from "@/author/authors.module";
 import { GenresModule } from "@/genre/genres.module";
+import { LightNovelQueryBuilder } from "@/light-novel/light-novel-query-builder";
+import { LightNovelController } from "@/light-novel/light-novel.controller";
+import { LightNovelService } from "@/light-novel/light-novel.service";
 import { ThemesModule } from "@/theme/themes.module";
 
 @Module({
@@ -12,8 +14,8 @@ import { ThemesModule } from "@/theme/themes.module";
   controllers: [LightNovelController],
   providers: [
     LightNovelService,
-    { provide: CrudQueryBuilder, useClass: LightNovelQueryBuilder },
+    { provide: CrudQueryBuilder, useClass: LightNovelQueryBuilder }
   ],
-  exports: [LightNovelService],
+  exports: [LightNovelService]
 })
 export class LightNovelModule {}

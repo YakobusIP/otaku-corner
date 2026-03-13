@@ -1,4 +1,4 @@
 export enum StatisticsView {
   MONTHLY = "monthly",
-  YEARLY = "yearly",
+  YEARLY = "yearly"
 }

@@ -1,24 +1,28 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { Prisma, ProgressStatus } from "@prisma/client";
-import { PrismaService } from "@/prisma/prisma.service";
-import { BaseCrudService } from "@/common/crud/base-crud.service";
-import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
-import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
-import { PaginationQueryDto, PaginatedResponseDto } from "@/common/dto";
+
 import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
+import { BaseCrudService } from "@/common/crud/base-crud.service";
+import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
+import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
+import { PaginatedResponseDto, PaginationQueryDto } from "@/common/dto";
 import { chunkArray } from "@/common/utils/chunk-array";
+
+import { PrismaService } from "@/prisma/prisma.service";
+
 import { AuthorsService } from "@/author/authors.service";
 import { GenresService } from "@/genre/genres.service";
-import { ThemesService } from "@/theme/themes.service";
 import {
   CreateLightNovelItemDto,
+  LightNovelDetailResponseDto,
+  LightNovelListResponseDto,
+  LightNovelQueryDto,
   UpdateLightNovelDto,
   UpdateLightNovelReviewDto,
-  UpdateVolumeProgressItemDto,
-  LightNovelListResponseDto,
-  LightNovelDetailResponseDto,
-  LightNovelQueryDto,
+  UpdateVolumeProgressItemDto
 } from "@/light-novel/dto";
+import { ThemesService } from "@/theme/themes.service";
+
+import { Prisma, ProgressStatus } from "@prisma/client";
 
 @Injectable()
 export class LightNovelService extends BaseCrudService<
@@ -35,19 +39,19 @@ export class LightNovelService extends BaseCrudService<
     queryBuilder: CrudQueryBuilder,
     private readonly authorsService: AuthorsService,
     private readonly genresService: GenresService,
-    private readonly themesService: ThemesService,
+    private readonly themesService: ThemesService
   ) {
     super(prisma, queryBuilder);
   }
 
   protected getDelegate(
-    client?: PrismaService | Prisma.TransactionClient,
+    client?: PrismaService | Prisma.TransactionClient
   ): CrudDelegate {
     return (client ?? this.prisma).lightNovel;
   }
 
   async findAll(
-    query: LightNovelQueryDto,
+    query: LightNovelQueryDto
   ): Promise<PaginatedResponseDto<LightNovelListResponseDto>> {
     const { where, skip, take, orderBy, include } =
       this.queryBuilder.buildFindAllQuery(query);
@@ -68,18 +72,18 @@ export class LightNovelService extends BaseCrudService<
         status: true,
         score: true,
         volumesCount: true,
-        ...(include as Record<string, unknown>),
-      },
+        ...(include as Record<string, unknown>)
+      }
     };
     if (orderBy) findManyArgs.orderBy = orderBy;
 
     const [data, total] = await Promise.all([
       this.prisma.lightNovel.findMany(
-        findManyArgs as Prisma.LightNovelFindManyArgs,
+        findManyArgs as Prisma.LightNovelFindManyArgs
       ),
       this.prisma.lightNovel.count({
-        where: where as Prisma.LightNovelWhereInput,
-      }),
+        where: where as Prisma.LightNovelWhereInput
+      })
     ]);
 
     const mapped = data.map((ln) => {
@@ -101,7 +105,7 @@ export class LightNovelService extends BaseCrudService<
           (record.volumeProgress as {
             volumeNumber: number;
             consumedAt: Date | null;
-          }[]) ?? [],
+          }[]) ?? []
       } as LightNovelListResponseDto;
     });
 
@@ -110,7 +114,7 @@ export class LightNovelService extends BaseCrudService<
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit)
     };
   }
 
@@ -122,8 +126,8 @@ export class LightNovelService extends BaseCrudService<
         volumeProgress: { orderBy: { volumeNumber: "asc" } },
         authors: { include: { author: { select: { id: true, name: true } } } },
         genres: { include: { genre: { select: { id: true, name: true } } } },
-        themes: { include: { theme: { select: { id: true, name: true } } } },
-      },
+        themes: { include: { theme: { select: { id: true, name: true } } } }
+      }
     });
 
     if (!result) {
@@ -134,7 +138,7 @@ export class LightNovelService extends BaseCrudService<
   }
 
   async createBulk(
-    items: CreateLightNovelItemDto[],
+    items: CreateLightNovelItemDto[]
   ): Promise<{ count: number }> {
     const chunks = chunkArray(items, 10);
     let totalCreated = 0;
@@ -148,8 +152,8 @@ export class LightNovelService extends BaseCrudService<
             [
               this.authorsService.getOrCreateMany(authors),
               this.genresService.getOrCreateMany(genres),
-              this.themesService.getOrCreateMany(themes),
-            ],
+              this.themesService.getOrCreateMany(themes)
+            ]
           );
 
           await tx.lightNovel.create({
@@ -157,13 +161,13 @@ export class LightNovelService extends BaseCrudService<
               ...lightNovelData,
               images: lightNovelData.images as Prisma.InputJsonValue,
               authors: {
-                create: authorRecords.map((a) => ({ authorId: a.id })),
+                create: authorRecords.map((a) => ({ authorId: a.id }))
               },
               genres: {
-                create: genreRecords.map((g) => ({ genreId: g.id })),
+                create: genreRecords.map((g) => ({ genreId: g.id }))
               },
               themes: {
-                create: themeRecords.map((t) => ({ themeId: t.id })),
+                create: themeRecords.map((t) => ({ themeId: t.id }))
               },
               review: { create: {} },
               volumeProgress: {
@@ -171,11 +175,11 @@ export class LightNovelService extends BaseCrudService<
                   { length: lightNovelData.volumesCount ?? 0 },
                   (_, i) => ({
                     volumeNumber: i + 1,
-                    consumedAt: null,
-                  }),
-                ),
-              },
-            },
+                    consumedAt: null
+                  })
+                )
+              }
+            }
           });
 
           totalCreated++;
@@ -188,11 +192,11 @@ export class LightNovelService extends BaseCrudService<
 
   async updateLightNovel(
     id: number,
-    dto: UpdateLightNovelDto,
+    dto: UpdateLightNovelDto
   ): Promise<LightNovelDetailResponseDto> {
     const existing = await this.prisma.lightNovel.findUnique({
       where: { id },
-      include: { volumeProgress: true },
+      include: { volumeProgress: true }
     });
 
     if (!existing) {
@@ -209,16 +213,16 @@ export class LightNovelService extends BaseCrudService<
           (_, i) => ({
             volumeNumber: currentCount + i + 1,
             consumedAt: null as Date | null,
-            lightNovelId: id,
-          }),
+            lightNovelId: id
+          })
         );
         await this.prisma.lightNovelVolumes.createMany({ data: newVolumes });
       } else if (newCount < currentCount) {
         await this.prisma.lightNovelVolumes.deleteMany({
           where: {
             lightNovelId: id,
-            volumeNumber: { gt: newCount },
-          },
+            volumeNumber: { gt: newCount }
+          }
         });
       }
     }
@@ -231,8 +235,8 @@ export class LightNovelService extends BaseCrudService<
         volumeProgress: { orderBy: { volumeNumber: "asc" } },
         authors: { include: { author: { select: { id: true, name: true } } } },
         genres: { include: { genre: { select: { id: true, name: true } } } },
-        themes: { include: { theme: { select: { id: true, name: true } } } },
-      },
+        themes: { include: { theme: { select: { id: true, name: true } } } }
+      }
     });
 
     return result as unknown as LightNovelDetailResponseDto;
@@ -240,11 +244,11 @@ export class LightNovelService extends BaseCrudService<
 
   async updateReview(
     id: number,
-    dto: UpdateLightNovelReviewDto,
+    dto: UpdateLightNovelReviewDto
   ): Promise<LightNovelDetailResponseDto> {
     const lightNovel = await this.prisma.lightNovel.findUnique({
       where: { id },
-      include: { review: true },
+      include: { review: true }
     });
 
     if (!lightNovel) {
@@ -261,7 +265,7 @@ export class LightNovelService extends BaseCrudService<
       charDevelopmentRating:
         dto.charDevelopmentRating ?? lightNovel.review?.charDevelopmentRating,
       originalityRating:
-        dto.originalityRating ?? lightNovel.review?.originalityRating,
+        dto.originalityRating ?? lightNovel.review?.originalityRating
     };
 
     let personalScore: number | null = null;
@@ -285,23 +289,23 @@ export class LightNovelService extends BaseCrudService<
       update: updateData,
       create: {
         lightNovelId: id,
-        ...updateData,
-      },
+        ...updateData
+      }
     });
 
     return this.findOne(id);
   }
 
   async updateVolumeProgress(
-    data: UpdateVolumeProgressItemDto[],
+    data: UpdateVolumeProgressItemDto[]
   ): Promise<void> {
     await this.prisma.$transaction(
       data.map((item) =>
         this.prisma.lightNovelVolumes.update({
           where: { id: item.id },
-          data: { consumedAt: item.consumedAt ?? null },
-        }),
-      ),
+          data: { consumedAt: item.consumedAt ?? null }
+        })
+      )
     );
   }
 
@@ -316,7 +320,7 @@ export class LightNovelService extends BaseCrudService<
   }
 
   async getSitemapData(
-    query: PaginationQueryDto,
+    query: PaginationQueryDto
   ): Promise<
     PaginatedResponseDto<{ id: number; slug: string; updatedAt: Date }>
   > {
@@ -328,9 +332,9 @@ export class LightNovelService extends BaseCrudService<
         select: { id: true, slug: true, updatedAt: true },
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { id: "asc" },
+        orderBy: { id: "asc" }
       }),
-      this.prisma.lightNovel.count(),
+      this.prisma.lightNovel.count()
     ]);
 
     return {
@@ -338,7 +342,7 @@ export class LightNovelService extends BaseCrudService<
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit)
     };
   }
 
@@ -349,9 +353,9 @@ export class LightNovelService extends BaseCrudService<
     await Promise.all(
       statuses.map(async (status) => {
         counts[status] = await this.prisma.lightNovelReview.count({
-          where: { progressStatus: status as ProgressStatus },
+          where: { progressStatus: status as ProgressStatus }
         });
-      }),
+      })
     );
 
     return counts;

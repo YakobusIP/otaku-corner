@@ -1,16 +1,20 @@
 import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { extname, join } from "node:path";
+
 import {
   BadRequestException,
   ConflictException,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Prisma } from "@prisma/client";
+
 import { PrismaService } from "@/prisma/prisma.service";
+
 import { MediaType } from "@/upload/enums/media-type.enum";
+
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class UploadService {
@@ -18,7 +22,7 @@ export class UploadService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly config: ConfigService,
+    private readonly config: ConfigService
   ) {
     this.uploadsDir =
       this.config.get<string>("UPLOADS_DIR") || join(process.cwd(), "uploads");
@@ -31,7 +35,7 @@ export class UploadService {
   async uploadImage(
     file: Express.Multer.File,
     type: MediaType,
-    reviewId: number,
+    reviewId: number
   ): Promise<{ id: string; url: string }> {
     const id = randomUUID();
     const ext = extname(file.originalname);
@@ -47,7 +51,7 @@ export class UploadService {
 
     try {
       await this.prisma.reviewImage.create({
-        data: { id, url, ...reviewConnect },
+        data: { id, url, ...reviewConnect }
       });
     } catch (error) {
       if (existsSync(filePath)) unlinkSync(filePath);

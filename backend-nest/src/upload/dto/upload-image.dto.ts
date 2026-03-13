@@ -1,11 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsInt } from "class-validator";
+
+import { IsInt, IsNotEmpty, IsString } from "class-validator";
 
 export class UploadImageDto {
   @ApiProperty({
     description: "Media type for the review",
     enum: ["Anime", "Manga", "Light Novel"],
-    example: "Anime",
+    example: "Anime"
   })
   @IsString()
   @IsNotEmpty()
@@ -13,7 +14,7 @@ export class UploadImageDto {
 
   @ApiProperty({
     description: "ID of the review to attach the image to",
-    example: 1,
+    example: 1
   })
   @IsInt()
   @IsNotEmpty()

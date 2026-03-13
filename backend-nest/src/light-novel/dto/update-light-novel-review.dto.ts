@@ -1,6 +1,7 @@
-import { IsOptional, IsString, IsInt, IsEnum } from "class-validator";
 import { ApiPropertyOptional } from "@nestjs/swagger";
+
 import { ProgressStatus } from "@prisma/client";
+import { IsEnum, IsInt, IsOptional, IsString } from "class-validator";
 
 export class UpdateLightNovelReviewDto {
   @ApiPropertyOptional({ description: "Review text" })
@@ -15,7 +16,7 @@ export class UpdateLightNovelReviewDto {
 
   @ApiPropertyOptional({
     description: "World building rating (1-10)",
-    example: 9,
+    example: 9
   })
   @IsOptional()
   @IsInt()
@@ -23,7 +24,7 @@ export class UpdateLightNovelReviewDto {
 
   @ApiPropertyOptional({
     description: "Writing style rating (1-10)",
-    example: 8,
+    example: 8
   })
   @IsOptional()
   @IsInt()
@@ -31,7 +32,7 @@ export class UpdateLightNovelReviewDto {
 
   @ApiPropertyOptional({
     description: "Character development rating (1-10)",
-    example: 7,
+    example: 7
   })
   @IsOptional()
   @IsInt()
@@ -39,7 +40,7 @@ export class UpdateLightNovelReviewDto {
 
   @ApiPropertyOptional({
     description: "Originality rating (1-10)",
-    example: 8,
+    example: 8
   })
   @IsOptional()
   @IsInt()
@@ -48,7 +49,7 @@ export class UpdateLightNovelReviewDto {
   @ApiPropertyOptional({
     description: "Progress status",
     enum: ProgressStatus,
-    example: ProgressStatus.COMPLETED,
+    example: ProgressStatus.COMPLETED
   })
   @IsOptional()
   @IsEnum(ProgressStatus)

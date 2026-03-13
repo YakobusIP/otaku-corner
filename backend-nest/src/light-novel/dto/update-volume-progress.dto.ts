@@ -1,13 +1,14 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+
+import { Type } from "class-transformer";
 import {
+  ArrayMinSize,
+  IsArray,
+  IsDate,
   IsInt,
   IsOptional,
-  IsArray,
-  ValidateNested,
-  ArrayMinSize,
-  IsDate,
+  ValidateNested
 } from "class-validator";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
 
 export class UpdateVolumeProgressItemDto {
   @ApiProperty({ description: "Volume progress record ID", example: 1 })
@@ -17,7 +18,7 @@ export class UpdateVolumeProgressItemDto {
   @ApiPropertyOptional({
     description: "Date consumed",
     example: "2024-06-15",
-    nullable: true,
+    nullable: true
   })
   @IsOptional()
   @Type(() => Date)
@@ -28,7 +29,7 @@ export class UpdateVolumeProgressItemDto {
 export class UpdateVolumeProgressDto {
   @ApiProperty({
     description: "Array of volume progress updates",
-    type: [UpdateVolumeProgressItemDto],
+    type: [UpdateVolumeProgressItemDto]
   })
   @IsArray()
   @ArrayMinSize(1)

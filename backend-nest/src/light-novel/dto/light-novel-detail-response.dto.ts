@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+
 import { ProgressStatus } from "@prisma/client";
 
 class RelatedEntityDto {
@@ -18,31 +19,31 @@ class LightNovelReviewDetailDto {
 
   @ApiPropertyOptional({
     description: "Storyline rating (1-10)",
-    example: 8,
+    example: 8
   })
   storylineRating: number | null;
 
   @ApiPropertyOptional({
     description: "World building rating (1-10)",
-    example: 9,
+    example: 9
   })
   worldBuildingRating: number | null;
 
   @ApiPropertyOptional({
     description: "Writing style rating (1-10)",
-    example: 8,
+    example: 8
   })
   writingStyleRating: number | null;
 
   @ApiPropertyOptional({
     description: "Character development rating (1-10)",
-    example: 7,
+    example: 7
   })
   charDevelopmentRating: number | null;
 
   @ApiPropertyOptional({
     description: "Originality rating (1-10)",
-    example: 8,
+    example: 8
   })
   originalityRating: number | null;
 
@@ -52,7 +53,7 @@ class LightNovelReviewDetailDto {
   @ApiProperty({
     description: "Progress status",
     enum: ProgressStatus,
-    example: ProgressStatus.PLANNED,
+    example: ProgressStatus.PLANNED
   })
   progressStatus: ProgressStatus;
 }
@@ -67,7 +68,7 @@ class VolumeProgressDetailDto {
   @ApiPropertyOptional({
     description: "Date consumed",
     example: "2024-06-15",
-    nullable: true,
+    nullable: true
   })
   consumedAt: Date | null;
 }
@@ -84,13 +85,13 @@ export class LightNovelDetailResponseDto {
 
   @ApiProperty({
     description: "Light novel title",
-    example: "Sword Art Online",
+    example: "Sword Art Online"
   })
   title: string;
 
   @ApiProperty({
     description: "Japanese title",
-    example: "ソードアート・オンライン",
+    example: "ソードアート・オンライン"
   })
   titleJapanese: string;
 
@@ -99,7 +100,7 @@ export class LightNovelDetailResponseDto {
 
   @ApiProperty({
     description: "Published date range",
-    example: "Apr 10, 2009 to ?",
+    example: "Apr 10, 2009 to ?"
   })
   published: string;
 
@@ -111,7 +112,7 @@ export class LightNovelDetailResponseDto {
 
   @ApiProperty({
     description: "Image URLs",
-    example: { image_url: "https://example.com/image.jpg" },
+    example: { image_url: "https://example.com/image.jpg" }
   })
   images: object;
 
@@ -120,7 +121,7 @@ export class LightNovelDetailResponseDto {
 
   @ApiProperty({
     description: "MAL URL",
-    example: "https://myanimelist.net/manga/21479/Sword_Art_Online",
+    example: "https://myanimelist.net/manga/21479/Sword_Art_Online"
   })
   malUrl: string;
 
@@ -132,31 +133,31 @@ export class LightNovelDetailResponseDto {
 
   @ApiPropertyOptional({
     description: "Review details",
-    type: LightNovelReviewDetailDto,
+    type: LightNovelReviewDetailDto
   })
   review: LightNovelReviewDetailDto | null;
 
   @ApiProperty({
     description: "Volume progress entries",
-    type: [VolumeProgressDetailDto],
+    type: [VolumeProgressDetailDto]
   })
   volumeProgress: VolumeProgressDetailDto[];
 
   @ApiProperty({
     description: "Authors",
-    type: [RelatedEntityDto],
+    type: [RelatedEntityDto]
   })
   authors: { author: RelatedEntityDto }[];
 
   @ApiProperty({
     description: "Genres",
-    type: [RelatedEntityDto],
+    type: [RelatedEntityDto]
   })
   genres: { genre: RelatedEntityDto }[];
 
   @ApiProperty({
     description: "Themes",
-    type: [RelatedEntityDto],
+    type: [RelatedEntityDto]
   })
   themes: { theme: RelatedEntityDto }[];
 }

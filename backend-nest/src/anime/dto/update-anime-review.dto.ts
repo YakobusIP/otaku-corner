@@ -1,7 +1,8 @@
-import { IsOptional, IsString, IsInt, IsEnum, IsDate } from "class-validator";
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+
 import { ProgressStatus } from "@prisma/client";
+import { Type } from "class-transformer";
+import { IsDate, IsEnum, IsInt, IsOptional, IsString } from "class-validator";
 
 export class UpdateAnimeReviewDto {
   @ApiPropertyOptional({ description: "Review text" })
@@ -21,7 +22,7 @@ export class UpdateAnimeReviewDto {
 
   @ApiPropertyOptional({
     description: "Voice acting rating (1-10)",
-    example: 8,
+    example: 8
   })
   @IsOptional()
   @IsInt()
@@ -29,7 +30,7 @@ export class UpdateAnimeReviewDto {
 
   @ApiPropertyOptional({
     description: "Sound track rating (1-10)",
-    example: 10,
+    example: 10
   })
   @IsOptional()
   @IsInt()
@@ -37,7 +38,7 @@ export class UpdateAnimeReviewDto {
 
   @ApiPropertyOptional({
     description: "Character development rating (1-10)",
-    example: 7,
+    example: 7
   })
   @IsOptional()
   @IsInt()
@@ -46,7 +47,7 @@ export class UpdateAnimeReviewDto {
   @ApiPropertyOptional({
     description: "Progress status",
     enum: ProgressStatus,
-    example: ProgressStatus.COMPLETED,
+    example: ProgressStatus.COMPLETED
   })
   @IsOptional()
   @IsEnum(ProgressStatus)
@@ -54,7 +55,7 @@ export class UpdateAnimeReviewDto {
 
   @ApiPropertyOptional({
     description: "Date consumed",
-    example: "2024-06-15",
+    example: "2024-06-15"
   })
   @IsOptional()
   @Type(() => Date)

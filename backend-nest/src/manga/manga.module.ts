@@ -1,10 +1,12 @@
 import { Module } from "@nestjs/common";
-import { MangaController } from "@/manga/manga.controller";
-import { MangaService } from "@/manga/manga.service";
-import { MangaQueryBuilder } from "@/manga/manga-query-builder";
+
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
+
 import { AuthorsModule } from "@/author/authors.module";
 import { GenresModule } from "@/genre/genres.module";
+import { MangaQueryBuilder } from "@/manga/manga-query-builder";
+import { MangaController } from "@/manga/manga.controller";
+import { MangaService } from "@/manga/manga.service";
 import { ThemesModule } from "@/theme/themes.module";
 
 @Module({
@@ -12,8 +14,8 @@ import { ThemesModule } from "@/theme/themes.module";
   controllers: [MangaController],
   providers: [
     MangaService,
-    { provide: CrudQueryBuilder, useClass: MangaQueryBuilder },
+    { provide: CrudQueryBuilder, useClass: MangaQueryBuilder }
   ],
-  exports: [MangaService],
+  exports: [MangaService]
 })
 export class MangaModule {}

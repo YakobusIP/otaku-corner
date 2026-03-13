@@ -1,9 +1,11 @@
 import { Injectable } from "@nestjs/common";
+
+import { SCORE_RANGES } from "@/common/constants/progress-statuses";
 import {
   CrudQueryBuilder,
-  CrudQueryResult,
+  CrudQueryResult
 } from "@/common/crud/crud-query-builder.interface";
-import { SCORE_RANGES } from "@/common/constants/progress-statuses";
+
 import { AnimeQueryDto } from "@/anime/dto";
 
 @Injectable()
@@ -17,46 +19,46 @@ export class AnimeQueryBuilder implements CrudQueryBuilder {
       conditions.push({
         OR: [
           { title: { contains: query.query, mode: "insensitive" } },
-          { titleSynonyms: { contains: query.query, mode: "insensitive" } },
-        ],
+          { titleSynonyms: { contains: query.query, mode: "insensitive" } }
+        ]
       });
     }
 
     if (query.genre) {
       conditions.push({
-        genres: { some: { genreId: query.genre } },
+        genres: { some: { genreId: query.genre } }
       });
     }
 
     if (query.studio) {
       conditions.push({
-        studios: { some: { studioId: query.studio } },
+        studios: { some: { studioId: query.studio } }
       });
     }
 
     if (query.theme) {
       conditions.push({
-        themes: { some: { themeId: query.theme } },
+        themes: { some: { themeId: query.theme } }
       });
     }
 
     if (query.status) {
       conditions.push({
-        review: { progressStatus: query.status },
+        review: { progressStatus: query.status }
       });
     }
 
     if (query.malScore && SCORE_RANGES[query.malScore]) {
       const range = SCORE_RANGES[query.malScore];
       conditions.push({
-        score: { gte: range.min, lte: range.max },
+        score: { gte: range.min, lte: range.max }
       });
     }
 
     if (query.personalScore && SCORE_RANGES[query.personalScore]) {
       const range = SCORE_RANGES[query.personalScore];
       conditions.push({
-        review: { personalScore: { gte: range.min, lte: range.max } },
+        review: { personalScore: { gte: range.min, lte: range.max } }
       });
     }
 
@@ -66,13 +68,13 @@ export class AnimeQueryBuilder implements CrudQueryBuilder {
 
     if (query.statusCheck === "complete") {
       conditions.push({
-        OR: [{ type: { in: ["Movie", "OVA"] } }, { episodes: { some: {} } }],
+        OR: [{ type: { in: ["Movie", "OVA"] } }, { episodes: { some: {} } }]
       });
       conditions.push({
         review: {
           reviewText: { not: null },
-          consumedAt: { not: null },
-        },
+          consumedAt: { not: null }
+        }
       });
     } else if (query.statusCheck === "incomplete") {
       conditions.push({
@@ -80,15 +82,15 @@ export class AnimeQueryBuilder implements CrudQueryBuilder {
           {
             AND: [
               { type: { notIn: ["Movie", "OVA"] } },
-              { episodes: { none: {} } },
-            ],
+              { episodes: { none: {} } }
+            ]
           },
           {
             review: {
-              OR: [{ reviewText: null }, { consumedAt: null }],
-            },
-          },
-        ],
+              OR: [{ reviewText: null }, { consumedAt: null }]
+            }
+          }
+        ]
       });
     }
 
@@ -100,13 +102,13 @@ export class AnimeQueryBuilder implements CrudQueryBuilder {
       where,
       skip: (page - 1) * limit,
       take: limit,
-      orderBy,
+      orderBy
     };
   }
 
   private buildOrderBy(
     sort?: string,
-    order?: string,
+    order?: string
   ): Record<string, unknown> | undefined {
     const direction = order === "asc" ? "asc" : "desc";
 

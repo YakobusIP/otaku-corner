@@ -1,8 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma, ProgressStatus } from "@prisma/client";
+
 import { PrismaService } from "@/prisma/prisma.service";
-import { StatisticsView } from "@/statistic/enums/statistics-view.enum";
+
 import { MediaValue } from "@/statistic/dto/statistic-query.dto";
+import { StatisticsView } from "@/statistic/enums/statistics-view.enum";
+
+import { Prisma, ProgressStatus } from "@prisma/client";
 
 type RawMediaConsumption = {
   period: string;
@@ -71,7 +74,7 @@ const MONTHS = [
   "September",
   "October",
   "November",
-  "December",
+  "December"
 ];
 
 const TABLE_CONFIG: Record<
@@ -80,16 +83,16 @@ const TABLE_CONFIG: Record<
 > = {
   Anime: {
     joinClause: Prisma.sql`"AnimeReview" review ON core."id" = review."animeId"`,
-    consumedAtField: `review."consumedAt"`,
+    consumedAtField: `review."consumedAt"`
   },
   Manga: {
     joinClause: Prisma.sql`"MangaReview" review ON core."id" = review."mangaId"`,
-    consumedAtField: `review."consumedAt"`,
+    consumedAtField: `review."consumedAt"`
   },
   LightNovel: {
     joinClause: Prisma.sql`"LightNovelVolumes" volumes ON core."id" = volumes."lightNovelId"`,
-    consumedAtField: `volumes."consumedAt"`,
-  },
+    consumedAtField: `volumes."consumedAt"`
+  }
 };
 
 @Injectable()
@@ -135,12 +138,12 @@ export class StatisticService {
 
   async getMediaConsumption(
     view: StatisticsView = StatisticsView.MONTHLY,
-    year?: number,
+    year?: number
   ): Promise<MediaConsumption[]> {
     const tables: ValidTable[] = ["Anime", "Manga", "LightNovel"];
 
     const getConsumptionStatistics = async (
-      table: ValidTable,
+      table: ValidTable
     ): Promise<Map<string, number>> => {
       const config = TABLE_CONFIG[table];
       const { joinClause, consumedAtField } = config;
@@ -178,7 +181,7 @@ export class StatisticService {
     };
 
     const [animeCounts, mangaCounts, lightNovelCounts] = await Promise.all(
-      tables.map((table) => getConsumptionStatistics(table)),
+      tables.map((table) => getConsumptionStatistics(table))
     );
 
     const data: MediaConsumption[] = [];
@@ -191,7 +194,7 @@ export class StatisticService {
           period,
           animeCount: animeCounts.get(period) ?? 0,
           mangaCount: mangaCounts.get(period) ?? 0,
-          lightNovelCount: lightNovelCounts.get(period) ?? 0,
+          lightNovelCount: lightNovelCounts.get(period) ?? 0
         });
       }
     } else {
@@ -200,7 +203,7 @@ export class StatisticService {
           period,
           animeCount: animeCounts.get(period) ?? 0,
           mangaCount: mangaCounts.get(period) ?? 0,
-          lightNovelCount: lightNovelCounts.get(period) ?? 0,
+          lightNovelCount: lightNovelCounts.get(period) ?? 0
         });
       }
     }
@@ -226,19 +229,19 @@ export class StatisticService {
     if (media === "anime") {
       const raw = await this.prisma.animeReview.groupBy({
         by: ["progressStatus"],
-        _count: { progressStatus: true },
+        _count: { progressStatus: true }
       });
       updateProgressMap(raw);
     } else if (media === "manga") {
       const raw = await this.prisma.mangaReview.groupBy({
         by: ["progressStatus"],
-        _count: { progressStatus: true },
+        _count: { progressStatus: true }
       });
       updateProgressMap(raw);
     } else if (media === "lightNovel") {
       const raw = await this.prisma.lightNovelReview.groupBy({
         by: ["progressStatus"],
-        _count: { progressStatus: true },
+        _count: { progressStatus: true }
       });
       updateProgressMap(raw);
     }
@@ -330,16 +333,16 @@ export class StatisticService {
       averageLightNovelMALScores,
       averageAnimePersonalScores,
       averageMangaPersonalScores,
-      averageLightNovelPersonalScores,
+      averageLightNovelPersonalScores
     ] = await Promise.all([
       this.prisma.animeReview.count({
-        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } },
+        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
       }),
       this.prisma.mangaReview.count({
-        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } },
+        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
       }),
       this.prisma.lightNovelReview.count({
-        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } },
+        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
       }),
       this.prisma.anime.aggregate({ _avg: { score: true } }),
       this.prisma.manga.aggregate({ _avg: { score: true } }),
@@ -347,24 +350,24 @@ export class StatisticService {
       this.prisma.animeReview.aggregate({ _avg: { personalScore: true } }),
       this.prisma.mangaReview.aggregate({ _avg: { personalScore: true } }),
       this.prisma.lightNovelReview.aggregate({
-        _avg: { personalScore: true },
-      }),
+        _avg: { personalScore: true }
+      })
     ]);
 
     const malScores = [
       averageAnimeMALScores._avg.score,
       averageMangaMALScores._avg.score,
-      averageLightNovelMALScores._avg.score,
+      averageLightNovelMALScores._avg.score
     ];
 
     const personalScores = [
       averageAnimePersonalScores._avg.personalScore,
       averageMangaPersonalScores._avg.personalScore,
-      averageLightNovelPersonalScores._avg.personalScore,
+      averageLightNovelPersonalScores._avg.personalScore
     ];
 
     const validMalScores = malScores.filter(
-      (score): score is number => score !== null,
+      (score): score is number => score !== null
     );
     const averageMalScore =
       validMalScores.length > 0
@@ -373,7 +376,7 @@ export class StatisticService {
         : 0;
 
     const validPersonalScores = personalScores.filter(
-      (score): score is number => score !== null,
+      (score): score is number => score !== null
     );
     const averagePersonalScore =
       validPersonalScores.length > 0
@@ -388,7 +391,7 @@ export class StatisticService {
       mangaCount: consumedMangaCount,
       lightNovelCount: consumedLightNovelCount,
       averageMalScore,
-      averagePersonalScore,
+      averagePersonalScore
     };
   }
 
@@ -403,12 +406,12 @@ export class StatisticService {
       consumedMangaYearlyCount,
       highestManga,
       consumedLightNovelYearlyCount,
-      highestLightNovel,
+      highestLightNovel
     ] = await Promise.all([
       this.prisma.anime.count({
         where: {
-          review: { consumedAt: { gte: startDate, lte: endDate } },
-        },
+          review: { consumedAt: { gte: startDate, lte: endDate } }
+        }
       }),
       this.prisma.anime.findMany({
         select: {
@@ -417,17 +420,17 @@ export class StatisticService {
           images: true,
           title: true,
           titleJapanese: true,
-          review: { select: { personalScore: true } },
+          review: { select: { personalScore: true } }
         },
         orderBy: {
-          review: { personalScore: { sort: "desc", nulls: "last" } },
+          review: { personalScore: { sort: "desc", nulls: "last" } }
         },
-        take: 1,
+        take: 1
       }),
       this.prisma.manga.count({
         where: {
-          review: { consumedAt: { gte: startDate, lte: endDate } },
-        },
+          review: { consumedAt: { gte: startDate, lte: endDate } }
+        }
       }),
       this.prisma.manga.findMany({
         select: {
@@ -436,15 +439,15 @@ export class StatisticService {
           images: true,
           title: true,
           titleJapanese: true,
-          review: { select: { personalScore: true } },
+          review: { select: { personalScore: true } }
         },
         orderBy: {
-          review: { personalScore: { sort: "desc", nulls: "last" } },
+          review: { personalScore: { sort: "desc", nulls: "last" } }
         },
-        take: 1,
+        take: 1
       }),
       this.prisma.lightNovelVolumes.count({
-        where: { consumedAt: { gte: startDate, lte: endDate } },
+        where: { consumedAt: { gte: startDate, lte: endDate } }
       }),
       this.prisma.lightNovel.findMany({
         select: {
@@ -453,13 +456,13 @@ export class StatisticService {
           images: true,
           title: true,
           titleJapanese: true,
-          review: { select: { personalScore: true } },
+          review: { select: { personalScore: true } }
         },
         orderBy: {
-          review: { personalScore: { sort: "desc", nulls: "last" } },
+          review: { personalScore: { sort: "desc", nulls: "last" } }
         },
-        take: 1,
-      }),
+        take: 1
+      })
     ]);
 
     const prepareResults = (
@@ -471,7 +474,7 @@ export class StatisticService {
         titleJapanese: string;
         images: Prisma.JsonValue;
         review: { personalScore: number | null } | null;
-      }[],
+      }[]
     ) => ({
       count,
       id: items.length > 0 ? items[0].id : null,
@@ -479,7 +482,7 @@ export class StatisticService {
       images: items.length > 0 ? items[0].images : null,
       title: items.length > 0 ? items[0].title : null,
       titleJapanese: items.length > 0 ? items[0].titleJapanese : null,
-      score: items.length > 0 ? (items[0].review?.personalScore ?? null) : null,
+      score: items.length > 0 ? (items[0].review?.personalScore ?? null) : null
     });
 
     return {
@@ -487,8 +490,8 @@ export class StatisticService {
       manga: prepareResults(consumedMangaYearlyCount, highestManga),
       lightNovel: prepareResults(
         consumedLightNovelYearlyCount,
-        highestLightNovel,
-      ),
+        highestLightNovel
+      )
     };
   }
 }

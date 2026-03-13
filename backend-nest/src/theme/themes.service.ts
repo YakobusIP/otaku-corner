@@ -1,10 +1,14 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
-import { PrismaService } from "@/prisma/prisma.service";
+
 import { BaseCrudService } from "@/common/crud/base-crud.service";
-import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
-import { CreateThemeDto, UpdateThemeDto, ThemeResponseDto } from "@/theme/dto";
+import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
+
+import { PrismaService } from "@/prisma/prisma.service";
+
+import { CreateThemeDto, ThemeResponseDto, UpdateThemeDto } from "@/theme/dto";
+
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class ThemesService extends BaseCrudService<
@@ -20,7 +24,7 @@ export class ThemesService extends BaseCrudService<
   }
 
   protected getDelegate(
-    client?: PrismaService | Prisma.TransactionClient,
+    client?: PrismaService | Prisma.TransactionClient
   ): CrudDelegate {
     return (client ?? this.prisma).theme;
   }
@@ -28,7 +32,7 @@ export class ThemesService extends BaseCrudService<
   async getOrCreateMany(names: string[]) {
     const normalized = names.map((n) => n.trim());
     const existing = await this.prisma.theme.findMany({
-      where: { name: { in: normalized } },
+      where: { name: { in: normalized } }
     });
     const existingSet = new Set(existing.map((t) => t.name));
     const newNames = normalized.filter((n) => !existingSet.has(n));
@@ -37,7 +41,7 @@ export class ThemesService extends BaseCrudService<
 
     const created = await this.prisma.theme.createManyAndReturn({
       data: newNames.map((name) => ({ name })),
-      skipDuplicates: true,
+      skipDuplicates: true
     });
 
     return [...existing, ...created];

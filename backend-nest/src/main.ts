@@ -1,8 +1,10 @@
-import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
+import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { AppModule } from "@/app.module";
+
 import { PrismaExceptionFilter } from "@/common/filters/prisma-exception.filter";
+
+import { AppModule } from "@/app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,7 +13,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: true,
-    credentials: true,
+    credentials: true
   });
 
   app.useGlobalPipes(
@@ -20,9 +22,9 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transform: true,
       transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
+        enableImplicitConversion: true
+      }
+    })
   );
 
   app.useGlobalFilters(new PrismaExceptionFilter());

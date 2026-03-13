@@ -1,12 +1,14 @@
 import { Module } from "@nestjs/common";
-import { JwtModule, JwtSignOptions } from "@nestjs/jwt";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { JwtModule, JwtSignOptions } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
-import { AuthService } from "@/auth/auth.service";
-import { AuthController } from "@/auth/auth.controller";
-import { JwtStrategy } from "@/auth/strategies/jwt.strategy";
-import { JwtRefreshStrategy } from "@/auth/strategies/jwt-refresh.strategy";
+
 import { PrismaModule } from "@/prisma/prisma.module";
+
+import { AuthController } from "@/auth/auth.controller";
+import { AuthService } from "@/auth/auth.service";
+import { JwtRefreshStrategy } from "@/auth/strategies/jwt-refresh.strategy";
+import { JwtStrategy } from "@/auth/strategies/jwt.strategy";
 
 @Module({
   imports: [
@@ -18,16 +20,16 @@ import { PrismaModule } from "@/prisma/prisma.module";
         secret: configService.get<string>("ACCESS_TOKEN_SECRET"),
         signOptions: {
           expiresIn: configService.get<string>(
-            "ACCESS_TOKEN_DURATION",
-          ) as JwtSignOptions["expiresIn"],
-        },
+            "ACCESS_TOKEN_DURATION"
+          ) as JwtSignOptions["expiresIn"]
+        }
       }),
-      inject: [ConfigService],
+      inject: [ConfigService]
     }),
-    ConfigModule,
+    ConfigModule
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
-  exports: [AuthService],
+  exports: [AuthService]
 })
 export class AuthModule {}

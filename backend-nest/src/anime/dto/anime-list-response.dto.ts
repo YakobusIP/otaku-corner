@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+
 import { ProgressStatus } from "@prisma/client";
 
 export class AnimeListResponseDto {
@@ -13,13 +14,13 @@ export class AnimeListResponseDto {
 
   @ApiProperty({
     description: "Japanese title",
-    example: "カウボーイビバップ",
+    example: "カウボーイビバップ"
   })
   titleJapanese: string;
 
   @ApiProperty({
     description: "Image URLs",
-    example: { image_url: "https://example.com/image.jpg" },
+    example: { image_url: "https://example.com/image.jpg" }
   })
   images: object;
 
@@ -37,7 +38,7 @@ export class AnimeListResponseDto {
 
   @ApiProperty({
     description: "Aired date range",
-    example: "Apr 3, 1998 to Apr 24, 1999",
+    example: "Apr 3, 1998 to Apr 24, 1999"
   })
   aired: string;
 
@@ -49,7 +50,7 @@ export class AnimeListResponseDto {
 
   @ApiPropertyOptional({
     description: "Progress status",
-    enum: ProgressStatus,
+    enum: ProgressStatus
   })
   progressStatus?: ProgressStatus | null;
 
@@ -66,7 +67,7 @@ export class AnimeListResponseDto {
 export class PaginatedAnimeResponseDto {
   @ApiProperty({
     description: "List of anime",
-    type: [AnimeListResponseDto],
+    type: [AnimeListResponseDto]
   })
   data: AnimeListResponseDto[];
 

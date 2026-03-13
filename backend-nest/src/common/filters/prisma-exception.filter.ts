@@ -2,8 +2,9 @@ import {
   Catch,
   ConflictException,
   ExceptionFilter,
-  NotFoundException,
+  NotFoundException
 } from "@nestjs/common";
+
 import { Prisma } from "@prisma/client";
 
 @Catch(Prisma.PrismaClientKnownRequestError)

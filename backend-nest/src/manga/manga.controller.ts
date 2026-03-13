@@ -1,42 +1,44 @@
 import {
-  Get,
-  Post,
-  Put,
-  Delete,
   Body,
-  Param,
-  Query,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   ParseIntPipe,
+  Post,
+  Put,
+  Query
 } from "@nestjs/common";
 import {
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
   ApiBody,
+  ApiOperation,
+  ApiParam,
   ApiQuery,
+  ApiResponse
 } from "@nestjs/swagger";
-import { Public } from "@/common/decorators/public.decorator";
-import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
-import { PaginationQueryDto, BulkDeleteDto } from "@/common/dto";
+
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
-import { MangaService } from "@/manga/manga.service";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
+import { Public } from "@/common/decorators/public.decorator";
+import { BulkDeleteDto, PaginationQueryDto } from "@/common/dto";
+
 import {
-  CreateMangaItemDto,
   CreateMangaBulkDto,
-  UpdateMangaDto,
-  UpdateMangaReviewDto,
-  MangaQueryDto,
-  MangaListResponseDto,
-  PaginatedMangaResponseDto,
+  CreateMangaItemDto,
   MangaDetailResponseDto,
+  MangaListResponseDto,
+  MangaQueryDto,
+  PaginatedMangaResponseDto,
+  UpdateMangaDto,
+  UpdateMangaReviewDto
 } from "@/manga/dto";
+import { MangaService } from "@/manga/manga.service";
 
 @AuthenticatedApiController({
   tag: "Mangas",
   path: "mangas",
-  errors: { notFound: "Manga not found" },
+  errors: { notFound: "Manga not found" }
 })
 export class MangaController extends BaseCrudController<
   CreateMangaItemDto,
@@ -55,10 +57,10 @@ export class MangaController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Returns paginated list of manga",
-    type: PaginatedMangaResponseDto,
+    type: PaginatedMangaResponseDto
   })
   async findAll(
-    @Query() query: MangaQueryDto,
+    @Query() query: MangaQueryDto
   ): Promise<PaginatedMangaResponseDto> {
     return this.service.findAll(query);
   }
@@ -69,7 +71,7 @@ export class MangaController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Returns total number of manga",
-    type: Number,
+    type: Number
   })
   async getTotal(): Promise<number> {
     return this.service.getTotal();
@@ -82,7 +84,7 @@ export class MangaController extends BaseCrudController<
   @ApiQuery({ name: "limit", required: false, type: Number, example: 10 })
   @ApiResponse({
     status: 200,
-    description: "Returns manga sitemap data",
+    description: "Returns manga sitemap data"
   })
   async getSitemapData(@Query() query: PaginationQueryDto) {
     const page = query.page ?? 1;
@@ -97,10 +99,10 @@ export class MangaController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Returns whether manga exists",
-    type: Boolean,
+    type: Boolean
   })
   async checkDuplicate(
-    @Param("id", ParseIntPipe) id: number,
+    @Param("id", ParseIntPipe) id: number
   ): Promise<boolean> {
     return this.service.checkDuplicate(id);
   }
@@ -110,7 +112,7 @@ export class MangaController extends BaseCrudController<
   @ApiOperation({ summary: "Get manga counts grouped by progress status" })
   @ApiResponse({
     status: 200,
-    description: "Returns status counts",
+    description: "Returns status counts"
   })
   async getStatusCounts() {
     return this.service.getStatusCounts();
@@ -123,10 +125,10 @@ export class MangaController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Returns manga detail",
-    type: MangaDetailResponseDto,
+    type: MangaDetailResponseDto
   })
   async findOne(
-    @Param("id", ParseIntPipe) id: number,
+    @Param("id", ParseIntPipe) id: number
   ): Promise<MangaDetailResponseDto> {
     return this.service.findOne(id);
   }
@@ -137,7 +139,7 @@ export class MangaController extends BaseCrudController<
   @ApiBody({ type: CreateMangaBulkDto })
   @ApiResponse({
     status: 201,
-    description: "Manga created successfully",
+    description: "Manga created successfully"
   })
   async createBulk(@Body() dto: CreateMangaBulkDto) {
     return this.service.createBulk(dto.data);
@@ -150,11 +152,11 @@ export class MangaController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Manga updated successfully",
-    type: MangaListResponseDto,
+    type: MangaListResponseDto
   })
   async update(
     @Param("id", ParseIntPipe) id: number,
-    @Body() dto: UpdateMangaDto,
+    @Body() dto: UpdateMangaDto
   ): Promise<MangaListResponseDto> {
     return this.baseUpdate(id, dto);
   }
@@ -165,11 +167,11 @@ export class MangaController extends BaseCrudController<
   @ApiBody({ type: UpdateMangaReviewDto })
   @ApiResponse({
     status: 200,
-    description: "Manga review updated successfully",
+    description: "Manga review updated successfully"
   })
   async updateReview(
     @Param("id", ParseIntPipe) id: number,
-    @Body() dto: UpdateMangaReviewDto,
+    @Body() dto: UpdateMangaReviewDto
   ) {
     return this.service.updateReview(id, dto);
   }
@@ -180,7 +182,7 @@ export class MangaController extends BaseCrudController<
   @ApiBody({ type: BulkDeleteDto })
   @ApiResponse({
     status: 204,
-    description: "Manga deleted successfully",
+    description: "Manga deleted successfully"
   })
   async deleteMany(@Body() bulkDeleteDto: BulkDeleteDto): Promise<void> {
     return this.baseDeleteMany(bulkDeleteDto.ids);
@@ -192,7 +194,7 @@ export class MangaController extends BaseCrudController<
   @ApiParam({ name: "id", description: "Manga ID", type: Number })
   @ApiResponse({
     status: 204,
-    description: "Manga deleted successfully",
+    description: "Manga deleted successfully"
   })
   async delete(@Param("id", ParseIntPipe) id: number): Promise<void> {
     return this.baseDelete(id);

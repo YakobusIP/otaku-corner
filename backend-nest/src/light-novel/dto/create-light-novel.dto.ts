@@ -1,15 +1,16 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+
+import { Type } from "class-transformer";
 import {
+  ArrayMinSize,
+  IsArray,
   IsInt,
-  IsString,
-  IsOptional,
   IsNumber,
   IsObject,
-  IsArray,
-  ValidateNested,
-  ArrayMinSize,
+  IsOptional,
+  IsString,
+  ValidateNested
 } from "class-validator";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
 
 export class CreateLightNovelItemDto {
   @ApiProperty({ description: "MAL ID", example: 1 })
@@ -22,35 +23,35 @@ export class CreateLightNovelItemDto {
 
   @ApiProperty({
     description: "Publishing status",
-    example: "Finished",
+    example: "Finished"
   })
   @IsString()
   status: string;
 
   @ApiProperty({
     description: "Light novel title",
-    example: "Sword Art Online",
+    example: "Sword Art Online"
   })
   @IsString()
   title: string;
 
   @ApiProperty({
     description: "Japanese title",
-    example: "ソードアート・オンライン",
+    example: "ソードアート・オンライン"
   })
   @IsString()
   titleJapanese: string;
 
   @ApiProperty({
     description: "Title synonyms (comma-separated)",
-    example: "SAO",
+    example: "SAO"
   })
   @IsString()
   titleSynonyms: string;
 
   @ApiProperty({
     description: "Published date range",
-    example: "Apr 10, 2009 to ?",
+    example: "Apr 10, 2009 to ?"
   })
   @IsString()
   published: string;
@@ -67,7 +68,7 @@ export class CreateLightNovelItemDto {
 
   @ApiProperty({
     description: "Image URLs as JSON object",
-    example: { image_url: "https://example.com/image.jpg" },
+    example: { image_url: "https://example.com/image.jpg" }
   })
   @IsObject()
   images: object;
@@ -78,14 +79,14 @@ export class CreateLightNovelItemDto {
 
   @ApiProperty({
     description: "MAL URL",
-    example: "https://myanimelist.net/manga/21479/Sword_Art_Online",
+    example: "https://myanimelist.net/manga/21479/Sword_Art_Online"
   })
   @IsString()
   malUrl: string;
 
   @ApiProperty({
     description: "Author names",
-    example: ["Kawahara Reki"],
+    example: ["Kawahara Reki"]
   })
   @IsArray()
   @IsString({ each: true })
@@ -93,7 +94,7 @@ export class CreateLightNovelItemDto {
 
   @ApiProperty({
     description: "Genre names",
-    example: ["Action", "Adventure"],
+    example: ["Action", "Adventure"]
   })
   @IsArray()
   @IsString({ each: true })
@@ -101,7 +102,7 @@ export class CreateLightNovelItemDto {
 
   @ApiProperty({
     description: "Theme names",
-    example: ["Isekai"],
+    example: ["Isekai"]
   })
   @IsArray()
   @IsString({ each: true })
@@ -111,7 +112,7 @@ export class CreateLightNovelItemDto {
 export class CreateLightNovelBulkDto {
   @ApiProperty({
     description: "Array of light novels to create",
-    type: [CreateLightNovelItemDto],
+    type: [CreateLightNovelItemDto]
   })
   @IsArray()
   @ArrayMinSize(1)

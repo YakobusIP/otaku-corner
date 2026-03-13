@@ -1,8 +1,10 @@
-import { IsOptional, IsString, IsEnum } from "class-validator";
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { ProgressStatus } from "@prisma/client";
+
 import { PaginationQueryDto } from "@/common/dto";
+
+import { ProgressStatus } from "@prisma/client";
+import { Type } from "class-transformer";
+import { IsEnum, IsOptional, IsString } from "class-validator";
 
 export class LightNovelQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ description: "Sort field", example: "title" })
@@ -33,7 +35,7 @@ export class LightNovelQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     description: "Filter by progress status",
     enum: ProgressStatus,
-    example: ProgressStatus.COMPLETED,
+    example: ProgressStatus.COMPLETED
   })
   @IsOptional()
   @IsEnum(ProgressStatus)
@@ -41,7 +43,7 @@ export class LightNovelQueryDto extends PaginationQueryDto {
 
   @ApiPropertyOptional({
     description: "Filter by MAL score range (poor, average, good, excellent)",
-    example: "good",
+    example: "good"
   })
   @IsOptional()
   @IsString()
@@ -50,7 +52,7 @@ export class LightNovelQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     description:
       "Filter by personal score range (poor, average, good, excellent)",
-    example: "excellent",
+    example: "excellent"
   })
   @IsOptional()
   @IsString()
@@ -59,7 +61,7 @@ export class LightNovelQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     description:
       'Filter by completion status check ("complete" or "incomplete")',
-    example: "complete",
+    example: "complete"
   })
   @IsOptional()
   @IsString()

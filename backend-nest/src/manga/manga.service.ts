@@ -1,23 +1,27 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
-import { PrismaService } from "@/prisma/prisma.service";
-import { BaseCrudService } from "@/common/crud/base-crud.service";
-import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
-import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
+import { Inject, Injectable } from "@nestjs/common";
+
 import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
+import { BaseCrudService } from "@/common/crud/base-crud.service";
+import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
+import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import { chunkArray } from "@/common/utils/chunk-array";
+
+import { PrismaService } from "@/prisma/prisma.service";
+
 import { AuthorsService } from "@/author/authors.service";
 import { GenresService } from "@/genre/genres.service";
-import { ThemesService } from "@/theme/themes.service";
 import {
   CreateMangaItemDto,
-  UpdateMangaDto,
-  UpdateMangaReviewDto,
+  MangaDetailResponseDto,
   MangaListResponseDto,
   MangaQueryDto,
   PaginatedMangaResponseDto,
-  MangaDetailResponseDto,
+  UpdateMangaDto,
+  UpdateMangaReviewDto
 } from "@/manga/dto";
+import { ThemesService } from "@/theme/themes.service";
+
+import { Prisma } from "@prisma/client";
 
 interface MangaWithReview {
   id: number;
@@ -93,19 +97,19 @@ export class MangaService extends BaseCrudService<
     queryBuilder: CrudQueryBuilder,
     @Inject(AuthorsService) private readonly authorsService: AuthorsService,
     @Inject(GenresService) private readonly genresService: GenresService,
-    @Inject(ThemesService) private readonly themesService: ThemesService,
+    @Inject(ThemesService) private readonly themesService: ThemesService
   ) {
     super(prisma, queryBuilder);
   }
 
   protected getDelegate(
-    client?: PrismaService | Prisma.TransactionClient,
+    client?: PrismaService | Prisma.TransactionClient
   ): CrudDelegate {
     return (client ?? this.prisma).manga;
   }
 
   override async findAll(
-    query: MangaQueryDto,
+    query: MangaQueryDto
   ): Promise<PaginatedMangaResponseDto> {
     const { where, skip, take, orderBy } =
       this.queryBuilder.buildFindAllQuery(query);
@@ -134,12 +138,12 @@ export class MangaService extends BaseCrudService<
               reviewText: true,
               progressStatus: true,
               personalScore: true,
-              consumedAt: true,
-            },
-          },
-        },
+              consumedAt: true
+            }
+          }
+        }
       }),
-      this.prisma.manga.count({ where }),
+      this.prisma.manga.count({ where })
     ]);
 
     const data: MangaListResponseDto[] = (rawData as MangaWithReview[]).map(
@@ -158,8 +162,8 @@ export class MangaService extends BaseCrudService<
           (manga.review
             ?.progressStatus as MangaListResponseDto["progressStatus"]) ?? null,
         personalScore: manga.review?.personalScore ?? null,
-        consumedAt: manga.review?.consumedAt ?? null,
-      }),
+        consumedAt: manga.review?.consumedAt ?? null
+      })
     );
 
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
@@ -182,24 +186,24 @@ export class MangaService extends BaseCrudService<
             progressStatus: true,
             consumedAt: true,
             createdAt: true,
-            updatedAt: true,
-          },
+            updatedAt: true
+          }
         },
         authors: {
-          select: { author: { select: { id: true, name: true } } },
+          select: { author: { select: { id: true, name: true } } }
         },
         genres: {
-          select: { genre: { select: { id: true, name: true } } },
+          select: { genre: { select: { id: true, name: true } } }
         },
         themes: {
-          select: { theme: { select: { id: true, name: true } } },
-        },
-      },
+          select: { theme: { select: { id: true, name: true } } }
+        }
+      }
     })) as MangaDetailRaw | null;
 
     if (!manga) {
       throw new (await import("@nestjs/common")).NotFoundException(
-        "Manga not found",
+        "Manga not found"
       );
     }
 
@@ -209,7 +213,7 @@ export class MangaService extends BaseCrudService<
       review: manga.review ?? null,
       authors: manga.authors.map((a) => a.author),
       genres: manga.genres.map((g) => g.genre),
-      themes: manga.themes.map((t) => t.theme),
+      themes: manga.themes.map((t) => t.theme)
     } as MangaDetailResponseDto;
   }
 
@@ -221,7 +225,7 @@ export class MangaService extends BaseCrudService<
     const [authors, genres, themes] = await Promise.all([
       this.authorsService.getOrCreateMany(allAuthorNames),
       this.genresService.getOrCreateMany(allGenreNames),
-      this.themesService.getOrCreateMany(allThemeNames),
+      this.themesService.getOrCreateMany(allThemeNames)
     ]);
 
     const authorMap = new Map(authors.map((a) => [a.name, a.id]));
@@ -249,29 +253,29 @@ export class MangaService extends BaseCrudService<
                   data: authorNames
                     .map((name) => authorMap.get(name))
                     .filter((id): id is number => id !== undefined)
-                    .map((authorId) => ({ authorId })),
-                },
+                    .map((authorId) => ({ authorId }))
+                }
               },
               genres: {
                 createMany: {
                   data: genreNames
                     .map((name) => genreMap.get(name))
                     .filter((id): id is number => id !== undefined)
-                    .map((genreId) => ({ genreId })),
-                },
+                    .map((genreId) => ({ genreId }))
+                }
               },
               themes: {
                 createMany: {
                   data: themeNames
                     .map((name) => themeMap.get(name))
                     .filter((id): id is number => id !== undefined)
-                    .map((themeId) => ({ themeId })),
-                },
+                    .map((themeId) => ({ themeId }))
+                }
               },
               review: {
-                create: {},
-              },
-            },
+                create: {}
+              }
+            }
           });
 
           results.push(item.id);
@@ -290,7 +294,7 @@ export class MangaService extends BaseCrudService<
       artStyleRating: data.artStyleRating,
       charDevelopmentRating: data.charDevelopmentRating,
       worldBuildingRating: data.worldBuildingRating,
-      originalityRating: data.originalityRating,
+      originalityRating: data.originalityRating
     };
 
     const weights = {
@@ -298,11 +302,11 @@ export class MangaService extends BaseCrudService<
       artStyleRating: 0.25,
       charDevelopmentRating: 0.2,
       worldBuildingRating: 0.15,
-      originalityRating: 0.1,
+      originalityRating: 0.1
     };
 
     const allRatingsPresent = Object.values(ratings).every(
-      (r) => r !== undefined && r !== null,
+      (r) => r !== undefined && r !== null
     );
 
     if (allRatingsPresent) {
@@ -316,14 +320,14 @@ export class MangaService extends BaseCrudService<
 
     return this.prisma.mangaReview.update({
       where: { mangaId: id },
-      data: updateData,
+      data: updateData
     });
   }
 
   async checkDuplicate(id: number): Promise<boolean> {
     const manga = await this.prisma.manga.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true }
     });
     return !!manga;
   }
@@ -342,30 +346,30 @@ export class MangaService extends BaseCrudService<
         review: {
           select: {
             createdAt: true,
-            updatedAt: true,
-          },
-        },
-      },
+            updatedAt: true
+          }
+        }
+      }
     })) as SitemapRow[];
 
     return rawData.map((item) => ({
       id: item.id,
       slug: item.slug,
       createdAt: item.review?.createdAt ?? null,
-      updatedAt: item.review?.updatedAt ?? null,
+      updatedAt: item.review?.updatedAt ?? null
     }));
   }
 
   async getStatusCounts() {
     const counts = await this.prisma.mangaReview.groupBy({
       by: ["progressStatus"],
-      _count: { _all: true },
+      _count: { _all: true }
     });
 
     return counts.map((item) => ({
       status: item.progressStatus,
       label: PROGRESS_STATUSES[item.progressStatus] ?? item.progressStatus,
-      count: item._count._all,
+      count: item._count._all
     }));
   }
 }

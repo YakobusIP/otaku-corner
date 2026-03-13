@@ -1,6 +1,6 @@
-import { PaginationQueryDto, PaginatedResponseDto } from "@/common/dto";
 import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
+import { PaginatedResponseDto, PaginationQueryDto } from "@/common/dto";
 
 export abstract class BaseCrudController<
   TCreateDto,
@@ -13,7 +13,7 @@ export abstract class BaseCrudController<
     TUpdateDto,
     TResponse,
     unknown
-  >,
+  >
 > {
   constructor(protected readonly service: TService) {}
 
@@ -22,13 +22,13 @@ export abstract class BaseCrudController<
   }
 
   protected async baseFindAll(
-    query: PaginationQueryDto,
+    query: PaginationQueryDto
   ): Promise<TPaginatedResponse> {
     return this.service.findAll(query) as Promise<TPaginatedResponse>;
   }
 
   protected async baseFindOne(
-    id: number,
+    id: number
   ): Promise<Awaited<ReturnType<TService["findOne"]>>> {
     return this.service.findOne(id) as Promise<
       Awaited<ReturnType<TService["findOne"]>>

@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+
 import { ProgressStatus } from "@prisma/client";
 
 export class AnimeGenreItemDto {
@@ -66,7 +67,7 @@ export class AnimeReviewItemDto {
 
   @ApiPropertyOptional({
     description: "Character development rating",
-    example: 7,
+    example: 7
   })
   charDevelopmentRating: number | null;
 
@@ -75,7 +76,7 @@ export class AnimeReviewItemDto {
 
   @ApiPropertyOptional({
     description: "Progress status",
-    enum: ProgressStatus,
+    enum: ProgressStatus
   })
   progressStatus: ProgressStatus;
 
@@ -113,7 +114,7 @@ export class AnimeDetailResponseDto {
 
   @ApiProperty({
     description: "Japanese title",
-    example: "カウボーイビバップ",
+    example: "カウボーイビバップ"
   })
   titleJapanese: string;
 
@@ -125,13 +126,13 @@ export class AnimeDetailResponseDto {
 
   @ApiProperty({
     description: "Aired date range",
-    example: "Apr 3, 1998 to Apr 24, 1999",
+    example: "Apr 3, 1998 to Apr 24, 1999"
   })
   aired: string;
 
   @ApiProperty({
     description: "Broadcast schedule",
-    example: "Saturdays at 01:00 (JST)",
+    example: "Saturdays at 01:00 (JST)"
   })
   broadcast: string;
 
@@ -146,7 +147,7 @@ export class AnimeDetailResponseDto {
 
   @ApiProperty({
     description: "Image URLs",
-    example: { image_url: "https://example.com/image.jpg" },
+    example: { image_url: "https://example.com/image.jpg" }
   })
   images: object;
 
@@ -158,7 +159,7 @@ export class AnimeDetailResponseDto {
 
   @ApiProperty({
     description: "MAL URL",
-    example: "https://myanimelist.net/anime/1/Cowboy_Bebop",
+    example: "https://myanimelist.net/anime/1/Cowboy_Bebop"
   })
   malUrl: string;
 
@@ -170,31 +171,31 @@ export class AnimeDetailResponseDto {
 
   @ApiPropertyOptional({
     description: "Anime review",
-    type: AnimeReviewItemDto,
+    type: AnimeReviewItemDto
   })
   review: AnimeReviewItemDto | null;
 
   @ApiProperty({
     description: "Genres",
-    type: [AnimeGenreItemDto],
+    type: [AnimeGenreItemDto]
   })
   genres: AnimeGenreItemDto[];
 
   @ApiProperty({
     description: "Studios",
-    type: [AnimeStudioItemDto],
+    type: [AnimeStudioItemDto]
   })
   studios: AnimeStudioItemDto[];
 
   @ApiProperty({
     description: "Themes",
-    type: [AnimeThemeItemDto],
+    type: [AnimeThemeItemDto]
   })
   themes: AnimeThemeItemDto[];
 
   @ApiProperty({
     description: "Episodes",
-    type: [AnimeEpisodeItemDto],
+    type: [AnimeEpisodeItemDto]
   })
   episodes: AnimeEpisodeItemDto[];
 }

@@ -1,23 +1,27 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
-import { PrismaService } from "@/prisma/prisma.service";
-import { BaseCrudService } from "@/common/crud/base-crud.service";
-import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
-import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
+import { Inject, Injectable } from "@nestjs/common";
+
 import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
+import { BaseCrudService } from "@/common/crud/base-crud.service";
+import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
+import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import { chunkArray } from "@/common/utils/chunk-array";
+
+import { PrismaService } from "@/prisma/prisma.service";
+
+import {
+  AnimeDetailResponseDto,
+  AnimeListResponseDto,
+  AnimeQueryDto,
+  CreateAnimeItemDto,
+  PaginatedAnimeResponseDto,
+  UpdateAnimeDto,
+  UpdateAnimeReviewDto
+} from "@/anime/dto";
 import { GenresService } from "@/genre/genres.service";
 import { StudiosService } from "@/studio/studios.service";
 import { ThemesService } from "@/theme/themes.service";
-import {
-  CreateAnimeItemDto,
-  UpdateAnimeDto,
-  UpdateAnimeReviewDto,
-  AnimeListResponseDto,
-  AnimeQueryDto,
-  PaginatedAnimeResponseDto,
-  AnimeDetailResponseDto,
-} from "@/anime/dto";
+
+import { Prisma } from "@prisma/client";
 
 interface AnimeWithReviewAndCount {
   id: number;
@@ -110,19 +114,19 @@ export class AnimeService extends BaseCrudService<
     queryBuilder: CrudQueryBuilder,
     @Inject(GenresService) private readonly genresService: GenresService,
     @Inject(StudiosService) private readonly studiosService: StudiosService,
-    @Inject(ThemesService) private readonly themesService: ThemesService,
+    @Inject(ThemesService) private readonly themesService: ThemesService
   ) {
     super(prisma, queryBuilder);
   }
 
   protected getDelegate(
-    client?: PrismaService | Prisma.TransactionClient,
+    client?: PrismaService | Prisma.TransactionClient
   ): CrudDelegate {
     return (client ?? this.prisma).anime;
   }
 
   override async findAll(
-    query: AnimeQueryDto,
+    query: AnimeQueryDto
   ): Promise<PaginatedAnimeResponseDto> {
     const { where, skip, take, orderBy } =
       this.queryBuilder.buildFindAllQuery(query);
@@ -153,13 +157,13 @@ export class AnimeService extends BaseCrudService<
               reviewText: true,
               progressStatus: true,
               personalScore: true,
-              consumedAt: true,
-            },
+              consumedAt: true
+            }
           },
-          _count: { select: { episodes: true } },
-        },
+          _count: { select: { episodes: true } }
+        }
       }),
-      this.prisma.anime.count({ where }),
+      this.prisma.anime.count({ where })
     ]);
 
     const data: AnimeListResponseDto[] = (
@@ -182,7 +186,7 @@ export class AnimeService extends BaseCrudService<
           ?.progressStatus as AnimeListResponseDto["progressStatus"]) ?? null,
       personalScore: anime.review?.personalScore ?? null,
       consumedAt: anime.review?.consumedAt ?? null,
-      fetchedEpisode: anime._count.episodes,
+      fetchedEpisode: anime._count.episodes
     }));
 
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
@@ -205,17 +209,17 @@ export class AnimeService extends BaseCrudService<
             progressStatus: true,
             consumedAt: true,
             createdAt: true,
-            updatedAt: true,
-          },
+            updatedAt: true
+          }
         },
         genres: {
-          select: { genre: { select: { id: true, name: true } } },
+          select: { genre: { select: { id: true, name: true } } }
         },
         studios: {
-          select: { studio: { select: { id: true, name: true } } },
+          select: { studio: { select: { id: true, name: true } } }
         },
         themes: {
-          select: { theme: { select: { id: true, name: true } } },
+          select: { theme: { select: { id: true, name: true } } }
         },
         episodes: {
           select: {
@@ -224,11 +228,11 @@ export class AnimeService extends BaseCrudService<
             number: true,
             title: true,
             titleJapanese: true,
-            titleRomaji: true,
+            titleRomaji: true
           },
-          orderBy: { number: "asc" },
-        },
-      },
+          orderBy: { number: "asc" }
+        }
+      }
     })) as AnimeDetailRaw | null;
 
     if (!anime) {
@@ -243,7 +247,7 @@ export class AnimeService extends BaseCrudService<
       genres: anime.genres.map((g) => g.genre),
       studios: anime.studios.map((s) => s.studio),
       themes: anime.themes.map((t) => t.theme),
-      episodes: anime.episodes,
+      episodes: anime.episodes
     } as AnimeDetailResponseDto;
   }
 
@@ -255,7 +259,7 @@ export class AnimeService extends BaseCrudService<
     const [genres, studios, themes] = await Promise.all([
       this.genresService.getOrCreateMany(allGenreNames),
       this.studiosService.getOrCreateMany(allStudioNames),
-      this.themesService.getOrCreateMany(allThemeNames),
+      this.themesService.getOrCreateMany(allThemeNames)
     ]);
 
     const genreMap = new Map(genres.map((g) => [g.name, g.id]));
@@ -284,24 +288,24 @@ export class AnimeService extends BaseCrudService<
                   data: genreNames
                     .map((name) => genreMap.get(name))
                     .filter((id): id is number => id !== undefined)
-                    .map((genreId) => ({ genreId })),
-                },
+                    .map((genreId) => ({ genreId }))
+                }
               },
               studios: {
                 createMany: {
                   data: studioNames
                     .map((name) => studioMap.get(name))
                     .filter((id): id is number => id !== undefined)
-                    .map((studioId) => ({ studioId })),
-                },
+                    .map((studioId) => ({ studioId }))
+                }
               },
               themes: {
                 createMany: {
                   data: themeNames
                     .map((name) => themeMap.get(name))
                     .filter((id): id is number => id !== undefined)
-                    .map((themeId) => ({ themeId })),
-                },
+                    .map((themeId) => ({ themeId }))
+                }
               },
               episodes: {
                 createMany: {
@@ -310,14 +314,14 @@ export class AnimeService extends BaseCrudService<
                     number: ep.number,
                     title: ep.title,
                     titleJapanese: ep.titleJapanese,
-                    titleRomaji: ep.titleRomaji,
-                  })),
-                },
+                    titleRomaji: ep.titleRomaji
+                  }))
+                }
               },
               review: {
-                create: {},
-              },
-            },
+                create: {}
+              }
+            }
           });
 
           results.push(item.id);
@@ -336,7 +340,7 @@ export class AnimeService extends BaseCrudService<
       qualityRating: data.qualityRating,
       voiceActingRating: data.voiceActingRating,
       soundTrackRating: data.soundTrackRating,
-      charDevelopmentRating: data.charDevelopmentRating,
+      charDevelopmentRating: data.charDevelopmentRating
     };
 
     const weights = {
@@ -344,11 +348,11 @@ export class AnimeService extends BaseCrudService<
       qualityRating: 0.25,
       voiceActingRating: 0.2,
       soundTrackRating: 0.15,
-      charDevelopmentRating: 0.1,
+      charDevelopmentRating: 0.1
     };
 
     const allRatingsPresent = Object.values(ratings).every(
-      (r) => r !== undefined && r !== null,
+      (r) => r !== undefined && r !== null
     );
 
     if (allRatingsPresent) {
@@ -362,14 +366,14 @@ export class AnimeService extends BaseCrudService<
 
     return this.prisma.animeReview.update({
       where: { animeId: id },
-      data: updateData,
+      data: updateData
     });
   }
 
   async checkDuplicate(id: number): Promise<boolean> {
     const anime = await this.prisma.anime.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true }
     });
     return !!anime;
   }
@@ -388,30 +392,30 @@ export class AnimeService extends BaseCrudService<
         review: {
           select: {
             createdAt: true,
-            updatedAt: true,
-          },
-        },
-      },
+            updatedAt: true
+          }
+        }
+      }
     })) as SitemapRow[];
 
     return rawData.map((item) => ({
       id: item.id,
       slug: item.slug,
       createdAt: item.review?.createdAt ?? null,
-      updatedAt: item.review?.updatedAt ?? null,
+      updatedAt: item.review?.updatedAt ?? null
     }));
   }
 
   async getStatusCounts() {
     const counts = await this.prisma.animeReview.groupBy({
       by: ["progressStatus"],
-      _count: { _all: true },
+      _count: { _all: true }
     });
 
     return counts.map((item) => ({
       status: item.progressStatus,
       label: PROGRESS_STATUSES[item.progressStatus] ?? item.progressStatus,
-      count: item._count._all,
+      count: item._count._all
     }));
   }
 }

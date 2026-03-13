@@ -1,6 +1,7 @@
-import { IsIn, IsNumber, IsOptional, IsString } from "class-validator";
-import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+
+import { Type } from "class-transformer";
+import { IsIn, IsNumber, IsOptional, IsString } from "class-validator";
 
 const ALLOWED_VIEWS = ["monthly", "yearly"] as const;
 const ALLOWED_MEDIA = ["anime", "manga", "lightNovel"] as const;
@@ -11,14 +12,14 @@ export type MediaValue = (typeof ALLOWED_MEDIA)[number];
 export class MediaConsumptionQueryDto {
   @ApiProperty({
     enum: ALLOWED_VIEWS,
-    description: "View type for media consumption statistics",
+    description: "View type for media consumption statistics"
   })
   @IsString()
   @IsIn(ALLOWED_VIEWS)
   view: StatisticsViewValue;
 
   @ApiPropertyOptional({
-    description: "Year filter (required for monthly view)",
+    description: "Year filter (required for monthly view)"
   })
   @IsOptional()
   @IsNumber()
@@ -29,7 +30,7 @@ export class MediaConsumptionQueryDto {
 export class MediaProgressQueryDto {
   @ApiProperty({
     enum: ALLOWED_MEDIA,
-    description: "Media type to get progress statistics for",
+    description: "Media type to get progress statistics for"
   })
   @IsString()
   @IsIn(ALLOWED_MEDIA)

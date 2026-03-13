@@ -1,42 +1,44 @@
 import {
-  Get,
-  Post,
-  Put,
-  Delete,
   Body,
-  Param,
-  Query,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   ParseIntPipe,
+  Post,
+  Put,
+  Query
 } from "@nestjs/common";
 import {
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
   ApiBody,
+  ApiOperation,
+  ApiParam,
   ApiQuery,
+  ApiResponse
 } from "@nestjs/swagger";
-import { Public } from "@/common/decorators/public.decorator";
-import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
-import { PaginationQueryDto, BulkDeleteDto } from "@/common/dto";
+
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
+import { Public } from "@/common/decorators/public.decorator";
+import { BulkDeleteDto, PaginationQueryDto } from "@/common/dto";
+
 import { AnimeService } from "@/anime/anime.service";
 import {
-  CreateAnimeItemDto,
-  CreateAnimeBulkDto,
-  UpdateAnimeDto,
-  UpdateAnimeReviewDto,
-  AnimeQueryDto,
-  AnimeListResponseDto,
-  PaginatedAnimeResponseDto,
   AnimeDetailResponseDto,
+  AnimeListResponseDto,
+  AnimeQueryDto,
+  CreateAnimeBulkDto,
+  CreateAnimeItemDto,
+  PaginatedAnimeResponseDto,
+  UpdateAnimeDto,
+  UpdateAnimeReviewDto
 } from "@/anime/dto";
 
 @AuthenticatedApiController({
   tag: "Animes",
   path: "animes",
-  errors: { notFound: "Anime not found" },
+  errors: { notFound: "Anime not found" }
 })
 export class AnimeController extends BaseCrudController<
   CreateAnimeItemDto,
@@ -55,10 +57,10 @@ export class AnimeController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Returns paginated list of anime",
-    type: PaginatedAnimeResponseDto,
+    type: PaginatedAnimeResponseDto
   })
   async findAll(
-    @Query() query: AnimeQueryDto,
+    @Query() query: AnimeQueryDto
   ): Promise<PaginatedAnimeResponseDto> {
     return this.service.findAll(query);
   }
@@ -69,7 +71,7 @@ export class AnimeController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Returns total number of anime",
-    type: Number,
+    type: Number
   })
   async getTotal(): Promise<number> {
     return this.service.getTotal();
@@ -82,7 +84,7 @@ export class AnimeController extends BaseCrudController<
   @ApiQuery({ name: "limit", required: false, type: Number, example: 10 })
   @ApiResponse({
     status: 200,
-    description: "Returns anime sitemap data",
+    description: "Returns anime sitemap data"
   })
   async getSitemapData(@Query() query: PaginationQueryDto) {
     const page = query.page ?? 1;
@@ -97,10 +99,10 @@ export class AnimeController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Returns whether anime exists",
-    type: Boolean,
+    type: Boolean
   })
   async checkDuplicate(
-    @Param("id", ParseIntPipe) id: number,
+    @Param("id", ParseIntPipe) id: number
   ): Promise<boolean> {
     return this.service.checkDuplicate(id);
   }
@@ -110,7 +112,7 @@ export class AnimeController extends BaseCrudController<
   @ApiOperation({ summary: "Get anime counts grouped by progress status" })
   @ApiResponse({
     status: 200,
-    description: "Returns status counts",
+    description: "Returns status counts"
   })
   async getStatusCounts() {
     return this.service.getStatusCounts();
@@ -123,10 +125,10 @@ export class AnimeController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Returns anime detail",
-    type: AnimeDetailResponseDto,
+    type: AnimeDetailResponseDto
   })
   async findOne(
-    @Param("id", ParseIntPipe) id: number,
+    @Param("id", ParseIntPipe) id: number
   ): Promise<AnimeDetailResponseDto> {
     return this.service.findOne(id);
   }
@@ -137,7 +139,7 @@ export class AnimeController extends BaseCrudController<
   @ApiBody({ type: CreateAnimeBulkDto })
   @ApiResponse({
     status: 201,
-    description: "Anime created successfully",
+    description: "Anime created successfully"
   })
   async createBulk(@Body() dto: CreateAnimeBulkDto) {
     return this.service.createBulk(dto.data);
@@ -150,11 +152,11 @@ export class AnimeController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Anime updated successfully",
-    type: AnimeListResponseDto,
+    type: AnimeListResponseDto
   })
   async update(
     @Param("id", ParseIntPipe) id: number,
-    @Body() dto: UpdateAnimeDto,
+    @Body() dto: UpdateAnimeDto
   ): Promise<AnimeListResponseDto> {
     return this.baseUpdate(id, dto);
   }
@@ -165,11 +167,11 @@ export class AnimeController extends BaseCrudController<
   @ApiBody({ type: UpdateAnimeReviewDto })
   @ApiResponse({
     status: 200,
-    description: "Anime review updated successfully",
+    description: "Anime review updated successfully"
   })
   async updateReview(
     @Param("id", ParseIntPipe) id: number,
-    @Body() dto: UpdateAnimeReviewDto,
+    @Body() dto: UpdateAnimeReviewDto
   ) {
     return this.service.updateReview(id, dto);
   }
@@ -180,7 +182,7 @@ export class AnimeController extends BaseCrudController<
   @ApiBody({ type: BulkDeleteDto })
   @ApiResponse({
     status: 204,
-    description: "Anime deleted successfully",
+    description: "Anime deleted successfully"
   })
   async deleteMany(@Body() bulkDeleteDto: BulkDeleteDto): Promise<void> {
     return this.baseDeleteMany(bulkDeleteDto.ids);
@@ -192,7 +194,7 @@ export class AnimeController extends BaseCrudController<
   @ApiParam({ name: "id", description: "Anime ID", type: Number })
   @ApiResponse({
     status: 204,
-    description: "Anime deleted successfully",
+    description: "Anime deleted successfully"
   })
   async delete(@Param("id", ParseIntPipe) id: number): Promise<void> {
     return this.baseDelete(id);

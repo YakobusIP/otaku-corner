@@ -1,9 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { PaginationQueryDto } from "@/common/dto";
+
 import {
   CrudQueryBuilder,
-  CrudQueryResult,
+  CrudQueryResult
 } from "@/common/crud/crud-query-builder.interface";
+import { PaginationQueryDto } from "@/common/dto";
 
 @Injectable()
 export class DefaultCrudQueryBuilder implements CrudQueryBuilder {
@@ -19,7 +20,7 @@ export class DefaultCrudQueryBuilder implements CrudQueryBuilder {
     return {
       where,
       skip: (page - 1) * limit,
-      take: limit,
+      take: limit
     };
   }
 }

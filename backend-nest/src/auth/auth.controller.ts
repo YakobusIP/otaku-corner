@@ -1,32 +1,34 @@
 import {
-  Controller,
-  Post,
-  Get,
   Body,
+  Controller,
+  Get,
   HttpCode,
   HttpStatus,
-  UseGuards,
+  Post,
+  UseGuards
 } from "@nestjs/common";
 import {
-  ApiTags,
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
   ApiOperation,
   ApiResponse,
-  ApiBody,
-  ApiBearerAuth,
-  ApiUnauthorizedResponse,
-  ApiOkResponse,
+  ApiTags,
+  ApiUnauthorizedResponse
 } from "@nestjs/swagger";
-import { AuthService } from "@/auth/auth.service";
-import {
-  LoginDto,
-  RefreshDto,
-  AuthResponseDto,
-  RefreshResponseDto,
-  MeResponseDto,
-} from "@/auth/dto";
-import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+
 import { CurrentUser } from "@/common/decorators/current-user.decorator";
 import type { CurrentUserPayload } from "@/common/decorators/current-user.decorator";
+import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+
+import { AuthService } from "@/auth/auth.service";
+import {
+  AuthResponseDto,
+  LoginDto,
+  MeResponseDto,
+  RefreshDto,
+  RefreshResponseDto
+} from "@/auth/dto";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -40,7 +42,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: "Login successful, returns access and refresh tokens",
-    type: AuthResponseDto,
+    type: AuthResponseDto
   })
   @ApiResponse({ status: 401, description: "Invalid credentials" })
   async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
@@ -52,7 +54,7 @@ export class AuthController {
   @ApiOperation({ summary: "Logout (client-side token disposal)" })
   @ApiResponse({
     status: 200,
-    description: "Logged out successfully",
+    description: "Logged out successfully"
   })
   logout(): { message: string } {
     return { message: "Logged out successfully" };
@@ -65,7 +67,7 @@ export class AuthController {
   @ApiOperation({ summary: "Get current authenticated user" })
   @ApiOkResponse({
     description: "Returns current user info",
-    type: MeResponseDto,
+    type: MeResponseDto
   })
   @ApiUnauthorizedResponse({ description: "Invalid token" })
   me(@CurrentUser() user: CurrentUserPayload): MeResponseDto {
@@ -79,7 +81,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: "New access token generated",
-    type: RefreshResponseDto,
+    type: RefreshResponseDto
   })
   @ApiResponse({ status: 401, description: "Invalid refresh token" })
   async refresh(@Body() refreshDto: RefreshDto): Promise<RefreshResponseDto> {

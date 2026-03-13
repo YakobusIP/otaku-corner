@@ -1,38 +1,40 @@
 import {
-  Get,
-  Post,
-  Put,
-  Delete,
   Body,
-  Param,
-  Query,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   ParseIntPipe,
+  Post,
+  Put,
+  Query
 } from "@nestjs/common";
 import {
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
   ApiBody,
+  ApiOperation,
+  ApiParam,
   ApiQuery,
+  ApiResponse
 } from "@nestjs/swagger";
-import { Public } from "@/common/decorators/public.decorator";
-import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
-import { PaginationQueryDto, BulkDeleteDto } from "@/common/dto";
+
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
-import { GenresService } from "@/genre/genres.service";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
+import { Public } from "@/common/decorators/public.decorator";
+import { BulkDeleteDto, PaginationQueryDto } from "@/common/dto";
+
 import {
   CreateGenreDto,
   GenreResponseDto,
-  UpdateGenreDto,
   PaginatedGenresResponseDto,
+  UpdateGenreDto
 } from "@/genre/dto";
+import { GenresService } from "@/genre/genres.service";
 
 @AuthenticatedApiController({
   tag: "Genres",
   path: "genres",
-  errors: { notFound: "Genre not found" },
+  errors: { notFound: "Genre not found" }
 })
 export class GenresController extends BaseCrudController<
   CreateGenreDto,
@@ -52,10 +54,10 @@ export class GenresController extends BaseCrudController<
   @ApiResponse({
     status: 201,
     description: "Genre created successfully",
-    type: GenreResponseDto,
+    type: GenreResponseDto
   })
   async create(
-    @Body() createGenreDto: CreateGenreDto,
+    @Body() createGenreDto: CreateGenreDto
   ): Promise<GenreResponseDto> {
     return this.baseCreate(createGenreDto);
   }
@@ -70,15 +72,15 @@ export class GenresController extends BaseCrudController<
     required: false,
     type: String,
     description: "Search by genre name (case-insensitive)",
-    example: "Action",
+    example: "Action"
   })
   @ApiResponse({
     status: 200,
     description: "Returns list of genres",
-    type: PaginatedGenresResponseDto,
+    type: PaginatedGenresResponseDto
   })
   async findAll(
-    @Query() paginationQuery: PaginationQueryDto,
+    @Query() paginationQuery: PaginationQueryDto
   ): Promise<PaginatedGenresResponseDto> {
     return this.baseFindAll(paginationQuery);
   }
@@ -89,10 +91,10 @@ export class GenresController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Returns the genre",
-    type: GenreResponseDto,
+    type: GenreResponseDto
   })
   async findOne(
-    @Param("id", ParseIntPipe) id: number,
+    @Param("id", ParseIntPipe) id: number
   ): Promise<GenreResponseDto> {
     return this.baseFindOne(id);
   }
@@ -104,11 +106,11 @@ export class GenresController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Genre updated successfully",
-    type: GenreResponseDto,
+    type: GenreResponseDto
   })
   async update(
     @Param("id", ParseIntPipe) id: number,
-    @Body() updateGenreDto: UpdateGenreDto,
+    @Body() updateGenreDto: UpdateGenreDto
   ): Promise<GenreResponseDto> {
     return this.baseUpdate(id, updateGenreDto);
   }
@@ -119,7 +121,7 @@ export class GenresController extends BaseCrudController<
   @ApiBody({ type: BulkDeleteDto })
   @ApiResponse({
     status: 204,
-    description: "Genres deleted successfully",
+    description: "Genres deleted successfully"
   })
   async deleteMany(@Body() bulkDeleteDto: BulkDeleteDto): Promise<void> {
     return this.baseDeleteMany(bulkDeleteDto.ids);
@@ -131,7 +133,7 @@ export class GenresController extends BaseCrudController<
   @ApiParam({ name: "id", description: "Genre ID", example: 1, type: Number })
   @ApiResponse({
     status: 204,
-    description: "Genre deleted successfully",
+    description: "Genre deleted successfully"
   })
   async delete(@Param("id", ParseIntPipe) id: number): Promise<void> {
     return this.baseDelete(id);

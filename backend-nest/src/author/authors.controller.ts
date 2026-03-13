@@ -1,38 +1,40 @@
 import {
-  Get,
-  Post,
-  Put,
-  Delete,
   Body,
-  Param,
-  Query,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   ParseIntPipe,
+  Post,
+  Put,
+  Query
 } from "@nestjs/common";
 import {
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
   ApiBody,
+  ApiOperation,
+  ApiParam,
   ApiQuery,
+  ApiResponse
 } from "@nestjs/swagger";
-import { Public } from "@/common/decorators/public.decorator";
-import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
-import { PaginationQueryDto, BulkDeleteDto } from "@/common/dto";
+
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
+import { Public } from "@/common/decorators/public.decorator";
+import { BulkDeleteDto, PaginationQueryDto } from "@/common/dto";
+
 import { AuthorsService } from "@/author/authors.service";
 import {
-  CreateAuthorDto,
   AuthorResponseDto,
-  UpdateAuthorDto,
+  CreateAuthorDto,
   PaginatedAuthorsResponseDto,
+  UpdateAuthorDto
 } from "@/author/dto";
 
 @AuthenticatedApiController({
   tag: "Authors",
   path: "authors",
-  errors: { notFound: "Author not found" },
+  errors: { notFound: "Author not found" }
 })
 export class AuthorsController extends BaseCrudController<
   CreateAuthorDto,
@@ -52,10 +54,10 @@ export class AuthorsController extends BaseCrudController<
   @ApiResponse({
     status: 201,
     description: "Author created successfully",
-    type: AuthorResponseDto,
+    type: AuthorResponseDto
   })
   async create(
-    @Body() createAuthorDto: CreateAuthorDto,
+    @Body() createAuthorDto: CreateAuthorDto
   ): Promise<AuthorResponseDto> {
     return this.baseCreate(createAuthorDto);
   }
@@ -70,15 +72,15 @@ export class AuthorsController extends BaseCrudController<
     required: false,
     type: String,
     description: "Search by author name (case-insensitive)",
-    example: "Action",
+    example: "Action"
   })
   @ApiResponse({
     status: 200,
     description: "Returns list of authors",
-    type: PaginatedAuthorsResponseDto,
+    type: PaginatedAuthorsResponseDto
   })
   async findAll(
-    @Query() paginationQuery: PaginationQueryDto,
+    @Query() paginationQuery: PaginationQueryDto
   ): Promise<PaginatedAuthorsResponseDto> {
     return this.baseFindAll(paginationQuery);
   }
@@ -89,10 +91,10 @@ export class AuthorsController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Returns the author",
-    type: AuthorResponseDto,
+    type: AuthorResponseDto
   })
   async findOne(
-    @Param("id", ParseIntPipe) id: number,
+    @Param("id", ParseIntPipe) id: number
   ): Promise<AuthorResponseDto> {
     return this.baseFindOne(id);
   }
@@ -104,11 +106,11 @@ export class AuthorsController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Author updated successfully",
-    type: AuthorResponseDto,
+    type: AuthorResponseDto
   })
   async update(
     @Param("id", ParseIntPipe) id: number,
-    @Body() updateAuthorDto: UpdateAuthorDto,
+    @Body() updateAuthorDto: UpdateAuthorDto
   ): Promise<AuthorResponseDto> {
     return this.baseUpdate(id, updateAuthorDto);
   }
@@ -119,7 +121,7 @@ export class AuthorsController extends BaseCrudController<
   @ApiBody({ type: BulkDeleteDto })
   @ApiResponse({
     status: 204,
-    description: "Authors deleted successfully",
+    description: "Authors deleted successfully"
   })
   async deleteMany(@Body() bulkDeleteDto: BulkDeleteDto): Promise<void> {
     return this.baseDeleteMany(bulkDeleteDto.ids);
@@ -131,7 +133,7 @@ export class AuthorsController extends BaseCrudController<
   @ApiParam({ name: "id", description: "Author ID", example: 1, type: Number })
   @ApiResponse({
     status: 204,
-    description: "Author deleted successfully",
+    description: "Author deleted successfully"
   })
   async delete(@Param("id", ParseIntPipe) id: number): Promise<void> {
     return this.baseDelete(id);

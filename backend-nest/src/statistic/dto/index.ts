@@ -1,4 +1,4 @@
 export {
   MediaConsumptionQueryDto,
-  MediaProgressQueryDto,
+  MediaProgressQueryDto
 } from "@/statistic/dto/statistic-query.dto";

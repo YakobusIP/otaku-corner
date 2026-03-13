@@ -1,47 +1,50 @@
 import { ConflictException, NotFoundException } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
-import { PrismaService } from "@/prisma/prisma.service";
-import { PaginationQueryDto, PaginatedResponseDto } from "@/common/dto";
-import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
-import { CrudContext } from "@/common/crud/types/crud-context.type";
+
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
+import { CrudContext } from "@/common/crud/types/crud-context.type";
+import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
+import { PaginatedResponseDto, PaginationQueryDto } from "@/common/dto";
+
+import { PrismaService } from "@/prisma/prisma.service";
+
+import { Prisma } from "@prisma/client";
 
 export abstract class BaseCrudService<
   TDelegate extends CrudDelegate,
   TCreateDto,
   TUpdateDto,
   TResponse,
-  TDetailResponse = TResponse,
+  TDetailResponse = TResponse
 > {
   protected readonly resourceName: string = "Resource";
 
   constructor(
     protected readonly prisma: PrismaService,
-    protected readonly queryBuilder: CrudQueryBuilder,
+    protected readonly queryBuilder: CrudQueryBuilder
   ) {}
 
   protected abstract getDelegate(
-    client?: PrismaService | Prisma.TransactionClient,
+    client?: PrismaService | Prisma.TransactionClient
   ): TDelegate;
 
   // Overridable lifecycle hooks (no-op by default)
   protected async beforeCreate(
-    _ctx: CrudContext<TCreateDto, TResponse>,
+    _ctx: CrudContext<TCreateDto, TResponse>
   ): Promise<void> {}
   protected async afterCreate(
-    _ctx: CrudContext<TCreateDto, TResponse>,
+    _ctx: CrudContext<TCreateDto, TResponse>
   ): Promise<void> {}
   protected async beforeUpdate(
-    _ctx: CrudContext<TUpdateDto, TResponse>,
+    _ctx: CrudContext<TUpdateDto, TResponse>
   ): Promise<void> {}
   protected async afterUpdate(
-    _ctx: CrudContext<TUpdateDto, TResponse>,
+    _ctx: CrudContext<TUpdateDto, TResponse>
   ): Promise<void> {}
   protected async beforeDelete(
-    _ctx: CrudContext<unknown, TResponse>,
+    _ctx: CrudContext<unknown, TResponse>
   ): Promise<void> {}
   protected async afterDelete(
-    _ctx: CrudContext<unknown, TResponse>,
+    _ctx: CrudContext<unknown, TResponse>
   ): Promise<void> {}
 
   async create(dto: TCreateDto): Promise<TResponse> {
@@ -58,12 +61,12 @@ export abstract class BaseCrudService<
         await this.afterCreate(ctx);
 
         return ctx.result;
-      }),
+      })
     );
   }
 
   async findAll(
-    query: PaginationQueryDto,
+    query: PaginationQueryDto
   ): Promise<PaginatedResponseDto<TResponse>> {
     const { where, skip, take, orderBy, include } =
       this.queryBuilder.buildFindAllQuery(query);
@@ -78,7 +81,7 @@ export abstract class BaseCrudService<
 
     const [data, total] = await Promise.all([
       delegate.findMany(findManyArgs) as Promise<TResponse[]>,
-      delegate.count({ where }) as Promise<number>,
+      delegate.count({ where }) as Promise<number>
     ]);
 
     return {
@@ -86,14 +89,14 @@ export abstract class BaseCrudService<
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit)
     };
   }
 
   async findOne(id: number): Promise<TDetailResponse> {
     const delegate = this.getDelegate();
     const result = await delegate.findUnique({
-      where: { id },
+      where: { id }
     });
 
     if (!result) {
@@ -113,14 +116,14 @@ export abstract class BaseCrudService<
 
         const result = await delegate.update({
           where: { id },
-          data: ctx.dto,
+          data: ctx.dto
         });
         ctx.result = result as TResponse;
 
         await this.afterUpdate(ctx);
 
         return ctx.result;
-      }),
+      })
     );
   }
 
@@ -133,7 +136,7 @@ export abstract class BaseCrudService<
         await this.beforeDelete(ctx);
         await delegate.delete({ where: { id } });
         await this.afterDelete(ctx);
-      }),
+      })
     );
   }
 
@@ -146,7 +149,7 @@ export abstract class BaseCrudService<
         await this.beforeDelete(ctx);
         await delegate.deleteMany({ where: { id: { in: ids } } });
         await this.afterDelete(ctx);
-      }),
+      })
     );
   }
 

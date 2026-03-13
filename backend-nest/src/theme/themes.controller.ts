@@ -1,38 +1,40 @@
 import {
-  Get,
-  Post,
-  Put,
-  Delete,
   Body,
-  Param,
-  Query,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   ParseIntPipe,
+  Post,
+  Put,
+  Query
 } from "@nestjs/common";
 import {
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
   ApiBody,
+  ApiOperation,
+  ApiParam,
   ApiQuery,
+  ApiResponse
 } from "@nestjs/swagger";
-import { Public } from "@/common/decorators/public.decorator";
-import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
-import { PaginationQueryDto, BulkDeleteDto } from "@/common/dto";
+
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
-import { ThemesService } from "@/theme/themes.service";
+import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
+import { Public } from "@/common/decorators/public.decorator";
+import { BulkDeleteDto, PaginationQueryDto } from "@/common/dto";
+
 import {
   CreateThemeDto,
-  ThemeResponseDto,
-  UpdateThemeDto,
   PaginatedThemesResponseDto,
+  ThemeResponseDto,
+  UpdateThemeDto
 } from "@/theme/dto";
+import { ThemesService } from "@/theme/themes.service";
 
 @AuthenticatedApiController({
   tag: "Themes",
   path: "themes",
-  errors: { notFound: "Theme not found" },
+  errors: { notFound: "Theme not found" }
 })
 export class ThemesController extends BaseCrudController<
   CreateThemeDto,
@@ -52,10 +54,10 @@ export class ThemesController extends BaseCrudController<
   @ApiResponse({
     status: 201,
     description: "Theme created successfully",
-    type: ThemeResponseDto,
+    type: ThemeResponseDto
   })
   async create(
-    @Body() createThemeDto: CreateThemeDto,
+    @Body() createThemeDto: CreateThemeDto
   ): Promise<ThemeResponseDto> {
     return this.baseCreate(createThemeDto);
   }
@@ -70,15 +72,15 @@ export class ThemesController extends BaseCrudController<
     required: false,
     type: String,
     description: "Search by theme name (case-insensitive)",
-    example: "Action",
+    example: "Action"
   })
   @ApiResponse({
     status: 200,
     description: "Returns list of themes",
-    type: PaginatedThemesResponseDto,
+    type: PaginatedThemesResponseDto
   })
   async findAll(
-    @Query() paginationQuery: PaginationQueryDto,
+    @Query() paginationQuery: PaginationQueryDto
   ): Promise<PaginatedThemesResponseDto> {
     return this.baseFindAll(paginationQuery);
   }
@@ -89,10 +91,10 @@ export class ThemesController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Returns the theme",
-    type: ThemeResponseDto,
+    type: ThemeResponseDto
   })
   async findOne(
-    @Param("id", ParseIntPipe) id: number,
+    @Param("id", ParseIntPipe) id: number
   ): Promise<ThemeResponseDto> {
     return this.baseFindOne(id);
   }
@@ -104,11 +106,11 @@ export class ThemesController extends BaseCrudController<
   @ApiResponse({
     status: 200,
     description: "Theme updated successfully",
-    type: ThemeResponseDto,
+    type: ThemeResponseDto
   })
   async update(
     @Param("id", ParseIntPipe) id: number,
-    @Body() updateThemeDto: UpdateThemeDto,
+    @Body() updateThemeDto: UpdateThemeDto
   ): Promise<ThemeResponseDto> {
     return this.baseUpdate(id, updateThemeDto);
   }
@@ -119,7 +121,7 @@ export class ThemesController extends BaseCrudController<
   @ApiBody({ type: BulkDeleteDto })
   @ApiResponse({
     status: 204,
-    description: "Themes deleted successfully",
+    description: "Themes deleted successfully"
   })
   async deleteMany(@Body() bulkDeleteDto: BulkDeleteDto): Promise<void> {
     return this.baseDeleteMany(bulkDeleteDto.ids);
@@ -131,7 +133,7 @@ export class ThemesController extends BaseCrudController<
   @ApiParam({ name: "id", description: "Theme ID", example: 1, type: Number })
   @ApiResponse({
     status: 204,
-    description: "Theme deleted successfully",
+    description: "Theme deleted successfully"
   })
   async delete(@Param("id", ParseIntPipe) id: number): Promise<void> {
     return this.baseDelete(id);

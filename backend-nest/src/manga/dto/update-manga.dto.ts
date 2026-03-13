@@ -1,11 +1,12 @@
+import { ApiPropertyOptional } from "@nestjs/swagger";
+
 import {
-  IsOptional,
-  IsString,
   IsInt,
   IsNumber,
   IsObject,
+  IsOptional,
+  IsString
 } from "class-validator";
-import { ApiPropertyOptional } from "@nestjs/swagger";
 
 export class UpdateMangaDto {
   @ApiPropertyOptional({ description: "URL slug" })

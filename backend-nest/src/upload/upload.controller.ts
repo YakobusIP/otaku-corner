@@ -1,25 +1,27 @@
 import {
-  Post,
-  Delete,
   Body,
+  Delete,
   Param,
+  Post,
   UploadedFile,
-  UseInterceptors,
+  UseInterceptors
 } from "@nestjs/common";
-import {
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiConsumes,
-  ApiBadRequestResponse,
-  ApiUnauthorizedResponse,
-  ApiNotFoundResponse,
-} from "@nestjs/swagger";
 import { FileInterceptor } from "@nestjs/platform-express";
+import {
+  ApiBadRequestResponse,
+  ApiConsumes,
+  ApiNotFoundResponse,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiUnauthorizedResponse
+} from "@nestjs/swagger";
+
 import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
-import { UploadService } from "@/upload/upload.service";
+
 import { UploadImageDto, UploadResponseDto } from "@/upload/dto";
 import { MediaType } from "@/upload/enums/media-type.enum";
+import { UploadService } from "@/upload/upload.service";
 
 @AuthenticatedApiController({ tag: "Upload", path: "upload" })
 export class UploadController {
@@ -34,16 +36,16 @@ export class UploadController {
   @ApiResponse({
     status: 201,
     description: "Image uploaded successfully",
-    type: UploadResponseDto,
+    type: UploadResponseDto
   })
   async uploadImage(
     @UploadedFile() file: Express.Multer.File,
-    @Body() dto: UploadImageDto,
+    @Body() dto: UploadImageDto
   ): Promise<UploadResponseDto> {
     return this.uploadService.uploadImage(
       file,
       dto.type as MediaType,
-      dto.reviewId,
+      dto.reviewId
     );
   }
 
@@ -54,7 +56,7 @@ export class UploadController {
   @ApiNotFoundResponse({ description: "Image not found" })
   @ApiResponse({
     status: 200,
-    description: "Image deleted successfully",
+    description: "Image deleted successfully"
   })
   async deleteImage(@Param("id") id: string): Promise<{ message: string }> {
     await this.uploadService.deleteImage(id);

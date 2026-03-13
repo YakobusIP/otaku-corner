@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+
 import { ProgressStatus } from "@prisma/client";
 
 export class MangaAuthorItemDto {
@@ -40,7 +41,7 @@ export class MangaReviewItemDto {
 
   @ApiPropertyOptional({
     description: "Character development rating",
-    example: 7,
+    example: 7
   })
   charDevelopmentRating: number | null;
 
@@ -55,7 +56,7 @@ export class MangaReviewItemDto {
 
   @ApiPropertyOptional({
     description: "Progress status",
-    enum: ProgressStatus,
+    enum: ProgressStatus
   })
   progressStatus: ProgressStatus;
 
@@ -84,19 +85,19 @@ export class MangaDetailResponseDto {
 
   @ApiProperty({
     description: "Japanese title",
-    example: "ベルセルク",
+    example: "ベルセルク"
   })
   titleJapanese: string;
 
   @ApiProperty({
     description: "Title synonyms",
-    example: "Berserk: The Prototype",
+    example: "Berserk: The Prototype"
   })
   titleSynonyms: string;
 
   @ApiProperty({
     description: "Published date range",
-    example: "Aug 25, 1989 to Sep 10, 2021",
+    example: "Aug 25, 1989 to Sep 10, 2021"
   })
   published: string;
 
@@ -111,7 +112,7 @@ export class MangaDetailResponseDto {
 
   @ApiProperty({
     description: "Image URLs",
-    example: { image_url: "https://example.com/image.jpg" },
+    example: { image_url: "https://example.com/image.jpg" }
   })
   images: object;
 
@@ -120,7 +121,7 @@ export class MangaDetailResponseDto {
 
   @ApiProperty({
     description: "MAL URL",
-    example: "https://myanimelist.net/manga/2/Berserk",
+    example: "https://myanimelist.net/manga/2/Berserk"
   })
   malUrl: string;
 
@@ -132,25 +133,25 @@ export class MangaDetailResponseDto {
 
   @ApiPropertyOptional({
     description: "Manga review",
-    type: MangaReviewItemDto,
+    type: MangaReviewItemDto
   })
   review: MangaReviewItemDto | null;
 
   @ApiProperty({
     description: "Authors",
-    type: [MangaAuthorItemDto],
+    type: [MangaAuthorItemDto]
   })
   authors: MangaAuthorItemDto[];
 
   @ApiProperty({
     description: "Genres",
-    type: [MangaGenreItemDto],
+    type: [MangaGenreItemDto]
   })
   genres: MangaGenreItemDto[];
 
   @ApiProperty({
     description: "Themes",
-    type: [MangaThemeItemDto],
+    type: [MangaThemeItemDto]
   })
   themes: MangaThemeItemDto[];
 }
