@@ -20,8 +20,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/useToast";
 import useWideScreen from "@/hooks/useWideScreen";
 
+import { mediaKeys } from "@/lib/query-keys";
 import { generateSlug } from "@/lib/utils";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Manga } from "@tutkli/jikan-ts";
 import { BookOpenIcon, Loader2Icon } from "lucide-react";
 
@@ -38,15 +40,47 @@ export default function AddMangaDialog({
 }: Props) {
   const toast = useToast();
   const isWideScreen = useWideScreen();
+  const queryClient = useQueryClient();
 
   const [selectedManga, setSelectedManga] = useState<Manga[]>([]);
-  const [isLoadingAddManga, setIsLoadingAddManga] = useState(false);
 
-  const addManga = async () => {
-    setIsLoadingAddManga(true);
+  const addMangaMutation = useMutation({
+    mutationFn: async (data: Parameters<typeof addMangaService>[0]) => {
+      const response = await addMangaService(data);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async (addedIds) => {
+      await queryClient.invalidateQueries({ queryKey: mediaKeys.all });
+      await queryClient.invalidateQueries({
+        queryKey: mediaKeys.statusCounts("manga")
+      });
+      await resetParent();
+
+      toast.toast({
+        title: "All set!",
+        description:
+          addedIds.length === 1
+            ? "Manga added successfully"
+            : `${addedIds.length} manga added successfully`
+      });
+
+      setSelectedManga([]);
+      setOpenDialog(false);
+    },
+    onError: (error: Error) => {
+      toast.toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong",
+        description: error.message
+      });
+    }
+  });
+
+  const buildMangaPayload = () => {
     const slugCounts: Record<string, number> = {};
 
-    const data = selectedManga.map((manga) => {
+    return selectedManga.map((manga) => {
       let slug = generateSlug(manga.title);
 
       if (slugCounts[slug]) {
@@ -104,28 +138,11 @@ export default function AddMangaDialog({
         malUrl: manga.url
       };
     });
+  };
 
-    const response = await addMangaService(data);
-    if (response.success) {
-      toast.toast({
-        title: "All set!",
-        description:
-          response.data.length === 1
-            ? "Manga added successfully"
-            : `${response.data.length} manga added successfully`
-      });
-
-      setSelectedManga([]);
-      resetParent();
-      setOpenDialog(false);
-    } else {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingAddManga(false);
+  const addManga = async () => {
+    const data = buildMangaPayload();
+    addMangaMutation.mutate(data);
   };
 
   return (
@@ -166,8 +183,8 @@ export default function AddMangaDialog({
           </div>
         </ScrollArea>
         {selectedManga.length > 0 && (
-          <Button onClick={addManga}>
-            {isLoadingAddManga && (
+          <Button onClick={addManga} disabled={addMangaMutation.isPending}>
+            {addMangaMutation.isPending && (
               <Loader2Icon className="w-4 h-4 animate-spin" />
             )}
             Add Manga(s)

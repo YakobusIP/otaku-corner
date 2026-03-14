@@ -20,8 +20,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/useToast";
 import useWideScreen from "@/hooks/useWideScreen";
 
+import { mediaKeys } from "@/lib/query-keys";
 import { generateSlug } from "@/lib/utils";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Manga } from "@tutkli/jikan-ts";
 import { BookIcon, Loader2Icon } from "lucide-react";
 
@@ -38,15 +40,47 @@ export default function AddLightNovelDialog({
 }: Props) {
   const toast = useToast();
   const isWideScreen = useWideScreen();
+  const queryClient = useQueryClient();
 
   const [selectedLightNovel, setSelectedLightNovel] = useState<Manga[]>([]);
-  const [isLoadingAddLightNovel, setIsLoadingAddLightNovel] = useState(false);
 
-  const addLightNovel = async () => {
-    setIsLoadingAddLightNovel(true);
+  const addLightNovelMutation = useMutation({
+    mutationFn: async (data: Parameters<typeof addLightNovelService>[0]) => {
+      const response = await addLightNovelService(data);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async (addedIds) => {
+      await queryClient.invalidateQueries({ queryKey: mediaKeys.all });
+      await queryClient.invalidateQueries({
+        queryKey: mediaKeys.statusCounts("lightNovel")
+      });
+      await resetParent();
+
+      toast.toast({
+        title: "All set!",
+        description:
+          addedIds.length === 1
+            ? "Light novel added successfully"
+            : `${addedIds.length} light novels added successfully`
+      });
+
+      setSelectedLightNovel([]);
+      setOpenDialog(false);
+    },
+    onError: (error: Error) => {
+      toast.toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong",
+        description: error.message
+      });
+    }
+  });
+
+  const buildLightNovelPayload = () => {
     const slugCounts: Record<string, number> = {};
 
-    const data = selectedLightNovel.map((lightNovel) => {
+    return selectedLightNovel.map((lightNovel) => {
       let slug = generateSlug(lightNovel.title);
 
       if (slugCounts[slug]) {
@@ -111,28 +145,11 @@ export default function AddLightNovelDialog({
         malUrl: lightNovel.url
       };
     });
+  };
 
-    const response = await addLightNovelService(data);
-    if (response.success) {
-      toast.toast({
-        title: "All set!",
-        description:
-          response.data.length === 1
-            ? "Light novel added successfully"
-            : `${response.data.length} light novels added successfully`
-      });
-
-      setSelectedLightNovel([]);
-      resetParent();
-      setOpenDialog(false);
-    } else {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingAddLightNovel(false);
+  const addLightNovel = async () => {
+    const data = buildLightNovelPayload();
+    addLightNovelMutation.mutate(data);
   };
 
   return (
@@ -173,8 +190,11 @@ export default function AddLightNovelDialog({
           </div>
         </ScrollArea>
         {selectedLightNovel.length > 0 && (
-          <Button onClick={addLightNovel}>
-            {isLoadingAddLightNovel && (
+          <Button
+            onClick={addLightNovel}
+            disabled={addLightNovelMutation.isPending}
+          >
+            {addLightNovelMutation.isPending && (
               <Loader2Icon className="w-4 h-4 animate-spin" />
             )}
             Add Light Novel(s)

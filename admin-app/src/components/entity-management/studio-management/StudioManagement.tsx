@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
 
 import { useToast } from "@/hooks/useToast";
+import { entityKeys } from "@/lib/query-keys";
 
 import { MetadataResponse } from "@/types/api.type";
 import { StudioWithMediaCount } from "@/types/entity.type";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 import { useDebounce } from "use-debounce";
 
@@ -25,9 +27,6 @@ export default function StudioManagement({ resetParent }: Props) {
   const [studioMetadata, setStudioMetadata] = useState<MetadataResponse>();
 
   const [isLoadingStudio, setIsLoadingStudio] = useState(false);
-  const [isLoadingAddStudio, setIsLoadingAddStudio] = useState(false);
-  const [isLoadingEditStudio, setIsLoadingEditStudio] = useState(false);
-  const [isLoadingDeleteStudio, setIsLoadingDeleteStudio] = useState(false);
 
   const [selectedStudioRows, setSelectedStudioRows] = useState({});
   const [studioListPage, setStudioListPage] = useState(1);
@@ -37,14 +36,17 @@ export default function StudioManagement({ resetParent }: Props) {
   const [isOpenAddStudio, setIsOpenAddStudio] = useState(false);
 
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   const toastRef = useRef(toast.toast);
 
   const fetchStudioList = useCallback(async () => {
     setIsLoadingStudio(true);
-    const response = await studioService.fetchAllWithMediaCount<
-      StudioWithMediaCount[]
-    >(studioListPage, 5, debouncedSearch);
+    const response = await studioService.fetchAllWithMediaCount<StudioWithMediaCount>(
+      studioListPage,
+      5,
+      debouncedSearch
+    );
     if (response.success) {
       setStudioList(response.data.data);
       setStudioMetadata(response.data.metadata);
@@ -58,69 +60,98 @@ export default function StudioManagement({ resetParent }: Props) {
     setIsLoadingStudio(false);
   }, [studioListPage, debouncedSearch]);
 
-  const addStudio = async (name: string) => {
-    setIsLoadingAddStudio(true);
-    const response = await studioService.addEntity(name);
-    if (response.success) {
-      fetchStudioList();
+  const addStudioMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const response = await studioService.addEntity(name);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.studios() });
+      await fetchStudioList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: "Studio added successfully"
       });
-      resetParent();
       setIsOpenAddStudio(false);
-    } else {
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: response.error
+        description: error.message
       });
     }
-    setIsLoadingAddStudio(false);
-  };
+  });
 
-  const editStudio = async (id: number, name: string) => {
-    setIsLoadingEditStudio(true);
-    const response = await studioService.updateEntity(id, name);
-    if (response.success) {
-      fetchStudioList();
+  const editStudioMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: number; name: string }) => {
+      const response = await studioService.updateEntity(id, name);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.studios() });
+      await fetchStudioList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: "Studio updated successfully"
       });
-      resetParent();
-    } else {
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
+        description: error.message
       });
     }
-    setIsLoadingEditStudio(false);
-  };
+  });
 
-  const deleteStudio = async () => {
-    setIsLoadingDeleteStudio(true);
-    const deletedIds = Object.keys(selectedStudioRows).map((id) =>
-      parseInt(id)
-    );
-    const response = await studioService.deleteEntity(deletedIds);
-    if (response.success) {
-      fetchStudioList();
+  const deleteStudioMutation = useMutation({
+    mutationFn: async (deletedIds: number[]) => {
+      const response = await studioService.deleteEntity(deletedIds);
+      if (!response.success) throw new Error(response.error);
+      return deletedIds;
+    },
+    onSuccess: async (deletedIds) => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.studios() });
+      await fetchStudioList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: `${deletedIds.length} studio(s) deleted successfully`
       });
-      resetParent();
-    } else {
+      setSelectedStudioRows({});
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
+        description: error.message
       });
+      setSelectedStudioRows({});
     }
-    setSelectedStudioRows({});
-    setIsLoadingDeleteStudio(false);
+  });
+
+  const addStudio = (name: string) => {
+    addStudioMutation.mutate(name);
+  };
+
+  const editStudio = (id: number, name: string) => {
+    editStudioMutation.mutate({ id, name });
+  };
+
+  const deleteStudio = async () => {
+    const deletedIds = Object.keys(selectedStudioRows).map((id) =>
+      parseInt(id)
+    );
+    try {
+      await deleteStudioMutation.mutateAsync(deletedIds);
+    } catch {
+      // Handled by mutation onError.
+    }
   };
 
   useEffect(() => {
@@ -130,13 +161,13 @@ export default function StudioManagement({ resetParent }: Props) {
   return (
     <TabsContent value="studios">
       <DataTable
-        columns={studioColumns(editStudio, isLoadingEditStudio)}
+        columns={studioColumns(editStudio, editStudioMutation.isPending)}
         data={studioList}
         rowSelection={selectedStudioRows}
         setRowSelection={setSelectedStudioRows}
         deleteData={deleteStudio}
         isLoadingData={isLoadingStudio}
-        isLoadingDeleteData={isLoadingDeleteStudio}
+        isLoadingDeleteData={deleteStudioMutation.isPending}
         page={studioListPage}
         setPage={setStudioListPage}
         metadata={studioMetadata}
@@ -156,7 +187,7 @@ export default function StudioManagement({ resetParent }: Props) {
             setIsOpenDialog={setIsOpenAddStudio}
             entityType="Studio"
             addHandler={addStudio}
-            isLoadingAddEntity={isLoadingAddStudio}
+            isLoadingAddEntity={addStudioMutation.isPending}
           />
         }
       />

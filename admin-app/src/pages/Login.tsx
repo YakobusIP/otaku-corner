@@ -20,15 +20,14 @@ import {
 
 import { useToast } from "@/hooks/useToast";
 
-import { setAccessToken } from "@/lib/axios";
+import { setAuthTokens } from "@/lib/axios";
 
+import { useMutation } from "@tanstack/react-query";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Loader2Icon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const [isLoadingLogin, setIsLoadingLogin] = useState(false);
-
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -36,27 +35,34 @@ export default function Login() {
   const [inputStep, setInputStep] = useState(1);
   const [pin1, setPin1] = useState("");
 
+  const loginMutation = useMutation({
+    mutationFn: async ({ pin1, pin2 }: { pin1: string; pin2: string }) => {
+      const response = await login(pin1, pin2);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setAuthTokens(data.accessToken, data.refreshToken ?? undefined);
+      navigate("/dashboard");
+      toast.toast({
+        title: "All set!",
+        description: "Login successful"
+      });
+    },
+    onError: (error: Error) => {
+      toast.toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong",
+        description: error.message
+      });
+    }
+  });
+
   const handleLogin = useCallback(
     async (pin1: string, pin2: string) => {
-      setIsLoadingLogin(true);
-      const response = await login(pin1, pin2);
-      if (response.success) {
-        setAccessToken(response.data.accessToken);
-        navigate("/dashboard");
-        toast.toast({
-          title: "All set!",
-          description: "Login successful"
-        });
-      } else {
-        toast.toast({
-          variant: "destructive",
-          title: "Uh oh! Something went wrong",
-          description: response.error
-        });
-      }
-      setIsLoadingLogin(false);
+      loginMutation.mutate({ pin1, pin2 });
     },
-    [navigate, toast]
+    [loginMutation]
   );
 
   const handlePrevious = () => {
@@ -153,7 +159,7 @@ export default function Login() {
               </Button>
             )}
             <Button onClick={handlePinInput} className="w-full">
-              {isLoadingLogin && (
+              {loginMutation.isPending && (
                 <Loader2Icon className="w-4 h-4 animate-spin" />
               )}
               {inputStep === 1 ? "Next" : "Submit"}

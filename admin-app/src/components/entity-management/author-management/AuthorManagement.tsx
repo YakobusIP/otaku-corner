@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
 
 import { useToast } from "@/hooks/useToast";
+import { entityKeys } from "@/lib/query-keys";
 
 import { MetadataResponse } from "@/types/api.type";
 import { AuthorWithMediaCount } from "@/types/entity.type";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 import { useDebounce } from "use-debounce";
 
@@ -25,9 +27,6 @@ export default function AuthorManagement({ resetParent }: Props) {
   const [authorMetadata, setAuthorMetadata] = useState<MetadataResponse>();
 
   const [isLoadingAuthor, setIsLoadingAuthor] = useState(false);
-  const [isLoadingAddAuthor, setIsLoadingAddAuthor] = useState(false);
-  const [isLoadingEditAuthor, setIsLoadingEditAuthor] = useState(false);
-  const [isLoadingDeleteAuthor, setIsLoadingDeleteAuthor] = useState(false);
 
   const [selectedAuthorRows, setSelectedAuthorRows] = useState({});
   const [authorListPage, setAuthorListPage] = useState(1);
@@ -37,14 +36,17 @@ export default function AuthorManagement({ resetParent }: Props) {
   const [isOpenAddAuthor, setIsOpenAddAuthor] = useState(false);
 
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   const toastRef = useRef(toast.toast);
 
   const fetchAuthorList = useCallback(async () => {
     setIsLoadingAuthor(true);
-    const response = await authorService.fetchAllWithMediaCount<
-      AuthorWithMediaCount[]
-    >(authorListPage, 5, debouncedSearch);
+    const response = await authorService.fetchAllWithMediaCount<AuthorWithMediaCount>(
+      authorListPage,
+      5,
+      debouncedSearch
+    );
     if (response.success) {
       setAuthorList(response.data.data);
       setAuthorMetadata(response.data.metadata);
@@ -58,69 +60,98 @@ export default function AuthorManagement({ resetParent }: Props) {
     setIsLoadingAuthor(false);
   }, [authorListPage, debouncedSearch]);
 
-  const addAuthor = async (name: string) => {
-    setIsLoadingAddAuthor(true);
-    const response = await authorService.addEntity(name);
-    if (response.success) {
-      fetchAuthorList();
+  const addAuthorMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const response = await authorService.addEntity(name);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.authors() });
+      await fetchAuthorList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: "Author added successfully"
       });
-      resetParent();
       setIsOpenAddAuthor(false);
-    } else {
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: response.error
+        description: error.message
       });
     }
-    setIsLoadingAddAuthor(false);
-  };
+  });
 
-  const editAuthor = async (id: number, name: string) => {
-    setIsLoadingEditAuthor(true);
-    const response = await authorService.updateEntity(id, name);
-    if (response.success) {
-      fetchAuthorList();
+  const editAuthorMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: number; name: string }) => {
+      const response = await authorService.updateEntity(id, name);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.authors() });
+      await fetchAuthorList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: "Author updated successfully"
       });
-      resetParent();
-    } else {
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
+        description: error.message
       });
     }
-    setIsLoadingEditAuthor(false);
-  };
+  });
 
-  const deleteAuthor = async () => {
-    setIsLoadingDeleteAuthor(true);
-    const deletedIds = Object.keys(selectedAuthorRows).map((id) =>
-      parseInt(id)
-    );
-    const response = await authorService.deleteEntity(deletedIds);
-    if (response.success) {
-      fetchAuthorList();
+  const deleteAuthorMutation = useMutation({
+    mutationFn: async (deletedIds: number[]) => {
+      const response = await authorService.deleteEntity(deletedIds);
+      if (!response.success) throw new Error(response.error);
+      return deletedIds;
+    },
+    onSuccess: async (deletedIds) => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.authors() });
+      await fetchAuthorList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: `${deletedIds.length} author(s) deleted successfully`
       });
-      resetParent();
-    } else {
+      setSelectedAuthorRows({});
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
+        description: error.message
       });
+      setSelectedAuthorRows({});
     }
-    setSelectedAuthorRows({});
-    setIsLoadingDeleteAuthor(false);
+  });
+
+  const addAuthor = (name: string) => {
+    addAuthorMutation.mutate(name);
+  };
+
+  const editAuthor = (id: number, name: string) => {
+    editAuthorMutation.mutate({ id, name });
+  };
+
+  const deleteAuthor = async () => {
+    const deletedIds = Object.keys(selectedAuthorRows).map((id) =>
+      parseInt(id)
+    );
+    try {
+      await deleteAuthorMutation.mutateAsync(deletedIds);
+    } catch {
+      // Handled by mutation onError.
+    }
   };
 
   useEffect(() => {
@@ -130,13 +161,13 @@ export default function AuthorManagement({ resetParent }: Props) {
   return (
     <TabsContent value="authors">
       <DataTable
-        columns={authorColumns(editAuthor, isLoadingEditAuthor)}
+        columns={authorColumns(editAuthor, editAuthorMutation.isPending)}
         data={authorList}
         rowSelection={selectedAuthorRows}
         setRowSelection={setSelectedAuthorRows}
         deleteData={deleteAuthor}
         isLoadingData={isLoadingAuthor}
-        isLoadingDeleteData={isLoadingDeleteAuthor}
+        isLoadingDeleteData={deleteAuthorMutation.isPending}
         page={authorListPage}
         setPage={setAuthorListPage}
         metadata={authorMetadata}
@@ -156,7 +187,7 @@ export default function AuthorManagement({ resetParent }: Props) {
             setIsOpenDialog={setIsOpenAddAuthor}
             entityType="Author"
             addHandler={addAuthor}
-            isLoadingAddEntity={isLoadingAddAuthor}
+            isLoadingAddEntity={addAuthorMutation.isPending}
           />
         }
       />

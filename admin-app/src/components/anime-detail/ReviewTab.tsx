@@ -23,12 +23,14 @@ import {
 } from "@/components/ui/tooltip";
 
 import { useToast } from "@/hooks/useToast";
+import { detailKeys } from "@/lib/query-keys";
 
 import { AnimeDetail, AnimeReviewRequest } from "@/types/anime.type";
 
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
 import { createUTCDate, extractImageIds } from "@/lib/utils";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CalendarDaysIcon, Loader2Icon } from "lucide-react";
 
 type Props = {
@@ -38,6 +40,7 @@ type Props = {
 
 export default function ReviewTab({ animeDetail, resetParent }: Props) {
   const toast = useToast();
+  const queryClient = useQueryClient();
   const reviewObject = animeDetail.review;
 
   const [reviewText, setReviewText] = useState(
@@ -68,8 +71,6 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
   const [charDevelopmentRating, setCharDevelopmentRating] = useState(
     reviewObject.charDevelopmentRating || 10
   );
-
-  const [isLoadingUpdateReview, setIsLoadingUpdateReview] = useState(false);
 
   const ratingFields = [
     {
@@ -104,21 +105,57 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
     }
   ];
 
-  const handleSubmit = async () => {
-    setIsLoadingUpdateReview(true);
+  const updateReviewMutation = useMutation({
+    mutationFn: async (payload: {
+      currentImageIds: string[];
+      data: AnimeReviewRequest;
+    }) => {
+      const previouslyUploadedImageIds = Object.values(uploadedImages);
+      const removedImageIds = previouslyUploadedImageIds.filter(
+        (id) => !payload.currentImageIds.includes(id)
+      );
 
+      await Promise.all(
+        removedImageIds.map(async (id) => {
+          const response = await deleteImageService(id);
+          if (!response.success) throw new Error(response.error);
+          return response.data;
+        })
+      );
+
+      const reviewResponse = await updateAnimeReviewService(
+        animeDetail.id,
+        payload.data
+      );
+      if (!reviewResponse.success) throw new Error(reviewResponse.error);
+
+      return {
+        message: reviewResponse.data?.message,
+        currentImageIds: payload.currentImageIds
+      };
+    },
+    onSuccess: async ({ message, currentImageIds }) => {
+      await queryClient.invalidateQueries({
+        queryKey: detailKeys.anime(animeDetail.id)
+      });
+      await resetParent();
+      setUploadedImages([...currentImageIds]);
+      toast.toast({
+        title: "All set!",
+        description: message ?? "Review saved successfully"
+      });
+    },
+    onError: (error: Error) => {
+      toast.toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong",
+        description: error.message
+      });
+    }
+  });
+
+  const handleSubmit = () => {
     const currentImageIds = extractImageIds(reviewText);
-    const previouslyUploadedImageIds = Object.values(uploadedImages);
-    const removedImageIds = previouslyUploadedImageIds.filter(
-      (id) => !currentImageIds.includes(id)
-    );
-
-    await Promise.all(
-      removedImageIds.map((id) => {
-        return deleteImageService(id);
-      })
-    );
-
     const adjustedConsumedMonth = consumedMonth
       ? createUTCDate(
           consumedMonth.getUTCFullYear(),
@@ -137,22 +174,7 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
       charDevelopmentRating
     };
 
-    const response = await updateAnimeReviewService(animeDetail.id, data);
-    if (response.success) {
-      toast.toast({
-        title: "All set!",
-        description: response.data?.message ?? "Review saved successfully"
-      });
-      setUploadedImages([...currentImageIds]);
-      resetParent();
-    } else {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingUpdateReview(false);
+    updateReviewMutation.mutate({ currentImageIds, data });
   };
 
   return (
@@ -221,7 +243,7 @@ export default function ReviewTab({ animeDetail, resetParent }: Props) {
           setUploadedImages={setUploadedImages}
         />
         <Button type="submit" className="mt-4" onClick={handleSubmit}>
-          {isLoadingUpdateReview && (
+          {updateReviewMutation.isPending && (
             <Loader2Icon className="w-4 h-4 animate-spin" />
           )}
           Submit review

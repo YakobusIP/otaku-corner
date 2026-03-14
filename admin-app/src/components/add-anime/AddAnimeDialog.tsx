@@ -20,8 +20,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/useToast";
 import useWideScreen from "@/hooks/useWideScreen";
 
+import { mediaKeys } from "@/lib/query-keys";
 import { generateSlug } from "@/lib/utils";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Anime } from "@tutkli/jikan-ts";
 import { FilmIcon, Loader2Icon } from "lucide-react";
 
@@ -38,15 +40,47 @@ export default function AddAnimeDialog({
 }: Props) {
   const toast = useToast();
   const isWideScreen = useWideScreen();
+  const queryClient = useQueryClient();
 
   const [selectedAnime, setSelectedAnime] = useState<Anime[]>([]);
-  const [isLoadingAddAnime, setIsLoadingAddAnime] = useState(false);
 
-  const addAnime = async () => {
-    setIsLoadingAddAnime(true);
+  const addAnimeMutation = useMutation({
+    mutationFn: async (data: Parameters<typeof addAnimeService>[0]) => {
+      const response = await addAnimeService(data);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async (addedIds) => {
+      await queryClient.invalidateQueries({ queryKey: mediaKeys.all });
+      await queryClient.invalidateQueries({
+        queryKey: mediaKeys.statusCounts("anime")
+      });
+      await resetParent();
+
+      toast.toast({
+        title: "All set!",
+        description:
+          addedIds.length === 1
+            ? "Anime added successfully"
+            : `${addedIds.length} anime added successfully`
+      });
+
+      setSelectedAnime([]);
+      setOpenDialog(false);
+    },
+    onError: (error: Error) => {
+      toast.toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong",
+        description: error.message
+      });
+    }
+  });
+
+  const buildAnimePayload = () => {
     const slugCounts: Record<string, number> = {};
 
-    const data = selectedAnime.map((anime) => {
+    return selectedAnime.map((anime) => {
       let slug = generateSlug(anime.title);
 
       if (slugCounts[slug]) {
@@ -62,9 +96,7 @@ export default function AddAnimeDialog({
         type: anime.type,
         status: anime.status,
         rating: anime.rating ?? "Unrated",
-        season: anime.season
-          ? `${anime.season.toUpperCase()} ${anime.year}`
-          : null,
+        season: anime.season ? `${anime.season.toUpperCase()} ${anime.year}` : null,
         title: anime.title,
         titleJapanese: anime.title_japanese,
         titleSynonyms: anime.title_synonyms
@@ -119,28 +151,11 @@ export default function AddAnimeDialog({
         malUrl: anime.url
       };
     });
+  };
 
-    const response = await addAnimeService(data);
-    if (response.success) {
-      toast.toast({
-        title: "All set!",
-        description:
-          response.data.length === 1
-            ? "Anime added successfully"
-            : `${response.data.length} anime added successfully`
-      });
-
-      setSelectedAnime([]);
-      resetParent();
-      setOpenDialog(false);
-    } else {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingAddAnime(false);
+  const addAnime = async () => {
+    const data = buildAnimePayload();
+    addAnimeMutation.mutate(data);
   };
 
   return (
@@ -181,8 +196,8 @@ export default function AddAnimeDialog({
           </div>
         </ScrollArea>
         {selectedAnime.length > 0 && (
-          <Button onClick={() => addAnime()}>
-            {isLoadingAddAnime && (
+          <Button onClick={() => addAnime()} disabled={addAnimeMutation.isPending}>
+            {addAnimeMutation.isPending && (
               <Loader2Icon className="w-4 h-4 animate-spin" />
             )}
             Add Anime(s)

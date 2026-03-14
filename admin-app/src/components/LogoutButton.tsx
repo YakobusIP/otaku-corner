@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 import { useToast } from "@/hooks/useToast";
 
-import { setAccessToken } from "@/lib/axios";
+import { clearAuth } from "@/lib/axios";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, LogOutIcon } from "lucide-react";
@@ -22,7 +22,7 @@ export default function LogoutButton({ fullWidth = false }: Props) {
   const mutation = useMutation({
     mutationFn: authService.logout,
     onSuccess: (data) => {
-      setAccessToken(null);
+      clearAuth();
       queryClient.clear();
       navigate("/", { replace: true });
       toast.toast({

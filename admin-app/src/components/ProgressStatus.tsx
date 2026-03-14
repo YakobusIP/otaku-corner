@@ -9,12 +9,14 @@ import {
 } from "@/components/ui/select";
 
 import { useToast } from "@/hooks/useToast";
+import { mediaKeys } from "@/lib/query-keys";
 
-import { ApiResponse, MessageResponse } from "@/types/api.type";
+import { MessageResponse } from "@/types/api.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
 import { cn } from "@/lib/utils";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircleIcon,
   EyeIcon,
@@ -31,7 +33,10 @@ type Props = {
   serviceFn?: (
     id: number,
     progressStatus: PROGRESS_STATUS
-  ) => Promise<ApiResponse<MessageResponse>>;
+  ) => Promise<
+    | { success: true; data: MessageResponse }
+    | { success: false; error: string }
+  >;
 };
 
 export default function ProgressStatus({
@@ -42,6 +47,7 @@ export default function ProgressStatus({
 }: Props) {
   const [selectedStatus, setSelectedStatus] = useState(progressStatus);
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   const statusOptions = [
     {
@@ -80,23 +86,40 @@ export default function ProgressStatus({
     statusOptions.find((option) => option.value === selectedStatus)?.color ||
     "bg-white";
 
-  const debouncedSubmit = useDebouncedCallback(async () => {
-    if (serviceFn) {
-      const response = await serviceFn(id, selectedStatus as PROGRESS_STATUS);
-
-      if (response.success) {
-        toast.toast({
-          title: "All set!",
-          description: response.data?.message ?? "Progress status updated successfully"
-        });
-      } else {
-        toast.toast({
-          variant: "destructive",
-          title: "Uh oh! Something went wrong",
-          description: response.error
-        });
-      }
+  const updateProgressStatusMutation = useMutation({
+    mutationFn: async (nextStatus: PROGRESS_STATUS) => {
+      if (!serviceFn) return undefined;
+      const response = await serviceFn(id, nextStatus);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: mediaKeys.all });
+      await queryClient.invalidateQueries({
+        queryKey: mediaKeys.statusCounts("anime")
+      });
+      await queryClient.invalidateQueries({
+        queryKey: mediaKeys.statusCounts("manga")
+      });
+      await queryClient.invalidateQueries({
+        queryKey: mediaKeys.statusCounts("lightNovel")
+      });
+      toast.toast({
+        title: "All set!",
+        description: data?.message ?? "Progress status updated successfully"
+      });
+    },
+    onError: (error: Error) => {
+      toast.toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong",
+        description: error.message
+      });
     }
+  });
+
+  const debouncedSubmit = useDebouncedCallback((nextStatus: PROGRESS_STATUS) => {
+    updateProgressStatusMutation.mutate(nextStatus);
   }, 1000);
 
   const handleStatusChange = (value: string) => {
@@ -104,8 +127,8 @@ export default function ProgressStatus({
 
     if (setProgressStatus) {
       setProgressStatus(value);
-    } else {
-      debouncedSubmit();
+    } else if (serviceFn) {
+      debouncedSubmit(value as PROGRESS_STATUS);
     }
   };
 

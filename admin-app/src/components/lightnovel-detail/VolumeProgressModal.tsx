@@ -26,11 +26,13 @@ import {
 } from "@/components/ui/tooltip";
 
 import { useToast } from "@/hooks/useToast";
+import { detailKeys } from "@/lib/query-keys";
 
 import { LightNovelDetail } from "@/types/lightnovel.type";
 
 import { cn, createUTCDate } from "@/lib/utils";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CalendarDaysIcon, Loader2Icon } from "lucide-react";
 
 type Props = {
@@ -43,10 +45,39 @@ export default function VolumeProgressModal({
   resetParent
 }: Props) {
   const toast = useToast();
+  const queryClient = useQueryClient();
   const [volumeProgress, setVolumeProgress] = useState(
     lightNovelDetail.volumeProgress
   );
-  const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
+
+  const updateVolumeProgressMutation = useMutation({
+    mutationFn: async (
+      nextVolumeProgress: { id: number; consumedAt?: Date | null }[]
+    ) => {
+      const response = await updateLightNovelVolumeProgressService(
+        nextVolumeProgress
+      );
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({
+        queryKey: detailKeys.lightNovel(lightNovelDetail.id)
+      });
+      await resetParent();
+      toast.toast({
+        title: "All set!",
+        description: data?.message ?? "Volume progress updated successfully"
+      });
+    },
+    onError: (error: Error) => {
+      toast.toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong",
+        description: error.message
+      });
+    }
+  });
 
   const onMonthChange = (value: Date, id: number) => {
     const adjustedConsumedMonth = value
@@ -62,26 +93,8 @@ export default function VolumeProgressModal({
     );
   };
 
-  const updateLightNovelVolumeProgress = async () => {
-    setIsLoadingUpdate(true);
-    const response =
-      await updateLightNovelVolumeProgressService(volumeProgress);
-
-    if (response.success) {
-      resetParent();
-      toast.toast({
-        title: "All set!",
-        description: response.data?.message ?? "Volume progress updated successfully"
-      });
-    } else {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-
-    setIsLoadingUpdate(false);
+  const updateLightNovelVolumeProgress = () => {
+    updateVolumeProgressMutation.mutate(volumeProgress);
   };
 
   return (
@@ -156,8 +169,12 @@ export default function VolumeProgressModal({
           })}
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={updateLightNovelVolumeProgress}>
-            {isLoadingUpdate && (
+          <Button
+            type="submit"
+            onClick={updateLightNovelVolumeProgress}
+            disabled={updateVolumeProgressMutation.isPending}
+          >
+            {updateVolumeProgressMutation.isPending && (
               <Loader2Icon className="w-4 h-4 animate-spin mr-2" />
             )}
             Save changes

@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/useToast";
 
 import { MEDIA_TYPE } from "@/lib/enums";
 
+import { useMutation } from "@tanstack/react-query";
 import MDEditor from "@uiw/react-md-editor";
 
 type Props = {
@@ -25,17 +26,27 @@ export default function ReviewEditor({
 }: Props) {
   const toast = useToast();
 
-  const insertImage = async (file: File) => {
-    const response = await uploadImageService(file, mediaType, reviewId);
-    if (response.success) {
-      const { url, id } = response.data;
-      return { url, id };
-    } else {
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const response = await uploadImageService(file, mediaType, reviewId);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: response.error
+        description: error.message
       });
+    }
+  });
+
+  const insertImage = async (file: File) => {
+    try {
+      const { url, id } = await uploadImageMutation.mutateAsync(file);
+      return { url, id };
+    } catch {
+      // Handled by mutation onError.
     }
 
     return null;

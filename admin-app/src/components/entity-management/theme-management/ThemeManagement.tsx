@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
 
 import { useToast } from "@/hooks/useToast";
+import { entityKeys } from "@/lib/query-keys";
 
 import { MetadataResponse } from "@/types/api.type";
 import { ThemeWithMediaCount } from "@/types/entity.type";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 import { useDebounce } from "use-debounce";
 
@@ -25,9 +27,6 @@ export default function ThemeManagement({ resetParent }: Props) {
   const [themeMetadata, setThemeMetadata] = useState<MetadataResponse>();
 
   const [isLoadingTheme, setIsLoadingTheme] = useState(false);
-  const [isLoadingAddTheme, setIsLoadingAddTheme] = useState(false);
-  const [isLoadingEditTheme, setIsLoadingEditTheme] = useState(false);
-  const [isLoadingDeleteTheme, setIsLoadingDeleteTheme] = useState(false);
 
   const [selectedThemeRows, setSelectedThemeRows] = useState({});
   const [themeListPage, setThemeListPage] = useState(1);
@@ -37,14 +36,17 @@ export default function ThemeManagement({ resetParent }: Props) {
   const [isOpenAddTheme, setIsOpenAddTheme] = useState(false);
 
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   const toastRef = useRef(toast.toast);
 
   const fetchThemeList = useCallback(async () => {
     setIsLoadingTheme(true);
-    const response = await themeService.fetchAllWithMediaCount<
-      ThemeWithMediaCount[]
-    >(themeListPage, 5, debouncedSearch);
+    const response = await themeService.fetchAllWithMediaCount<ThemeWithMediaCount>(
+      themeListPage,
+      5,
+      debouncedSearch
+    );
     if (response.success) {
       setThemeList(response.data.data);
       setThemeMetadata(response.data.metadata);
@@ -58,67 +60,96 @@ export default function ThemeManagement({ resetParent }: Props) {
     setIsLoadingTheme(false);
   }, [themeListPage, debouncedSearch]);
 
-  const addTheme = async (name: string) => {
-    setIsLoadingAddTheme(true);
-    const response = await themeService.addEntity(name);
-    if (response.success) {
-      fetchThemeList();
+  const addThemeMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const response = await themeService.addEntity(name);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.themes() });
+      await fetchThemeList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: "Theme added successfully"
       });
-      resetParent();
       setIsOpenAddTheme(false);
-    } else {
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: response.error
+        description: error.message
       });
     }
-    setIsLoadingAddTheme(false);
-  };
+  });
 
-  const editTheme = async (id: number, name: string) => {
-    setIsLoadingEditTheme(true);
-    const response = await themeService.updateEntity(id, name);
-    if (response.success) {
-      fetchThemeList();
+  const editThemeMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: number; name: string }) => {
+      const response = await themeService.updateEntity(id, name);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.themes() });
+      await fetchThemeList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: "Theme updated successfully"
       });
-      resetParent();
-    } else {
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
+        description: error.message
       });
     }
-    setIsLoadingEditTheme(false);
-  };
+  });
 
-  const deleteTheme = async () => {
-    setIsLoadingDeleteTheme(true);
-    const deletedIds = Object.keys(selectedThemeRows).map((id) => parseInt(id));
-    const response = await themeService.deleteEntity(deletedIds);
-    if (response.success) {
-      fetchThemeList();
+  const deleteThemeMutation = useMutation({
+    mutationFn: async (deletedIds: number[]) => {
+      const response = await themeService.deleteEntity(deletedIds);
+      if (!response.success) throw new Error(response.error);
+      return deletedIds;
+    },
+    onSuccess: async (deletedIds) => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.themes() });
+      await fetchThemeList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: `${deletedIds.length} theme(s) deleted successfully`
       });
-      resetParent();
-    } else {
+      setSelectedThemeRows({});
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
+        description: error.message
       });
+      setSelectedThemeRows({});
     }
-    setSelectedThemeRows({});
-    setIsLoadingDeleteTheme(false);
+  });
+
+  const addTheme = (name: string) => {
+    addThemeMutation.mutate(name);
+  };
+
+  const editTheme = (id: number, name: string) => {
+    editThemeMutation.mutate({ id, name });
+  };
+
+  const deleteTheme = async () => {
+    const deletedIds = Object.keys(selectedThemeRows).map((id) => parseInt(id));
+    try {
+      await deleteThemeMutation.mutateAsync(deletedIds);
+    } catch {
+      // Handled by mutation onError.
+    }
   };
 
   useEffect(() => {
@@ -128,13 +159,13 @@ export default function ThemeManagement({ resetParent }: Props) {
   return (
     <TabsContent value="themes">
       <DataTable
-        columns={themeColumns(editTheme, isLoadingEditTheme)}
+        columns={themeColumns(editTheme, editThemeMutation.isPending)}
         data={themeList}
         rowSelection={selectedThemeRows}
         setRowSelection={setSelectedThemeRows}
         deleteData={deleteTheme}
         isLoadingData={isLoadingTheme}
-        isLoadingDeleteData={isLoadingDeleteTheme}
+        isLoadingDeleteData={deleteThemeMutation.isPending}
         page={themeListPage}
         setPage={setThemeListPage}
         metadata={themeMetadata}
@@ -154,7 +185,7 @@ export default function ThemeManagement({ resetParent }: Props) {
             setIsOpenDialog={setIsOpenAddTheme}
             entityType="Theme"
             addHandler={addTheme}
-            isLoadingAddEntity={isLoadingAddTheme}
+            isLoadingAddEntity={addThemeMutation.isPending}
           />
         }
       />

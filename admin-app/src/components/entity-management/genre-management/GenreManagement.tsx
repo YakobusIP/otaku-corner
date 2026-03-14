@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
 
 import { useToast } from "@/hooks/useToast";
+import { entityKeys } from "@/lib/query-keys";
 
 import { MetadataResponse } from "@/types/api.type";
 import { GenreWithMediaCount } from "@/types/entity.type";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 import { useDebounce } from "use-debounce";
 
@@ -25,9 +27,6 @@ export default function GenreManagement({ resetParent }: Props) {
   const [genreMetadata, setGenreMetadata] = useState<MetadataResponse>();
 
   const [isLoadingGenre, setIsLoadingGenre] = useState(false);
-  const [isLoadingAddGenre, setIsLoadingAddGenre] = useState(false);
-  const [isLoadingEditGenre, setIsLoadingEditGenre] = useState(false);
-  const [isLoadingDeleteGenre, setIsLoadingDeleteGenre] = useState(false);
 
   const [selectedGenreRows, setSelectedGenreRows] = useState({});
   const [genreListPage, setGenreListPage] = useState(1);
@@ -37,14 +36,17 @@ export default function GenreManagement({ resetParent }: Props) {
   const [isOpenAddGenre, setIsOpenAddGenre] = useState(false);
 
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   const toastRef = useRef(toast.toast);
 
   const fetchGenreList = useCallback(async () => {
     setIsLoadingGenre(true);
-    const response = await genreService.fetchAllWithMediaCount<
-      GenreWithMediaCount[]
-    >(genreListPage, 5, debouncedSearch);
+    const response = await genreService.fetchAllWithMediaCount<GenreWithMediaCount>(
+      genreListPage,
+      5,
+      debouncedSearch
+    );
     if (response.success) {
       setGenreList(response.data.data);
       setGenreMetadata(response.data.metadata);
@@ -58,67 +60,96 @@ export default function GenreManagement({ resetParent }: Props) {
     setIsLoadingGenre(false);
   }, [genreListPage, debouncedSearch]);
 
-  const addGenre = async (name: string) => {
-    setIsLoadingAddGenre(true);
-    const response = await genreService.addEntity(name);
-    if (response.success) {
-      fetchGenreList();
+  const addGenreMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const response = await genreService.addEntity(name);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.genres() });
+      await fetchGenreList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: "Genre added successfully"
       });
-      resetParent();
       setIsOpenAddGenre(false);
-    } else {
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: response.error
+        description: error.message
       });
     }
-    setIsLoadingAddGenre(false);
-  };
+  });
 
-  const editGenre = async (id: number, name: string) => {
-    setIsLoadingEditGenre(true);
-    const response = await genreService.updateEntity(id, name);
-    if (response.success) {
-      fetchGenreList();
+  const editGenreMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: number; name: string }) => {
+      const response = await genreService.updateEntity(id, name);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.genres() });
+      await fetchGenreList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: "Genre updated successfully"
       });
-      resetParent();
-    } else {
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
+        description: error.message
       });
     }
-    setIsLoadingEditGenre(false);
-  };
+  });
 
-  const deleteGenre = async () => {
-    setIsLoadingDeleteGenre(true);
-    const deletedIds = Object.keys(selectedGenreRows).map((id) => parseInt(id));
-    const response = await genreService.deleteEntity(deletedIds);
-    if (response.success) {
-      fetchGenreList();
+  const deleteGenreMutation = useMutation({
+    mutationFn: async (deletedIds: number[]) => {
+      const response = await genreService.deleteEntity(deletedIds);
+      if (!response.success) throw new Error(response.error);
+      return deletedIds;
+    },
+    onSuccess: async (deletedIds) => {
+      await queryClient.invalidateQueries({ queryKey: entityKeys.genres() });
+      await fetchGenreList();
+      await resetParent();
       toast.toast({
         title: "All set!",
         description: `${deletedIds.length} genre(s) deleted successfully`
       });
-      resetParent();
-    } else {
+      setSelectedGenreRows({});
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: "There was a problem with your request."
+        description: error.message
       });
+      setSelectedGenreRows({});
     }
-    setSelectedGenreRows({});
-    setIsLoadingDeleteGenre(false);
+  });
+
+  const addGenre = (name: string) => {
+    addGenreMutation.mutate(name);
+  };
+
+  const editGenre = (id: number, name: string) => {
+    editGenreMutation.mutate({ id, name });
+  };
+
+  const deleteGenre = async () => {
+    const deletedIds = Object.keys(selectedGenreRows).map((id) => parseInt(id));
+    try {
+      await deleteGenreMutation.mutateAsync(deletedIds);
+    } catch {
+      // Handled by mutation onError.
+    }
   };
 
   useEffect(() => {
@@ -128,13 +159,13 @@ export default function GenreManagement({ resetParent }: Props) {
   return (
     <TabsContent value="genres">
       <DataTable
-        columns={genreColumns(editGenre, isLoadingEditGenre)}
+        columns={genreColumns(editGenre, editGenreMutation.isPending)}
         data={genreList}
         rowSelection={selectedGenreRows}
         setRowSelection={setSelectedGenreRows}
         deleteData={deleteGenre}
         isLoadingData={isLoadingGenre}
-        isLoadingDeleteData={isLoadingDeleteGenre}
+        isLoadingDeleteData={deleteGenreMutation.isPending}
         page={genreListPage}
         setPage={setGenreListPage}
         metadata={genreMetadata}
@@ -154,7 +185,7 @@ export default function GenreManagement({ resetParent }: Props) {
             setIsOpenDialog={setIsOpenAddGenre}
             entityType="Genre"
             addHandler={addGenre}
-            isLoadingAddEntity={isLoadingAddGenre}
+            isLoadingAddEntity={addGenreMutation.isPending}
           />
         }
       />

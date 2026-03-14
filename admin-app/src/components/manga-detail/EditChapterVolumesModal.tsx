@@ -16,9 +16,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { useToast } from "@/hooks/useToast";
+import { detailKeys } from "@/lib/query-keys";
 
 import { MangaDetail } from "@/types/manga.type";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, PencilIcon } from "lucide-react";
 
 type Props = {
@@ -31,38 +33,45 @@ export default function EditChapterVolumesModal({
   resetParent
 }: Props) {
   const toast = useToast();
+  const queryClient = useQueryClient();
   const [chaptersCount, setChaptersCount] = useState(
     mangaDetail.chaptersCount ?? 0
   );
   const [volumesCount, setVolumesCount] = useState(
     mangaDetail.volumesCount ?? 0
   );
-  const [isLoadingUpdateMangaStats, setIsLoadingUpdateMangaStats] =
-    useState(false);
 
-  const updateMangaStats = async () => {
-    setIsLoadingUpdateMangaStats(true);
-    const response = await updateMangaVolumeAndChaptersService(
-      mangaDetail.id,
-      chaptersCount,
-      volumesCount
-    );
-
-    if (response.success) {
-      resetParent();
+  const updateMangaStatsMutation = useMutation({
+    mutationFn: async (payload: { chaptersCount: number; volumesCount: number }) => {
+      const response = await updateMangaVolumeAndChaptersService(
+        mangaDetail.id,
+        payload.chaptersCount,
+        payload.volumesCount
+      );
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({
+        queryKey: detailKeys.manga(mangaDetail.id)
+      });
+      await resetParent();
       toast.toast({
         title: "All set!",
-        description: response.data?.message ?? "Chapters and volumes updated successfully"
+        description: data?.message ?? "Chapters and volumes updated successfully"
       });
-    } else {
+    },
+    onError: (error: Error) => {
       toast.toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: response.error
+        description: error.message
       });
     }
+  });
 
-    setIsLoadingUpdateMangaStats(false);
+  const updateMangaStats = () => {
+    updateMangaStatsMutation.mutate({ chaptersCount, volumesCount });
   };
 
   return (
@@ -101,8 +110,12 @@ export default function EditChapterVolumesModal({
           />
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={updateMangaStats}>
-            {isLoadingUpdateMangaStats && (
+          <Button
+            type="submit"
+            onClick={updateMangaStats}
+            disabled={updateMangaStatsMutation.isPending}
+          >
+            {updateMangaStatsMutation.isPending && (
               <Loader2Icon className="w-4 h-4 animate-spin mr-2" />
             )}
             Save changes
