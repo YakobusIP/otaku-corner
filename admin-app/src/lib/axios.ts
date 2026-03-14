@@ -6,7 +6,35 @@ let accessToken: string | null = null;
 let refreshToken: string | null = null;
 let refreshTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
+/** In-flight refresh promise; shared by concurrent 401s to avoid duplicate refresh calls. */
+let refreshPromise: Promise<string | null> | null = null;
+
 const REFRESH_BUFFER_SECONDS = 60;
+const AUTH_REFRESH_PATH = "/api/auth/refresh";
+const REFRESH_TOKEN_STORAGE_KEY = "refreshToken";
+
+function getStoredRefreshToken(): string | null {
+  try {
+    const token = localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
+    return token || null;
+  } catch {
+    return null;
+  }
+}
+
+function persistRefreshToken(token: string | null) {
+  try {
+    if (token) {
+      localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, token);
+    } else {
+      localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore storage failures; in-memory token still works.
+  }
+}
+
+refreshToken = getStoredRefreshToken();
 
 const interceptedAxios: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_AXIOS_BASE_URL,
@@ -40,11 +68,13 @@ function decodeJwtPayload(token: string): JwtPayload | null {
 }
 
 async function refreshAccessToken(): Promise<string | null> {
-  if (!refreshToken) return null;
+  const activeRefreshToken = refreshToken ?? getStoredRefreshToken();
+  if (!activeRefreshToken) return null;
+  refreshToken = activeRefreshToken;
   try {
     const response = await axios.post<{ accessToken: string }>(
       `${import.meta.env.VITE_AXIOS_BASE_URL}/api/auth/refresh`,
-      { refreshToken },
+      { refreshToken: activeRefreshToken },
       { withCredentials: true }
     );
     return response.data.accessToken;
@@ -98,6 +128,7 @@ export const setAccessToken = (token: string | null) => {
 
 export const setRefreshToken = (token: string | null) => {
   refreshToken = token;
+  persistRefreshToken(token);
 };
 
 /**
@@ -110,7 +141,7 @@ export const setAuthTokens = (
 ) => {
   setAccessToken(newAccessToken);
   if (newRefreshToken) {
-    refreshToken = newRefreshToken;
+    setRefreshToken(newRefreshToken);
   }
   scheduleProactiveRefresh(newAccessToken);
 };
@@ -120,8 +151,9 @@ export const setAuthTokens = (
  */
 export const clearAuth = () => {
   clearRefreshTimer();
+  refreshPromise = null;
   accessToken = null;
-  refreshToken = null;
+  setRefreshToken(null);
   delete interceptedAxios.defaults.headers.common["Authorization"];
 };
 
@@ -137,7 +169,59 @@ interceptedAxios.interceptors.request.use(
 
 interceptedAxios.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => Promise.reject(error)
+  async (error: AxiosError) => {
+    const originalRequest = error.config as typeof error.config & {
+      _retry?: boolean;
+    };
+    if (error.response?.status !== 401 || !originalRequest) {
+      return Promise.reject(error);
+    }
+    if (originalRequest._retry) {
+      clearAuth();
+      return Promise.reject(error);
+    }
+
+    const url = typeof originalRequest.url === "string"
+      ? originalRequest.url
+      : originalRequest.baseURL
+        ? `${originalRequest.baseURL}${originalRequest.url ?? ""}`
+        : "";
+    const isRefreshRequest = url.includes(AUTH_REFRESH_PATH);
+
+    if (isRefreshRequest) {
+      clearAuth();
+      return Promise.reject(error);
+    }
+
+    if (!refreshToken && !getStoredRefreshToken()) {
+      clearAuth();
+      return Promise.reject(error);
+    }
+
+    if (!refreshPromise) {
+      refreshPromise = refreshAccessToken().finally(() => {
+        refreshPromise = null;
+      });
+    }
+    let token: string | null;
+    try {
+      token = await refreshPromise;
+      if (!token) {
+        clearAuth();
+        return Promise.reject(error);
+      }
+      originalRequest._retry = true;
+      setAccessToken(token);
+      scheduleProactiveRefresh(token);
+      if (originalRequest.headers) {
+        originalRequest.headers["Authorization"] = `Bearer ${token}`;
+      }
+      return interceptedAxios(originalRequest);
+    } catch {
+      clearAuth();
+      return Promise.reject(error);
+    }
+  }
 );
 
 export default interceptedAxios;
