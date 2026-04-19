@@ -22,17 +22,18 @@ import { SlidersHorizontalIcon } from "lucide-react";
 export default function MediaFilterSheet() {
   const { state, setState, resetFilters } = useMediaFilters();
   const isAnime = state.mediaType === "anime";
-  const isMangaOrLN = state.mediaType === "manga" || state.mediaType === "lightNovel";
+  const isMangaOrLN =
+    state.mediaType === "manga" || state.mediaType === "lightNovel";
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="shrink-0 gap-2">
           <SlidersHorizontalIcon className="h-4 w-4" />
           Filters
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent className="w-full md:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Advanced Filters</SheetTitle>
           <SheetDescription>
@@ -61,7 +62,9 @@ export default function MediaFilterSheet() {
                 <p className="text-sm mb-2">Studio</p>
                 <FilterStudio
                   selectedStudio={state.studio}
-                  handleFilterStudio={(key) => setState({ page: 1, studio: key })}
+                  handleFilterStudio={(key) =>
+                    setState({ page: 1, studio: key })
+                  }
                 />
               </div>
               <div>

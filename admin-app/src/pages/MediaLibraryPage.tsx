@@ -1,9 +1,13 @@
 import { useMemo } from "react";
 
-import { MediaFiltersProvider, useMediaFilters } from "@/components/context/MediaFiltersContext";
+import {
+  MediaFiltersProvider,
+  useMediaFilters
+} from "@/components/context/MediaFiltersContext";
 import AdminLayout from "@/components/layout/AdminLayout";
 import MediaHeader from "@/components/media/MediaHeader";
 import MediaListSection from "@/components/media/MediaListSection";
+
 import { useAnimeList } from "@/hooks/useAnimeList";
 import { useLightNovelList } from "@/hooks/useLightNovelList";
 import { useMangaList } from "@/hooks/useMangaList";
@@ -11,8 +15,12 @@ import { useMangaList } from "@/hooks/useMangaList";
 function MediaLibraryContent() {
   const { state } = useMediaFilters();
 
-  const animeQuery = useAnimeList(state.mediaType === "all" || state.mediaType === "anime");
-  const mangaQuery = useMangaList(state.mediaType === "all" || state.mediaType === "manga");
+  const animeQuery = useAnimeList(
+    state.mediaType === "all" || state.mediaType === "anime"
+  );
+  const mangaQuery = useMangaList(
+    state.mediaType === "all" || state.mediaType === "manga"
+  );
   const lightNovelQuery = useLightNovelList(
     state.mediaType === "all" || state.mediaType === "lightNovel"
   );

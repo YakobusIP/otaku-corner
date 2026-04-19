@@ -5,7 +5,7 @@ import {
   AnimeList,
   AnimeReviewRequest
 } from "@/types/anime.type";
-import { MetadataResponse } from "@/types/api.type";
+import { ApiResponse, MetadataResponse } from "@/types/api.type";
 import { StatusFilter } from "@/types/statistic.type";
 
 import interceptedAxios, { handleAxiosError } from "@/lib/axios";
@@ -49,25 +49,26 @@ const createAnimeService = () => {
     }
   ) => {
     try {
-      const response = await interceptedAxios.get<
-        PaginatedBody<AnimeList>
-      >(BASE_ANIME_URL, {
-        params: {
-          page: params.page,
-          limit: params.limit,
-          query: params.query,
-          sort: params.sortBy,
-          order: params.sortOrder,
-          genre: params.filterGenre,
-          studio: params.filterStudio,
-          theme: params.filterTheme,
-          status: params.filterProgressStatus,
-          malScore: params.filterMALScore,
-          personalScore: params.filterPersonalScore,
-          type: params.filterType,
-          statusCheck: params.filterStatusCheck
+      const response = await interceptedAxios.get<PaginatedBody<AnimeList>>(
+        BASE_ANIME_URL,
+        {
+          params: {
+            page: params.page,
+            limit: params.limit,
+            query: params.query,
+            sort: params.sortBy,
+            order: params.sortOrder,
+            genre: params.filterGenre,
+            studio: params.filterStudio,
+            theme: params.filterTheme,
+            status: params.filterProgressStatus,
+            malScore: params.filterMALScore,
+            personalScore: params.filterPersonalScore,
+            type: params.filterType,
+            statusCheck: params.filterStatusCheck
+          }
         }
-      });
+      );
       const body = response.data;
       return {
         data: body.data,
@@ -129,10 +130,10 @@ const createAnimeService = () => {
 
   const getDuplicates = async (id: number) => {
     try {
-      const response = await interceptedAxios.get<boolean>(
+      const response = await interceptedAxios.get<{ exists: boolean }>(
         `${BASE_ANIME_URL}/duplicate/${id}`
       );
-      return { exists: response.data };
+      return response.data;
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -177,10 +178,7 @@ const createAnimeService = () => {
     }
   };
 
-  const updateProgressStatus = async (
-    id: number,
-    data: PROGRESS_STATUS
-  ) => {
+  const updateProgressStatus = async (id: number, data: PROGRESS_STATUS) => {
     try {
       const response = await interceptedAxios.put<{ message?: string }>(
         `${BASE_ANIME_URL}/${id}/review`,

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 
 import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
 import { BaseCrudService } from "@/common/crud/base-crud.service";
@@ -17,6 +17,7 @@ import {
   UpdateAnimeDto,
   UpdateAnimeReviewDto
 } from "@/anime/dto";
+import { FetchEpisodesQueueService } from "@/anime/fetch-episodes-queue.service";
 import { GenresService } from "@/genre/genres.service";
 import { StudiosService } from "@/studio/studios.service";
 import { ThemesService } from "@/theme/themes.service";
@@ -114,7 +115,8 @@ export class AnimeService extends BaseCrudService<
     queryBuilder: CrudQueryBuilder,
     @Inject(GenresService) private readonly genresService: GenresService,
     @Inject(StudiosService) private readonly studiosService: StudiosService,
-    @Inject(ThemesService) private readonly themesService: ThemesService
+    @Inject(ThemesService) private readonly themesService: ThemesService,
+    private readonly fetchEpisodesQueue: FetchEpisodesQueueService
   ) {
     super(prisma, queryBuilder);
   }
@@ -236,7 +238,6 @@ export class AnimeService extends BaseCrudService<
     })) as AnimeDetailRaw | null;
 
     if (!anime) {
-      const { NotFoundException } = await import("@nestjs/common");
       throw new NotFoundException("Anime not found");
     }
 
@@ -307,23 +308,28 @@ export class AnimeService extends BaseCrudService<
                     .map((themeId) => ({ themeId }))
                 }
               },
-              episodes: {
-                createMany: {
-                  data: episodes.map((ep) => ({
-                    aired: ep.aired,
-                    number: ep.number,
-                    title: ep.title,
-                    titleJapanese: ep.titleJapanese,
-                    titleRomaji: ep.titleRomaji
-                  }))
-                }
-              },
+              ...(episodes.length > 0
+                ? {
+                    episodes: {
+                      createMany: {
+                        data: episodes.map((ep) => ({
+                          aired: ep.aired,
+                          number: ep.number,
+                          title: ep.title,
+                          titleJapanese: ep.titleJapanese,
+                          titleRomaji: ep.titleRomaji
+                        }))
+                      }
+                    }
+                  }
+                : {}),
               review: {
                 create: {}
               }
             }
           });
 
+          this.fetchEpisodesQueue.enqueueAfterCreate(item.id, item.type);
           results.push(item.id);
         }
       });
@@ -370,16 +376,17 @@ export class AnimeService extends BaseCrudService<
     });
   }
 
-  async checkDuplicate(id: number): Promise<boolean> {
+  async checkDuplicate(id: number): Promise<{ exists: boolean }> {
     const anime = await this.prisma.anime.findUnique({
       where: { id },
       select: { id: true }
     });
-    return !!anime;
+    return { exists: !!anime };
   }
 
-  async getTotal(): Promise<number> {
-    return this.prisma.anime.count();
+  async getTotal(): Promise<{ count: number }> {
+    const count = await this.prisma.anime.count();
+    return { count };
   }
 
   async getSitemapData(page: number, limit: number) {

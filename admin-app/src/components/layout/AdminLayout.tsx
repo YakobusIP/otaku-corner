@@ -85,8 +85,8 @@ export default function AdminLayout({
 }: Props) {
   return (
     <div className="h-screen overflow-hidden text-foreground">
-      <div className="grid h-full w-full grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="sticky top-0 hidden h-screen flex-col border-r border-border/60 bg-card/70 backdrop-blur-xl lg:flex">
+      <div className="grid h-full w-full grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="sticky top-0 hidden h-screen flex-col border-r border-border/60 bg-card/70 backdrop-blur-xl xl:flex">
           <div className="flex h-full flex-col p-4">
             <img src="/logo.png" className="mb-4 w-36" />
             <ScrollArea className="min-h-0 flex-1 pr-2">
@@ -102,7 +102,7 @@ export default function AdminLayout({
           <header className="sticky top-0 z-40 border-b border-border/60 bg-card/60 backdrop-blur-xl">
             <div className="px-4 py-3 md:px-6 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="lg:hidden">
+                <div className="xl:hidden">
                   <Sheet>
                     <SheetTrigger asChild>
                       <Button variant="ghost" size="icon">

@@ -1,33 +1,40 @@
-import FilterPopover from "@/components/filter-sort-dropdowns/FilterPopover";
-
-import { GenericKeyLabel } from "@/types/general.type";
+import { Button } from "@/components/ui/button";
 
 type Props = {
-  selectedStatusCheck?: GenericKeyLabel["key"];
-  handleFilterStatusCheck: (key?: GenericKeyLabel["key"]) => void;
+  selectedStatusCheck?: string;
+  handleFilterStatusCheck: (key?: string) => void;
 };
-
-const items: GenericKeyLabel[] = [
-  { key: "complete", label: "Completed" },
-  { key: "incomplete", label: "Incomplete" }
-];
 
 export default function FilterStatusCheck({
   selectedStatusCheck,
   handleFilterStatusCheck
 }: Props) {
   return (
-    <FilterPopover<GenericKeyLabel, GenericKeyLabel["key"]>
-      selectedKey={selectedStatusCheck}
-      onChange={(key) => handleFilterStatusCheck(key)}
-      items={items}
-      getKey={(s) => s.key}
-      getLabel={(s) => s.label}
-      placeholder="Search status check..."
-      buttonFallbackLabel="Status check"
-      emptyText="No status check found."
-      showAllOption
-      allOptionLabel="All status checks"
-    />
+    <div className="grid w-full grid-cols-2 gap-2">
+      <Button
+        size="sm"
+        variant={selectedStatusCheck === "complete" ? "default" : "outline"}
+        className="w-full"
+        onClick={() =>
+          handleFilterStatusCheck(
+            selectedStatusCheck === "complete" ? undefined : "complete"
+          )
+        }
+      >
+        Complete
+      </Button>
+      <Button
+        size="sm"
+        variant={selectedStatusCheck === "incomplete" ? "default" : "outline"}
+        className="w-full"
+        onClick={() =>
+          handleFilterStatusCheck(
+            selectedStatusCheck === "incomplete" ? undefined : "incomplete"
+          )
+        }
+      >
+        Incomplete
+      </Button>
+    </div>
   );
 }

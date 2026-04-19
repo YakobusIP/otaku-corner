@@ -20,17 +20,23 @@ export default function SortDirection({ sort, order, handleSort }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="default" className="h-10 w-auto min-w-[170px]">
-          Sort by:{" "}
-          {sort === "title"
-            ? "Title"
-            : sort === "score"
-              ? "MAL Score"
-              : "Personal Score"}
+        <Button
+          variant="outline"
+          size="default"
+          className="h-10 w-full min-w-0 shrink-0 justify-start gap-1 px-2 text-sm md:w-auto md:max-w-[13rem] md:px-3 lg:max-w-none lg:min-w-[170px]"
+        >
+          <span className="min-w-0 truncate text-left">
+            Sort by:{" "}
+            {sort === "title"
+              ? "Title"
+              : sort === "score"
+                ? "MAL Score"
+                : "Personal Score"}
+          </span>
           {order === SORT_ORDER.ASCENDING ? (
-            <ArrowUpIcon className="ml-2 w-4 h-4" />
+            <ArrowUpIcon className="ml-1 h-4 w-4 shrink-0" />
           ) : (
-            <ArrowDownIcon className="ml-2 w-4 h-4" />
+            <ArrowDownIcon className="ml-1 h-4 w-4 shrink-0" />
           )}
         </Button>
       </DropdownMenuTrigger>

@@ -1,4 +1,5 @@
 import { ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
@@ -29,16 +30,18 @@ async function bootstrap() {
 
   app.useGlobalFilters(new PrismaExceptionFilter());
 
-  const config = new DocumentBuilder()
+  const configService = app.get(ConfigService);
+
+  const swaggerConfig = new DocumentBuilder()
     .setTitle("Otaku Corner API")
     .setDescription("API documentation for Otaku Corner")
     .setVersion("1.0")
     .addTag("otaku-corner")
     .addBearerAuth()
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup("api/docs", app, document);
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(configService.get<number>("PORT") ?? 5000);
 }
 void bootstrap();

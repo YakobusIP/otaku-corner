@@ -44,7 +44,7 @@ export class UploadService {
 
     writeFileSync(filePath, file.buffer);
 
-    const port = this.config.get<number>("PORT") || 3000;
+    const port = this.config.get<number>("PORT") || 5000;
     const url = `http://localhost:${port}/uploads/${filename}`;
 
     const reviewConnect = this.buildReviewConnect(type, reviewId);

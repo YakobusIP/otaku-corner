@@ -82,7 +82,7 @@ export default function ReviewEditor({
   };
 
   return (
-    <div data-color-mode="light">
+    <div data-color-mode="dark" className="review-editor-dark">
       <style>
         {`
           ol {
@@ -123,6 +123,78 @@ export default function ReviewEditor({
             overflow: visible;
             clear: none;
             margin-top: 0;
+          }
+
+          .review-editor-dark .w-md-editor {
+            background-color: hsl(var(--background) / 0.4);
+            border: 1px solid hsl(var(--border) / 0.6);
+            border-radius: 0.5rem;
+            backdrop-filter: blur(12px);
+            color: hsl(var(--foreground));
+            --md-editor-font-family: inherit;
+            box-shadow: none;
+          }
+
+          .review-editor-dark .w-md-editor-toolbar {
+            background-color: hsl(var(--background) / 0.6);
+            border-bottom: 1px solid hsl(var(--border) / 0.5);
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+          }
+
+          .review-editor-dark .w-md-editor-toolbar ul > li > button {
+            color: hsl(var(--muted-foreground));
+          }
+
+          .review-editor-dark .w-md-editor-toolbar ul > li > button:hover,
+          .review-editor-dark .w-md-editor-toolbar ul > li.active > button {
+            color: hsl(var(--foreground));
+            background-color: hsl(var(--muted) / 0.4);
+          }
+
+          .review-editor-dark .w-md-editor-toolbar-divider {
+            background-color: hsl(var(--border) / 0.6);
+          }
+
+          .review-editor-dark .w-md-editor-text,
+          .review-editor-dark .w-md-editor-text-pre,
+          .review-editor-dark .w-md-editor-text-input,
+          .review-editor-dark .w-md-editor-input {
+            background-color: transparent !important;
+            color: hsl(var(--foreground)) !important;
+          }
+
+          .review-editor-dark .w-md-editor-text-pre > code,
+          .review-editor-dark .w-md-editor-text-input {
+            color: hsl(var(--foreground)) !important;
+            -webkit-text-fill-color: hsl(var(--foreground)) !important;
+          }
+
+          .review-editor-dark .w-md-editor-preview {
+            background-color: hsl(var(--background) / 0.3);
+            border-left: 1px solid hsl(var(--border) / 0.5);
+          }
+
+          .review-editor-dark .wmde-markdown {
+            background-color: transparent;
+            color: hsl(var(--foreground));
+          }
+
+          .review-editor-dark .wmde-markdown code {
+            background-color: hsl(var(--muted) / 0.5);
+          }
+
+          .review-editor-dark .wmde-markdown pre {
+            background-color: hsl(var(--muted) / 0.4);
+          }
+
+          .review-editor-dark .wmde-markdown blockquote {
+            border-left-color: hsl(var(--border));
+            color: hsl(var(--muted-foreground));
+          }
+
+          .review-editor-dark .w-md-editor-bar {
+            background-color: hsl(var(--background) / 0.4);
           }
           `}
       </style>

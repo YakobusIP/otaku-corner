@@ -38,24 +38,25 @@ const createMangaService = () => {
     status_check?: string
   ) => {
     try {
-      const response = await interceptedAxios.get<
-        PaginatedBody<MangaList>
-      >(BASE_MANGA_URL, {
-        params: {
-          page,
-          limit,
-          query,
-          sort,
-          order,
-          author,
-          genre,
-          theme,
-          status,
-          malScore: mal_score,
-          personalScore: personal_score,
-          statusCheck: status_check
+      const response = await interceptedAxios.get<PaginatedBody<MangaList>>(
+        BASE_MANGA_URL,
+        {
+          params: {
+            page,
+            limit,
+            query,
+            sort,
+            order,
+            author,
+            genre,
+            theme,
+            status,
+            malScore: mal_score,
+            personalScore: personal_score,
+            statusCheck: status_check
+          }
         }
-      });
+      );
       const body = response.data;
       return {
         data: body.data,

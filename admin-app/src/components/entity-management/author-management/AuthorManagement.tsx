@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
 
 import { useToast } from "@/hooks/useToast";
-import { entityKeys } from "@/lib/query-keys";
 
 import { MetadataResponse } from "@/types/api.type";
 import { AuthorWithMediaCount } from "@/types/entity.type";
+
+import { entityKeys } from "@/lib/query-keys";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
@@ -42,11 +43,12 @@ export default function AuthorManagement({ resetParent }: Props) {
 
   const fetchAuthorList = useCallback(async () => {
     setIsLoadingAuthor(true);
-    const response = await authorService.fetchAllWithMediaCount<AuthorWithMediaCount>(
-      authorListPage,
-      5,
-      debouncedSearch
-    );
+    const response =
+      await authorService.fetchAllWithMediaCount<AuthorWithMediaCount>(
+        authorListPage,
+        10,
+        debouncedSearch
+      );
     if (response.success) {
       setAuthorList(response.data.data);
       setAuthorMetadata(response.data.metadata);

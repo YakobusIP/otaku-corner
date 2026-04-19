@@ -225,7 +225,10 @@ const updateLightNovelReviewService = async (
   data: LightNovelReviewRequest
 ): Promise<ServiceResult<{ message?: string }>> => {
   try {
-    return { success: true, data: await lightNovelService.updateReview(id, data) };
+    return {
+      success: true,
+      data: await lightNovelService.updateReview(id, data)
+    };
   } catch (error) {
     return { success: false, error: (error as Error).message };
   }
@@ -250,7 +253,10 @@ const updateLightNovelVolumesService = async (
   volumesCount: number
 ): Promise<ServiceResult<{ message?: string }>> => {
   try {
-    return { success: true, data: await lightNovelService.updateVolumes(id, volumesCount) };
+    return {
+      success: true,
+      data: await lightNovelService.updateVolumes(id, volumesCount)
+    };
   } catch (error) {
     return { success: false, error: (error as Error).message };
   }

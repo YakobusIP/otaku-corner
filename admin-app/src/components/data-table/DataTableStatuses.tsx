@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { CircleCheckIcon, InfoIcon, LucideIcon } from "lucide-react";
 import { Fragment } from "react/jsx-runtime";
 
-type Checks = {
+export type StatusCheck = {
   key: string;
   Trigger: LucideIcon;
   condition: boolean;
@@ -29,7 +29,7 @@ type Checks = {
 };
 
 type Props = {
-  checks: Checks[];
+  checks: StatusCheck[];
 };
 
 export default function DataTableStatuses({ checks }: Props) {

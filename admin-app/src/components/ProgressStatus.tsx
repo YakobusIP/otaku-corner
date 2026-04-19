@@ -37,13 +37,15 @@ type Props = {
     | { success: true; data: MessageResponse }
     | { success: false; error: string }
   >;
+  triggerClassName?: string;
 };
 
 export default function ProgressStatus({
   id,
   progressStatus,
   setProgressStatus,
-  serviceFn
+  serviceFn,
+  triggerClassName
 }: Props) {
   const [selectedStatus, setSelectedStatus] = useState(progressStatus);
   const toast = useToast();
@@ -138,7 +140,9 @@ export default function ProgressStatus({
       value={selectedStatus}
       onValueChange={handleStatusChange}
     >
-      <SelectTrigger className={cn("w-[180px]", selectedStatusColor)}>
+      <SelectTrigger
+        className={cn("w-[180px]", selectedStatusColor, triggerClassName)}
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

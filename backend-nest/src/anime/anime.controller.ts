@@ -12,6 +12,7 @@ import {
 } from "@nestjs/common";
 import {
   ApiBody,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -28,8 +29,10 @@ import {
   AnimeDetailResponseDto,
   AnimeListResponseDto,
   AnimeQueryDto,
+  AnimeTotalResponseDto,
   CreateAnimeBulkDto,
   CreateAnimeItemDto,
+  DuplicateCheckResponseDto,
   PaginatedAnimeResponseDto,
   UpdateAnimeDto,
   UpdateAnimeReviewDto
@@ -68,12 +71,17 @@ export class AnimeController extends BaseCrudController<
   @Get("total")
   @Public()
   @ApiOperation({ summary: "Get total anime count" })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: "Returns total number of anime",
-    type: Number
+    schema: {
+      type: "object",
+      required: ["count"],
+      properties: {
+        count: { type: "number", example: 42 }
+      }
+    }
   })
-  async getTotal(): Promise<number> {
+  async getTotal(): Promise<AnimeTotalResponseDto> {
     return this.service.getTotal();
   }
 
@@ -96,14 +104,19 @@ export class AnimeController extends BaseCrudController<
   @Public()
   @ApiOperation({ summary: "Check if anime exists by ID" })
   @ApiParam({ name: "id", description: "Anime MAL ID", type: Number })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: "Returns whether anime exists",
-    type: Boolean
+    schema: {
+      type: "object",
+      required: ["exists"],
+      properties: {
+        exists: { type: "boolean", example: true }
+      }
+    }
   })
   async checkDuplicate(
     @Param("id", ParseIntPipe) id: number
-  ): Promise<boolean> {
+  ): Promise<DuplicateCheckResponseDto> {
     return this.service.checkDuplicate(id);
   }
 
