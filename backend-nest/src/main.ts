@@ -4,11 +4,14 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 import { PrismaExceptionFilter } from "@/common/filters/prisma-exception.filter";
+import { WinstonLoggerService } from "@/common/logging/winston-logger.service";
 
 import { AppModule } from "@/app.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(WinstonLoggerService));
+  app.flushLogs();
 
   app.setGlobalPrefix("api");
 
@@ -28,7 +31,7 @@ async function bootstrap() {
     })
   );
 
-  app.useGlobalFilters(new PrismaExceptionFilter());
+  app.useGlobalFilters(app.get(PrismaExceptionFilter));
 
   const configService = app.get(ConfigService);
 

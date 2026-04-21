@@ -2,6 +2,8 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 
 import { BullQueueModule } from "@/common/bull/bull-queue.module";
+import { PrismaExceptionFilter } from "@/common/filters/prisma-exception.filter";
+import { LoggingModule } from "@/common/logging/logging.module";
 
 import { PrismaModule } from "@/prisma/prisma.module";
 
@@ -26,6 +28,7 @@ import { UploadModule } from "@/upload/upload.module";
       isGlobal: true,
       validate: validateEnv
     }),
+    LoggingModule,
     BullQueueModule,
     PrismaModule,
     AuthModule,
@@ -40,6 +43,6 @@ import { UploadModule } from "@/upload/upload.module";
     UploadModule
   ],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [AppService, PrismaExceptionFilter]
 })
 export class AppModule {}

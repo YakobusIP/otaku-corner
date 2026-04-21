@@ -8,7 +8,8 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Query
+  Query,
+  Req
 } from "@nestjs/common";
 import {
   ApiBody,
@@ -23,6 +24,7 @@ import { BaseCrudController } from "@/common/crud/base-crud.controller";
 import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { Public } from "@/common/decorators/public.decorator";
 import { BulkDeleteDto, PaginationQueryDto } from "@/common/dto";
+import { getRequestLogContextFromRequest } from "@/common/logging/request-log-context";
 
 import { AnimeService } from "@/anime/anime.service";
 import {
@@ -37,6 +39,8 @@ import {
   UpdateAnimeDto,
   UpdateAnimeReviewDto
 } from "@/anime/dto";
+
+import type { Request } from "express";
 
 @AuthenticatedApiController({
   tag: "Animes",
@@ -154,8 +158,11 @@ export class AnimeController extends BaseCrudController<
     status: 201,
     description: "Anime created successfully"
   })
-  async createBulk(@Body() dto: CreateAnimeBulkDto) {
-    return this.service.createBulk(dto.data);
+  async createBulk(@Body() dto: CreateAnimeBulkDto, @Req() req: Request) {
+    return this.service.createBulk(
+      dto.data,
+      getRequestLogContextFromRequest(req)
+    );
   }
 
   @Put(":id")

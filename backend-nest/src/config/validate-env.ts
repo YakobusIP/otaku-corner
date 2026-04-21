@@ -42,7 +42,31 @@ export const envSchema = z.object({
   CANONICAL_PUBLIC_APP_URL: z.url().trim(),
   PUBLIC_APP_URL: z.url().trim(),
 
-  UPLOADS_DIR: z.string().optional()
+  UPLOADS_DIR: z.string().optional(),
+
+  LOG_SERVICE_NAME: z.string().trim().min(1).optional(),
+  LOG_LEVEL: z.preprocess(
+    (v) => {
+      if (typeof v !== "string" || v.trim() === "") {
+        return "info";
+      }
+      return v.trim().toLowerCase();
+    },
+    z.enum(["error", "warn", "info", "debug"])
+  ),
+  LOG_TO_STDOUT: z.preprocess((v) => {
+    if (typeof v !== "string" || v.trim() === "") {
+      return true;
+    }
+    const normalized = v.trim().toLowerCase();
+    if (normalized === "true") {
+      return true;
+    }
+    if (normalized === "false") {
+      return false;
+    }
+    return v;
+  }, z.boolean())
 });
 
 export type Env = z.infer<typeof envSchema>;

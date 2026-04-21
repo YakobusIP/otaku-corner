@@ -5,7 +5,7 @@ import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { AnimeQueryBuilder } from "@/anime/anime-query-builder";
 import { AnimeController } from "@/anime/anime.controller";
 import { AnimeService } from "@/anime/anime.service";
-import { FetchEpisodesQueueService } from "@/anime/fetch-episodes-queue.service";
+import { FetchEpisodesQueueService } from "@/anime/fetch-episodes.queue";
 import { GenresModule } from "@/genre/genres.module";
 import { StudiosModule } from "@/studio/studios.module";
 import { ThemesModule } from "@/theme/themes.module";

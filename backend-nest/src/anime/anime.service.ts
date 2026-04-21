@@ -4,6 +4,7 @@ import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
 import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
+import type { RequestLogContextStore } from "@/common/logging/request-log-context";
 import { chunkArray } from "@/common/utils/chunk-array";
 
 import { PrismaService } from "@/prisma/prisma.service";
@@ -17,7 +18,7 @@ import {
   UpdateAnimeDto,
   UpdateAnimeReviewDto
 } from "@/anime/dto";
-import { FetchEpisodesQueueService } from "@/anime/fetch-episodes-queue.service";
+import { FetchEpisodesQueueService } from "@/anime/fetch-episodes.queue";
 import { GenresService } from "@/genre/genres.service";
 import { StudiosService } from "@/studio/studios.service";
 import { ThemesService } from "@/theme/themes.service";
@@ -252,7 +253,10 @@ export class AnimeService extends BaseCrudService<
     } as AnimeDetailResponseDto;
   }
 
-  async createBulk(data: CreateAnimeItemDto[]) {
+  async createBulk(
+    data: CreateAnimeItemDto[],
+    requestLog?: RequestLogContextStore
+  ) {
     const allGenreNames = [...new Set(data.flatMap((d) => d.genres))];
     const allStudioNames = [...new Set(data.flatMap((d) => d.studios))];
     const allThemeNames = [...new Set(data.flatMap((d) => d.themes))];
@@ -329,7 +333,11 @@ export class AnimeService extends BaseCrudService<
             }
           });
 
-          this.fetchEpisodesQueue.enqueueAfterCreate(item.id, item.type);
+          this.fetchEpisodesQueue.enqueueAfterCreate(
+            item.id,
+            item.type,
+            requestLog
+          );
           results.push(item.id);
         }
       });
