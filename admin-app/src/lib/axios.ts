@@ -181,11 +181,12 @@ interceptedAxios.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const url = typeof originalRequest.url === "string"
-      ? originalRequest.url
-      : originalRequest.baseURL
-        ? `${originalRequest.baseURL}${originalRequest.url ?? ""}`
-        : "";
+    const url =
+      typeof originalRequest.url === "string"
+        ? originalRequest.url
+        : originalRequest.baseURL
+          ? `${originalRequest.baseURL}${originalRequest.url ?? ""}`
+          : "";
     const isRefreshRequest = url.includes(AUTH_REFRESH_PATH);
 
     if (isRefreshRequest) {

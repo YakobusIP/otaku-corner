@@ -150,8 +150,10 @@ const safeCall = async <T>(fn: () => Promise<T>): Promise<ServiceResult<T>> => {
 
 const fetchYearRangeService = async () =>
   safeCall(statisticService.fetchYearRange);
-const fetchMediaConsumptionService = async (view: STATISTICS_VIEW, year?: string) =>
-  safeCall(() => statisticService.fetchMediaConsumption(view, year));
+const fetchMediaConsumptionService = async (
+  view: STATISTICS_VIEW,
+  year?: string
+) => safeCall(() => statisticService.fetchMediaConsumption(view, year));
 const fetchMediaProgressService = async (
   media: "anime" | "manga" | "lightNovel"
 ) => safeCall(() => statisticService.fetchMediaProgress(media));

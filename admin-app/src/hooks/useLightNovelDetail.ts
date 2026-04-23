@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { fetchLightNovelByIdService } from "@/services/lightnovel.service";
 
 import { detailKeys } from "@/lib/query-keys";
-import { fetchLightNovelByIdService } from "@/services/lightnovel.service";
+
+import { useQuery } from "@tanstack/react-query";
 
 export const useLightNovelDetail = (id: number | undefined) => {
   const hasValidId = typeof id === "number" && Number.isFinite(id);

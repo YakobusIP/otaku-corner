@@ -2,9 +2,9 @@ import { useEffect } from "react";
 
 import AllTimeStatisticsCards from "@/components/dashboard/AllTimeStatisticsCards";
 import EntityConsumptionCard from "@/components/dashboard/EntityConsumptionCard";
-import AdminLayout from "@/components/layout/AdminLayout";
 import MediaConsumptionCard from "@/components/dashboard/MediaConsumptionCard";
 import ProgressStatusCard from "@/components/dashboard/ProgressStatusCard";
+import AdminLayout from "@/components/layout/AdminLayout";
 
 export default function Dashboard() {
   useEffect(() => {

@@ -1,8 +1,7 @@
+import type { StatusCheck } from "@/components/data-table/DataTableStatuses";
 import { StatusProgressBar } from "@/components/ui/status-progress-bar";
 
 import { cn } from "@/lib/utils";
-
-import type { StatusCheck } from "@/components/data-table/DataTableStatuses";
 
 type Props = {
   checks: StatusCheck[];

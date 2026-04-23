@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
 
 import { useToast } from "@/hooks/useToast";
-import { entityKeys } from "@/lib/query-keys";
 
 import { MetadataResponse } from "@/types/api.type";
 import { StudioWithMediaCount } from "@/types/entity.type";
+
+import { entityKeys } from "@/lib/query-keys";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
@@ -42,11 +43,12 @@ export default function StudioManagement({ resetParent }: Props) {
 
   const fetchStudioList = useCallback(async () => {
     setIsLoadingStudio(true);
-    const response = await studioService.fetchAllWithMediaCount<StudioWithMediaCount>(
-      studioListPage,
-      5,
-      debouncedSearch
-    );
+    const response =
+      await studioService.fetchAllWithMediaCount<StudioWithMediaCount>(
+        studioListPage,
+        5,
+        debouncedSearch
+      );
     if (response.success) {
       setStudioList(response.data.data);
       setStudioMetadata(response.data.metadata);

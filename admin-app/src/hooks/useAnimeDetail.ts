@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { animeService } from "@/services/anime.service";
 
 import { detailKeys } from "@/lib/query-keys";
-import { animeService } from "@/services/anime.service";
+
+import { useQuery } from "@tanstack/react-query";
 
 export const useAnimeDetail = (id: number | undefined) => {
   const hasValidId = typeof id === "number" && Number.isFinite(id);

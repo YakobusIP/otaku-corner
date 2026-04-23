@@ -96,7 +96,9 @@ export default function AddAnimeDialog({
         type: anime.type,
         status: anime.status,
         rating: anime.rating ?? "Unrated",
-        season: anime.season ? `${anime.season.toUpperCase()} ${anime.year}` : null,
+        season: anime.season
+          ? `${anime.season.toUpperCase()} ${anime.year}`
+          : null,
         title: anime.title,
         titleJapanese: anime.title_japanese,
         titleSynonyms: anime.title_synonyms
@@ -196,7 +198,10 @@ export default function AddAnimeDialog({
           </div>
         </ScrollArea>
         {selectedAnime.length > 0 && (
-          <Button onClick={() => addAnime()} disabled={addAnimeMutation.isPending}>
+          <Button
+            onClick={() => addAnime()}
+            disabled={addAnimeMutation.isPending}
+          >
             {addAnimeMutation.isPending && (
               <Loader2Icon className="w-4 h-4 animate-spin" />
             )}

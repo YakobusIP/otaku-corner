@@ -16,11 +16,11 @@ import {
 } from "@/components/ui/popover";
 
 import { useToast } from "@/hooks/useToast";
-import { detailKeys } from "@/lib/query-keys";
 
 import { MangaDetail, MangaReviewRequest } from "@/types/manga.type";
 
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
+import { detailKeys } from "@/lib/query-keys";
 import { createUTCDate, extractImageIds } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -160,12 +160,7 @@ export default function MangaReviewSection({ mangaDetail }: Props) {
         silent: payload.silent
       };
     },
-    onSuccess: async ({
-      message,
-      currentImageIds,
-      snapshotAtSave,
-      silent
-    }) => {
+    onSuccess: async ({ message, currentImageIds, snapshotAtSave, silent }) => {
       savedSnapshotRef.current = snapshotAtSave;
       setLastSavedAt(new Date());
       await queryClient.invalidateQueries({

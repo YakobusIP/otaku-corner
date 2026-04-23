@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 import { useToast } from "@/hooks/useToast";
-import { detailKeys } from "@/lib/query-keys";
 
 import {
   LightNovelDetail,
@@ -19,6 +18,7 @@ import {
 } from "@/types/lightnovel.type";
 
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
+import { detailKeys } from "@/lib/query-keys";
 import { extractImageIds } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";

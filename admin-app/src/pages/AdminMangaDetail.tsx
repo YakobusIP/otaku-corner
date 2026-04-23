@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
+import AdminLayout from "@/components/layout/AdminLayout";
 import MangaHero from "@/components/manga-detail/MangaHero";
 import MangaInfoSection from "@/components/manga-detail/MangaInfoSection";
 import MangaReviewSection from "@/components/manga-detail/MangaReviewSection";
-import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,13 +17,15 @@ import { Link, useParams } from "react-router-dom";
 export default function AdminMangaDetail() {
   const { mangaId } = useParams();
   const parsedId = mangaId ? parseInt(mangaId, 10) : undefined;
-  const hasValidId =
-    typeof parsedId === "number" && Number.isFinite(parsedId);
+  const hasValidId = typeof parsedId === "number" && Number.isFinite(parsedId);
 
   const toast = useToast();
-  const { data: mangaDetail, isLoading, isError, error } = useMangaDetail(
-    hasValidId ? parsedId : undefined
-  );
+  const {
+    data: mangaDetail,
+    isLoading,
+    isError,
+    error
+  } = useMangaDetail(hasValidId ? parsedId : undefined);
 
   useEffect(() => {
     if (mangaDetail) {

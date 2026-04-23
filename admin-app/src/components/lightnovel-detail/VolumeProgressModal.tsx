@@ -26,10 +26,10 @@ import {
 } from "@/components/ui/tooltip";
 
 import { useToast } from "@/hooks/useToast";
-import { detailKeys } from "@/lib/query-keys";
 
 import { LightNovelDetail } from "@/types/lightnovel.type";
 
+import { detailKeys } from "@/lib/query-keys";
 import { cn, createUTCDate } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -54,9 +54,8 @@ export default function VolumeProgressModal({
     mutationFn: async (
       nextVolumeProgress: { id: number; consumedAt?: Date | null }[]
     ) => {
-      const response = await updateLightNovelVolumeProgressService(
-        nextVolumeProgress
-      );
+      const response =
+        await updateLightNovelVolumeProgressService(nextVolumeProgress);
       if (!response.success) throw new Error(response.error);
       return response.data;
     },

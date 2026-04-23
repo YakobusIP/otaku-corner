@@ -55,7 +55,10 @@ const uploadImageService = async (
   reviewId: number
 ): Promise<ServiceResult<UploadImage>> => {
   try {
-    return { success: true, data: await uploadService.upload(file, type, reviewId) };
+    return {
+      success: true,
+      data: await uploadService.upload(file, type, reviewId)
+    };
   } catch (error) {
     return { success: false, error: (error as Error).message };
   }

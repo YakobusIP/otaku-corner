@@ -206,9 +206,7 @@ export default function AnimeHero({ animeDetail }: Props) {
           tint="bg-emerald-500/10 border-emerald-400/30"
           label="Personal Score"
           value={
-            typeof personalScore === "number"
-              ? personalScore.toFixed(2)
-              : "N/A"
+            typeof personalScore === "number" ? personalScore.toFixed(2) : "N/A"
           }
         />
         <StatTile

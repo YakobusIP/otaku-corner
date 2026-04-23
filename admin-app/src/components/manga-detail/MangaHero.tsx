@@ -199,7 +199,9 @@ export default function MangaHero({ mangaDetail }: Props) {
           icon={<StarIcon className="h-5 w-5 text-amber-400" />}
           tint="bg-amber-500/10 border-amber-400/30"
           label="MAL Score"
-          value={mangaDetail.score != null ? mangaDetail.score.toFixed(2) : "N/A"}
+          value={
+            mangaDetail.score != null ? mangaDetail.score.toFixed(2) : "N/A"
+          }
         />
         <StatTile
           icon={<UserIcon className="h-5 w-5 text-emerald-400" />}

@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { animeService } from "@/services/anime.service";
+import { lightNovelService } from "@/services/lightnovel.service";
+import { mangaService } from "@/services/manga.service";
+
 import { useMediaFilters } from "@/components/context/MediaFiltersContext";
+import type { StatusCheck } from "@/components/data-table/DataTableStatuses";
 import MediaRow from "@/components/media/MediaRow";
 import { Button } from "@/components/ui/button";
 
@@ -9,17 +14,11 @@ import { useInfiniteAnimeList } from "@/hooks/useInfiniteAnimeList";
 import { useInfiniteLightNovelList } from "@/hooks/useInfiniteLightNovelList";
 import { useInfiniteMangaList } from "@/hooks/useInfiniteMangaList";
 import { useToast } from "@/hooks/useToast";
+
 import { mediaKeys } from "@/lib/query-keys";
-import { animeService } from "@/services/anime.service";
-import { lightNovelService } from "@/services/lightnovel.service";
-import { mangaService } from "@/services/manga.service";
-import type { StatusCheck } from "@/components/data-table/DataTableStatuses";
-import {
-  CalendarDaysIcon,
-  ListIcon,
-  NotebookPenIcon
-} from "lucide-react";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CalendarDaysIcon, ListIcon, NotebookPenIcon } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 
 export default function MediaListSection() {
@@ -42,7 +41,10 @@ export default function MediaListSection() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaKeys.all });
-      toast.toast({ title: "Deleted", description: "Media removed successfully" });
+      toast.toast({
+        title: "Deleted",
+        description: "Media removed successfully"
+      });
     },
     onError: (error: Error) => {
       toast.toast({
@@ -61,8 +63,12 @@ export default function MediaListSection() {
   );
 
   const combinedQuery = useCombinedMediaList(isAll);
-  const infiniteAnime = useInfiniteAnimeList(!isAll && state.mediaType === "anime");
-  const infiniteManga = useInfiniteMangaList(!isAll && state.mediaType === "manga");
+  const infiniteAnime = useInfiniteAnimeList(
+    !isAll && state.mediaType === "anime"
+  );
+  const infiniteManga = useInfiniteMangaList(
+    !isAll && state.mediaType === "manga"
+  );
   const infiniteLightNovel = useInfiniteLightNovelList(
     !isAll && state.mediaType === "lightNovel"
   );
@@ -79,7 +85,8 @@ export default function MediaListSection() {
             {
               key: `${item.title}-anime-episode-status`,
               Trigger: ListIcon,
-              condition: ["Movie", "OVA"].includes(item.type) || episodesFetched,
+              condition:
+                ["Movie", "OVA"].includes(item.type) || episodesFetched,
               triggerColor: {
                 success: "text-green-700",
                 failed: "text-destructive"

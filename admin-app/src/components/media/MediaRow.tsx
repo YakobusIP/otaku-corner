@@ -1,5 +1,5 @@
-import StatusCheckRows from "@/components/data-table/StatusCheckRows";
 import type { StatusCheck } from "@/components/data-table/DataTableStatuses";
+import StatusCheckRows from "@/components/data-table/StatusCheckRows";
 import {
   AlertDialog,
   AlertDialogAction,

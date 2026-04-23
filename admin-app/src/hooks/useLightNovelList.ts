@@ -1,8 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { lightNovelService } from "@/services/lightnovel.service";
 
 import { useMediaFilters } from "@/components/context/MediaFiltersContext";
+
 import { mediaKeys } from "@/lib/query-keys";
-import { lightNovelService } from "@/services/lightnovel.service";
+
+import { useQuery } from "@tanstack/react-query";
 
 export const useLightNovelList = (enabled = true) => {
   const { state } = useMediaFilters();

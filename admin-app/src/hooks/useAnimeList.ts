@@ -1,8 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { animeService } from "@/services/anime.service";
 
 import { useMediaFilters } from "@/components/context/MediaFiltersContext";
+
 import { mediaKeys } from "@/lib/query-keys";
-import { animeService } from "@/services/anime.service";
+
+import { useQuery } from "@tanstack/react-query";
 
 export const useAnimeList = (enabled = true) => {
   const { state } = useMediaFilters();

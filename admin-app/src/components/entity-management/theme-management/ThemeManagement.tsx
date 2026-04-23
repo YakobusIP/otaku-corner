@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
 
 import { useToast } from "@/hooks/useToast";
-import { entityKeys } from "@/lib/query-keys";
 
 import { MetadataResponse } from "@/types/api.type";
 import { ThemeWithMediaCount } from "@/types/entity.type";
+
+import { entityKeys } from "@/lib/query-keys";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
@@ -42,11 +43,12 @@ export default function ThemeManagement({ resetParent }: Props) {
 
   const fetchThemeList = useCallback(async () => {
     setIsLoadingTheme(true);
-    const response = await themeService.fetchAllWithMediaCount<ThemeWithMediaCount>(
-      themeListPage,
-      5,
-      debouncedSearch
-    );
+    const response =
+      await themeService.fetchAllWithMediaCount<ThemeWithMediaCount>(
+        themeListPage,
+        5,
+        debouncedSearch
+      );
     if (response.success) {
       setThemeList(response.data.data);
       setThemeMetadata(response.data.metadata);

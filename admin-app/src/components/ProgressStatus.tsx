@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/select";
 
 import { useToast } from "@/hooks/useToast";
-import { mediaKeys } from "@/lib/query-keys";
 
 import { MessageResponse } from "@/types/api.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
+import { mediaKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -34,8 +34,7 @@ type Props = {
     id: number,
     progressStatus: PROGRESS_STATUS
   ) => Promise<
-    | { success: true; data: MessageResponse }
-    | { success: false; error: string }
+    { success: true; data: MessageResponse } | { success: false; error: string }
   >;
   triggerClassName?: string;
 };
@@ -120,9 +119,12 @@ export default function ProgressStatus({
     }
   });
 
-  const debouncedSubmit = useDebouncedCallback((nextStatus: PROGRESS_STATUS) => {
-    updateProgressStatusMutation.mutate(nextStatus);
-  }, 1000);
+  const debouncedSubmit = useDebouncedCallback(
+    (nextStatus: PROGRESS_STATUS) => {
+      updateProgressStatusMutation.mutate(nextStatus);
+    },
+    1000
+  );
 
   const handleStatusChange = (value: string) => {
     setSelectedStatus(value);

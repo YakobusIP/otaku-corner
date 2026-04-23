@@ -1,8 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { mangaService } from "@/services/manga.service";
 
 import { useMediaFilters } from "@/components/context/MediaFiltersContext";
+
 import { mediaKeys } from "@/lib/query-keys";
-import { mangaService } from "@/services/manga.service";
+
+import { useQuery } from "@tanstack/react-query";
 
 export const useMangaList = (enabled = true) => {
   const { state } = useMediaFilters();

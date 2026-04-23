@@ -26,9 +26,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { useToast } from "@/hooks/useToast";
-import { detailKeys } from "@/lib/query-keys";
 
 import { LightNovelDetail } from "@/types/lightnovel.type";
+
+import { detailKeys } from "@/lib/query-keys";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, PencilIcon } from "lucide-react";

@@ -18,13 +18,15 @@ import { Link, useParams } from "react-router-dom";
 export default function AdminAnimeDetail() {
   const { animeId } = useParams();
   const parsedId = animeId ? parseInt(animeId, 10) : undefined;
-  const hasValidId =
-    typeof parsedId === "number" && Number.isFinite(parsedId);
+  const hasValidId = typeof parsedId === "number" && Number.isFinite(parsedId);
 
   const toast = useToast();
-  const { data: animeDetail, isLoading, isError, error } = useAnimeDetail(
-    hasValidId ? parsedId : undefined
-  );
+  const {
+    data: animeDetail,
+    isLoading,
+    isError,
+    error
+  } = useAnimeDetail(hasValidId ? parsedId : undefined);
 
   useEffect(() => {
     if (animeDetail) {

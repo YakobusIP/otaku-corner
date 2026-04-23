@@ -9,6 +9,7 @@ import {
 
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 import { MediaTypeFilter } from "@/lib/query-keys";
+
 import { useSearchParams } from "react-router-dom";
 
 /** Normalize status from URL: "Planned" -> "PLANNED" for backend compatibility */
@@ -134,7 +135,9 @@ export function MediaFiltersProvider({ children }: { children: ReactNode }) {
 export function useMediaFilters() {
   const context = useContext(MediaFiltersContext);
   if (!context) {
-    throw new Error("useMediaFilters must be used within a MediaFiltersProvider");
+    throw new Error(
+      "useMediaFilters must be used within a MediaFiltersProvider"
+    );
   }
   return context;
 }

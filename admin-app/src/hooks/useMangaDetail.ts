@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { fetchMangaByIdService } from "@/services/manga.service";
 
 import { detailKeys } from "@/lib/query-keys";
-import { fetchMangaByIdService } from "@/services/manga.service";
+
+import { useQuery } from "@tanstack/react-query";
 
 export const useMangaDetail = (id: number | undefined) => {
   const hasValidId = typeof id === "number" && Number.isFinite(id);

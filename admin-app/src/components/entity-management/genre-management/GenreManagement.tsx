@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
 
 import { useToast } from "@/hooks/useToast";
-import { entityKeys } from "@/lib/query-keys";
 
 import { MetadataResponse } from "@/types/api.type";
 import { GenreWithMediaCount } from "@/types/entity.type";
+
+import { entityKeys } from "@/lib/query-keys";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
@@ -42,11 +43,12 @@ export default function GenreManagement({ resetParent }: Props) {
 
   const fetchGenreList = useCallback(async () => {
     setIsLoadingGenre(true);
-    const response = await genreService.fetchAllWithMediaCount<GenreWithMediaCount>(
-      genreListPage,
-      5,
-      debouncedSearch
-    );
+    const response =
+      await genreService.fetchAllWithMediaCount<GenreWithMediaCount>(
+        genreListPage,
+        5,
+        debouncedSearch
+      );
     if (response.success) {
       setGenreList(response.data.data);
       setGenreMetadata(response.data.metadata);

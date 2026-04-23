@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
+import AdminLayout from "@/components/layout/AdminLayout";
 import LightNovelHero from "@/components/lightnovel-detail/LightNovelHero";
 import LightNovelInfoSection from "@/components/lightnovel-detail/LightNovelInfoSection";
 import LightNovelReviewSection from "@/components/lightnovel-detail/LightNovelReviewSection";
-import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,8 +17,7 @@ import { Link, useParams } from "react-router-dom";
 export default function AdminLightNovelDetail() {
   const { lightNovelId } = useParams();
   const parsedId = lightNovelId ? parseInt(lightNovelId, 10) : undefined;
-  const hasValidId =
-    typeof parsedId === "number" && Number.isFinite(parsedId);
+  const hasValidId = typeof parsedId === "number" && Number.isFinite(parsedId);
 
   const toast = useToast();
   const {
