@@ -111,17 +111,9 @@ export default function Login() {
   }, []);
 
   return (
-    <main className="flex items-center justify-center w-full min-h-screen">
-      <img
-        src="/hero_image_left.webp"
-        className="absolute top-0 xl:left-0 xl:top-0 w-full xl:w-1/2 max-h-screen"
-      />
-      <img
-        src="/hero_image_right.webp"
-        className="absolute bottom-0 xl:right-0 xl:top-0 w-full xl:w-1/2 max-h-screen"
-      />
-      <div className="relative flex items-center justify-center w-full xl:w-1/2 mx-auto">
-        <Card className="xl:w-1/2">
+    <main className="relative flex min-h-screen w-full items-center justify-center p-4">
+      <div className="relative z-10 w-full max-w-md">
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>Otaku Corner Admin</CardTitle>
             <CardDescription>

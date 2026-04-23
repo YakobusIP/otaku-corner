@@ -13,6 +13,7 @@ import {
   PlayCircleIcon,
   StarIcon,
   TvIcon,
+  UserIcon,
   XCircleIcon
 } from "lucide-react";
 
@@ -108,22 +109,9 @@ export default function AnimeHero({ animeDetail }: Props) {
   const StatusIcon = status.Icon;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-500/15 via-violet-500/5 to-transparent"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-32 -right-24 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-violet-500/20 blur-3xl"
-      />
-
-      <div className="relative flex flex-col gap-5 p-4 sm:p-5 md:flex-row md:gap-6 md:p-6 xl:gap-8 xl:p-8">
-        <div className="flex justify-center md:block md:self-center">
+    <div className="flex flex-col gap-4">
+      <div className="relative flex flex-col gap-5 overflow-hidden rounded-2xl py-4 px-0 sm:py-5 md:flex-row md:items-center md:gap-6 md:p-6 xl:gap-8 xl:p-8">
+        <div className="relative flex justify-center md:block">
           <div className="relative shrink-0">
             <div className="absolute -inset-1 rounded-xl bg-gradient-to-br from-indigo-400/40 via-violet-400/30 to-transparent blur-md" />
             <img
@@ -134,12 +122,12 @@ export default function AnimeHero({ animeDetail }: Props) {
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
+        <div className="relative flex min-w-0 flex-1 flex-col gap-4 md:max-w-[55%] lg:max-w-[50%]">
           <div className="flex min-w-0 flex-col gap-1.5">
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-indigo-300/80 sm:text-xs">
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-indigo-300 sm:text-xs">
               Anime
             </p>
-            <h1 className="break-words text-xl font-bold leading-tight text-foreground sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl">
+            <h1 className="break-words text-xl font-bold leading-tight text-foreground drop-shadow-sm sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl">
               {animeDetail.title}
             </h1>
             {animeDetail.titleJapanese ? (
@@ -151,16 +139,13 @@ export default function AnimeHero({ animeDetail }: Props) {
 
           <div
             className={cn(
-              "relative overflow-hidden rounded-xl border border-border/50 bg-background/40 shadow-lg backdrop-blur-sm",
+              "relative overflow-hidden rounded-xl border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm",
               status.shadow
             )}
           >
             <div
               aria-hidden
-              className={cn(
-                "absolute inset-y-0 left-0 w-1",
-                status.accent
-              )}
+              className={cn("absolute inset-y-0 left-0 w-1", status.accent)}
             />
             <div className="flex items-center gap-3 pl-4 pr-3 py-2.5 sm:gap-3.5 sm:pl-5 sm:pr-4 sm:py-3">
               <div
@@ -206,43 +191,46 @@ export default function AnimeHero({ animeDetail }: Props) {
               </p>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <StatPill
-              icon={<StarIcon className="h-4 w-4 text-amber-400" />}
-              label="MAL"
-              value={animeDetail.score ? animeDetail.score.toFixed(2) : "N/A"}
-            />
-            <StatPill
-              icon={<StarIcon className="h-4 w-4 text-emerald-400" />}
-              label="Personal"
-              value={
-                typeof personalScore === "number"
-                  ? personalScore.toFixed(2)
-                  : "N/A"
-              }
-            />
-            <StatPill
-              icon={<TvIcon className="h-4 w-4 text-sky-400" />}
-              label="Episodes"
-              value={animeDetail.episodesCount?.toString() ?? "—"}
-            />
-            <StatPill
-              icon={<ClockIcon className="h-4 w-4 text-fuchsia-400" />}
-              label="Duration"
-              value={animeDetail.duration || "—"}
-            />
-          </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatTile
+          icon={<StarIcon className="h-5 w-5 text-amber-400" />}
+          tint="bg-amber-500/10 border-amber-400/30"
+          label="MAL Score"
+          value={animeDetail.score ? animeDetail.score.toFixed(2) : "N/A"}
+        />
+        <StatTile
+          icon={<UserIcon className="h-5 w-5 text-emerald-400" />}
+          tint="bg-emerald-500/10 border-emerald-400/30"
+          label="Personal Score"
+          value={
+            typeof personalScore === "number"
+              ? personalScore.toFixed(2)
+              : "N/A"
+          }
+        />
+        <StatTile
+          icon={<TvIcon className="h-5 w-5 text-sky-400" />}
+          tint="bg-sky-500/10 border-sky-400/30"
+          label="Episodes"
+          value={animeDetail.episodesCount?.toString() ?? "—"}
+        />
+        <StatTile
+          icon={<ClockIcon className="h-5 w-5 text-fuchsia-400" />}
+          tint="bg-fuchsia-500/10 border-fuchsia-400/30"
+          label="Duration"
+          value={animeDetail.duration || "—"}
+        />
+      </div>
 
-          {animeDetail.synopsis ? (
-            <div className="rounded-lg border border-border/40 bg-background/30 p-3 backdrop-blur-sm sm:p-4">
-              <p className="max-h-40 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-foreground/90 sm:max-h-48 xl:text-[15px]">
-                {animeDetail.synopsis}
-              </p>
-            </div>
-          ) : null}
-
-          <div className="flex flex-wrap items-center gap-3 pt-1">
+      {animeDetail.synopsis ? (
+        <div className="rounded-2xl border border-border/40 bg-background/35 p-4 shadow-sm backdrop-blur-sm sm:p-5 md:p-6">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90 xl:text-[15px]">
+            {animeDetail.synopsis}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/40 pt-4">
             <a
               href={animeDetail.malUrl}
               target="_blank"
@@ -255,28 +243,47 @@ export default function AnimeHero({ animeDetail }: Props) {
             </a>
           </div>
         </div>
-      </div>
+      ) : (
+        <div>
+          <a
+            href={animeDetail.malUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg border border-indigo-400/40 bg-indigo-500/10 px-3 py-1.5 text-sm font-medium text-indigo-200 transition-colors hover:bg-indigo-500/20"
+          >
+            <FilmIcon className="h-4 w-4" />
+            View on MyAnimeList
+            <ExternalLinkIcon className="h-3.5 w-3.5 opacity-70" />
+          </a>
+        </div>
+      )}
     </div>
   );
 }
 
-type StatPillProps = {
+type StatTileProps = {
   icon: React.ReactNode;
+  tint: string;
   label: string;
   value: string;
 };
 
-function StatPill({ icon, label, value }: StatPillProps) {
+function StatTile({ icon, tint, label, value }: StatTileProps) {
   return (
-    <div className="flex items-center gap-2.5 rounded-lg border border-border/40 bg-background/40 px-3 py-2 backdrop-blur-sm">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-background/50">
+    <div className="flex items-center gap-3 rounded-xl border border-border/40 bg-background/35 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+      <div
+        className={cn(
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border",
+          tint
+        )}
+      >
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           {label}
         </p>
-        <p className="truncate text-sm font-semibold tabular-nums text-foreground">
+        <p className="truncate text-base font-bold tabular-nums text-foreground md:text-lg">
           {value}
         </p>
       </div>

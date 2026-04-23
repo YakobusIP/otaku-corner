@@ -1,30 +1,43 @@
-import { ReactNode } from "react";
+import { useEffect, type CSSProperties, type ReactNode } from "react";
 
 import LogoutButton from "@/components/LogoutButton";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger
-} from "@/components/ui/sheet";
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+  useSidebar
+} from "@/components/ui/sidebar";
 
-import {
-  BarChart3Icon,
-  BookOpenIcon,
-  ExternalLinkIcon,
-  MenuIcon
-} from "lucide-react";
+import { BarChart3Icon, BookOpenIcon, ExternalLinkIcon } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+
+function MobileSidebarCloseOnNavigate() {
+  const pathname = useLocation().pathname;
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  useEffect(() => {
+    if (isMobile) setOpenMobile(false);
+  }, [pathname, isMobile, setOpenMobile]);
+
+  return null;
+}
 
 type Props = {
   title: string;
   description?: string;
   children: ReactNode;
   actions?: ReactNode;
+  hideHeader?: boolean;
 };
 
 type NavItem = {
@@ -37,43 +50,89 @@ const NAV_ITEMS: NavItem[] = [
   {
     to: "/dashboard",
     label: "Dashboard",
-    icon: <BarChart3Icon className="h-4 w-4" />
+    icon: <BarChart3Icon />
   },
   {
     to: "/media",
     label: "Media Library",
-    icon: <BookOpenIcon className="h-4 w-4" />
+    icon: <BookOpenIcon />
   }
 ];
 
-function SidebarNav() {
+function AppSidebar() {
   const location = useLocation();
 
   return (
-    <nav className="flex flex-col gap-2">
-      {NAV_ITEMS.map((item) => {
-        const active = location.pathname.startsWith(item.to);
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-border/60 [&_[data-sidebar=sidebar]]:border-border/60 [&_[data-sidebar=sidebar]]:bg-card/85 [&_[data-sidebar=sidebar]]:text-foreground [&_[data-sidebar=sidebar]]:backdrop-blur-xl"
+    >
+      <SidebarHeader className="border-b border-border/50 px-2 py-3">
+        <Link
+          to="/dashboard"
+          className="flex min-w-0 items-center gap-2 rounded-md outline-none ring-sidebar-ring focus-visible:ring-2"
+          aria-label="Otaku Corner Admin — Dashboard home"
+        >
+          <img
+            src="/otaku-corner-logo.webp"
+            alt=""
+            className="h-14 w-auto max-w-[min(100%,280px)] shrink-0 object-contain object-left transition-[max-width,height,width] duration-200 ease-linear md:group-data-[state=collapsed]:h-7 md:group-data-[state=collapsed]:w-7 md:group-data-[state=collapsed]:max-w-7 md:group-data-[state=collapsed]:object-center md:group-data-[state=expanded]:h-16 md:group-data-[state=expanded]:w-auto md:group-data-[state=expanded]:max-w-[min(calc(var(--sidebar-width)-1rem),288px)] md:group-data-[state=expanded]:object-left"
+          />
+          <span className="truncate text-sm font-semibold tracking-tight text-foreground md:group-data-[state=collapsed]:hidden">
+            Admin
+          </span>
+        </Link>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {NAV_ITEMS.map((item) => {
+                const active = location.pathname.startsWith(item.to);
 
-        return (
-          <Link key={item.to} to={item.to}>
-            <Button
-              variant={active ? "default" : "ghost"}
-              className="w-full justify-start"
-            >
-              {item.icon}
-              {item.label}
-            </Button>
-          </Link>
-        );
-      })}
-
-      <Link to={import.meta.env.VITE_PUBLIC_APP} target="_blank">
-        <Button variant="outline" className="w-full justify-start">
-          <ExternalLinkIcon className="h-4 w-4" />
-          Public App
-        </Button>
-      </Link>
-    </nav>
+                return (
+                  <SidebarMenuItem key={item.to}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      tooltip={item.label}
+                    >
+                      <Link to={item.to}>
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  variant="outline"
+                  tooltip="Public App"
+                >
+                  <a
+                    href={import.meta.env.VITE_PUBLIC_APP}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ExternalLinkIcon />
+                    <span>Public App</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter className="border-t border-border/50">
+        <LogoutButton
+          fullWidth
+          className="group-data-[collapsible=icon]:justify-center"
+        />
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
   );
 }
 
@@ -81,65 +140,37 @@ export default function AdminLayout({
   title,
   description,
   children,
-  actions
+  actions,
+  hideHeader = false
 }: Props) {
   return (
-    <div className="h-screen overflow-hidden text-foreground">
-      <div className="grid h-full w-full grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="sticky top-0 hidden h-screen flex-col border-r border-border/60 bg-card/70 backdrop-blur-xl xl:flex">
-          <div className="flex h-full flex-col p-4">
-            <img src="/logo.png" className="mb-4 w-36" />
-            <ScrollArea className="min-h-0 flex-1 pr-2">
-              <SidebarNav />
-            </ScrollArea>
-            <div className="mt-4">
-              <LogoutButton fullWidth />
+    <SidebarProvider
+      className="h-screen overflow-hidden text-foreground"
+      style={
+        {
+          "--sidebar-width": "17.5rem"
+        } as CSSProperties
+      }
+    >
+      <MobileSidebarCloseOnNavigate />
+      <AppSidebar />
+      <SidebarInset className="min-h-0 overflow-hidden bg-transparent">
+        {hideHeader ? null : (
+          <header className="sticky top-0 z-40 flex shrink-0 items-center gap-3 border-b border-border/60 bg-card/60 px-4 py-3 backdrop-blur-xl md:px-6">
+            <SidebarTrigger />
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl font-semibold md:text-2xl">{title}</h1>
+              {description ? (
+                <p className="text-sm text-muted-foreground">{description}</p>
+              ) : null}
             </div>
-          </div>
-        </aside>
-
-        <main className="min-h-0 overflow-y-auto">
-          <header className="sticky top-0 z-40 border-b border-border/60 bg-card/60 backdrop-blur-xl">
-            <div className="px-4 py-3 md:px-6 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="xl:hidden">
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MenuIcon className="h-4 w-4" />
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left">
-                      <SheetHeader>
-                        <SheetTitle>Admin Menu</SheetTitle>
-                        <SheetDescription>
-                          Navigate between dashboard sections and account actions.
-                        </SheetDescription>
-                      </SheetHeader>
-                      <ScrollArea className="h-full mt-4">
-                        <SidebarNav />
-                        <div className="mt-4">
-                          <LogoutButton fullWidth />
-                        </div>
-                      </ScrollArea>
-                    </SheetContent>
-                  </Sheet>
-                </div>
-                <div>
-                  <h1 className="text-xl md:text-2xl font-semibold">{title}</h1>
-                  {description ? (
-                    <p className="text-sm text-muted-foreground">{description}</p>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">{actions}</div>
-            </div>
+            <div className="flex shrink-0 items-center gap-2">{actions}</div>
           </header>
-
+        )}
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <section className="p-4 md:p-6">{children}</section>
-        </main>
-      </div>
-    </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

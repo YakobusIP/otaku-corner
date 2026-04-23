@@ -5,6 +5,7 @@ import LightNovelInfoSection from "@/components/lightnovel-detail/LightNovelInfo
 import LightNovelReviewSection from "@/components/lightnovel-detail/LightNovelReviewSection";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useLightNovelDetail } from "@/hooks/useLightNovelDetail";
@@ -78,7 +79,7 @@ export default function AdminLightNovelDetail() {
         description="We couldn't load this light novel entry"
         actions={backAction}
       >
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border/60 bg-card/60 p-10 text-center backdrop-blur-xl">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border/40 bg-background/35 p-10 text-center shadow-sm backdrop-blur-sm">
           <AlertTriangleIcon className="h-8 w-8 text-rose-400" />
           <p className="text-sm text-muted-foreground">
             {error instanceof Error
@@ -100,9 +101,18 @@ export default function AdminLightNovelDetail() {
     <AdminLayout
       title={lightNovelDetail.title}
       description={lightNovelDetail.titleJapanese || "Light novel entry"}
-      actions={backAction}
+      hideHeader
     >
       <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="md:hidden" />
+          <Link to="/media">
+            <Button variant="ghost" size="sm" className="gap-2">
+              <ArrowLeftIcon className="h-4 w-4" />
+              <span>Back to library</span>
+            </Button>
+          </Link>
+        </div>
         <LightNovelHero lightNovelDetail={lightNovelDetail} />
         <LightNovelInfoSection
           lightNovelDetail={lightNovelDetail}
@@ -121,7 +131,7 @@ export default function AdminLightNovelDetail() {
 function LightNovelDetailSkeleton() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-2xl border border-border/60 bg-card/60 p-6 backdrop-blur-xl">
+      <div className="rounded-2xl border border-border/40 bg-background/35 p-6 shadow-sm backdrop-blur-sm">
         <div className="flex flex-col gap-6 xl:flex-row">
           <Skeleton className="h-[340px] w-[240px] rounded-xl xl:h-[400px] xl:w-[280px]" />
           <div className="flex flex-1 flex-col gap-4">
@@ -141,7 +151,7 @@ function LightNovelDetailSkeleton() {
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-2 rounded-2xl border border-border/60 bg-card/60 p-6 backdrop-blur-xl">
+      <div className="flex items-center gap-2 rounded-2xl border border-border/40 bg-background/35 p-6 shadow-sm backdrop-blur-sm">
         <Loader2Icon className="h-4 w-4 animate-spin" />
         <span className="text-sm text-muted-foreground">
           Loading light novel details...

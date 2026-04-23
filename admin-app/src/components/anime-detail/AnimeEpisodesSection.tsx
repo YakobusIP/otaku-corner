@@ -26,8 +26,8 @@ export default function AnimeEpisodesSection({ animeDetail }: Props) {
         : "from-emerald-500/70 to-emerald-400/70";
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl">
-      <div className="flex flex-col gap-3 border-b border-border/50 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
+    <div className="rounded-2xl border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm">
+      <div className="flex flex-col gap-3 border-b border-border/40 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-sky-500/30 to-indigo-500/20">
             <ListVideoIcon className="h-4 w-4 text-sky-300" />
@@ -44,7 +44,7 @@ export default function AnimeEpisodesSection({ animeDetail }: Props) {
           <p className={`text-sm font-semibold tabular-nums ${progressTone}`}>
             {fetched} / {total || "?"} episodes
           </p>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-background/50 sm:w-56 md:w-48 lg:w-56">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-background/35 sm:w-56 md:w-48 lg:w-56">
             <div
               className={`h-full rounded-full bg-gradient-to-r transition-all ${barTone}`}
               style={{ width: `${progress}%` }}
@@ -59,7 +59,7 @@ export default function AnimeEpisodesSection({ animeDetail }: Props) {
             {animeDetail.episodes.map((episode) => (
               <div
                 key={episode.number}
-                className="group flex gap-3 rounded-lg border border-border/40 bg-background/30 p-3 transition-colors hover:border-indigo-400/40 hover:bg-background/50"
+                className="group flex gap-3 rounded-lg border border-border/40 bg-background/35 p-3 shadow-sm backdrop-blur-sm transition-colors hover:border-indigo-400/40 hover:bg-background/40"
               >
                 <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-md border border-border/40 bg-gradient-to-br from-indigo-500/20 to-violet-500/10">
                   <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -92,7 +92,7 @@ export default function AnimeEpisodesSection({ animeDetail }: Props) {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border/50 bg-background/20 p-10 text-center">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border/40 bg-background/35 p-10 text-center shadow-sm backdrop-blur-sm">
             <ListVideoIcon className="h-6 w-6 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
               No episodes available yet

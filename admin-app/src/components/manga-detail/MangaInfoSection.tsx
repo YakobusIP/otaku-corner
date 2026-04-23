@@ -99,9 +99,9 @@ export default function MangaInfoSection({ mangaDetail }: Props) {
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <div className="rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-xl sm:p-5">
+      <div className="rounded-2xl border border-border/40 bg-background/35 p-4 shadow-sm backdrop-blur-sm sm:p-5">
         <div className="mb-4 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-background/50">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm">
             <BookOpenIcon className="h-4 w-4 text-indigo-300" />
           </div>
           <h3 className="text-base font-semibold">Publication Details</h3>
@@ -113,7 +113,7 @@ export default function MangaInfoSection({ mangaDetail }: Props) {
             return (
               <div
                 key={item.key}
-                className="flex items-start gap-3 rounded-lg border border-border/40 bg-background/30 p-3"
+                className="flex items-start gap-3 rounded-lg border border-border/40 bg-background/35 p-3 shadow-sm backdrop-blur-sm"
               >
                 <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${item.accent}`} />
                 <div className="min-w-0">
@@ -134,9 +134,9 @@ export default function MangaInfoSection({ mangaDetail }: Props) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-xl sm:p-5">
+      <div className="rounded-2xl border border-border/40 bg-background/35 p-4 shadow-sm backdrop-blur-sm sm:p-5">
         <div className="mb-4 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-background/50">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm">
             <LayersIcon className="h-4 w-4 text-fuchsia-300" />
           </div>
           <h3 className="text-base font-semibold">Classification</h3>
@@ -165,7 +165,7 @@ export default function MangaInfoSection({ mangaDetail }: Props) {
                       <Badge
                         key={entity.id}
                         variant="secondary"
-                        className="bg-background/50 backdrop-blur-sm"
+                        className="border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm"
                       >
                         {entity.name}
                       </Badge>
