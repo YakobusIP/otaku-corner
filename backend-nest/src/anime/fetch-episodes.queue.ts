@@ -45,7 +45,7 @@ type JikanResponse = {
 export class FetchEpisodesQueueService
   implements OnModuleInit, OnModuleDestroy
 {
-  private queue: Bull.Queue<FetchEpisodesJobData> | null = null;
+  private queue!: Bull.Queue<FetchEpisodesJobData>;
 
   constructor(
     private readonly bullQueue: BullQueueService,
@@ -71,30 +71,12 @@ export class FetchEpisodesQueueService
       }
     );
 
-    if (!queue) {
-      this.logger.logApplication({
-        level: "warn",
-        event: "queue.fetch_episodes.disabled",
-        message:
-          "Bull Redis not configured (BULL_REDIS_IP / BULL_REDIS_PORT); fetch episodes queue is disabled",
-        error: null,
-        meta: {
-          queue_name: "fetchEpisodesQueue",
-          reason: "redis_not_configured"
-        }
-      });
-      return;
-    }
-
     this.queue = queue;
     void queue.process((job) => this.processJob(job));
   }
 
   async onModuleDestroy(): Promise<void> {
-    if (this.queue) {
-      await this.queue.close();
-      this.queue = null;
-    }
+    await this.queue.close();
   }
 
   enqueueAfterCreate(
@@ -106,44 +88,40 @@ export class FetchEpisodesQueueService
       return;
     }
 
-    if (!this.queue) {
-      return;
-    }
-
     const als = getRequestLogContext();
     const correlation_id =
       requestLog?.correlation_id ?? als?.correlation_id ?? undefined;
     const request_id = requestLog?.request_id ?? als?.request_id ?? undefined;
 
-    try {
-      void this.queue.add({
+    void this.queue
+      .add({
         id: animeId,
         correlation_id,
         request_id: request_id ?? null
+      })
+      .catch((error: unknown) => {
+        this.logger.logApplication({
+          level: "warn",
+          event: "queue.fetch_episodes.enqueue_failed",
+          message: "Failed to enqueue episode fetch job",
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack ?? ""
+                }
+              : null,
+          meta: {
+            queue_name: "fetchEpisodesQueue",
+            operation: "enqueue",
+            anime_id: animeId,
+            anime_type: type,
+            ...(correlation_id !== undefined ? { correlation_id } : {}),
+            ...(request_id !== undefined ? { request_id } : {})
+          }
+        });
       });
-    } catch (error) {
-      this.logger.logApplication({
-        level: "warn",
-        event: "queue.fetch_episodes.enqueue_failed",
-        message: "Failed to enqueue episode fetch job",
-        error:
-          error instanceof Error
-            ? {
-                name: error.name,
-                message: error.message,
-                stack: error.stack ?? ""
-              }
-            : null,
-        meta: {
-          queue_name: "fetchEpisodesQueue",
-          operation: "enqueue",
-          anime_id: animeId,
-          anime_type: type,
-          ...(correlation_id !== undefined ? { correlation_id } : {}),
-          ...(request_id !== undefined ? { request_id } : {})
-        }
-      });
-    }
   }
 
   private async processJob(job: Bull.Job<FetchEpisodesJobData>): Promise<void> {

@@ -1,4 +1,4 @@
-import { ConflictException, NotFoundException } from "@nestjs/common";
+import { NotFoundException } from "@nestjs/common";
 
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudContext } from "@/common/crud/types/crud-context.type";
@@ -48,21 +48,19 @@ export abstract class BaseCrudService<
   ): Promise<void> {}
 
   async create(dto: TCreateDto): Promise<TResponse> {
-    return this.handlePrismaError(() =>
-      this.prisma.$transaction(async (tx) => {
-        const delegate = this.getDelegate(tx);
-        const ctx: CrudContext<TCreateDto, TResponse> = { dto, tx };
+    return this.prisma.$transaction(async (tx) => {
+      const delegate = this.getDelegate(tx);
+      const ctx: CrudContext<TCreateDto, TResponse> = { dto, tx };
 
-        await this.beforeCreate(ctx);
+      await this.beforeCreate(ctx);
 
-        const result = await delegate.create({ data: ctx.dto });
-        ctx.result = result as TResponse;
+      const result = await delegate.create({ data: ctx.dto });
+      ctx.result = result as TResponse;
 
-        await this.afterCreate(ctx);
+      await this.afterCreate(ctx);
 
-        return ctx.result;
-      })
-    );
+      return ctx.result;
+    });
   }
 
   async findAll(
@@ -107,65 +105,43 @@ export abstract class BaseCrudService<
   }
 
   async update(id: number, dto: TUpdateDto): Promise<TResponse> {
-    return this.handlePrismaError(() =>
-      this.prisma.$transaction(async (tx) => {
-        const delegate = this.getDelegate(tx);
-        const ctx: CrudContext<TUpdateDto, TResponse> = { dto, id, tx };
+    return this.prisma.$transaction(async (tx) => {
+      const delegate = this.getDelegate(tx);
+      const ctx: CrudContext<TUpdateDto, TResponse> = { dto, id, tx };
 
-        await this.beforeUpdate(ctx);
+      await this.beforeUpdate(ctx);
 
-        const result = await delegate.update({
-          where: { id },
-          data: ctx.dto
-        });
-        ctx.result = result as TResponse;
+      const result = await delegate.update({
+        where: { id },
+        data: ctx.dto
+      });
+      ctx.result = result as TResponse;
 
-        await this.afterUpdate(ctx);
+      await this.afterUpdate(ctx);
 
-        return ctx.result;
-      })
-    );
+      return ctx.result;
+    });
   }
 
   async delete(id: number): Promise<void> {
-    await this.handlePrismaError(() =>
-      this.prisma.$transaction(async (tx) => {
-        const delegate = this.getDelegate(tx);
-        const ctx: CrudContext<unknown, TResponse> = { id, tx };
+    await this.prisma.$transaction(async (tx) => {
+      const delegate = this.getDelegate(tx);
+      const ctx: CrudContext<unknown, TResponse> = { id, tx };
 
-        await this.beforeDelete(ctx);
-        await delegate.delete({ where: { id } });
-        await this.afterDelete(ctx);
-      })
-    );
+      await this.beforeDelete(ctx);
+      await delegate.delete({ where: { id } });
+      await this.afterDelete(ctx);
+    });
   }
 
   async deleteMany(ids: number[]): Promise<void> {
-    await this.handlePrismaError(() =>
-      this.prisma.$transaction(async (tx) => {
-        const delegate = this.getDelegate(tx);
-        const ctx: CrudContext<unknown, TResponse> = { ids, tx };
+    await this.prisma.$transaction(async (tx) => {
+      const delegate = this.getDelegate(tx);
+      const ctx: CrudContext<unknown, TResponse> = { ids, tx };
 
-        await this.beforeDelete(ctx);
-        await delegate.deleteMany({ where: { id: { in: ids } } });
-        await this.afterDelete(ctx);
-      })
-    );
-  }
-
-  private async handlePrismaError<T>(operation: () => Promise<T>): Promise<T> {
-    try {
-      return await operation();
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === "P2002") {
-          throw new ConflictException(`${this.resourceName} already exists`);
-        }
-        if (error.code === "P2025") {
-          throw new NotFoundException(`${this.resourceName} not found`);
-        }
-      }
-      throw error;
-    }
+      await this.beforeDelete(ctx);
+      await delegate.deleteMany({ where: { id: { in: ids } } });
+      await this.afterDelete(ctx);
+    });
   }
 }

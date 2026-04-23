@@ -70,9 +70,8 @@ type MangaDexStatisticsResponse = {
 export class FetchMangaDataQueueService
   implements OnModuleInit, OnModuleDestroy
 {
-  private dataQueue: Bull.Queue<FetchMangaDataJobData> | null = null;
-  private statisticsQueue: Bull.Queue<FetchMangaStatisticsJobData> | null =
-    null;
+  private dataQueue!: Bull.Queue<FetchMangaDataJobData>;
+  private statisticsQueue!: Bull.Queue<FetchMangaStatisticsJobData>;
 
   constructor(
     private readonly bullQueue: BullQueueService,
@@ -98,21 +97,6 @@ export class FetchMangaDataQueueService
       redisOpts
     );
 
-    if (!dataQ || !statsQ) {
-      this.logger.logApplication({
-        level: "warn",
-        event: "queue.fetch_manga.disabled",
-        message:
-          "Bull Redis not configured (BULL_REDIS_IP / BULL_REDIS_PORT); MangaDex fetch queues are disabled",
-        error: null,
-        meta: {
-          queue_names: ["fetchMangaDataQueue", "fetchMangaStatisticsQueue"],
-          reason: "redis_not_configured"
-        }
-      });
-      return;
-    }
-
     this.dataQueue = dataQ;
     this.statisticsQueue = statsQ;
 
@@ -121,14 +105,8 @@ export class FetchMangaDataQueueService
   }
 
   async onModuleDestroy(): Promise<void> {
-    if (this.dataQueue) {
-      await this.dataQueue.close();
-      this.dataQueue = null;
-    }
-    if (this.statisticsQueue) {
-      await this.statisticsQueue.close();
-      this.statisticsQueue = null;
-    }
+    await this.dataQueue.close();
+    await this.statisticsQueue.close();
   }
 
   enqueueAfterCreate(
@@ -138,7 +116,7 @@ export class FetchMangaDataQueueService
     status: string,
     requestLog?: RequestLogContextStore
   ): void {
-    if (status === "Upcoming" || !this.dataQueue) {
+    if (status === "Upcoming") {
       return;
     }
 
@@ -147,36 +125,36 @@ export class FetchMangaDataQueueService
       requestLog?.correlation_id ?? als?.correlation_id ?? undefined;
     const request_id = requestLog?.request_id ?? als?.request_id ?? undefined;
 
-    try {
-      void this.dataQueue.add({
+    void this.dataQueue
+      .add({
         id: mangaId,
         title,
         titleJapanese,
         correlation_id,
         request_id: request_id ?? null
+      })
+      .catch((error: unknown) => {
+        this.logger.logApplication({
+          level: "warn",
+          event: "queue.fetch_manga.enqueue_failed",
+          message: "Failed to enqueue MangaDex fetch job",
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack ?? ""
+                }
+              : null,
+          meta: {
+            queue_name: "fetchMangaDataQueue",
+            operation: "enqueue",
+            manga_id: mangaId,
+            ...(correlation_id !== undefined ? { correlation_id } : {}),
+            ...(request_id !== undefined ? { request_id } : {})
+          }
+        });
       });
-    } catch (error) {
-      this.logger.logApplication({
-        level: "warn",
-        event: "queue.fetch_manga.enqueue_failed",
-        message: "Failed to enqueue MangaDex fetch job",
-        error:
-          error instanceof Error
-            ? {
-                name: error.name,
-                message: error.message,
-                stack: error.stack ?? ""
-              }
-            : null,
-        meta: {
-          queue_name: "fetchMangaDataQueue",
-          operation: "enqueue",
-          manga_id: mangaId,
-          ...(correlation_id !== undefined ? { correlation_id } : {}),
-          ...(request_id !== undefined ? { request_id } : {})
-        }
-      });
-    }
   }
 
   private async handleMangaCompleted(

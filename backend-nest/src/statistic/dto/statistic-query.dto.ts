@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 import { Type } from "class-transformer";
-import { IsIn, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsIn, IsInt, IsString, Max, Min, ValidateIf } from "class-validator";
 
 const ALLOWED_VIEWS = ["monthly", "yearly"] as const;
 const ALLOWED_MEDIA = ["anime", "manga", "lightNovel"] as const;
@@ -19,10 +19,12 @@ export class MediaConsumptionQueryDto {
   view: StatisticsViewValue;
 
   @ApiPropertyOptional({
-    description: "Year filter (required for monthly view)"
+    description: "Calendar year (required when view is monthly)"
   })
-  @IsOptional()
-  @IsNumber()
+  @ValidateIf((o: MediaConsumptionQueryDto) => o.view === "monthly")
+  @IsInt()
+  @Min(1970)
+  @Max(2100)
   @Type(() => Number)
   year?: number;
 }

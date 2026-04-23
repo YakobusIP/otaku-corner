@@ -1,6 +1,6 @@
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
-export type LogEnvironment = "development" | "staging" | "production" | "test";
+export type LogEnvironment = "development" | "test" | "production";
 
 export type LogContext =
   | "http"

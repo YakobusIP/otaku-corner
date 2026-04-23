@@ -17,7 +17,6 @@ import type { Logger as WinstonLoggerType } from "winston";
 function normalizeLogEnvironment(nodeEnv: string | undefined): LogEnvironment {
   if (
     nodeEnv === "production" ||
-    nodeEnv === "staging" ||
     nodeEnv === "development" ||
     nodeEnv === "test"
   ) {

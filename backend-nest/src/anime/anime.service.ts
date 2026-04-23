@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
 import { BaseCrudService } from "@/common/crud/base-crud.service";
@@ -114,9 +114,9 @@ export class AnimeService extends BaseCrudService<
   constructor(
     prisma: PrismaService,
     queryBuilder: CrudQueryBuilder,
-    @Inject(GenresService) private readonly genresService: GenresService,
-    @Inject(StudiosService) private readonly studiosService: StudiosService,
-    @Inject(ThemesService) private readonly themesService: ThemesService,
+    private readonly genresService: GenresService,
+    private readonly studiosService: StudiosService,
+    private readonly themesService: ThemesService,
     private readonly fetchEpisodesQueue: FetchEpisodesQueueService
   ) {
     super(prisma, queryBuilder);

@@ -23,10 +23,14 @@ export class UploadService {
   ) {}
 
   async uploadImage(
-    file: Express.Multer.File,
+    file: Express.Multer.File | undefined,
     type: MediaType,
     reviewId: number
   ): Promise<{ id: string; url: string }> {
+    if (!file?.buffer) {
+      throw new BadRequestException("An image file is required");
+    }
+
     const id = randomUUID();
     const ext = extname(file.originalname);
     const filename = `${id}${ext}`;

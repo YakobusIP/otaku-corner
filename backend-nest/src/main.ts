@@ -1,5 +1,3 @@
-import { existsSync, mkdirSync } from "node:fs";
-
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
@@ -41,9 +39,6 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   const uploadsRoot = FileStorageService.resolveAbsoluteRootDir(configService);
-  if (!existsSync(uploadsRoot)) {
-    mkdirSync(uploadsRoot, { recursive: true });
-  }
   app.use("/uploads", express.static(uploadsRoot));
 
   const swaggerConfig = new DocumentBuilder()

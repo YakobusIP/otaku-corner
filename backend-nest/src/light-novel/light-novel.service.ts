@@ -215,11 +215,6 @@ export class LightNovelService extends BaseCrudService<
       if (error instanceof NotFoundException) {
         throw error;
       }
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === "P2025") {
-          throw new NotFoundException(`${this.resourceName} not found`);
-        }
-      }
       throw error;
     }
   }

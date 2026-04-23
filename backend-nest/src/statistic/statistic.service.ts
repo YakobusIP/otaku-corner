@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 
 import { PrismaService } from "@/prisma/prisma.service";
 
@@ -140,6 +140,12 @@ export class StatisticService {
     view: StatisticsView = StatisticsView.MONTHLY,
     year?: number
   ): Promise<MediaConsumption[]> {
+    if (view === StatisticsView.MONTHLY && year === undefined) {
+      throw new BadRequestException(
+        "Year is required for monthly media consumption statistics"
+      );
+    }
+
     const tables: ValidTable[] = ["Anime", "Manga", "LightNovel"];
 
     const getConsumptionStatistics = async (
@@ -148,9 +154,10 @@ export class StatisticService {
       const config = TABLE_CONFIG[table];
       const { joinClause, consumedAtField } = config;
 
-      const whereClause = year
-        ? Prisma.sql`WHERE EXTRACT(YEAR FROM ${Prisma.raw(consumedAtField)}) = ${year} AND ${Prisma.raw(consumedAtField)} IS NOT NULL`
-        : Prisma.sql`WHERE ${Prisma.raw(consumedAtField)} IS NOT NULL`;
+      const whereClause =
+        view === StatisticsView.MONTHLY
+          ? Prisma.sql`WHERE EXTRACT(YEAR FROM ${Prisma.raw(consumedAtField)}) = ${year} AND ${Prisma.raw(consumedAtField)} IS NOT NULL`
+          : Prisma.sql`WHERE ${Prisma.raw(consumedAtField)} IS NOT NULL`;
 
       const periodSelection =
         view === StatisticsView.YEARLY
@@ -398,7 +405,7 @@ export class StatisticService {
   async getTopMediaAndYearlyCount() {
     const currentYear = new Date().getFullYear();
     const startDate = new Date(currentYear, 0, 1);
-    const endDate = new Date(currentYear, 11, 31, 23, 59, 59, 9999);
+    const endDate = new Date(currentYear, 11, 31, 23, 59, 59, 999);
 
     const [
       consumedAnimeYearlyCount,

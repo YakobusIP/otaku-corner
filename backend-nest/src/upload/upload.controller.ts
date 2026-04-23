@@ -2,6 +2,7 @@ import {
   Body,
   Delete,
   Param,
+  ParseFilePipe,
   Post,
   UploadedFile,
   UseInterceptors
@@ -39,7 +40,12 @@ export class UploadController {
     type: UploadResponseDto
   })
   async uploadImage(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: true
+      })
+    )
+    file: Express.Multer.File,
     @Body() dto: UploadImageDto
   ): Promise<UploadResponseDto> {
     return this.uploadService.uploadImage(
