@@ -105,8 +105,12 @@ export default function EditVolumesModal({
     <Fragment>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="destructive">
-            <PencilIcon className="w-4 h-4 mr-2" />
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-border/60 bg-background/30 text-foreground hover:bg-background/50"
+          >
+            <PencilIcon className="h-4 w-4" />
             Override Volumes
           </Button>
         </DialogTrigger>
