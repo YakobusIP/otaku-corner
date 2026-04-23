@@ -147,17 +147,17 @@ export class LightNovelDetailResponseDto {
     description: "Authors",
     type: [RelatedEntityDto]
   })
-  authors: { author: RelatedEntityDto }[];
+  authors: RelatedEntityDto[];
 
   @ApiProperty({
     description: "Genres",
     type: [RelatedEntityDto]
   })
-  genres: { genre: RelatedEntityDto }[];
+  genres: RelatedEntityDto[];
 
   @ApiProperty({
     description: "Themes",
     type: [RelatedEntityDto]
   })
-  themes: { theme: RelatedEntityDto }[];
+  themes: RelatedEntityDto[];
 }

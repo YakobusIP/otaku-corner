@@ -4,7 +4,7 @@ import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
 import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
-import { PaginatedResponseDto, PaginationQueryDto } from "@/common/dto";
+import type { RequestLogContextStore } from "@/common/logging/request-log-context";
 import { chunkArray } from "@/common/utils/chunk-array";
 
 import { PrismaService } from "@/prisma/prisma.service";
@@ -16,6 +16,7 @@ import {
   LightNovelDetailResponseDto,
   LightNovelListResponseDto,
   LightNovelQueryDto,
+  PaginatedLightNovelResponseDto,
   UpdateLightNovelDto,
   UpdateLightNovelReviewDto,
   UpdateVolumeProgressItemDto
@@ -23,6 +24,35 @@ import {
 import { ThemesService } from "@/theme/themes.service";
 
 import { Prisma, ProgressStatus } from "@prisma/client";
+
+interface LightNovelListRow {
+  id: number;
+  slug: string;
+  title: string;
+  titleJapanese: string;
+  images: unknown;
+  status: string;
+  score: number | null;
+  volumesCount: number | null;
+  review: {
+    reviewText: string | null;
+    progressStatus: ProgressStatus;
+    personalScore: number | null;
+  } | null;
+  volumeProgress: { volumeNumber: number; consumedAt: Date | null }[];
+}
+
+interface SitemapRow {
+  id: number;
+  slug: string;
+  review: { createdAt: Date; updatedAt: Date } | null;
+}
+
+export type LightNovelStatusCountItemDto = {
+  label: string;
+  value: ProgressStatus | null;
+  count: number;
+};
 
 @Injectable()
 export class LightNovelService extends BaseCrudService<
@@ -50,75 +80,67 @@ export class LightNovelService extends BaseCrudService<
     return (client ?? this.prisma).lightNovel;
   }
 
-  async findAll(
+  override async findAll(
     query: LightNovelQueryDto
-  ): Promise<PaginatedResponseDto<LightNovelListResponseDto>> {
-    const { where, skip, take, orderBy, include } =
+  ): Promise<PaginatedLightNovelResponseDto> {
+    const { where, skip, take, orderBy } =
       this.queryBuilder.buildFindAllQuery(query);
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
 
-    const findManyArgs: Record<string, unknown> = {
-      where,
-      skip,
-      take,
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        titleJapanese: true,
-        images: true,
-        status: true,
-        score: true,
-        volumesCount: true,
-        ...(include as Record<string, unknown>)
-      }
-    };
-    if (orderBy) findManyArgs.orderBy = orderBy;
-
-    const [data, total] = await Promise.all([
-      this.prisma.lightNovel.findMany(
-        findManyArgs as Prisma.LightNovelFindManyArgs
-      ),
-      this.prisma.lightNovel.count({
-        where: where as Prisma.LightNovelWhereInput
-      })
+    const [rawData, total] = await Promise.all([
+      this.prisma.lightNovel.findMany({
+        where,
+        skip,
+        take,
+        orderBy,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          titleJapanese: true,
+          images: true,
+          status: true,
+          score: true,
+          volumesCount: true,
+          review: {
+            select: {
+              reviewText: true,
+              progressStatus: true,
+              personalScore: true
+            }
+          },
+          volumeProgress: {
+            select: { volumeNumber: true, consumedAt: true },
+            orderBy: { volumeNumber: "asc" }
+          }
+        }
+      }),
+      this.prisma.lightNovel.count({ where })
     ]);
 
-    const mapped = data.map((ln) => {
-      const record = ln as Record<string, unknown>;
-      const review = record.review as Record<string, unknown> | null;
-      return {
-        id: ln.id,
-        slug: ln.slug,
-        title: ln.title,
-        titleJapanese: ln.titleJapanese,
-        images: ln.images,
-        status: ln.status,
-        score: ln.score,
-        volumesCount: ln.volumesCount,
-        reviewText: (review?.reviewText as string | null) ?? null,
-        progressStatus: (review?.progressStatus as ProgressStatus) ?? null,
-        personalScore: (review?.personalScore as number | null) ?? null,
-        volumeProgress:
-          (record.volumeProgress as {
-            volumeNumber: number;
-            consumedAt: Date | null;
-          }[]) ?? []
-      } as LightNovelListResponseDto;
-    });
+    const data: LightNovelListResponseDto[] = (
+      rawData as LightNovelListRow[]
+    ).map((ln) => ({
+      id: ln.id,
+      slug: ln.slug,
+      title: ln.title,
+      titleJapanese: ln.titleJapanese,
+      images: ln.images as object,
+      status: ln.status,
+      score: ln.score,
+      volumesCount: ln.volumesCount,
+      reviewText: ln.review?.reviewText ?? null,
+      progressStatus: ln.review?.progressStatus ?? null,
+      personalScore: ln.review?.personalScore ?? null,
+      volumeProgress: ln.volumeProgress
+    }));
 
-    return {
-      data: mapped,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit)
-    };
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findOne(id: number): Promise<LightNovelDetailResponseDto> {
+  override async findOne(id: number): Promise<LightNovelDetailResponseDto> {
     const result = await this.prisma.lightNovel.findUnique({
       where: { id },
       include: {
@@ -134,40 +156,188 @@ export class LightNovelService extends BaseCrudService<
       throw new NotFoundException("Light Novel not found");
     }
 
-    return result as unknown as LightNovelDetailResponseDto;
+    return {
+      ...result,
+      images: result.images as object,
+      authors: result.authors.map((a) => a.author),
+      genres: result.genres.map((g) => g.genre),
+      themes: result.themes.map((t) => t.theme)
+    } as unknown as LightNovelDetailResponseDto;
+  }
+
+  override async update(
+    id: number,
+    dto: UpdateLightNovelDto
+  ): Promise<LightNovelListResponseDto> {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const existing = await tx.lightNovel.findUnique({
+          where: { id },
+          include: { volumeProgress: true }
+        });
+
+        if (!existing) {
+          throw new NotFoundException("Light Novel not found");
+        }
+
+        if (dto.volumesCount !== undefined && dto.volumesCount !== null) {
+          const currentCount = existing.volumeProgress.length;
+          const newCount = dto.volumesCount;
+
+          if (newCount > currentCount) {
+            const newVolumes = Array.from(
+              { length: newCount - currentCount },
+              (_, i) => ({
+                volumeNumber: currentCount + i + 1,
+                consumedAt: null as Date | null,
+                lightNovelId: id
+              })
+            );
+            await tx.lightNovelVolumes.createMany({ data: newVolumes });
+          } else if (newCount < currentCount) {
+            await tx.lightNovelVolumes.deleteMany({
+              where: {
+                lightNovelId: id,
+                volumeNumber: { gt: newCount }
+              }
+            });
+          }
+        }
+
+        await tx.lightNovel.update({
+          where: { id },
+          data: dto as Prisma.LightNovelUpdateInput
+        });
+      });
+
+      return this.mapToListResponse(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === "P2025") {
+          throw new NotFoundException(`${this.resourceName} not found`);
+        }
+      }
+      throw error;
+    }
+  }
+
+  private async mapToListResponse(
+    id: number
+  ): Promise<LightNovelListResponseDto> {
+    const ln = (await this.prisma.lightNovel.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        titleJapanese: true,
+        images: true,
+        status: true,
+        score: true,
+        volumesCount: true,
+        review: {
+          select: {
+            reviewText: true,
+            progressStatus: true,
+            personalScore: true
+          }
+        },
+        volumeProgress: {
+          select: { volumeNumber: true, consumedAt: true },
+          orderBy: { volumeNumber: "asc" }
+        }
+      }
+    })) as LightNovelListRow | null;
+
+    if (!ln) {
+      throw new NotFoundException("Light Novel not found");
+    }
+
+    return {
+      id: ln.id,
+      slug: ln.slug,
+      title: ln.title,
+      titleJapanese: ln.titleJapanese,
+      images: ln.images as object,
+      status: ln.status,
+      score: ln.score,
+      volumesCount: ln.volumesCount,
+      reviewText: ln.review?.reviewText ?? null,
+      progressStatus: ln.review?.progressStatus ?? null,
+      personalScore: ln.review?.personalScore ?? null,
+      volumeProgress: ln.volumeProgress
+    };
   }
 
   async createBulk(
-    items: CreateLightNovelItemDto[]
-  ): Promise<{ count: number }> {
-    const chunks = chunkArray(items, 10);
-    let totalCreated = 0;
+    data: CreateLightNovelItemDto[],
+    _requestLog?: RequestLogContextStore
+  ): Promise<number[]> {
+    void _requestLog;
+
+    const allAuthorNames = [
+      ...new Set(data.flatMap((d) => d.authors.map((n) => n.trim())))
+    ];
+    const allGenreNames = [
+      ...new Set(data.flatMap((d) => d.genres.map((n) => n.trim())))
+    ];
+    const allThemeNames = [
+      ...new Set(data.flatMap((d) => d.themes.map((n) => n.trim())))
+    ];
+
+    const [authors, genres, themes] = await Promise.all([
+      this.authorsService.getOrCreateMany(allAuthorNames),
+      this.genresService.getOrCreateMany(allGenreNames),
+      this.themesService.getOrCreateMany(allThemeNames)
+    ]);
+
+    const authorMap = new Map(authors.map((a) => [a.name, a.id]));
+    const genreMap = new Map(genres.map((g) => [g.name, g.id]));
+    const themeMap = new Map(themes.map((t) => [t.name, t.id]));
+
+    const chunks = chunkArray(data, 5);
+    const results: number[] = [];
 
     for (const chunk of chunks) {
       await this.prisma.$transaction(async (tx) => {
         for (const item of chunk) {
-          const { authors, genres, themes, ...lightNovelData } = item;
-
-          const [authorRecords, genreRecords, themeRecords] = await Promise.all(
-            [
-              this.authorsService.getOrCreateMany(authors),
-              this.genresService.getOrCreateMany(genres),
-              this.themesService.getOrCreateMany(themes)
-            ]
-          );
+          const {
+            authors: authorNames,
+            genres: genreNames,
+            themes: themeNames,
+            ...lightNovelData
+          } = item;
 
           await tx.lightNovel.create({
             data: {
               ...lightNovelData,
               images: lightNovelData.images as Prisma.InputJsonValue,
               authors: {
-                create: authorRecords.map((a) => ({ authorId: a.id }))
+                createMany: {
+                  data: authorNames
+                    .map((name) => authorMap.get(name.trim()))
+                    .filter((id): id is number => id !== undefined)
+                    .map((authorId) => ({ authorId }))
+                }
               },
               genres: {
-                create: genreRecords.map((g) => ({ genreId: g.id }))
+                createMany: {
+                  data: genreNames
+                    .map((name) => genreMap.get(name.trim()))
+                    .filter((id): id is number => id !== undefined)
+                    .map((genreId) => ({ genreId }))
+                }
               },
               themes: {
-                create: themeRecords.map((t) => ({ themeId: t.id }))
+                createMany: {
+                  data: themeNames
+                    .map((name) => themeMap.get(name.trim()))
+                    .filter((id): id is number => id !== undefined)
+                    .map((themeId) => ({ themeId }))
+                }
               },
               review: { create: {} },
               volumeProgress: {
@@ -182,70 +352,15 @@ export class LightNovelService extends BaseCrudService<
             }
           });
 
-          totalCreated++;
+          results.push(item.id);
         }
       });
     }
 
-    return { count: totalCreated };
+    return results;
   }
 
-  async updateLightNovel(
-    id: number,
-    dto: UpdateLightNovelDto
-  ): Promise<LightNovelDetailResponseDto> {
-    const existing = await this.prisma.lightNovel.findUnique({
-      where: { id },
-      include: { volumeProgress: true }
-    });
-
-    if (!existing) {
-      throw new NotFoundException("Light Novel not found");
-    }
-
-    if (dto.volumesCount !== undefined && dto.volumesCount !== null) {
-      const currentCount = existing.volumeProgress.length;
-      const newCount = dto.volumesCount;
-
-      if (newCount > currentCount) {
-        const newVolumes = Array.from(
-          { length: newCount - currentCount },
-          (_, i) => ({
-            volumeNumber: currentCount + i + 1,
-            consumedAt: null as Date | null,
-            lightNovelId: id
-          })
-        );
-        await this.prisma.lightNovelVolumes.createMany({ data: newVolumes });
-      } else if (newCount < currentCount) {
-        await this.prisma.lightNovelVolumes.deleteMany({
-          where: {
-            lightNovelId: id,
-            volumeNumber: { gt: newCount }
-          }
-        });
-      }
-    }
-
-    const result = await this.prisma.lightNovel.update({
-      where: { id },
-      data: dto as Prisma.LightNovelUpdateInput,
-      include: {
-        review: true,
-        volumeProgress: { orderBy: { volumeNumber: "asc" } },
-        authors: { include: { author: { select: { id: true, name: true } } } },
-        genres: { include: { genre: { select: { id: true, name: true } } } },
-        themes: { include: { theme: { select: { id: true, name: true } } } }
-      }
-    });
-
-    return result as unknown as LightNovelDetailResponseDto;
-  }
-
-  async updateReview(
-    id: number,
-    dto: UpdateLightNovelReviewDto
-  ): Promise<LightNovelDetailResponseDto> {
+  async updateReview(id: number, data: UpdateLightNovelReviewDto) {
     const lightNovel = await this.prisma.lightNovel.findUnique({
       where: { id },
       include: { review: true }
@@ -257,15 +372,15 @@ export class LightNovelService extends BaseCrudService<
 
     const ratings = {
       storylineRating:
-        dto.storylineRating ?? lightNovel.review?.storylineRating,
+        data.storylineRating ?? lightNovel.review?.storylineRating,
       worldBuildingRating:
-        dto.worldBuildingRating ?? lightNovel.review?.worldBuildingRating,
+        data.worldBuildingRating ?? lightNovel.review?.worldBuildingRating,
       writingStyleRating:
-        dto.writingStyleRating ?? lightNovel.review?.writingStyleRating,
+        data.writingStyleRating ?? lightNovel.review?.writingStyleRating,
       charDevelopmentRating:
-        dto.charDevelopmentRating ?? lightNovel.review?.charDevelopmentRating,
+        data.charDevelopmentRating ?? lightNovel.review?.charDevelopmentRating,
       originalityRating:
-        dto.originalityRating ?? lightNovel.review?.originalityRating
+        data.originalityRating ?? lightNovel.review?.originalityRating
     };
 
     let personalScore: number | null = null;
@@ -279,12 +394,12 @@ export class LightNovelService extends BaseCrudService<
         ratings.originalityRating! * 0.1;
     }
 
-    const updateData: Record<string, unknown> = { ...dto };
+    const updateData: Record<string, unknown> = { ...data };
     if (personalScore !== null) {
       updateData.personalScore = personalScore;
     }
 
-    await this.prisma.lightNovelReview.upsert({
+    return this.prisma.lightNovelReview.upsert({
       where: { lightNovelId: id },
       update: updateData,
       create: {
@@ -292,8 +407,6 @@ export class LightNovelService extends BaseCrudService<
         ...updateData
       }
     });
-
-    return this.findOne(id);
   }
 
   async updateVolumeProgress(
@@ -310,54 +423,62 @@ export class LightNovelService extends BaseCrudService<
   }
 
   async checkDuplicate(id: number): Promise<{ exists: boolean }> {
-    const count = await this.prisma.lightNovel.count({ where: { id } });
-    return { exists: count > 0 };
+    const ln = await this.prisma.lightNovel.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+    return { exists: !!ln };
   }
 
-  async getTotal(): Promise<{ total: number }> {
-    const total = await this.prisma.lightNovel.count();
-    return { total };
+  async getTotal(): Promise<{ count: number }> {
+    const count = await this.prisma.lightNovel.count();
+    return { count };
   }
 
-  async getSitemapData(
-    query: PaginationQueryDto
-  ): Promise<
-    PaginatedResponseDto<{ id: number; slug: string; updatedAt: Date }>
-  > {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+  async getSitemapData(page: number, limit: number) {
+    const rawData = (await this.prisma.lightNovel.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        slug: true,
+        review: {
+          select: {
+            createdAt: true,
+            updatedAt: true
+          }
+        }
+      }
+    })) as SitemapRow[];
 
-    const [data, total] = await Promise.all([
-      this.prisma.lightNovel.findMany({
-        select: { id: true, slug: true, updatedAt: true },
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { id: "asc" }
-      }),
-      this.prisma.lightNovel.count()
-    ]);
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit)
-    };
+    return rawData.map((item) => ({
+      id: item.id,
+      slug: item.slug,
+      createdAt: item.review?.createdAt ?? null,
+      updatedAt: item.review?.updatedAt ?? null
+    }));
   }
 
-  async getStatusCounts(): Promise<Record<string, number>> {
-    const statuses = Object.keys(PROGRESS_STATUSES);
-    const counts: Record<string, number> = {};
+  async getStatusCounts(): Promise<LightNovelStatusCountItemDto[]> {
+    const totalCount = await this.prisma.lightNovel.count();
 
-    await Promise.all(
-      statuses.map(async (status) => {
-        counts[status] = await this.prisma.lightNovelReview.count({
-          where: { progressStatus: status as ProgressStatus }
-        });
-      })
+    const counts = await this.prisma.lightNovelReview.groupBy({
+      by: ["progressStatus"],
+      _count: { _all: true }
+    });
+
+    const countsMap = Object.fromEntries(
+      counts.map((c) => [c.progressStatus, c._count._all])
     );
 
-    return counts;
+    const mappedStatus = (
+      Object.keys(PROGRESS_STATUSES) as ProgressStatus[]
+    ).map((status) => ({
+      label: PROGRESS_STATUSES[status] ?? status,
+      value: status,
+      count: countsMap[status] ?? 0
+    }));
+
+    return [{ label: "All", value: null, count: totalCount }, ...mappedStatus];
   }
 }

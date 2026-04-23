@@ -8,10 +8,12 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Query
+  Query,
+  Req
 } from "@nestjs/common";
 import {
   ApiBody,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -22,18 +24,23 @@ import { BaseCrudController } from "@/common/crud/base-crud.controller";
 import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { Public } from "@/common/decorators/public.decorator";
 import { BulkDeleteDto, PaginationQueryDto } from "@/common/dto";
+import { getRequestLogContextFromRequest } from "@/common/logging/request-log-context";
 
 import {
   CreateMangaBulkDto,
   CreateMangaItemDto,
+  DuplicateCheckResponseDto,
   MangaDetailResponseDto,
   MangaListResponseDto,
   MangaQueryDto,
+  MangaTotalResponseDto,
   PaginatedMangaResponseDto,
   UpdateMangaDto,
   UpdateMangaReviewDto
 } from "@/manga/dto";
 import { MangaService } from "@/manga/manga.service";
+
+import type { Request } from "express";
 
 @AuthenticatedApiController({
   tag: "Mangas",
@@ -68,12 +75,11 @@ export class MangaController extends BaseCrudController<
   @Get("total")
   @Public()
   @ApiOperation({ summary: "Get total manga count" })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: "Returns total number of manga",
-    type: Number
+    type: MangaTotalResponseDto
   })
-  async getTotal(): Promise<number> {
+  async getTotal(): Promise<MangaTotalResponseDto> {
     return this.service.getTotal();
   }
 
@@ -96,20 +102,21 @@ export class MangaController extends BaseCrudController<
   @Public()
   @ApiOperation({ summary: "Check if manga exists by ID" })
   @ApiParam({ name: "id", description: "Manga MAL ID", type: Number })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: "Returns whether manga exists",
-    type: Boolean
+    type: DuplicateCheckResponseDto
   })
   async checkDuplicate(
     @Param("id", ParseIntPipe) id: number
-  ): Promise<boolean> {
+  ): Promise<DuplicateCheckResponseDto> {
     return this.service.checkDuplicate(id);
   }
 
   @Get("status-count")
   @Public()
-  @ApiOperation({ summary: "Get manga counts grouped by progress status" })
+  @ApiOperation({
+    summary: "Get manga counts grouped by progress status (includes All bucket)"
+  })
   @ApiResponse({
     status: 200,
     description: "Returns status counts"
@@ -141,8 +148,11 @@ export class MangaController extends BaseCrudController<
     status: 201,
     description: "Manga created successfully"
   })
-  async createBulk(@Body() dto: CreateMangaBulkDto) {
-    return this.service.createBulk(dto.data);
+  async createBulk(@Body() dto: CreateMangaBulkDto, @Req() req: Request) {
+    return this.service.createBulk(
+      dto.data,
+      getRequestLogContextFromRequest(req)
+    );
   }
 
   @Put(":id")

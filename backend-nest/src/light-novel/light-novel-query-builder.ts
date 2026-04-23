@@ -1,9 +1,6 @@
 import { Injectable } from "@nestjs/common";
 
-import {
-  PROGRESS_STATUSES,
-  SCORE_RANGES
-} from "@/common/constants/progress-statuses";
+import { SCORE_RANGES } from "@/common/constants/progress-statuses";
 import {
   CrudQueryBuilder,
   CrudQueryResult
@@ -16,11 +13,15 @@ export class LightNovelQueryBuilder implements CrudQueryBuilder {
   buildFindAllQuery(query: LightNovelQueryDto): CrudQueryResult {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
-    const where: Record<string, unknown> = {};
     const conditions: Record<string, unknown>[] = [];
 
     if (query.query) {
-      where.title = { contains: query.query, mode: "insensitive" };
+      conditions.push({
+        OR: [
+          { title: { contains: query.query, mode: "insensitive" } },
+          { titleSynonyms: { contains: query.query, mode: "insensitive" } }
+        ]
+      });
     }
 
     if (query.author) {
@@ -41,78 +42,77 @@ export class LightNovelQueryBuilder implements CrudQueryBuilder {
       });
     }
 
-    if (query.status && query.status in PROGRESS_STATUSES) {
+    if (query.status) {
       conditions.push({
         review: { progressStatus: query.status }
       });
     }
 
-    if (query.malScore && query.malScore in SCORE_RANGES) {
+    if (query.malScore && SCORE_RANGES[query.malScore]) {
       const range = SCORE_RANGES[query.malScore];
       conditions.push({
         score: { gte: range.min, lte: range.max }
       });
     }
 
-    if (query.personalScore && query.personalScore in SCORE_RANGES) {
+    if (query.personalScore && SCORE_RANGES[query.personalScore]) {
       const range = SCORE_RANGES[query.personalScore];
       conditions.push({
         review: { personalScore: { gte: range.min, lte: range.max } }
       });
     }
 
-    if (query.statusCheck) {
-      if (query.statusCheck === "complete") {
-        conditions.push({
-          volumesCount: { not: null },
-          review: {
-            reviewText: { not: null },
-            progressStatus: { not: "DROPPED" }
-          },
-          volumeProgress: { every: { consumedAt: { not: null } } }
-        });
-      } else if (query.statusCheck === "incomplete") {
-        conditions.push({
-          OR: [
-            { volumesCount: null },
-            { review: { reviewText: null } },
-            { review: { progressStatus: "DROPPED" } },
-            { volumeProgress: { some: { consumedAt: null } } }
-          ]
-        });
-      }
+    if (query.statusCheck === "complete") {
+      conditions.push({
+        volumesCount: { not: null },
+        review: {
+          reviewText: { not: null },
+          progressStatus: { not: "DROPPED" }
+        },
+        volumeProgress: { every: { consumedAt: { not: null } } }
+      });
+    } else if (query.statusCheck === "incomplete") {
+      conditions.push({
+        OR: [
+          { volumesCount: null },
+          { review: { reviewText: null } },
+          { review: { progressStatus: "DROPPED" } },
+          { volumeProgress: { some: { consumedAt: null } } }
+        ]
+      });
     }
 
-    if (conditions.length > 0) {
-      where.AND = conditions;
-    }
+    const where = conditions.length > 0 ? { AND: conditions } : {};
 
-    let orderBy: Record<string, unknown> | undefined;
-    if (query.sort) {
-      orderBy = { [query.sort]: query.order ?? "asc" };
-    }
+    const orderBy = this.buildOrderBy(query.sort, query.order);
 
     return {
       where,
       skip: (page - 1) * limit,
       take: limit,
-      orderBy,
-      include: {
-        review: {
-          select: {
-            reviewText: true,
-            progressStatus: true,
-            personalScore: true
-          }
-        },
-        volumeProgress: {
-          select: {
-            volumeNumber: true,
-            consumedAt: true
-          },
-          orderBy: { volumeNumber: "asc" }
-        }
-      }
+      orderBy
     };
+  }
+
+  private buildOrderBy(
+    sort?: string,
+    order?: string
+  ): Record<string, unknown> | undefined {
+    const direction = order === "asc" ? "asc" : "desc";
+
+    switch (sort) {
+      case "title":
+        return { title: direction };
+      case "score":
+        return { score: direction };
+      case "personal_score":
+        return {
+          review: {
+            personalScore: { sort: direction, nulls: "last" }
+          }
+        };
+      default:
+        return undefined;
+    }
   }
 }

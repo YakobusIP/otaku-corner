@@ -86,10 +86,10 @@ const createLightNovelService = () => {
 
   const fetchDuplicate = async (id: number) => {
     try {
-      const response = await interceptedAxios.get<boolean>(
+      const response = await interceptedAxios.get<{ exists: boolean }>(
         `${BASE_LIGHTNOVEL_URL}/duplicate/${id}`
       );
-      return { exists: response.data };
+      return response.data;
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);

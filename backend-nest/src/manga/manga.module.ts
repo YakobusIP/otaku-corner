@@ -4,6 +4,7 @@ import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 
 import { AuthorsModule } from "@/author/authors.module";
 import { GenresModule } from "@/genre/genres.module";
+import { FetchMangaDataQueueService } from "@/manga/fetch-manga-data.queue";
 import { MangaQueryBuilder } from "@/manga/manga-query-builder";
 import { MangaController } from "@/manga/manga.controller";
 import { MangaService } from "@/manga/manga.service";
@@ -14,6 +15,7 @@ import { ThemesModule } from "@/theme/themes.module";
   controllers: [MangaController],
   providers: [
     MangaService,
+    FetchMangaDataQueueService,
     { provide: CrudQueryBuilder, useClass: MangaQueryBuilder }
   ],
   exports: [MangaService]

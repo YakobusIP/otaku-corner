@@ -4,3 +4,5 @@ export * from "@/manga/dto/update-manga.dto";
 export * from "@/manga/dto/update-manga-review.dto";
 export * from "@/manga/dto/manga-list-response.dto";
 export * from "@/manga/dto/manga-detail-response.dto";
+export * from "@/manga/dto/manga-total-response.dto";
+export * from "@/manga/dto/duplicate-check-response.dto";

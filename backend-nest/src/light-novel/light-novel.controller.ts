@@ -8,18 +8,32 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Query
+  Query,
+  Req
 } from "@nestjs/common";
-import { ApiBody, ApiOperation, ApiParam, ApiResponse } from "@nestjs/swagger";
+import {
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse
+} from "@nestjs/swagger";
 
+import { BaseCrudController } from "@/common/crud/base-crud.controller";
 import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { Public } from "@/common/decorators/public.decorator";
 import { BulkDeleteDto, PaginationQueryDto } from "@/common/dto";
+import { getRequestLogContextFromRequest } from "@/common/logging/request-log-context";
 
 import {
   CreateLightNovelBulkDto,
+  CreateLightNovelItemDto,
+  DuplicateCheckResponseDto,
   LightNovelDetailResponseDto,
+  LightNovelListResponseDto,
   LightNovelQueryDto,
+  LightNovelTotalResponseDto,
   PaginatedLightNovelResponseDto,
   UpdateLightNovelDto,
   UpdateLightNovelReviewDto,
@@ -27,93 +41,98 @@ import {
 } from "@/light-novel/dto";
 import { LightNovelService } from "@/light-novel/light-novel.service";
 
+import type { Request } from "express";
+
 @AuthenticatedApiController({
   tag: "Light Novels",
   path: "light-novels",
   errors: { notFound: "Light novel not found" }
 })
-export class LightNovelController {
-  constructor(private readonly service: LightNovelService) {}
+export class LightNovelController extends BaseCrudController<
+  CreateLightNovelItemDto,
+  UpdateLightNovelDto,
+  LightNovelListResponseDto,
+  PaginatedLightNovelResponseDto,
+  LightNovelService
+> {
+  constructor(service: LightNovelService) {
+    super(service);
+  }
 
   @Get()
   @Public()
-  @ApiOperation({ summary: "Get all light novels" })
+  @ApiOperation({ summary: "Get all light novels with filters and pagination" })
   @ApiResponse({
     status: 200,
-    description: "Returns list of light novels",
+    description: "Returns paginated list of light novels",
     type: PaginatedLightNovelResponseDto
   })
   async findAll(
     @Query() query: LightNovelQueryDto
   ): Promise<PaginatedLightNovelResponseDto> {
-    return this.service.findAll(
-      query
-    ) as Promise<PaginatedLightNovelResponseDto>;
+    return this.service.findAll(query);
   }
 
   @Get("total")
   @Public()
   @ApiOperation({ summary: "Get total light novel count" })
-  @ApiResponse({
-    status: 200,
-    description: "Returns total count"
+  @ApiOkResponse({
+    description: "Returns total number of light novels",
+    type: LightNovelTotalResponseDto
   })
-  async getTotal(): Promise<{ total: number }> {
+  async getTotal(): Promise<LightNovelTotalResponseDto> {
     return this.service.getTotal();
   }
 
   @Get("sitemap")
   @Public()
-  @ApiOperation({ summary: "Get sitemap data for light novels" })
+  @ApiOperation({ summary: "Get light novel data for sitemap generation" })
+  @ApiQuery({ name: "page", required: false, type: Number, example: 1 })
+  @ApiQuery({ name: "limit", required: false, type: Number, example: 10 })
   @ApiResponse({
     status: 200,
-    description: "Returns sitemap data"
+    description: "Returns light novel sitemap data"
   })
   async getSitemapData(@Query() query: PaginationQueryDto) {
-    return this.service.getSitemapData(query);
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    return this.service.getSitemapData(page, limit);
   }
 
   @Get("duplicate/:id")
+  @Public()
   @ApiOperation({ summary: "Check if a light novel exists by ID" })
-  @ApiParam({
-    name: "id",
-    description: "Light novel ID",
-    example: 1,
-    type: Number
-  })
-  @ApiResponse({
-    status: 200,
-    description: "Returns duplicate check result"
+  @ApiParam({ name: "id", description: "Light novel MAL ID", type: Number })
+  @ApiOkResponse({
+    description: "Returns whether the light novel exists",
+    type: DuplicateCheckResponseDto
   })
   async checkDuplicate(
     @Param("id", ParseIntPipe) id: number
-  ): Promise<{ exists: boolean }> {
+  ): Promise<DuplicateCheckResponseDto> {
     return this.service.checkDuplicate(id);
   }
 
   @Get("status-count")
   @Public()
-  @ApiOperation({ summary: "Get light novel counts by progress status" })
+  @ApiOperation({
+    summary: "Get light novel counts grouped by progress status (includes All)"
+  })
   @ApiResponse({
     status: 200,
     description: "Returns status counts"
   })
-  async getStatusCounts(): Promise<Record<string, number>> {
+  async getStatusCounts() {
     return this.service.getStatusCounts();
   }
 
   @Get(":id")
   @Public()
-  @ApiOperation({ summary: "Get a light novel by ID" })
-  @ApiParam({
-    name: "id",
-    description: "Light novel ID",
-    example: 1,
-    type: Number
-  })
+  @ApiOperation({ summary: "Get light novel detail by ID" })
+  @ApiParam({ name: "id", description: "Light novel ID", type: Number })
   @ApiResponse({
     status: 200,
-    description: "Returns the light novel detail",
+    description: "Returns light novel detail",
     type: LightNovelDetailResponseDto
   })
   async findOne(
@@ -124,16 +143,17 @@ export class LightNovelController {
 
   @Post("bulk")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Create light novels in bulk" })
+  @ApiOperation({ summary: "Bulk create light novels" })
   @ApiBody({ type: CreateLightNovelBulkDto })
   @ApiResponse({
     status: 201,
     description: "Light novels created successfully"
   })
-  async createBulk(
-    @Body() dto: CreateLightNovelBulkDto
-  ): Promise<{ count: number }> {
-    return this.service.createBulk(dto.data);
+  async createBulk(@Body() dto: CreateLightNovelBulkDto, @Req() req: Request) {
+    return this.service.createBulk(
+      dto.data,
+      getRequestLogContextFromRequest(req)
+    );
   }
 
   @Put("volume-progress")
@@ -151,43 +171,32 @@ export class LightNovelController {
 
   @Put(":id")
   @ApiOperation({ summary: "Update a light novel" })
-  @ApiParam({
-    name: "id",
-    description: "Light novel ID",
-    example: 1,
-    type: Number
-  })
+  @ApiParam({ name: "id", description: "Light novel ID", type: Number })
   @ApiBody({ type: UpdateLightNovelDto })
   @ApiResponse({
     status: 200,
     description: "Light novel updated successfully",
-    type: LightNovelDetailResponseDto
+    type: LightNovelListResponseDto
   })
   async update(
     @Param("id", ParseIntPipe) id: number,
     @Body() dto: UpdateLightNovelDto
-  ): Promise<LightNovelDetailResponseDto> {
-    return this.service.updateLightNovel(id, dto);
+  ): Promise<LightNovelListResponseDto> {
+    return this.baseUpdate(id, dto);
   }
 
   @Put(":id/review")
-  @ApiOperation({ summary: "Update a light novel review" })
-  @ApiParam({
-    name: "id",
-    description: "Light novel ID",
-    example: 1,
-    type: Number
-  })
+  @ApiOperation({ summary: "Update light novel review" })
+  @ApiParam({ name: "id", description: "Light novel ID", type: Number })
   @ApiBody({ type: UpdateLightNovelReviewDto })
   @ApiResponse({
     status: 200,
-    description: "Review updated successfully",
-    type: LightNovelDetailResponseDto
+    description: "Light novel review updated successfully"
   })
   async updateReview(
     @Param("id", ParseIntPipe) id: number,
     @Body() dto: UpdateLightNovelReviewDto
-  ): Promise<LightNovelDetailResponseDto> {
+  ) {
     return this.service.updateReview(id, dto);
   }
 
@@ -200,23 +209,18 @@ export class LightNovelController {
     description: "Light novels deleted successfully"
   })
   async deleteMany(@Body() bulkDeleteDto: BulkDeleteDto): Promise<void> {
-    return this.service.deleteMany(bulkDeleteDto.ids);
+    return this.baseDeleteMany(bulkDeleteDto.ids);
   }
 
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete a light novel" })
-  @ApiParam({
-    name: "id",
-    description: "Light novel ID",
-    example: 1,
-    type: Number
-  })
+  @ApiParam({ name: "id", description: "Light novel ID", type: Number })
   @ApiResponse({
     status: 204,
     description: "Light novel deleted successfully"
   })
   async delete(@Param("id", ParseIntPipe) id: number): Promise<void> {
-    return this.service.delete(id);
+    return this.baseDelete(id);
   }
 }

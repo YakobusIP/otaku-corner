@@ -5,3 +5,5 @@ export * from "@/light-novel/dto/update-light-novel-review.dto";
 export * from "@/light-novel/dto/update-volume-progress.dto";
 export * from "@/light-novel/dto/light-novel-list-response.dto";
 export * from "@/light-novel/dto/light-novel-detail-response.dto";
+export * from "@/light-novel/dto/light-novel-total-response.dto";
+export * from "@/light-novel/dto/duplicate-check-response.dto";

@@ -1,9 +1,10 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 
 import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
 import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
+import type { RequestLogContextStore } from "@/common/logging/request-log-context";
 import { chunkArray } from "@/common/utils/chunk-array";
 
 import { PrismaService } from "@/prisma/prisma.service";
@@ -19,9 +20,10 @@ import {
   UpdateMangaDto,
   UpdateMangaReviewDto
 } from "@/manga/dto";
+import { FetchMangaDataQueueService } from "@/manga/fetch-manga-data.queue";
 import { ThemesService } from "@/theme/themes.service";
 
-import { Prisma } from "@prisma/client";
+import { Prisma, ProgressStatus } from "@prisma/client";
 
 interface MangaWithReview {
   id: number;
@@ -82,6 +84,12 @@ interface SitemapRow {
   review: { createdAt: Date; updatedAt: Date } | null;
 }
 
+export type MangaStatusCountItemDto = {
+  label: string;
+  value: ProgressStatus | null;
+  count: number;
+};
+
 @Injectable()
 export class MangaService extends BaseCrudService<
   CrudDelegate,
@@ -97,7 +105,8 @@ export class MangaService extends BaseCrudService<
     queryBuilder: CrudQueryBuilder,
     @Inject(AuthorsService) private readonly authorsService: AuthorsService,
     @Inject(GenresService) private readonly genresService: GenresService,
-    @Inject(ThemesService) private readonly themesService: ThemesService
+    @Inject(ThemesService) private readonly themesService: ThemesService,
+    private readonly fetchMangaDataQueue: FetchMangaDataQueueService
   ) {
     super(prisma, queryBuilder);
   }
@@ -202,9 +211,7 @@ export class MangaService extends BaseCrudService<
     })) as MangaDetailRaw | null;
 
     if (!manga) {
-      throw new (await import("@nestjs/common")).NotFoundException(
-        "Manga not found"
-      );
+      throw new NotFoundException("Manga not found");
     }
 
     return {
@@ -217,7 +224,10 @@ export class MangaService extends BaseCrudService<
     } as MangaDetailResponseDto;
   }
 
-  async createBulk(data: CreateMangaItemDto[]) {
+  async createBulk(
+    data: CreateMangaItemDto[],
+    requestLog?: RequestLogContextStore
+  ) {
     const allAuthorNames = [...new Set(data.flatMap((d) => d.authors))];
     const allGenreNames = [...new Set(data.flatMap((d) => d.genres))];
     const allThemeNames = [...new Set(data.flatMap((d) => d.themes))];
@@ -278,6 +288,13 @@ export class MangaService extends BaseCrudService<
             }
           });
 
+          this.fetchMangaDataQueue.enqueueAfterCreate(
+            item.id,
+            item.title,
+            item.titleJapanese,
+            item.status,
+            requestLog
+          );
           results.push(item.id);
         }
       });
@@ -324,16 +341,17 @@ export class MangaService extends BaseCrudService<
     });
   }
 
-  async checkDuplicate(id: number): Promise<boolean> {
+  async checkDuplicate(id: number): Promise<{ exists: boolean }> {
     const manga = await this.prisma.manga.findUnique({
       where: { id },
       select: { id: true }
     });
-    return !!manga;
+    return { exists: !!manga };
   }
 
-  async getTotal(): Promise<number> {
-    return this.prisma.manga.count();
+  async getTotal(): Promise<{ count: number }> {
+    const count = await this.prisma.manga.count();
+    return { count };
   }
 
   async getSitemapData(page: number, limit: number) {
@@ -360,16 +378,26 @@ export class MangaService extends BaseCrudService<
     }));
   }
 
-  async getStatusCounts() {
+  async getStatusCounts(): Promise<MangaStatusCountItemDto[]> {
+    const totalCount = await this.prisma.manga.count();
+
     const counts = await this.prisma.mangaReview.groupBy({
       by: ["progressStatus"],
       _count: { _all: true }
     });
 
-    return counts.map((item) => ({
-      status: item.progressStatus,
-      label: PROGRESS_STATUSES[item.progressStatus] ?? item.progressStatus,
-      count: item._count._all
+    const countsMap = Object.fromEntries(
+      counts.map((c) => [c.progressStatus, c._count._all])
+    );
+
+    const mappedStatus = (
+      Object.keys(PROGRESS_STATUSES) as ProgressStatus[]
+    ).map((status) => ({
+      label: PROGRESS_STATUSES[status] ?? status,
+      value: status,
+      count: countsMap[status] ?? 0
     }));
+
+    return [{ label: "All", value: null, count: totalCount }, ...mappedStatus];
   }
 }
