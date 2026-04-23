@@ -1,3 +1,5 @@
+import { existsSync, mkdirSync } from "node:fs";
+
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
@@ -7,6 +9,9 @@ import { PrismaExceptionFilter } from "@/common/filters/prisma-exception.filter"
 import { WinstonLoggerService } from "@/common/logging/winston-logger.service";
 
 import { AppModule } from "@/app.module";
+import { FileStorageService } from "@/storage/file-storage.service";
+
+import * as express from "express";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -34,6 +39,12 @@ async function bootstrap() {
   app.useGlobalFilters(app.get(PrismaExceptionFilter));
 
   const configService = app.get(ConfigService);
+
+  const uploadsRoot = FileStorageService.resolveAbsoluteRootDir(configService);
+  if (!existsSync(uploadsRoot)) {
+    mkdirSync(uploadsRoot, { recursive: true });
+  }
+  app.use("/uploads", express.static(uploadsRoot));
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle("Otaku Corner API")

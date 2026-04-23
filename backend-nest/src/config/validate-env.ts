@@ -1,3 +1,5 @@
+import { join } from "node:path";
+
 import { z } from "zod";
 
 export const envSchema = z.object({
@@ -42,7 +44,13 @@ export const envSchema = z.object({
   CANONICAL_PUBLIC_APP_URL: z.url().trim(),
   PUBLIC_APP_URL: z.url().trim(),
 
-  UPLOADS_DIR: z.string().optional(),
+  UPLOADS_DIR: z.preprocess((v) => {
+    if (typeof v === "string" && v.trim() !== "") {
+      return v.trim();
+    }
+    return join(process.cwd(), "uploads");
+  }, z.string().min(1)),
+  PUBLIC_UPLOADS_BASE_URL: z.url().trim().optional(),
 
   LOG_SERVICE_NAME: z.string().trim().min(1).optional(),
   LOG_LEVEL: z.preprocess(

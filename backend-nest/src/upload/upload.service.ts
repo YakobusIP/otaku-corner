@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs";
-import { extname, join } from "node:path";
+import { extname } from "node:path";
 
 import {
   BadRequestException,
@@ -8,29 +7,20 @@ import {
   Injectable,
   NotFoundException
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 
 import { PrismaService } from "@/prisma/prisma.service";
 
+import { FileStorageService } from "@/storage/file-storage.service";
 import { MediaType } from "@/upload/enums/media-type.enum";
 
 import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class UploadService {
-  private readonly uploadsDir: string;
-
   constructor(
     private readonly prisma: PrismaService,
-    private readonly config: ConfigService
-  ) {
-    this.uploadsDir =
-      this.config.get<string>("UPLOADS_DIR") || join(process.cwd(), "uploads");
-
-    if (!existsSync(this.uploadsDir)) {
-      mkdirSync(this.uploadsDir, { recursive: true });
-    }
-  }
+    private readonly fileStorage: FileStorageService
+  ) {}
 
   async uploadImage(
     file: Express.Multer.File,
@@ -40,12 +30,9 @@ export class UploadService {
     const id = randomUUID();
     const ext = extname(file.originalname);
     const filename = `${id}${ext}`;
-    const filePath = join(this.uploadsDir, filename);
 
-    writeFileSync(filePath, file.buffer);
-
-    const port = this.config.get<number>("PORT") || 5000;
-    const url = `http://localhost:${port}/uploads/${filename}`;
+    this.fileStorage.writeFile(filename, file.buffer);
+    const url = this.fileStorage.publicUrlForFile(filename);
 
     const reviewConnect = this.buildReviewConnect(type, reviewId);
 
@@ -54,7 +41,7 @@ export class UploadService {
         data: { id, url, ...reviewConnect }
       });
     } catch (error) {
-      if (existsSync(filePath)) unlinkSync(filePath);
+      this.fileStorage.deleteFileIfExists(filename);
 
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -75,10 +62,14 @@ export class UploadService {
       throw new NotFoundException(`Image with id "${id}" not found`);
     }
 
-    const filename = image.url.split("/").pop();
+    const raw = image.url.split("/").pop()?.split("?")[0];
+    const filename = raw ? decodeURIComponent(raw) : "";
     if (filename) {
-      const filePath = join(this.uploadsDir, filename);
-      if (existsSync(filePath)) unlinkSync(filePath);
+      try {
+        this.fileStorage.deleteFileIfExists(filename);
+      } catch {
+        // Ignore invalid or legacy keys; DB row is still removed.
+      }
     }
 
     await this.prisma.reviewImage.delete({ where: { id } });
