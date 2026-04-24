@@ -142,7 +142,7 @@ export default function AnimeHeader() {
               size="sm"
               className="hover:bg-muted/40"
             >
-              <Link to="/media">
+              <Link to="/media-list">
                 <ArrowLeftIcon size={16} />
                 Media
               </Link>

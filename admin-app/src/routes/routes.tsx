@@ -23,22 +23,6 @@ export const router = createBrowserRouter([
     )
   },
   {
-    path: "/media",
-    element: (
-      <ProtectedRoute>
-        <MediaLibraryPage />
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/anime",
-    element: (
-      <ProtectedRoute>
-        <MediaLibraryPage />
-      </ProtectedRoute>
-    )
-  },
-  {
     path: "/media-list",
     element: (
       <ProtectedRoute>

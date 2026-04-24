@@ -1,20 +1,11 @@
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useState
-} from "react";
+import { useCallback, useState } from "react";
 
 import LogoutButton from "@/components/LogoutButton";
-import MediaFilter from "@/components/MediaFilter";
 import AddAnimeDialog from "@/components/add-anime/AddAnimeDialog";
 import AddLightNovelDialog from "@/components/add-lightnovel/AddLightNovelDialog";
 import AddMangaDialog from "@/components/add-manga/AddMangaDialog";
 import EntityManagement from "@/components/entity-management/EntityManagement";
 import { Button } from "@/components/ui/button";
-import { DropdownChecked } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -32,18 +23,13 @@ import useWideScreen from "@/hooks/useWideScreen";
 import {
   ChartNoAxesCombinedIcon,
   GlobeIcon,
-  MenuIcon,
-  SearchIcon
+  MenuIcon
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useDebounce } from "use-debounce";
 
 import { Badge } from "../ui/badge";
 
 type Props = {
-  mediaFilters: DropdownChecked[];
-  setMediaFilters: Dispatch<SetStateAction<DropdownChecked[]>>;
-  setSearchMedia: Dispatch<SetStateAction<string>>;
   fetchAnimeList: () => Promise<void>;
   fetchGenreList: () => Promise<void>;
   fetchStudioList: () => Promise<void>;
@@ -54,9 +40,6 @@ type Props = {
 };
 
 export default function MediaListNavbar({
-  mediaFilters,
-  setMediaFilters,
-  setSearchMedia,
   fetchAnimeList,
   fetchGenreList,
   fetchStudioList,
@@ -72,19 +55,6 @@ export default function MediaListNavbar({
   const [openAddLightNovelDialog, setOpenAddLightNovelDialog] = useState(false);
   const [openEntityManagementDialog, setOpenEntityManagementDialog] =
     useState(false);
-
-  const [localSearch, setLocalSearch] = useState("");
-  const [debouncedLocalSearch] = useDebounce(localSearch, 1000);
-
-  useEffect(() => {
-    setSearchMedia(debouncedLocalSearch);
-  }, [debouncedLocalSearch, setSearchMedia]);
-
-  const handleMediaFilters = (index: number, checked: DropdownChecked) => {
-    setMediaFilters((prevFilters) =>
-      prevFilters.map((state, i) => (i === index ? checked : state))
-    );
-  };
 
   const resetAnimeParent = useCallback(async () => {
     await fetchAnimeList();

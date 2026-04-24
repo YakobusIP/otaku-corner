@@ -65,10 +65,10 @@ export default function FilterPopover<T, K extends string | number>({
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, error } = useQuery({
     enabled: !!query,
     ...(query || ({} as QueryConfig<T>))
-  }) as { data?: T[]; isLoading: boolean; error: Error | null };
+  }) as { data?: T[]; error: Error | null };
 
   const options: T[] | undefined = useMemo(() => data ?? items, [data, items]);
 

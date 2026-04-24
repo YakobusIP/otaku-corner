@@ -7,17 +7,10 @@ import {
   useState
 } from "react";
 
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import { SORT_ORDER } from "@/lib/enums";
 import { MediaTypeFilter } from "@/lib/query-keys";
 
 import { useSearchParams } from "react-router-dom";
-
-/** Normalize status from URL: "Planned" -> "PLANNED" for backend compatibility */
-function normalizeProgressStatus(s: string | null): string | undefined {
-  if (!s) return undefined;
-  const key = Object.entries(PROGRESS_STATUS).find(([, v]) => v === s)?.[0];
-  return (key ?? s) as string;
-}
 
 type MediaFiltersState = {
   mediaType: MediaTypeFilter;
@@ -65,7 +58,7 @@ const MediaFiltersContext = createContext<MediaFiltersContextValue | undefined>(
   undefined
 );
 
-export function MediaFiltersProvider({ children }: { children: ReactNode }) {
+export const MediaFiltersProvider = ({ children }: { children: ReactNode }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [state, setInternalState] = useState<MediaFiltersState>(() => ({
     ...defaultState,
@@ -130,7 +123,7 @@ export function MediaFiltersProvider({ children }: { children: ReactNode }) {
       {children}
     </MediaFiltersContext.Provider>
   );
-}
+};
 
 export function useMediaFilters() {
   const context = useContext(MediaFiltersContext);

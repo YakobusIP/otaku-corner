@@ -80,7 +80,7 @@ export default function LightNovelReviewSection({
     setWritingStyleRating(r.writingStyleRating || 10);
     setCharDevelopmentRating(r.charDevelopmentRating || 10);
     setOriginalityRating(r.originalityRating || 10);
-  }, [lightNovelDetail.id, lightNovelDetail.review.updatedAt]);
+  }, [lightNovelDetail.id, lightNovelDetail.review]);
 
   const ratingFields = [
     {

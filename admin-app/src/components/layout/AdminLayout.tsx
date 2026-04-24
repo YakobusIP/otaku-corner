@@ -18,7 +18,12 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 
-import { BarChart3Icon, BookOpenIcon, ExternalLinkIcon } from "lucide-react";
+import {
+  BarChart3Icon,
+  BookOpenIcon,
+  ExternalLinkIcon,
+  PanelLeftIcon
+} from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 function MobileSidebarCloseOnNavigate() {
@@ -53,7 +58,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: <BarChart3Icon />
   },
   {
-    to: "/media",
+    to: "/media-list",
     label: "Media Library",
     icon: <BookOpenIcon />
   }
@@ -61,6 +66,8 @@ const NAV_ITEMS: NavItem[] = [
 
 function AppSidebar() {
   const location = useLocation();
+  const { isMobile, state, toggleSidebar } = useSidebar();
+  const showExpandedBrand = isMobile || state === "expanded";
 
   return (
     <Sidebar
@@ -68,20 +75,41 @@ function AppSidebar() {
       className="border-r border-border/60 [&_[data-sidebar=sidebar]]:border-border/60 [&_[data-sidebar=sidebar]]:bg-card/85 [&_[data-sidebar=sidebar]]:text-foreground [&_[data-sidebar=sidebar]]:backdrop-blur-xl"
     >
       <SidebarHeader className="border-b border-border/50 px-2 py-3">
-        <Link
-          to="/dashboard"
-          className="flex min-w-0 items-center gap-2 rounded-md outline-none ring-sidebar-ring focus-visible:ring-2"
-          aria-label="Otaku Corner Admin — Dashboard home"
-        >
-          <img
-            src="/otaku-corner-logo.webp"
-            alt=""
-            className="h-14 w-auto max-w-[min(100%,280px)] shrink-0 object-contain object-left transition-[max-width,height,width] duration-200 ease-linear md:group-data-[state=collapsed]:h-7 md:group-data-[state=collapsed]:w-7 md:group-data-[state=collapsed]:max-w-7 md:group-data-[state=collapsed]:object-center md:group-data-[state=expanded]:h-16 md:group-data-[state=expanded]:w-auto md:group-data-[state=expanded]:max-w-[min(calc(var(--sidebar-width)-1rem),288px)] md:group-data-[state=expanded]:object-left"
-          />
-          <span className="truncate text-sm font-semibold tracking-tight text-foreground md:group-data-[state=collapsed]:hidden">
-            Admin
-          </span>
-        </Link>
+        {showExpandedBrand ? (
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <Link
+              to="/dashboard"
+              className="flex min-w-0 flex-1 items-center gap-2 rounded-md outline-none ring-sidebar-ring focus-visible:ring-2"
+              aria-label="Otaku Corner Admin — Dashboard home"
+            >
+              <img
+                src="/otaku-corner-logo.webp"
+                alt=""
+                className="h-14 w-auto max-w-[min(100%,280px)] shrink-0 object-contain object-left transition-[max-width,height,width] duration-200 ease-linear md:group-data-[state=expanded]:h-16 md:group-data-[state=expanded]:w-auto md:group-data-[state=expanded]:max-w-[min(calc(var(--sidebar-width)-1rem),288px)] md:group-data-[state=expanded]:object-left"
+              />
+              <span className="truncate text-sm font-semibold tracking-tight text-foreground">
+                Admin
+              </span>
+            </Link>
+            <SidebarTrigger className="shrink-0" />
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              aria-label="Expand sidebar"
+              className="group/collapsed-brand relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md outline-none ring-offset-background transition hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <img
+                src="/otaku-corner-logo.webp"
+                alt=""
+                className="absolute inset-0 m-auto h-7 w-7 object-contain opacity-100 transition-opacity duration-150 group-hover/collapsed-brand:pointer-events-none group-hover/collapsed-brand:opacity-0"
+              />
+              <PanelLeftIcon className="relative z-10 h-4 w-4 shrink-0 text-sidebar-foreground opacity-0 transition-opacity duration-150 group-hover/collapsed-brand:opacity-100" />
+            </button>
+          </div>
+        )}
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -155,20 +183,28 @@ export default function AdminLayout({
       <MobileSidebarCloseOnNavigate />
       <AppSidebar />
       <SidebarInset className="min-h-0 overflow-hidden bg-transparent">
-        {hideHeader ? null : (
-          <header className="sticky top-0 z-40 flex shrink-0 items-center gap-3 border-b border-border/60 bg-card/60 px-4 py-3 backdrop-blur-xl md:px-6">
-            <SidebarTrigger />
-            <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-semibold md:text-2xl">{title}</h1>
-              {description ? (
-                <p className="text-sm text-muted-foreground">{description}</p>
-              ) : null}
-            </div>
-            <div className="flex shrink-0 items-center gap-2">{actions}</div>
-          </header>
-        )}
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <section className="p-4 md:p-6">{children}</section>
+          <section className="flex flex-col gap-4 p-4 md:p-6">
+            {hideHeader ? null : (
+              <header className="flex shrink-0 items-center gap-3 bg-transparent">
+                <SidebarTrigger className="md:hidden" />
+                <div className="min-w-0 flex-1">
+                  <h1 className="inline-block max-w-full bg-gradient-to-r from-[#4F8CFF] via-[#7C6CF6] to-[#A855F7] bg-clip-text text-xl font-bold text-transparent md:text-3xl">
+                    {title}
+                  </h1>
+                  {description ? (
+                    <p className="text-sm text-muted-foreground">
+                      {description}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {actions}
+                </div>
+              </header>
+            )}
+            {children}
+          </section>
         </div>
       </SidebarInset>
     </SidebarProvider>

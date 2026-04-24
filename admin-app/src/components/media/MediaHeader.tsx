@@ -34,6 +34,7 @@ export default function MediaHeader({ totalCount }: Props) {
     if (state.query !== localQuery && state.query !== debouncedQuery) {
       setLocalQuery(state.query);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- omit localQuery/debouncedQuery so typing is not reset while debounce catches up
   }, [state.query]);
 
   const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
@@ -54,7 +55,7 @@ export default function MediaHeader({ totalCount }: Props) {
   };
 
   return (
-    <div className="space-y-3 rounded-xl border border-border/60 bg-card/60 backdrop-blur-xl p-3">
+    <div className="sticky top-2 z-30 space-y-3 rounded-xl border border-border/60 bg-card/60 p-3 shadow-sm backdrop-blur-xl">
       <div className="flex min-w-0 flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-x-3 md:gap-y-2">
         <Tabs
           className="w-full shrink-0 md:w-auto"

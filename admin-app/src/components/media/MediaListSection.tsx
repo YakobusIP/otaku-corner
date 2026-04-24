@@ -325,7 +325,7 @@ export default function MediaListSection() {
   });
 
   return (
-    <div className="rounded-xl border border-border/60 bg-card/60 backdrop-blur-xl">
+    <div className="rounded-xl border border-border/40 bg-background/35 backdrop-blur-sm">
       {isLoading ? (
         <div className="py-10 text-center text-muted-foreground">
           Loading media list...
@@ -351,7 +351,7 @@ export default function MediaListSection() {
       ) : null}
 
       {hasNextPage || isFetchingNextPage ? (
-        <div className="border-t border-border/60 p-3 flex justify-center">
+        <div className="flex justify-center border-t border-border/40 p-3">
           <Button
             size="sm"
             variant="outline"

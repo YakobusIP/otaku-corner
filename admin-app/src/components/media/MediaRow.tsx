@@ -72,7 +72,7 @@ export default function MediaRow({
 
   return (
     <Collapsible asChild className="group">
-      <div className="rounded-lg border border-border/50 bg-card/70 transition-colors hover:bg-muted/20">
+      <div className="rounded-lg border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm transition-colors hover:bg-background/45">
         <div className="grid grid-cols-1 gap-0 md:grid-cols-[minmax(0,1fr)_19rem_auto] md:gap-4 md:items-center">
           <div className="flex min-w-0 items-center gap-3 p-3 md:p-4">
             <img

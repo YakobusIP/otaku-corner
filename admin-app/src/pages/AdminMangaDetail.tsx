@@ -46,7 +46,7 @@ export default function AdminMangaDetail() {
   }, [error, isError, toast]);
 
   const backAction = (
-    <Link to="/media">
+    <Link to="/media-list">
       <Button variant="outline" size="sm" className="gap-2">
         <ArrowLeftIcon className="h-4 w-4" />
         <span className="hidden sm:inline">Back to library</span>
@@ -80,7 +80,7 @@ export default function AdminMangaDetail() {
               ? error.message
               : "Unknown error while loading the manga."}
           </p>
-          <Link to="/media">
+          <Link to="/media-list">
             <Button variant="default" size="sm" className="gap-2">
               <ArrowLeftIcon className="h-4 w-4" />
               Return to media library
@@ -100,7 +100,7 @@ export default function AdminMangaDetail() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <SidebarTrigger className="md:hidden" />
-          <Link to="/media">
+          <Link to="/media-list">
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeftIcon className="h-4 w-4" />
               <span>Back to library</span>

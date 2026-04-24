@@ -37,6 +37,11 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --sb-track-color: #1a1f24;
+    --sb-thumb-start: #4f8cff;
+    --sb-thumb-mid: #7c6cf6;
+    --sb-thumb-end: #a855f7;
+    --sb-size: 5px;
   }
 
   .dark {
@@ -79,6 +84,51 @@
   * {
     @apply border-border;
   }
+
+  *::-webkit-scrollbar {
+    width: var(--sb-size);
+    height: var(--sb-size);
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--sb-track-color);
+    border-radius: 999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: linear-gradient(
+      180deg,
+      var(--sb-thumb-start),
+      var(--sb-thumb-mid),
+      var(--sb-thumb-end)
+    );
+  }
+
+  *::-webkit-scrollbar-thumb:horizontal {
+    background: linear-gradient(
+      90deg,
+      var(--sb-thumb-start),
+      var(--sb-thumb-mid),
+      var(--sb-thumb-end)
+    );
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #6aa0ff, #8b7cf8, #c084fc);
+  }
+
+  *::-webkit-scrollbar-thumb:horizontal:hover {
+    background: linear-gradient(90deg, #6aa0ff, #8b7cf8, #c084fc);
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--sb-thumb-mid) var(--sb-track-color);
+    }
+  }
+
   body {
     @apply bg-background text-foreground;
     background-color: #0f172a;

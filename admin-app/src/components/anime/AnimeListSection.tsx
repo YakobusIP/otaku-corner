@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 
 import { animeService } from "@/services/anime.service";
 
@@ -20,12 +20,12 @@ export default function AnimeListSection() {
     throw new Error("AnimeList must be used within an AnimeProvider");
   }
 
-  const { state, setState, setQuery } = context;
+  const { state } = context;
   const { page, query, status, filters, sort, order } = state;
 
   const toast = useToast();
 
-  const { isLoading, data, error } = useQuery({
+  const { data, error } = useQuery({
     queryKey: [
       "animes",
       page,
@@ -70,18 +70,6 @@ export default function AnimeListSection() {
       description: error.message
     });
   }
-
-  const [dots, setDots] = useState("");
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots((prev) => {
-        if (prev === "...") return "";
-        return prev + ".";
-      });
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div className="rounded-lg overflow-hidden bg-card/70 backdrop-blur-xl border border-border/60">
