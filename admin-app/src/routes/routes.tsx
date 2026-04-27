@@ -3,7 +3,7 @@ import AdminLightNovelDetail from "@/pages/AdminLightNovelDetail";
 import AdminMangaDetail from "@/pages/AdminMangaDetail";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
-import MediaLibraryPage from "@/pages/MediaLibraryPage";
+import MediaLibrary from "@/pages/MediaLibrary";
 import NotFoundPage from "@/routes/NotFoundPage";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import UnauthorizedPage from "@/routes/UnauthorizedPage";
@@ -26,7 +26,7 @@ export const router = createBrowserRouter([
     path: "/media-list",
     element: (
       <ProtectedRoute>
-        <MediaLibraryPage />
+        <MediaLibrary />
       </ProtectedRoute>
     )
   },

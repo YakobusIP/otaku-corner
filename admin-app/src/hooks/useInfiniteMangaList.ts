@@ -2,6 +2,7 @@ import { mangaService } from "@/services/manga.service";
 
 import { useMediaFilters } from "@/components/context/MediaFiltersContext";
 
+import type { ProgressStatusKey } from "@/lib/enums";
 import { mediaKeys } from "@/lib/query-keys";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -41,11 +42,7 @@ export const useInfiniteMangaList = (enabled = true) => {
         filterGenre: state.genre,
         filterTheme: state.theme,
         filterProgressStatus: state.progressStatus as
-          | "PLANNED"
-          | "ON_HOLD"
-          | "ON_PROGRESS"
-          | "COMPLETED"
-          | "DROPPED"
+          | ProgressStatusKey
           | undefined,
         filterMALScore: state.malScore,
         filterPersonalScore: state.personalScore,

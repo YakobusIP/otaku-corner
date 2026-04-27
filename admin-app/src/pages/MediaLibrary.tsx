@@ -56,7 +56,7 @@ function MediaLibraryContent() {
   );
 }
 
-export default function MediaLibraryPage() {
+export default function MediaLibrary() {
   return (
     <MediaFiltersProvider>
       <MediaLibraryContent />
