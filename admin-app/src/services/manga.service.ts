@@ -1,64 +1,53 @@
-import { MetadataResponse } from "@/types/api.type";
 import {
+  ApiResponse,
+  MessageResponse,
+  MetadataResponse
+} from "@/types/api.type";
+import type {
   MangaCreateRequest,
   MangaDetail,
+  MangaFilterSort,
   MangaList,
   MangaReviewRequest
 } from "@/types/manga.type";
+import type { PaginatedBody, PaginatedListPage, ServiceResult } from "@/types/general.type";
 
-import interceptedAxios, { handleAxiosError } from "@/lib/axios";
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import interceptedAxios from "@/lib/axios";
+import { ok, err } from "@/lib/service-result";
+import { PROGRESS_STATUS } from "@/lib/enums";
 
 const BASE_MANGA_URL = "/api/mangas";
-type ServiceResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: string };
-
-type PaginatedBody<T> = {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-};
 
 const createMangaService = () => {
-  const fetchAll = async (
-    page: number,
-    limit: number,
-    query?: string,
-    sort?: string,
-    order?: SORT_ORDER,
-    author?: number,
-    genre?: number,
-    theme?: number,
-    status?: keyof typeof PROGRESS_STATUS,
-    mal_score?: string,
-    personal_score?: string,
-    status_check?: string
-  ) => {
+  const list = async (
+    params: MangaFilterSort & {
+      page: number;
+      limit: number;
+      query?: string;
+    }
+  ): Promise<ServiceResult<PaginatedListPage<MangaList>>> => {
     try {
       const response = await interceptedAxios.get<PaginatedBody<MangaList>>(
         BASE_MANGA_URL,
         {
           params: {
-            page,
-            limit,
-            query,
-            sort,
-            order,
-            author,
-            genre,
-            theme,
-            status,
-            malScore: mal_score,
-            personalScore: personal_score,
-            statusCheck: status_check
+            page: params.page,
+            limit: params.limit,
+            query: params.query,
+            sort: params.sortBy,
+            order: params.sortOrder,
+            author: params.filterAuthor,
+            genre: params.filterGenre,
+            theme: params.filterTheme,
+            status: params.filterProgressStatus,
+            malScore: params.filterMALScore,
+            personalScore: params.filterPersonalScore,
+            statusCheck: params.filterStatusCheck
           }
         }
       );
       const body = response.data;
-      return {
+      return ok({
         data: body.data,
         metadata: {
           page: body.page,
@@ -66,73 +55,77 @@ const createMangaService = () => {
           pageCount: body.totalPages,
           itemCount: body.total
         } satisfies MetadataResponse
-      };
+      });
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const fetchById = async (id: number) => {
+  const get = async (id: number): Promise<ServiceResult<MangaDetail>> => {
     try {
       const response = await interceptedAxios.get<MangaDetail>(
         `${BASE_MANGA_URL}/${id}`
       );
-      return response.data;
+      return ok(response.data);
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const fetchDuplicate = async (id: number) => {
+  const getDuplicates = async (
+    id: number
+  ): Promise<ServiceResult<{ exists: boolean }>> => {
     try {
       const response = await interceptedAxios.get<{ exists: boolean }>(
         `${BASE_MANGA_URL}/duplicate/${id}`
       );
-      return response.data;
+      return ok(response.data);
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const create = async (data: MangaCreateRequest[]) => {
+  const create = async (
+    data: MangaCreateRequest[]
+  ): Promise<ServiceResult<number[]>> => {
     try {
       const response = await interceptedAxios.post<number[]>(
         `${BASE_MANGA_URL}/bulk`,
         { data }
       );
-      return response.data;
+      return ok(response.data);
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const updateReview = async (id: number, data: MangaReviewRequest) => {
+  const updateReview = async (
+    id: number,
+    data: MangaReviewRequest
+  ): Promise<ServiceResult<MessageResponse>> => {
     try {
       const response = await interceptedAxios.put<{ message?: string }>(
         `${BASE_MANGA_URL}/${id}/review`,
         data
       );
-      return response.data;
+      return ok({ message: response.data.message ?? "" });
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const updateProgressStatus = async (id: number, data: PROGRESS_STATUS) => {
+  const updateProgressStatus = async (
+    id: number,
+    data: PROGRESS_STATUS
+  ): Promise<ServiceResult<MessageResponse>> => {
     try {
       const response = await interceptedAxios.put<{ message?: string }>(
         `${BASE_MANGA_URL}/${id}/review`,
         { progressStatus: data }
       );
-      return response.data;
+      return ok({ message: response.data.message ?? "" });
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
@@ -140,7 +133,7 @@ const createMangaService = () => {
     id: number,
     chaptersCount: number,
     volumesCount: number
-  ) => {
+  ): Promise<ServiceResult<MessageResponse>> => {
     try {
       const response = await interceptedAxios.put<{ message?: string }>(
         `${BASE_MANGA_URL}/${id}`,
@@ -149,29 +142,27 @@ const createMangaService = () => {
           volumesCount
         }
       );
-      return response.data;
+      return ok({ message: response.data.message ?? "" });
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const remove = async (ids: number[]) => {
+  const remove = async (ids: number[]): Promise<ServiceResult<undefined>> => {
     try {
-      await interceptedAxios.delete(BASE_MANGA_URL, {
+      await interceptedAxios.delete<ApiResponse<void>>(BASE_MANGA_URL, {
         data: { ids }
       });
-      return undefined;
+      return ok(undefined);
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
   return {
-    fetchAll,
-    fetchById,
-    fetchDuplicate,
+    list,
+    get,
+    getDuplicates,
     create,
     updateReview,
     updateProgressStatus,
@@ -180,88 +171,4 @@ const createMangaService = () => {
   };
 };
 
-const mangaService = createMangaService();
-
-const fetchMangaByIdService = async (
-  id: number
-): Promise<ServiceResult<MangaDetail>> => {
-  try {
-    return { success: true, data: await mangaService.fetchById(id) };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-const fetchMangaDuplicate = async (
-  id: number
-): Promise<ServiceResult<{ exists: boolean }>> => {
-  try {
-    return { success: true, data: await mangaService.fetchDuplicate(id) };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-const addMangaService = async (
-  data: MangaCreateRequest[]
-): Promise<ServiceResult<number[]>> => {
-  try {
-    return { success: true, data: await mangaService.create(data) };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-const updateMangaReviewService = async (
-  id: number,
-  data: MangaReviewRequest
-): Promise<ServiceResult<{ message?: string }>> => {
-  try {
-    return { success: true, data: await mangaService.updateReview(id, data) };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-const updateMangaProgressStatusService = async (
-  id: number,
-  progressStatus: PROGRESS_STATUS
-): Promise<ServiceResult<{ message?: string }>> => {
-  try {
-    return {
-      success: true,
-      data: await mangaService.updateProgressStatus(id, progressStatus)
-    };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-const updateMangaVolumeAndChaptersService = async (
-  id: number,
-  chaptersCount: number,
-  volumesCount: number
-): Promise<ServiceResult<{ message?: string }>> => {
-  try {
-    return {
-      success: true,
-      data: await mangaService.updateVolumeAndChapters(
-        id,
-        chaptersCount,
-        volumesCount
-      )
-    };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-export {
-  mangaService,
-  fetchMangaByIdService,
-  fetchMangaDuplicate,
-  addMangaService,
-  updateMangaReviewService,
-  updateMangaProgressStatusService,
-  updateMangaVolumeAndChaptersService
-};
+export const mangaService = createMangaService();

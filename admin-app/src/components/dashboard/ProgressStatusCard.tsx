@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { fetchMediaProgressService } from "@/services/statistic.service";
+import { statisticService } from "@/services/statistic.service";
 
 import {
   Card,
@@ -107,7 +107,7 @@ export default function ProgressStatusCard() {
 
   const fetchMediaProgressData = useCallback(async () => {
     setIsLoadingMediaProgress(true);
-    const response = await fetchMediaProgressService(mediaType);
+    const response = await statisticService.fetchMediaProgress(mediaType);
     if (response.success) {
       const availableColors = [
         "hsl(var(--chart-1))",

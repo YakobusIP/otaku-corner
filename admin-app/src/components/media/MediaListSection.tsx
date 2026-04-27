@@ -35,9 +35,17 @@ export default function MediaListSection() {
       mediaType: "anime" | "manga" | "lightNovel";
       id: number;
     }) => {
-      if (mediaType === "anime") await animeService.remove([id]);
-      else if (mediaType === "manga") await mangaService.remove([id]);
-      else await lightNovelService.remove([id]);
+      if (mediaType === "anime") {
+        const r = await animeService.remove([id]);
+        if (!r.success) throw new Error(r.error);
+      }
+      else if (mediaType === "manga") {
+        const r = await mangaService.remove([id]);
+        if (!r.success) throw new Error(r.error);
+      } else {
+        const r = await lightNovelService.remove([id]);
+        if (!r.success) throw new Error(r.error);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaKeys.all });

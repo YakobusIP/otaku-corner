@@ -7,7 +7,7 @@ import {
   useState
 } from "react";
 
-import { fetchAnimeDuplicate } from "@/services/anime.service";
+import { animeService } from "@/services/anime.service";
 
 import { Button } from "@/components/ui/button";
 
@@ -30,7 +30,7 @@ export default function AnimeSmallCard({ anime, setSelectedAnime }: Props) {
   const [isDuplicate, setIsDuplicate] = useState(false);
 
   const checkAnimeDuplicate = useCallback(async () => {
-    const response = await fetchAnimeDuplicate(anime.mal_id);
+    const response = await animeService.getDuplicates(anime.mal_id);
 
     if (response.success) {
       setIsDuplicate(response.data.exists);

@@ -1,9 +1,6 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  fetchMediaConsumptionService,
-  fetchYearRangeService
-} from "@/services/statistic.service";
+import { statisticService } from "@/services/statistic.service";
 
 import {
   Card,
@@ -71,7 +68,7 @@ export default function MediaConsumptionCard() {
 
   const fetchYearRange = useCallback(async () => {
     setIsLoadingYearRange(true);
-    const response = await fetchYearRangeService();
+    const response = await statisticService.fetchYearRange();
     if (response.success) {
       setYearRange(response.data);
     } else {
@@ -86,7 +83,7 @@ export default function MediaConsumptionCard() {
 
   const fetchMediaConsumptionData = useCallback(async () => {
     setIsLoadingMediaConsumption(true);
-    const response = await fetchMediaConsumptionService(view, year);
+    const response = await statisticService.fetchMediaConsumption(view, year);
     if (response.success) {
       setMediaConsumption(response.data);
     } else {

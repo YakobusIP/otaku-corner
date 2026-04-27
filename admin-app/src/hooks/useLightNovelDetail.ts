@@ -1,4 +1,4 @@
-import { fetchLightNovelByIdService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/lightnovel.service";
 
 import { detailKeys } from "@/lib/query-keys";
 
@@ -13,7 +13,7 @@ export const useLightNovelDetail = (id: number | undefined) => {
       : [...detailKeys.lightNovel(-1)],
     enabled: hasValidId,
     queryFn: async () => {
-      const response = await fetchLightNovelByIdService(id as number);
+      const response = await lightNovelService.get(id as number);
       if (!response.success) {
         throw new Error(response.error);
       }

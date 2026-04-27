@@ -1,33 +1,23 @@
 import { MetadataResponse } from "@/types/api.type";
+import type { PaginatedBody, PaginatedListPage, ServiceResult } from "@/types/general.type";
 
-import interceptedAxios, { handleAxiosError } from "@/lib/axios";
+import interceptedAxios from "@/lib/axios";
+import { ok, err } from "@/lib/service-result";
 
 const BASE_GENRE_URL = "/api/genres";
 const BASE_STUDIO_URL = "/api/studios";
 const BASE_THEME_URL = "/api/themes";
 const BASE_AUTHOR_URL = "/api/authors";
-type ServiceResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: string };
-
-type PaginatedBody<T> = {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-};
 
 type EntityResponse = { id: number; name: string };
 
 const createEntityService = (baseUrl: string) => {
-  const fetchAll = async <T>() => {
+  const fetchAll = async <T>(): Promise<ServiceResult<T[]>> => {
     try {
       const response = await interceptedAxios.get<PaginatedBody<T>>(baseUrl);
-      return response.data.data;
+      return ok(response.data.data);
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
@@ -35,26 +25,23 @@ const createEntityService = (baseUrl: string) => {
     page?: number,
     limit?: number,
     query?: string
-  ) => {
+  ): Promise<ServiceResult<PaginatedListPage<T>>> => {
     try {
       const response = await interceptedAxios.get<PaginatedBody<T>>(baseUrl, {
         params: { page, limit, query }
       });
       const body = response.data;
-      return {
-        success: true,
-        data: {
-          data: body.data,
-          metadata: {
-            page: body.page,
-            limit: body.limit,
-            pageCount: body.totalPages,
-            itemCount: body.total
-          } satisfies MetadataResponse
-        }
-      } as const;
+      return ok({
+        data: body.data,
+        metadata: {
+          page: body.page,
+          limit: body.limit,
+          pageCount: body.totalPages,
+          itemCount: body.total
+        } satisfies MetadataResponse
+      });
     } catch (error) {
-      return { success: false, error: handleAxiosError(error) } as const;
+      return err(error);
     }
   };
 
@@ -65,9 +52,9 @@ const createEntityService = (baseUrl: string) => {
       const response = await interceptedAxios.post<EntityResponse>(baseUrl, {
         name: entity
       });
-      return { success: true, data: response.data };
+      return ok(response.data);
     } catch (error) {
-      return { success: false, error: handleAxiosError(error) };
+      return err(error);
     }
   };
 
@@ -80,18 +67,20 @@ const createEntityService = (baseUrl: string) => {
         `${baseUrl}/${id}`,
         { name: entity }
       );
-      return { success: true, data: response.data };
+      return ok(response.data);
     } catch (error) {
-      return { success: false, error: handleAxiosError(error) };
+      return err(error);
     }
   };
 
-  const deleteEntity = async (ids: number[]): Promise<ServiceResult<void>> => {
+  const deleteEntity = async (
+    ids: number[]
+  ): Promise<ServiceResult<undefined>> => {
     try {
       await interceptedAxios.delete(baseUrl, { data: { ids } });
-      return { success: true, data: undefined };
+      return ok(undefined);
     } catch (error) {
-      return { success: false, error: handleAxiosError(error) };
+      return err(error);
     }
   };
 
@@ -104,9 +93,7 @@ const createEntityService = (baseUrl: string) => {
   };
 };
 
-const genreService = createEntityService(BASE_GENRE_URL);
-const studioService = createEntityService(BASE_STUDIO_URL);
-const themeService = createEntityService(BASE_THEME_URL);
-const authorService = createEntityService(BASE_AUTHOR_URL);
-
-export { genreService, studioService, themeService, authorService };
+export const genreService = createEntityService(BASE_GENRE_URL);
+export const studioService = createEntityService(BASE_STUDIO_URL);
+export const themeService = createEntityService(BASE_THEME_URL);
+export const authorService = createEntityService(BASE_AUTHOR_URL);

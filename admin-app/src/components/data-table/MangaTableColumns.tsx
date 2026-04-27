@@ -1,4 +1,4 @@
-import { updateMangaProgressStatusService } from "@/services/manga.service";
+import { mangaService } from "@/services/manga.service";
 
 import ProgressStatus from "@/components/ProgressStatus";
 import DataTableStatuses from "@/components/data-table/DataTableStatuses";
@@ -136,7 +136,7 @@ export const mangaColumns: ColumnDef<MangaList>[] = [
         <ProgressStatus
           id={manga.id}
           progressStatus={manga.progressStatus}
-          serviceFn={updateMangaProgressStatusService}
+          serviceFn={mangaService.updateProgressStatus}
         />
       );
     },

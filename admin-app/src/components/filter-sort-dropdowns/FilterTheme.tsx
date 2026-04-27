@@ -19,7 +19,11 @@ export default function FilterTheme({
       onChange={(key) => handleFilterTheme(key)}
       query={{
         queryKey: ["themes"],
-        queryFn: themeService.fetchAll<ThemeEntity[]>,
+        queryFn: async () => {
+          const r = await themeService.fetchAll<ThemeEntity>();
+          if (!r.success) throw new Error(r.error);
+          return r.data;
+        },
         refetchOnWindowFocus: false,
         staleTime: 24 * 60 * 60 * 1000
       }}

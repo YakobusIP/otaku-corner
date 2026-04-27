@@ -29,27 +29,30 @@ export const useAnimeList = (enabled = true) => {
       "anime"
     ),
     enabled,
-    queryFn: () =>
-      animeService.fetchAll(
-        state.page,
-        state.limit,
-        state.query,
-        state.sortBy,
-        state.sortOrder,
-        state.genre,
-        state.studio,
-        state.theme,
-        state.progressStatus as
+    queryFn: async () => {
+      const result = await animeService.list({
+        page: state.page,
+        limit: state.limit,
+        query: state.query,
+        sortBy: state.sortBy,
+        sortOrder: state.sortOrder,
+        filterGenre: state.genre,
+        filterStudio: state.studio,
+        filterTheme: state.theme,
+        filterProgressStatus: state.progressStatus as
           | "PLANNED"
           | "ON_HOLD"
           | "ON_PROGRESS"
           | "COMPLETED"
           | "DROPPED"
           | undefined,
-        state.malScore,
-        state.personalScore,
-        state.type,
-        state.statusCheck
-      )
+        filterMALScore: state.malScore,
+        filterPersonalScore: state.personalScore,
+        filterType: state.type,
+        filterStatusCheck: state.statusCheck
+      });
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    }
   });
 };

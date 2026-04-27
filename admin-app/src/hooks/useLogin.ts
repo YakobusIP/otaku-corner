@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { login } from "@/services/auth.service";
+import { authService } from "@/services/auth.service";
 
 import { useToast } from "@/hooks/useToast";
 
@@ -19,7 +19,7 @@ export function useLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async ({ pin1: first, pin2 }: { pin1: string; pin2: string }) => {
-      const response = await login(first, pin2);
+      const response = await authService.login(first, pin2);
       if (!response.success) throw new Error(response.error);
       return response.data;
     },

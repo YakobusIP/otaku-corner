@@ -1,7 +1,9 @@
 // Components import
 import { Dispatch, SetStateAction, useState } from "react";
 
-import { addLightNovelService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/lightnovel.service";
+
+import type { LightNovelCreateRequest } from "@/types/lightnovel.type";
 
 import LightNovelSmallCard from "@/components/add-lightnovel/LightNovelSmallCard";
 import SearchLightNovelJikan from "@/components/add-lightnovel/SearchLightNovelJikan";
@@ -45,8 +47,8 @@ export default function AddLightNovelDialog({
   const [selectedLightNovel, setSelectedLightNovel] = useState<Manga[]>([]);
 
   const addLightNovelMutation = useMutation({
-    mutationFn: async (data: Parameters<typeof addLightNovelService>[0]) => {
-      const response = await addLightNovelService(data);
+    mutationFn: async (data: LightNovelCreateRequest[]) => {
+      const response = await lightNovelService.create(data);
       if (!response.success) throw new Error(response.error);
       return response.data;
     },

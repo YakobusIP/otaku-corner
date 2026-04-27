@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
-import { fetchAllTimeStatisticService } from "@/services/statistic.service";
+import { statisticService } from "@/services/statistic.service";
 
 import {
   Card,
@@ -25,7 +25,7 @@ export default function AllTimeStatisticsCards() {
 
   const fetchMediaConsumptionData = useCallback(async () => {
     setIsLoadingAllTimeStatistic(true);
-    const response = await fetchAllTimeStatisticService();
+    const response = await statisticService.fetchAllTimeStatistic();
     if (response.success) {
       setAllTimeStatistic(response.data);
     } else {

@@ -1,7 +1,9 @@
 // Components import
 import { Dispatch, SetStateAction, useState } from "react";
 
-import { addMangaService } from "@/services/manga.service";
+import { mangaService } from "@/services/manga.service";
+
+import type { MangaCreateRequest } from "@/types/manga.type";
 
 import MangaSmallCard from "@/components/add-manga/MangaSmallCard";
 import SearchMangaJikan from "@/components/add-manga/SearchMangaJikan";
@@ -45,8 +47,8 @@ export default function AddMangaDialog({
   const [selectedManga, setSelectedManga] = useState<Manga[]>([]);
 
   const addMangaMutation = useMutation({
-    mutationFn: async (data: Parameters<typeof addMangaService>[0]) => {
-      const response = await addMangaService(data);
+    mutationFn: async (data: MangaCreateRequest[]) => {
+      const response = await mangaService.create(data);
       if (!response.success) throw new Error(response.error);
       return response.data;
     },

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { updateLightNovelReviewService } from "@/services/lightnovel.service";
-import { deleteImageService } from "@/services/upload.service";
+import { lightNovelService } from "@/services/lightnovel.service";
+import { uploadService } from "@/services/upload.service";
 
 import ProgressStatus from "@/components/ProgressStatus";
 import RatingSelect from "@/components/RatingSelect";
@@ -127,13 +127,13 @@ export default function LightNovelReviewSection({
 
       await Promise.all(
         removedImageIds.map(async (id) => {
-          const response = await deleteImageService(id);
+          const response = await uploadService.remove(id);
           if (!response.success) throw new Error(response.error);
           return response.data;
         })
       );
 
-      const reviewResponse = await updateLightNovelReviewService(
+      const reviewResponse = await lightNovelService.updateReview(
         lightNovelDetail.id,
         payload.data
       );

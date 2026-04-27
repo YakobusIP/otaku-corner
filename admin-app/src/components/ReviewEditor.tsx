@@ -1,6 +1,6 @@
 import { ClipboardEventHandler, Dispatch, SetStateAction } from "react";
 
-import { uploadImageService } from "@/services/upload.service";
+import { uploadService } from "@/services/upload.service";
 
 import { useToast } from "@/hooks/useToast";
 
@@ -28,7 +28,7 @@ export default function ReviewEditor({
 
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
-      const response = await uploadImageService(file, mediaType, reviewId);
+      const response = await uploadService.upload(file, mediaType, reviewId);
       if (!response.success) throw new Error(response.error);
       return response.data;
     },

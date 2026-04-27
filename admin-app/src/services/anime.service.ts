@@ -5,40 +5,23 @@ import {
   AnimeList,
   AnimeReviewRequest
 } from "@/types/anime.type";
-import { ApiResponse, MetadataResponse } from "@/types/api.type";
+import {
+  ApiResponse,
+  MessageResponse,
+  MetadataResponse
+} from "@/types/api.type";
+import type {
+  PaginatedBody,
+  PaginatedListPage,
+  ServiceResult
+} from "@/types/general.type";
 import { StatusFilter } from "@/types/statistic.type";
 
-import interceptedAxios, { handleAxiosError } from "@/lib/axios";
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import interceptedAxios from "@/lib/axios";
+import { ok, err } from "@/lib/service-result";
+import { PROGRESS_STATUS } from "@/lib/enums";
 
 const BASE_ANIME_URL = "/api/animes";
-
-export type ListQuery = {
-  page: number;
-  limit: number;
-  query?: string;
-  sort?: string;
-  order?: SORT_ORDER;
-  genre?: number;
-  studio?: number;
-  theme?: number;
-  status?: keyof typeof PROGRESS_STATUS;
-  mal_score?: string;
-  personal_score?: string;
-  type?: string;
-  status_check?: string;
-};
-type ServiceResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: string };
-
-type PaginatedBody<T> = {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-};
 
 const createAnimeService = () => {
   const list = async (
@@ -47,7 +30,7 @@ const createAnimeService = () => {
       limit: number;
       query?: string;
     }
-  ) => {
+  ): Promise<ServiceResult<PaginatedListPage<AnimeList>>> => {
     try {
       const response = await interceptedAxios.get<PaginatedBody<AnimeList>>(
         BASE_ANIME_URL,
@@ -70,7 +53,7 @@ const createAnimeService = () => {
         }
       );
       const body = response.data;
-      return {
+      return ok({
         data: body.data,
         metadata: {
           page: body.page,
@@ -78,138 +61,107 @@ const createAnimeService = () => {
           pageCount: body.totalPages,
           itemCount: body.total
         } satisfies MetadataResponse
-      };
+      });
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const fetchAll = async (
-    page: number,
-    limit: number,
-    query?: string,
-    sort?: string,
-    order?: SORT_ORDER,
-    genre?: number,
-    studio?: number,
-    theme?: number,
-    status?: keyof typeof PROGRESS_STATUS,
-    malScore?: string,
-    personalScore?: string,
-    type?: string,
-    statusCheck?: string
-  ) =>
-    list({
-      page,
-      limit,
-      query,
-      sortBy: sort ?? "title",
-      sortOrder: order ?? SORT_ORDER.ASCENDING,
-      filterGenre: genre,
-      filterStudio: studio,
-      filterTheme: theme,
-      filterProgressStatus: status,
-      filterMALScore: malScore,
-      filterPersonalScore: personalScore,
-      filterType: type,
-      filterStatusCheck: statusCheck
-    });
-
-  const get = async (id: number) => {
+  const get = async (id: number): Promise<ServiceResult<AnimeDetail>> => {
     try {
       const response = await interceptedAxios.get<AnimeDetail>(
         `${BASE_ANIME_URL}/${id}`
       );
-      return response.data;
+      return ok(response.data);
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const getDuplicates = async (id: number) => {
+  const getDuplicates = async (
+    id: number
+  ): Promise<ServiceResult<{ exists: boolean }>> => {
     try {
       const response = await interceptedAxios.get<{ exists: boolean }>(
         `${BASE_ANIME_URL}/duplicate/${id}`
       );
-      return response.data;
+      return ok(response.data);
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const getStatusCounts = async () => {
+  const getStatusCounts = async (): Promise<ServiceResult<StatusFilter[]>> => {
     try {
       const response = await interceptedAxios.get<StatusFilter[]>(
         `${BASE_ANIME_URL}/status-count`
       );
-      return response.data;
+      return ok(response.data);
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const create = async (data: AnimeCreateRequest[]) => {
+  const create = async (
+    data: AnimeCreateRequest[]
+  ): Promise<ServiceResult<number[]>> => {
     try {
       const response = await interceptedAxios.post<number[]>(
         `${BASE_ANIME_URL}/bulk`,
         { data }
       );
-      return response.data;
+      return ok(response.data);
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const updateReview = async (id: number, data: AnimeReviewRequest) => {
+  const updateReview = async (
+    id: number,
+    data: AnimeReviewRequest
+  ): Promise<ServiceResult<MessageResponse>> => {
     try {
       const response = await interceptedAxios.put<{ message?: string }>(
         `${BASE_ANIME_URL}/${id}/review`,
         data
       );
-      return response.data;
+      return ok({ message: response.data.message ?? "" });
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const updateProgressStatus = async (id: number, data: PROGRESS_STATUS) => {
+  const updateProgressStatus = async (
+    id: number,
+    data: PROGRESS_STATUS
+  ): Promise<ServiceResult<MessageResponse>> => {
     try {
       const response = await interceptedAxios.put<{ message?: string }>(
         `${BASE_ANIME_URL}/${id}/review`,
         { progressStatus: data }
       );
-      return response.data;
+      return ok({ message: response.data.message ?? "" });
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
-  const remove = async (ids: number[]) => {
+  const remove = async (ids: number[]): Promise<ServiceResult<undefined>> => {
     try {
       await interceptedAxios.delete<ApiResponse<void>>(BASE_ANIME_URL, {
         data: { ids }
       });
-      return undefined;
+      return ok(undefined);
     } catch (error) {
-      const message = handleAxiosError(error);
-      throw new Error(message);
+      return err(error);
     }
   };
 
   return {
     list,
-    fetchAll,
     get,
     getDuplicates,
     getStatusCounts,
-    fetchStatusCounts: getStatusCounts,
     create,
     updateReview,
     updateProgressStatus,
@@ -217,77 +169,4 @@ const createAnimeService = () => {
   };
 };
 
-const animeService = createAnimeService();
-
-const fetchAnimeByIdService = async (
-  id: number
-): Promise<ServiceResult<AnimeDetail>> => {
-  try {
-    return { success: true, data: await animeService.get(id) };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-const fetchAnimeDuplicate = async (
-  id: number
-): Promise<ServiceResult<{ exists: boolean }>> => {
-  try {
-    return { success: true, data: await animeService.getDuplicates(id) };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-const addAnimeService = async (
-  data: AnimeCreateRequest[]
-): Promise<ServiceResult<number[]>> => {
-  try {
-    return { success: true, data: await animeService.create(data) };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-const updateAnimeReviewService = async (
-  id: number,
-  data: AnimeReviewRequest
-): Promise<ServiceResult<{ message?: string }>> => {
-  try {
-    return { success: true, data: await animeService.updateReview(id, data) };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-const updateAnimeProgressStatusService = async (
-  id: number,
-  progressStatus: PROGRESS_STATUS
-): Promise<ServiceResult<{ message?: string }>> => {
-  try {
-    return {
-      success: true,
-      data: await animeService.updateProgressStatus(id, progressStatus)
-    };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-const fetchStatusCounts = async (): Promise<ServiceResult<StatusFilter[]>> => {
-  try {
-    return { success: true, data: await animeService.getStatusCounts() };
-  } catch (error) {
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-export {
-  animeService,
-  fetchAnimeByIdService,
-  fetchAnimeDuplicate,
-  addAnimeService,
-  updateAnimeReviewService,
-  updateAnimeProgressStatusService,
-  fetchStatusCounts
-};
+export const animeService = createAnimeService();

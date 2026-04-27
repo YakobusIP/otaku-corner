@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { updateMangaVolumeAndChaptersService } from "@/services/manga.service";
+import { mangaService } from "@/services/manga.service";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +47,7 @@ export default function EditChapterVolumesModal({
       chaptersCount: number;
       volumesCount: number;
     }) => {
-      const response = await updateMangaVolumeAndChaptersService(
+      const response = await mangaService.updateVolumeAndChapters(
         mangaDetail.id,
         payload.chaptersCount,
         payload.volumesCount

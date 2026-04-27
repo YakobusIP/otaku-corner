@@ -1,4 +1,4 @@
-import { updateLightNovelProgressStatusService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/lightnovel.service";
 
 import ProgressStatus from "@/components/ProgressStatus";
 import DataTableStatuses from "@/components/data-table/DataTableStatuses";
@@ -137,7 +137,7 @@ export const lightNovelColumns: ColumnDef<LightNovelList>[] = [
         <ProgressStatus
           id={lightNovel.id}
           progressStatus={lightNovel.progressStatus}
-          serviceFn={updateLightNovelProgressStatusService}
+          serviceFn={lightNovelService.updateProgressStatus}
         />
       );
     },

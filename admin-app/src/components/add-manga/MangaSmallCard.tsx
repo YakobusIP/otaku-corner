@@ -7,7 +7,7 @@ import {
   useState
 } from "react";
 
-import { fetchMangaDuplicate } from "@/services/manga.service";
+import { mangaService } from "@/services/manga.service";
 
 import { Button } from "@/components/ui/button";
 
@@ -30,7 +30,7 @@ export default function MangaSmallCard({ manga, setSelectedManga }: Props) {
   const [isDuplicate, setIsDuplicate] = useState(false);
 
   const checkMangaDuplicate = useCallback(async () => {
-    const response = await fetchMangaDuplicate(manga.mal_id);
+    const response = await mangaService.getDuplicates(manga.mal_id);
 
     if (response.success) {
       setIsDuplicate(response.data.exists);

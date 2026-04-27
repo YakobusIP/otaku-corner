@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
-import { updateAnimeReviewService } from "@/services/anime.service";
-import { deleteImageService } from "@/services/upload.service";
+import { animeService } from "@/services/anime.service";
+import { uploadService } from "@/services/upload.service";
 
 import ProgressStatus from "@/components/ProgressStatus";
 import RatingSelect from "@/components/RatingSelect";
@@ -141,13 +141,13 @@ export default function AnimeReviewSection({ animeDetail }: Props) {
 
       await Promise.all(
         removedImageIds.map(async (id) => {
-          const response = await deleteImageService(id);
+          const response = await uploadService.remove(id);
           if (!response.success) throw new Error(response.error);
           return response.data;
         })
       );
 
-      const reviewResponse = await updateAnimeReviewService(
+      const reviewResponse = await animeService.updateReview(
         animeDetail.id,
         payload.data
       );

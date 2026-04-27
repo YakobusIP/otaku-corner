@@ -19,7 +19,11 @@ export default function FilterAuthor({
       onChange={(key) => handleFilterAuthor(key)}
       query={{
         queryKey: ["authors"],
-        queryFn: authorService.fetchAll<AuthorEntity[]>,
+        queryFn: async () => {
+          const r = await authorService.fetchAll<AuthorEntity>();
+          if (!r.success) throw new Error(r.error);
+          return r.data;
+        },
         refetchOnWindowFocus: false,
         staleTime: 24 * 60 * 60 * 1000
       }}

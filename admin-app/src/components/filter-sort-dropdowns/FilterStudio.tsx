@@ -19,7 +19,11 @@ export default function FilterStudio({
       onChange={(key) => handleFilterStudio(key)}
       query={{
         queryKey: ["studios"],
-        queryFn: studioService.fetchAll<StudioEntity[]>,
+        queryFn: async () => {
+          const r = await studioService.fetchAll<StudioEntity>();
+          if (!r.success) throw new Error(r.error);
+          return r.data;
+        },
         refetchOnWindowFocus: false,
         staleTime: 24 * 60 * 60 * 1000
       }}

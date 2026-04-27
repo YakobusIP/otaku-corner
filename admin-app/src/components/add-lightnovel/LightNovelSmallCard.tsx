@@ -7,7 +7,7 @@ import {
   useState
 } from "react";
 
-import { fetchLightNovelDuplicate } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/lightnovel.service";
 
 import { Button } from "@/components/ui/button";
 
@@ -33,7 +33,7 @@ export default function LightNovelSmallCard({
   const [isDuplicate, setIsDuplicate] = useState(false);
 
   const checkLightNovelDuplicate = useCallback(async () => {
-    const response = await fetchLightNovelDuplicate(lightNovel.mal_id);
+    const response = await lightNovelService.getDuplicates(lightNovel.mal_id);
 
     if (response.success) {
       setIsDuplicate(response.data.exists);

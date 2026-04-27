@@ -28,26 +28,29 @@ export const useLightNovelList = (enabled = true) => {
       "lightNovel"
     ),
     enabled,
-    queryFn: () =>
-      lightNovelService.fetchAll(
-        state.page,
-        state.limit,
-        state.query,
-        state.sortBy,
-        state.sortOrder,
-        state.author,
-        state.genre,
-        state.theme,
-        state.progressStatus as
+    queryFn: async () => {
+      const result = await lightNovelService.list({
+        page: state.page,
+        limit: state.limit,
+        query: state.query,
+        sortBy: state.sortBy,
+        sortOrder: state.sortOrder,
+        filterAuthor: state.author,
+        filterGenre: state.genre,
+        filterTheme: state.theme,
+        filterProgressStatus: state.progressStatus as
           | "PLANNED"
           | "ON_HOLD"
           | "ON_PROGRESS"
           | "COMPLETED"
           | "DROPPED"
           | undefined,
-        state.malScore,
-        state.personalScore,
-        state.statusCheck
-      )
+        filterMALScore: state.malScore,
+        filterPersonalScore: state.personalScore,
+        filterStatusCheck: state.statusCheck
+      });
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    }
   });
 };

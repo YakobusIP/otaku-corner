@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { updateLightNovelVolumeProgressService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/lightnovel.service";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -55,7 +55,7 @@ export default function VolumeProgressModal({
       nextVolumeProgress: { id: number; consumedAt?: Date | null }[]
     ) => {
       const response =
-        await updateLightNovelVolumeProgressService(nextVolumeProgress);
+        await lightNovelService.updateVolumeProgress(nextVolumeProgress);
       if (!response.success) throw new Error(response.error);
       return response.data;
     },

@@ -1,7 +1,9 @@
 // Components import
 import { Dispatch, SetStateAction, useState } from "react";
 
-import { addAnimeService } from "@/services/anime.service";
+import { animeService } from "@/services/anime.service";
+
+import type { AnimeCreateRequest } from "@/types/anime.type";
 
 import AnimeSmallCard from "@/components/add-anime/AnimeSmallCard";
 import SearchAnimeJikan from "@/components/add-anime/SearchAnimeJikan";
@@ -45,8 +47,8 @@ export default function AddAnimeDialog({
   const [selectedAnime, setSelectedAnime] = useState<Anime[]>([]);
 
   const addAnimeMutation = useMutation({
-    mutationFn: async (data: Parameters<typeof addAnimeService>[0]) => {
-      const response = await addAnimeService(data);
+    mutationFn: async (data: AnimeCreateRequest[]) => {
+      const response = await animeService.create(data);
       if (!response.success) throw new Error(response.error);
       return response.data;
     },

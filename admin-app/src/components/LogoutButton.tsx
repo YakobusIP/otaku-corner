@@ -22,7 +22,11 @@ export default function LogoutButton({ fullWidth = false, className }: Props) {
   const navigate = useNavigate();
 
   const mutation = useMutation({
-    mutationFn: authService.logout,
+    mutationFn: async () => {
+      const result = await authService.logout();
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    },
     onSuccess: (data) => {
       clearAuth();
       queryClient.clear();

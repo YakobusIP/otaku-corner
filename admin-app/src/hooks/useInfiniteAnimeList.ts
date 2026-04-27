@@ -32,28 +32,29 @@ export const useInfiniteAnimeList = (enabled = true) => {
     ),
     enabled,
     queryFn: async ({ pageParam }) => {
-      const result = await animeService.fetchAll(
-        pageParam as number,
-        PAGE_SIZE,
-        state.query,
-        state.sortBy,
-        state.sortOrder,
-        state.genre,
-        state.studio,
-        state.theme,
-        state.progressStatus as
+      const result = await animeService.list({
+        page: pageParam as number,
+        limit: PAGE_SIZE,
+        query: state.query,
+        sortBy: state.sortBy,
+        sortOrder: state.sortOrder,
+        filterGenre: state.genre,
+        filterStudio: state.studio,
+        filterTheme: state.theme,
+        filterProgressStatus: state.progressStatus as
           | "PLANNED"
           | "ON_HOLD"
           | "ON_PROGRESS"
           | "COMPLETED"
           | "DROPPED"
           | undefined,
-        state.malScore,
-        state.personalScore,
-        state.type,
-        state.statusCheck
-      );
-      return result;
+        filterMALScore: state.malScore,
+        filterPersonalScore: state.personalScore,
+        filterType: state.type,
+        filterStatusCheck: state.statusCheck
+      });
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {

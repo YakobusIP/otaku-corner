@@ -1,4 +1,4 @@
-import { fetchMangaByIdService } from "@/services/manga.service";
+import { mangaService } from "@/services/manga.service";
 
 import { detailKeys } from "@/lib/query-keys";
 
@@ -13,7 +13,7 @@ export const useMangaDetail = (id: number | undefined) => {
       : [...detailKeys.manga(-1)],
     enabled: hasValidId,
     queryFn: async () => {
-      const response = await fetchMangaByIdService(id as number);
+      const response = await mangaService.get(id as number);
       if (!response.success) {
         throw new Error(response.error);
       }

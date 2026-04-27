@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  fetchAuthorConsumptionService,
-  fetchGenreConsumptionService,
-  fetchStudioConsumptionService,
-  fetchThemeConsumptionService
-} from "@/services/statistic.service";
+import { statisticService } from "@/services/statistic.service";
 
 import AuthorConsumptionChart from "@/components/dashboard/AuthorConsumptionChart";
 import GenreConsumptionChart from "@/components/dashboard/GenreConsumptionChart";
@@ -66,7 +61,7 @@ export default function EntityConsumptionCard() {
 
   const fetchGenreConsumptionData = useCallback(async () => {
     setIsLoadingGenreConsumption(true);
-    const response = await fetchGenreConsumptionService();
+    const response = await statisticService.fetchGenreConsumption();
     if (response.success) {
       setGenreConsumption(response.data);
     } else {
@@ -81,7 +76,7 @@ export default function EntityConsumptionCard() {
 
   const fetchStudioConsumptionData = useCallback(async () => {
     setIsLoadingStudioConsumption(true);
-    const response = await fetchStudioConsumptionService();
+    const response = await statisticService.fetchStudioConsumption();
     if (response.success) {
       setStudioConsumption(response.data);
     } else {
@@ -96,7 +91,7 @@ export default function EntityConsumptionCard() {
 
   const fetchThemeConsumptionData = useCallback(async () => {
     setIsLoadingThemeConsumption(true);
-    const response = await fetchThemeConsumptionService();
+    const response = await statisticService.fetchThemeConsumption();
     if (response.success) {
       setThemeConsumption(response.data);
     } else {
@@ -111,7 +106,7 @@ export default function EntityConsumptionCard() {
 
   const fetchAuthorConsumptionData = useCallback(async () => {
     setIsLoadingAuthorConsumption(true);
-    const response = await fetchAuthorConsumptionService();
+    const response = await statisticService.fetchAuthorConsumption();
     if (response.success) {
       setAuthorConsumption(response.data);
     } else {

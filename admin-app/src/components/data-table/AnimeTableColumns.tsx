@@ -1,4 +1,4 @@
-import { updateAnimeProgressStatusService } from "@/services/anime.service";
+import { animeService } from "@/services/anime.service";
 
 import ProgressStatus from "@/components/ProgressStatus";
 import DataTableStatuses from "@/components/data-table/DataTableStatuses";
@@ -144,7 +144,7 @@ export const animeColumns: ColumnDef<AnimeList>[] = [
         <ProgressStatus
           id={anime.id}
           progressStatus={anime.progressStatus}
-          serviceFn={updateAnimeProgressStatusService}
+          serviceFn={animeService.updateProgressStatus}
         />
       );
     },

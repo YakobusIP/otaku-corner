@@ -1,6 +1,6 @@
 import { ReactNode, useCallback, useEffect, useState } from "react";
 
-import { validateToken } from "@/services/auth.service";
+import { authService } from "@/services/auth.service";
 
 import { useNavigate } from "react-router-dom";
 
@@ -13,7 +13,7 @@ export default function ProtectedRoute({ children }: Props) {
   const navigate = useNavigate();
 
   const checkAuth = useCallback(async () => {
-    const response = await validateToken();
+    const response = await authService.validateToken();
     if (response.success) {
       setIsAuthenticated(true);
     } else {

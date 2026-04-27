@@ -19,7 +19,11 @@ export default function FilterGenre({
       onChange={(key) => handleFilterGenre(key)}
       query={{
         queryKey: ["genres"],
-        queryFn: genreService.fetchAll<GenreEntity[]>,
+        queryFn: async () => {
+          const r = await genreService.fetchAll<GenreEntity>();
+          if (!r.success) throw new Error(r.error);
+          return r.data;
+        },
         refetchOnWindowFocus: false,
         staleTime: 24 * 60 * 60 * 1000
       }}

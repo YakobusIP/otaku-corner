@@ -4,14 +4,16 @@ import { detailKeys } from "@/lib/query-keys";
 
 import { useQuery } from "@tanstack/react-query";
 
-export const useAnimeDetail = (id: number | undefined) => {
-  const hasValidId = typeof id === "number" && Number.isFinite(id);
+export const useAnimeDetail = (id?: number) => {
+  const hasValidId = id !== undefined && Number.isFinite(id);
 
   return useQuery({
-    queryKey: hasValidId
-      ? detailKeys.anime(id as number)
-      : [...detailKeys.anime(-1)],
+    queryKey: hasValidId ? detailKeys.anime(id) : [...detailKeys.anime(-1)],
     enabled: hasValidId,
-    queryFn: () => animeService.get(id as number)
+    queryFn: async () => {
+      const result = await animeService.get(id as number);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    }
   });
 };

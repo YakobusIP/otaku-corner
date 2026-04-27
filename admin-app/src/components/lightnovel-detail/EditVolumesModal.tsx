@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 
-import { updateLightNovelVolumesService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/lightnovel.service";
 
 import {
   AlertDialog,
@@ -53,7 +53,7 @@ export default function EditVolumesModal({
 
   const updateLightNovelStatsMutation = useMutation({
     mutationFn: async (nextVolumesCount: number) => {
-      const response = await updateLightNovelVolumesService(
+      const response = await lightNovelService.updateVolumes(
         lightNovelDetail.id,
         nextVolumesCount
       );
