@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 
-import { lightNovelService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/light-novel.service";
 
 import {
   AlertDialog,
@@ -27,7 +27,7 @@ import { Label } from "@/components/ui/label";
 
 import { useToast } from "@/hooks/useToast";
 
-import { LightNovelDetail } from "@/types/lightnovel.type";
+import { LightNovelDetail } from "@/types/light-novel.type";
 
 import { detailKeys } from "@/lib/query-keys";
 

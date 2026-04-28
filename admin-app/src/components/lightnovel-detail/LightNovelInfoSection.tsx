@@ -1,7 +1,7 @@
 import EditVolumesModal from "@/components/lightnovel-detail/EditVolumesModal";
 import { Badge } from "@/components/ui/badge";
 
-import { LightNovelDetail } from "@/types/lightnovel.type";
+import { LightNovelDetail } from "@/types/light-novel.type";
 
 import {
   BookOpenIcon,

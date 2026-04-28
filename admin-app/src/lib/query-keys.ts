@@ -1,7 +1,6 @@
 export type MediaTypeFilter = "all" | "anime" | "manga" | "lightNovel";
 
 export type MediaFilters = {
-  page: number;
   limit: number;
   query?: string;
   sortBy: string;

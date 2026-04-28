@@ -1,9 +1,9 @@
 // Components import
 import { Dispatch, SetStateAction, useState } from "react";
 
-import { lightNovelService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/light-novel.service";
 
-import type { LightNovelCreateRequest } from "@/types/lightnovel.type";
+import type { LightNovelCreateRequest } from "@/types/light-novel.type";
 
 import LightNovelSmallCard from "@/components/add-lightnovel/LightNovelSmallCard";
 import SearchLightNovelJikan from "@/components/add-lightnovel/SearchLightNovelJikan";

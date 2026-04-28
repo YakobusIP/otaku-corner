@@ -9,7 +9,7 @@ import type {
   LightNovelFilterSort,
   LightNovelList,
   LightNovelReviewRequest
-} from "@/types/lightnovel.type";
+} from "@/types/light-novel.type";
 import type { PaginatedBody, PaginatedListPage, ServiceResult } from "@/types/general.type";
 
 import interceptedAxios from "@/lib/axios";

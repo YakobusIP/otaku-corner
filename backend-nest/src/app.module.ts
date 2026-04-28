@@ -17,6 +17,7 @@ import { validateEnv } from "@/config/validate-env";
 import { GenresModule } from "@/genre/genres.module";
 import { LightNovelModule } from "@/light-novel/light-novel.module";
 import { MangaModule } from "@/manga/manga.module";
+import { MediaLibraryModule } from "@/media-library/media-library.module";
 import { StatisticModule } from "@/statistic/statistic.module";
 import { StudiosModule } from "@/studio/studios.module";
 import { ThemesModule } from "@/theme/themes.module";
@@ -39,6 +40,7 @@ import { UploadModule } from "@/upload/upload.module";
     AnimeModule,
     MangaModule,
     LightNovelModule,
+    MediaLibraryModule,
     StatisticModule,
     UploadModule
   ],

@@ -17,13 +17,20 @@ import {
   SheetTrigger
 } from "@/components/ui/sheet";
 
+import type { ScoreOption } from "@/types/general.type";
+
 import { SlidersHorizontalIcon } from "lucide-react";
 
 export default function MediaFilterSheet() {
   const { state, setState, resetFilters } = useMediaFilters();
+  const isAll = state.mediaType === "all";
   const isAnime = state.mediaType === "anime";
   const isMangaOrLN =
     state.mediaType === "manga" || state.mediaType === "lightNovel";
+
+  const showStudio = isAnime || isAll;
+  const showType = isAnime || isAll;
+  const showAuthor = isMangaOrLN || isAll;
 
   return (
     <Sheet>
@@ -56,52 +63,70 @@ export default function MediaFilterSheet() {
               handleFilterTheme={(key) => setState({ page: 1, theme: key })}
             />
           </div>
-          {isAnime ? (
-            <>
-              <div>
-                <p className="text-sm mb-2">Studio</p>
-                <FilterStudio
-                  selectedStudio={state.studio}
-                  handleFilterStudio={(key) =>
-                    setState({ page: 1, studio: key })
-                  }
-                />
-              </div>
-              <div>
-                <p className="text-sm mb-2">Type</p>
-                <FilterType
-                  selectedType={state.type}
-                  handleFilterType={(key) =>
-                    setState({ page: 1, type: key as string | undefined })
-                  }
-                />
-              </div>
-            </>
+          {showStudio ? (
+            <div>
+              <p className="text-sm mb-2">Studio</p>
+              <FilterStudio
+                selectedStudio={state.studio}
+                handleFilterStudio={(key) => setState({ page: 1, studio: key })}
+              />
+              {isAll ? (
+                <p className="text-muted-foreground mt-1.5 text-xs">
+                  Only affects anime in the combined list.
+                </p>
+              ) : null}
+            </div>
           ) : null}
-          {isMangaOrLN ? (
+          {showType ? (
+            <div>
+              <p className="text-sm mb-2">Type</p>
+              <FilterType
+                selectedType={state.type}
+                handleFilterType={(key) =>
+                  setState({ page: 1, type: key as string | undefined })
+                }
+              />
+              {isAll ? (
+                <p className="text-muted-foreground mt-1.5 text-xs">
+                  Only affects anime in the combined list.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+          {showAuthor ? (
             <div>
               <p className="text-sm mb-2">Author</p>
               <FilterAuthor
                 selectedAuthor={state.author}
                 handleFilterAuthor={(key) => setState({ page: 1, author: key })}
               />
+              {isAll ? (
+                <p className="text-muted-foreground mt-1.5 text-xs">
+                  Only affects manga and light novels; anime rows are hidden
+                  when an author is selected.
+                </p>
+              ) : null}
             </div>
           ) : null}
           <div>
             <p className="text-sm mb-2">MAL Score</p>
             <FilterMALScore
-              selectedMALScore={state.malScore}
+              selectedMALScore={
+                state.malScore as ScoreOption["key"] | undefined
+              }
               handleFilterMALScore={(key) =>
-                setState({ page: 1, malScore: key as string | undefined })
+                setState({ page: 1, malScore: key })
               }
             />
           </div>
           <div>
             <p className="text-sm mb-2">Personal Score</p>
             <FilterPersonalScore
-              selectedPersonalScore={state.personalScore}
+              selectedPersonalScore={
+                state.personalScore as ScoreOption["key"] | undefined
+              }
               handleFilterPersonalScore={(key) =>
-                setState({ page: 1, personalScore: key as string | undefined })
+                setState({ page: 1, personalScore: key })
               }
             />
           </div>

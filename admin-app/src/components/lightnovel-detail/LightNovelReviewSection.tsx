@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { lightNovelService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/light-novel.service";
 import { uploadService } from "@/services/upload.service";
 
 import ProgressStatus from "@/components/ProgressStatus";
@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/useToast";
 import {
   LightNovelDetail,
   LightNovelReviewRequest
-} from "@/types/lightnovel.type";
+} from "@/types/light-novel.type";
 
 import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
 import { detailKeys } from "@/lib/query-keys";

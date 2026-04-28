@@ -7,7 +7,7 @@ import {
   useState
 } from "react";
 
-import { lightNovelService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/light-novel.service";
 
 import { Button } from "@/components/ui/button";
 

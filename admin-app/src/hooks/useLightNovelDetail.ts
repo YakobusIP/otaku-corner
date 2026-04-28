@@ -1,4 +1,4 @@
-import { lightNovelService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/light-novel.service";
 
 import { detailKeys } from "@/lib/query-keys";
 

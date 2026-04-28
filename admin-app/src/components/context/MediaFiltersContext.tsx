@@ -99,7 +99,6 @@ export const MediaFiltersProvider = ({ children }: { children: ReactNode }) => {
 
     setSearchParams(params, { replace: true });
   }, [
-    searchParams,
     setSearchParams,
     state.mediaType,
     state.page,

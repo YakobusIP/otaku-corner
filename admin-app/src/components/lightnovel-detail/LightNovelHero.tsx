@@ -1,4 +1,4 @@
-import { LightNovelDetail } from "@/types/lightnovel.type";
+import { LightNovelDetail } from "@/types/light-novel.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
 import { cn } from "@/lib/utils";

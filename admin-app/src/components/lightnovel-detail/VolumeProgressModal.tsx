@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { lightNovelService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/light-novel.service";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +27,7 @@ import {
 
 import { useToast } from "@/hooks/useToast";
 
-import { LightNovelDetail } from "@/types/lightnovel.type";
+import { LightNovelDetail } from "@/types/light-novel.type";
 
 import { detailKeys } from "@/lib/query-keys";
 import { cn, createUTCDate } from "@/lib/utils";

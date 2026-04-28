@@ -1,4 +1,4 @@
-import { lightNovelService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/light-novel.service";
 
 import ProgressStatus from "@/components/ProgressStatus";
 import DataTableStatuses from "@/components/data-table/DataTableStatuses";
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
-import { LightNovelList } from "@/types/lightnovel.type";
+import { LightNovelList } from "@/types/light-novel.type";
 
 import { ColumnDef } from "@tanstack/react-table";
 import {

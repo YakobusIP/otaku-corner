@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { animeService } from "@/services/anime.service";
-import { lightNovelService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/light-novel.service";
 import { mangaService } from "@/services/manga.service";
 
 import { useMediaFilters } from "@/components/context/MediaFiltersContext";
@@ -9,11 +9,10 @@ import type { StatusCheck } from "@/components/data-table/DataTableStatuses";
 import MediaRow from "@/components/media/MediaRow";
 import { Button } from "@/components/ui/button";
 
-import { useCombinedMediaList } from "@/hooks/useCombinedMediaList";
-import { useInfiniteAnimeList } from "@/hooks/useInfiniteAnimeList";
-import { useInfiniteLightNovelList } from "@/hooks/useInfiniteLightNovelList";
-import { useInfiniteMangaList } from "@/hooks/useInfiniteMangaList";
+import { useMediaLibraryList } from "@/hooks/useMediaLibraryList";
 import { useToast } from "@/hooks/useToast";
+
+import type { MediaLibraryListItem } from "@/types/media-library.type";
 
 import { mediaKeys } from "@/lib/query-keys";
 
@@ -21,11 +20,173 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CalendarDaysIcon, ListIcon, NotebookPenIcon } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 
+function mapMediaItemToRow(item: MediaLibraryListItem) {
+  if (item.mediaType === "anime") {
+    const episodesFetched =
+      !["Movie", "OVA"].includes(item.type) && item.fetchedEpisode > 0;
+    const statusChecks: StatusCheck[] = [
+      {
+        key: `${item.title}-anime-episode-status`,
+        Trigger: ListIcon,
+        condition: ["Movie", "OVA"].includes(item.type) || episodesFetched,
+        triggerColor: {
+          success: "text-green-700",
+          failed: "text-destructive"
+        },
+        message: {
+          success: "Episodes fetched",
+          failed: "Episodes missing"
+        }
+      },
+      {
+        key: `${item.title}-anime-review-status`,
+        Trigger: NotebookPenIcon,
+        condition: !!item.reviewText,
+        triggerColor: {
+          success: "text-green-700",
+          failed: "text-destructive"
+        },
+        message: { success: "Review added", failed: "Review missing" }
+      },
+      {
+        key: `${item.title}-anime-date-status`,
+        Trigger: CalendarDaysIcon,
+        condition: !!item.consumedAt,
+        triggerColor: {
+          success: "text-green-700",
+          failed: "text-destructive"
+        },
+        message: {
+          success: "Consumed date set",
+          failed: "Consumed date missing"
+        }
+      }
+    ];
+    return {
+      mediaType: "anime" as const,
+      id: item.id,
+      slug: item.slug,
+      title: item.title,
+      titleJapanese: item.titleJapanese,
+      score: item.score,
+      personalScore: item.personalScore,
+      progressStatus: item.progressStatus ?? "",
+      imageUrl: item.images.large_image_url ?? item.images.image_url,
+      subtitle: item.type,
+      statusChecks
+    };
+  }
+  if (item.mediaType === "manga") {
+    const statusChecks: StatusCheck[] = [
+      {
+        key: `${item.title}-manga-volume-status`,
+        Trigger: ListIcon,
+        condition: !!item.chaptersCount && !!item.volumesCount,
+        triggerColor: {
+          success: "text-green-700",
+          failed: "text-destructive"
+        },
+        message: {
+          success: "Chapter and volume count set",
+          failed: "Chapter or volume count missing"
+        }
+      },
+      {
+        key: `${item.title}-manga-review-status`,
+        Trigger: NotebookPenIcon,
+        condition: !!item.reviewText,
+        triggerColor: {
+          success: "text-green-700",
+          failed: "text-destructive"
+        },
+        message: { success: "Review added", failed: "Review missing" }
+      },
+      {
+        key: `${item.title}-manga-date-status`,
+        Trigger: CalendarDaysIcon,
+        condition: !!item.consumedAt,
+        triggerColor: {
+          success: "text-green-700",
+          failed: "text-destructive"
+        },
+        message: {
+          success: "Consumed date set",
+          failed: "Consumed date missing"
+        }
+      }
+    ];
+    return {
+      mediaType: "manga" as const,
+      id: item.id,
+      slug: item.slug,
+      title: item.title,
+      titleJapanese: item.titleJapanese,
+      score: item.score,
+      personalScore: item.personalScore,
+      progressStatus: item.progressStatus ?? "",
+      imageUrl: item.images.large_image_url ?? item.images.image_url,
+      subtitle: `${item.chaptersCount ?? 0} ch / ${item.volumesCount ?? 0} vol`,
+      statusChecks
+    };
+  }
+  const statusChecks: StatusCheck[] = [
+    {
+      key: `${item.title}-ln-volume-status`,
+      Trigger: ListIcon,
+      condition: !!item.volumesCount,
+      triggerColor: {
+        success: "text-green-700",
+        failed: "text-destructive"
+      },
+      message: {
+        success: "Volume count set",
+        failed: "Volume count missing"
+      }
+    },
+    {
+      key: `${item.title}-ln-review-status`,
+      Trigger: NotebookPenIcon,
+      condition: !!item.reviewText,
+      triggerColor: {
+        success: "text-green-700",
+        failed: "text-destructive"
+      },
+      message: { success: "Review added", failed: "Review missing" }
+    },
+    {
+      key: `${item.title}-ln-date-status`,
+      Trigger: CalendarDaysIcon,
+      condition:
+        !!item.volumesCount && item.volumeProgress.every((v) => v.consumedAt),
+      triggerColor: {
+        success: "text-green-700",
+        failed: "text-destructive"
+      },
+      message: {
+        success: "All consumed date set",
+        failed: "Some consumed date missing"
+      }
+    }
+  ];
+  return {
+    mediaType: "lightNovel" as const,
+    id: item.id,
+    slug: item.slug,
+    title: item.title,
+    titleJapanese: item.titleJapanese,
+    score: item.score,
+    personalScore: item.personalScore,
+    progressStatus: item.progressStatus ?? "",
+    imageUrl: item.images.large_image_url ?? item.images.image_url,
+    subtitle: `${item.volumesCount ?? 0} volumes`,
+    statusChecks
+  };
+}
+
 export default function MediaListSection() {
   const { state } = useMediaFilters();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const isAll = state.mediaType === "all";
 
   const deleteMutation = useMutation({
     mutationFn: async ({
@@ -38,8 +199,7 @@ export default function MediaListSection() {
       if (mediaType === "anime") {
         const r = await animeService.remove([id]);
         if (!r.success) throw new Error(r.error);
-      }
-      else if (mediaType === "manga") {
+      } else if (mediaType === "manga") {
         const r = await mangaService.remove([id]);
         if (!r.success) throw new Error(r.error);
       } else {
@@ -70,250 +230,37 @@ export default function MediaListSection() {
     [deleteMutation]
   );
 
-  const combinedQuery = useCombinedMediaList(isAll);
-  const infiniteAnime = useInfiniteAnimeList(
-    !isAll && state.mediaType === "anime"
-  );
-  const infiniteManga = useInfiniteMangaList(
-    !isAll && state.mediaType === "manga"
-  );
-  const infiniteLightNovel = useInfiniteLightNovelList(
-    !isAll && state.mediaType === "lightNovel"
-  );
+  const listQuery = useMediaLibraryList(true);
 
   const rows = useMemo(() => {
-    if (isAll) return combinedQuery.items;
-    if (state.mediaType === "anime") {
-      const pages = infiniteAnime.data?.pages ?? [];
-      return pages.flatMap((page) =>
-        page.data.map((item) => {
-          const episodesFetched =
-            !["Movie", "OVA"].includes(item.type) && item.fetchedEpisode > 0;
-          const statusChecks: StatusCheck[] = [
-            {
-              key: `${item.title}-anime-episode-status`,
-              Trigger: ListIcon,
-              condition:
-                ["Movie", "OVA"].includes(item.type) || episodesFetched,
-              triggerColor: {
-                success: "text-green-700",
-                failed: "text-destructive"
-              },
-              message: {
-                success: "Episodes fetched",
-                failed: "Episodes missing"
-              }
-            },
-            {
-              key: `${item.title}-anime-review-status`,
-              Trigger: NotebookPenIcon,
-              condition: !!item.reviewText,
-              triggerColor: {
-                success: "text-green-700",
-                failed: "text-destructive"
-              },
-              message: {
-                success: "Review added",
-                failed: "Review missing"
-              }
-            },
-            {
-              key: `${item.title}-anime-date-status`,
-              Trigger: CalendarDaysIcon,
-              condition: !!item.consumedAt,
-              triggerColor: {
-                success: "text-green-700",
-                failed: "text-destructive"
-              },
-              message: {
-                success: "Consumed date set",
-                failed: "Consumed date missing"
-              }
-            }
-          ];
-          return {
-            mediaType: "anime" as const,
-            id: item.id,
-            slug: item.slug,
-            title: item.title,
-            titleJapanese: item.titleJapanese,
-            score: item.score,
-            personalScore: item.personalScore,
-            progressStatus: item.progressStatus,
-            imageUrl: item.images.large_image_url ?? item.images.image_url,
-            subtitle: item.type,
-            statusChecks
-          };
-        })
-      );
-    }
-    if (state.mediaType === "manga") {
-      const pages = infiniteManga.data?.pages ?? [];
-      return pages.flatMap((page) =>
-        page.data.map((item) => {
-          const statusChecks: StatusCheck[] = [
-            {
-              key: `${item.title}-manga-volume-status`,
-              Trigger: ListIcon,
-              condition: !!item.chaptersCount && !!item.volumesCount,
-              triggerColor: {
-                success: "text-green-700",
-                failed: "text-destructive"
-              },
-              message: {
-                success: "Chapter and volume count set",
-                failed: "Chapter or volume count missing"
-              }
-            },
-            {
-              key: `${item.title}-manga-review-status`,
-              Trigger: NotebookPenIcon,
-              condition: !!item.reviewText,
-              triggerColor: {
-                success: "text-green-700",
-                failed: "text-destructive"
-              },
-              message: {
-                success: "Review added",
-                failed: "Review missing"
-              }
-            },
-            {
-              key: `${item.title}-manga-date-status`,
-              Trigger: CalendarDaysIcon,
-              condition: !!item.consumedAt,
-              triggerColor: {
-                success: "text-green-700",
-                failed: "text-destructive"
-              },
-              message: {
-                success: "Consumed date set",
-                failed: "Consumed date missing"
-              }
-            }
-          ];
-          return {
-            mediaType: "manga" as const,
-            id: item.id,
-            slug: item.slug,
-            title: item.title,
-            titleJapanese: item.titleJapanese,
-            score: item.score,
-            personalScore: item.personalScore,
-            progressStatus: item.progressStatus,
-            imageUrl: item.images.large_image_url ?? item.images.image_url,
-            subtitle: `${item.chaptersCount ?? 0} ch / ${item.volumesCount ?? 0} vol`,
-            statusChecks
-          };
-        })
-      );
-    }
-    const pages = infiniteLightNovel.data?.pages ?? [];
-    return pages.flatMap((page) =>
-      page.data.map((item) => {
-        const statusChecks: StatusCheck[] = [
-          {
-            key: `${item.title}-ln-volume-status`,
-            Trigger: ListIcon,
-            condition: !!item.volumesCount,
-            triggerColor: {
-              success: "text-green-700",
-              failed: "text-destructive"
-            },
-            message: {
-              success: "Volume count set",
-              failed: "Volume count missing"
-            }
-          },
-          {
-            key: `${item.title}-ln-review-status`,
-            Trigger: NotebookPenIcon,
-            condition: !!item.reviewText,
-            triggerColor: {
-              success: "text-green-700",
-              failed: "text-destructive"
-            },
-            message: {
-              success: "Review added",
-              failed: "Review missing"
-            }
-          },
-          {
-            key: `${item.title}-ln-date-status`,
-            Trigger: CalendarDaysIcon,
-            condition:
-              !!item.volumesCount &&
-              item.volumeProgress.every((v) => v.consumedAt),
-            triggerColor: {
-              success: "text-green-700",
-              failed: "text-destructive"
-            },
-            message: {
-              success: "All consumed date set",
-              failed: "Some consumed date missing"
-            }
-          }
-        ];
-        return {
-          mediaType: "lightNovel" as const,
-          id: item.id,
-          slug: item.slug,
-          title: item.title,
-          titleJapanese: item.titleJapanese,
-          score: item.score,
-          personalScore: item.personalScore,
-          progressStatus: item.progressStatus,
-          imageUrl: item.images.large_image_url ?? item.images.image_url,
-          subtitle: `${item.volumesCount ?? 0} volumes`,
-          statusChecks
-        };
-      })
-    );
-  }, [
-    combinedQuery.items,
-    infiniteAnime.data,
-    infiniteLightNovel.data,
-    infiniteManga.data,
-    isAll,
-    state.mediaType
-  ]);
+    const pages = listQuery.data?.pages ?? [];
+    return pages.flatMap((page) => page.data.map(mapMediaItemToRow));
+  }, [listQuery.data?.pages]);
 
-  const infiniteQuery =
-    state.mediaType === "anime"
-      ? infiniteAnime
-      : state.mediaType === "manga"
-        ? infiniteManga
-        : infiniteLightNovel;
-  const hasNextPage = !isAll && infiniteQuery.hasNextPage;
-  const isFetchingNextPage = !isAll && infiniteQuery.isFetchingNextPage;
+  const hasNextPage = listQuery.hasNextPage;
+  const isFetchingNextPage = listQuery.isFetchingNextPage;
+  const isLoading = listQuery.isLoading;
 
-  const isLoading =
-    combinedQuery.isLoading || (!isAll && infiniteQuery.isLoading);
-
-  const [scrollRoot, setScrollRoot] = useState<Element | undefined>(undefined);
-
-  const infiniteQueryRef = useRef(infiniteQuery);
-  infiniteQueryRef.current = infiniteQuery;
-
-  const isAllRef = useRef(isAll);
-  isAllRef.current = isAll;
+  const listQueryRef = useRef(listQuery);
+  listQueryRef.current = listQuery;
 
   const fetchQueueRef = useRef(Promise.resolve());
 
   const enqueueFetchNextPage = useCallback(() => {
-    if (isAllRef.current) return;
     fetchQueueRef.current = fetchQueueRef.current
       .then(async () => {
-        const q = infiniteQueryRef.current;
-        if (isAllRef.current || !q.hasNextPage) return;
+        const q = listQueryRef.current;
+        if (!q.hasNextPage) return;
         await q.fetchNextPage();
       })
       .catch(() => {});
   }, []);
 
+  const [scrollRoot, setScrollRoot] = useState<Element | undefined>(undefined);
+
   useEffect(() => {
     fetchQueueRef.current = Promise.resolve();
-  }, [isAll, state.mediaType]);
+  }, [state.mediaType]);
 
   useEffect(() => {
     const main = document.querySelector("main");
@@ -321,13 +268,13 @@ export default function MediaListSection() {
   }, []);
 
   const { ref: loadMoreRef } = useInView({
-    skip: isAll,
+    skip: !hasNextPage,
     root: scrollRoot,
     rootMargin: "0px 0px 72px 0px",
     threshold: 0,
     initialInView: false,
     onChange: (visible) => {
-      if (!visible || isAllRef.current) return;
+      if (!visible || !listQueryRef.current.hasNextPage) return;
       enqueueFetchNextPage();
     }
   });
@@ -354,7 +301,7 @@ export default function MediaListSection() {
         </div>
       )}
 
-      {!isAll && hasNextPage ? (
+      {hasNextPage ? (
         <div ref={loadMoreRef} className="h-8 shrink-0" aria-hidden />
       ) : null}
 
