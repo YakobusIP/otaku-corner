@@ -1,6 +1,7 @@
 import {
   ReactNode,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -58,6 +59,17 @@ const MediaFiltersContext = createContext<MediaFiltersContextValue | undefined>(
   undefined
 );
 
+const hasStateChanges = (
+  previous: MediaFiltersState,
+  updates: Partial<MediaFiltersState>
+) => {
+  return Object.entries(updates).some(
+    ([key, value]) =>
+      previous[key as keyof MediaFiltersState] !==
+      (value as MediaFiltersState[keyof MediaFiltersState])
+  );
+};
+
 export const MediaFiltersProvider = ({ children }: { children: ReactNode }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [state, setInternalState] = useState<MediaFiltersState>(() => ({
@@ -74,19 +86,22 @@ export const MediaFiltersProvider = ({ children }: { children: ReactNode }) => {
     progressStatus: searchParams.get("status") ?? undefined
   }));
 
-  const setState = (updater: Partial<MediaFiltersState>) => {
-    setInternalState((prev) => ({
-      ...prev,
-      ...updater
-    }));
-  };
+  const setState = useCallback((updater: Partial<MediaFiltersState>) => {
+    setInternalState((prev) =>
+      hasStateChanges(prev, updater) ? { ...prev, ...updater } : prev
+    );
+  }, []);
 
-  const resetFilters = () => {
-    setInternalState((prev) => ({
-      ...defaultState,
-      mediaType: prev.mediaType
-    }));
-  };
+  const resetFilters = useCallback(() => {
+    setInternalState((prev) => {
+      const next = {
+        ...defaultState,
+        mediaType: prev.mediaType
+      };
+
+      return hasStateChanges(prev, next) ? next : prev;
+    });
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -114,7 +129,7 @@ export const MediaFiltersProvider = ({ children }: { children: ReactNode }) => {
       setState,
       resetFilters
     }),
-    [state]
+    [resetFilters, setState, state]
   );
 
   return (

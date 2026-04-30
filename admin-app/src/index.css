@@ -182,6 +182,55 @@
   }
 }
 
+@layer components {
+  .oc-status-bar-animated {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .oc-status-bar-animated::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: -55%;
+    width: 42%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / 0.45),
+      transparent
+    );
+    animation:
+      oc-status-bar-shimmer 2.75s ease-in-out infinite,
+      oc-status-bar-pulse 1.8s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .oc-status-bar-animated::after {
+      animation: none;
+    }
+  }
+}
+
+@keyframes oc-status-bar-shimmer {
+  from {
+    left: -55%;
+  }
+  to {
+    left: 130%;
+  }
+}
+
+@keyframes oc-status-bar-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
 .glass {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);

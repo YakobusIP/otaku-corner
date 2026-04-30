@@ -5,9 +5,10 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   checks: StatusCheck[];
+  barAnimateIn?: boolean;
 };
 
-export default function StatusCheckRows({ checks }: Props) {
+export default function StatusCheckRows({ checks, barAnimateIn }: Props) {
   const conditionSuccess = checks.filter((check) => check.condition).length;
   const checksCount = checks.length;
 
@@ -15,8 +16,10 @@ export default function StatusCheckRows({ checks }: Props) {
     <div className="space-y-2">
       <div className="space-y-1">
         <StatusProgressBar
+          key={barAnimateIn ? "open" : "closed"}
           className="h-2 w-full"
           value={(conditionSuccess / checksCount) * 100}
+          animateIn={barAnimateIn}
         />
         <span className="text-xs text-muted-foreground">
           {conditionSuccess} / {checksCount}

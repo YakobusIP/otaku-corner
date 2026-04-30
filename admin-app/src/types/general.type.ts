@@ -13,16 +13,16 @@ type GenericKeyLabel = {
   label: string;
 };
 
-export type ServiceResult<T> =
+type ServiceResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
 
-export type PaginatedListPage<T> = {
+type PaginatedListPage<T> = {
   data: T[];
   metadata: MetadataResponse;
 };
 
-export type PaginatedBody<T> = {
+type PaginatedBody<T> = {
   data: T[];
   total: number;
   page: number;
@@ -30,4 +30,13 @@ export type PaginatedBody<T> = {
   totalPages: number;
 };
 
-export type { ScoreOption, GenericKeyLabel };
+type MediaType = "anime" | "manga" | "lightNovel";
+
+export type {
+  ScoreOption,
+  GenericKeyLabel,
+  ServiceResult,
+  PaginatedListPage,
+  PaginatedBody,
+  MediaType
+};

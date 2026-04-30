@@ -1,16 +1,7 @@
+import { memo, useState } from "react";
+
 import type { StatusCheck } from "@/components/data-table/DataTableStatuses";
 import StatusCheckRows from "@/components/media/StatusCheckRows";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,37 +11,40 @@ import {
 } from "@/components/ui/collapsible";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
+import { ProgressStatusKey } from "@/lib/enums";
+import { MediaType } from "@/types/general.type";
+
 import { ChevronDownIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 type Props = {
-  mediaType: "anime" | "manga" | "lightNovel";
+  mediaType: MediaType;
   id: number;
   slug: string;
   title: string;
   titleJapanese: string;
   score: number | null;
   personalScore?: number | null;
-  progressStatus: string;
+  progressStatus: ProgressStatusKey | "";
   imageUrl?: string;
   subtitle?: string;
   statusChecks?: StatusCheck[];
-  onDelete?: (mediaType: "anime" | "manga" | "lightNovel", id: number) => void;
+  onRequestDelete?: (mediaType: MediaType, id: number, title: string) => void;
 };
 
-const mediaPathMap: Record<Props["mediaType"], string> = {
+const mediaPathMap: Record<MediaType, string> = {
   anime: "anime",
   manga: "manga",
   lightNovel: "light-novel"
 };
 
-const mediaLabelMap: Record<Props["mediaType"], string> = {
+const mediaLabelMap: Record<MediaType, string> = {
   anime: "Anime",
   manga: "Manga",
   lightNovel: "Light Novel"
 };
 
-export default function MediaRow({
+function MediaRow({
   mediaType,
   id,
   slug,
@@ -62,8 +56,9 @@ export default function MediaRow({
   imageUrl,
   subtitle,
   statusChecks,
-  onDelete
+  onRequestDelete
 }: Props) {
+  const [reviewOpen, setReviewOpen] = useState(false);
   const malScore =
     score !== null && Number.isFinite(score) ? score.toFixed(2) : "N/A";
   const personalScoreLabel =
@@ -71,13 +66,23 @@ export default function MediaRow({
   const hasStatusChecks = statusChecks && statusChecks.length > 0;
 
   return (
-    <Collapsible asChild className="group">
-      <div className="rounded-lg border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm transition-colors hover:bg-background/45">
+    <Collapsible
+      asChild
+      className="group"
+      {...(hasStatusChecks
+        ? { open: reviewOpen, onOpenChange: setReviewOpen }
+        : {})}
+    >
+      <div className="rounded-lg border border-border/40 bg-background shadow-sm transition-colors hover:bg-muted/40">
         <div className="grid grid-cols-1 gap-0 md:grid-cols-[minmax(0,1fr)_19rem_auto] md:gap-4 md:items-center">
           <div className="flex min-w-0 items-center gap-3 p-3 md:p-4">
             <img
               src={imageUrl}
               alt={title}
+              width={40}
+              height={56}
+              loading="lazy"
+              decoding="async"
               className="h-14 w-10 shrink-0 rounded border border-border/50 object-cover"
             />
             <div className="min-w-0">
@@ -111,10 +116,12 @@ export default function MediaRow({
             </div>
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Status</p>
-              <ProgressStatusBadge
-                progressStatus={progressStatus as never}
-                className="mt-0.5 inline-flex md:mt-0"
-              />
+              {progressStatus ? (
+                <ProgressStatusBadge
+                  progressStatus={progressStatus}
+                  className="mt-0.5 inline-flex md:mt-0"
+                />
+              ) : null}
             </div>
           </div>
 
@@ -136,37 +143,17 @@ export default function MediaRow({
                 <PencilIcon className="h-4 w-4" />
               </Button>
             </Link>
-            {onDelete ? (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Delete"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2Icon className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete this item?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      &quot;{title}&quot; will be permanently removed. This
-                      action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => onDelete(mediaType, id)}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+            {onRequestDelete ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                title="Delete"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => onRequestDelete(mediaType, id, title)}
+              >
+                <Trash2Icon className="h-4 w-4" />
+              </Button>
             ) : null}
           </div>
 
@@ -176,7 +163,10 @@ export default function MediaRow({
                 <p className="text-xs font-medium text-muted-foreground mb-2">
                   Review progress
                 </p>
-                <StatusCheckRows checks={statusChecks} />
+                <StatusCheckRows
+                  checks={statusChecks}
+                  barAnimateIn={reviewOpen}
+                />
               </div>
             </CollapsibleContent>
           ) : null}
@@ -185,3 +175,5 @@ export default function MediaRow({
     </Collapsible>
   );
 }
+
+export default memo(MediaRow);

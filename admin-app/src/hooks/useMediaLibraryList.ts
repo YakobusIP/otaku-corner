@@ -149,3 +149,5 @@ export const useMediaLibraryList = (enabled = true) => {
     }
   });
 };
+
+export type UseMediaLibraryListResult = ReturnType<typeof useMediaLibraryList>;

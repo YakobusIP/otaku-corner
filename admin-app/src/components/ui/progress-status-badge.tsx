@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { PROGRESS_STATUS } from "@/lib/enums";
+import { PROGRESS_STATUS, type ProgressStatusKey } from "@/lib/enums";
 import { cn } from "@/lib/utils";
 
 import {
@@ -13,7 +13,7 @@ import {
 
 interface ProgressStatusBadgeProps
   extends React.HTMLAttributes<HTMLDivElement> {
-  progressStatus: PROGRESS_STATUS;
+  progressStatus: ProgressStatusKey;
 }
 
 function ProgressStatusBadge({

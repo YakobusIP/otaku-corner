@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 
 import { useMediaFilters } from "@/components/context/MediaFiltersContext";
 import SortDirection from "@/components/filter-sort-dropdowns/SortDirection";
@@ -25,16 +25,20 @@ export default function MediaHeader({ totalCount }: Props) {
   const { state, setState } = useMediaFilters();
   const [localQuery, setLocalQuery] = useState(state.query);
   const [debouncedQuery] = useDebounce(localQuery, 500);
+  const lastPushedQueryRef = useRef(state.query);
 
   useEffect(() => {
+    if (state.query === debouncedQuery && state.page === 1) return;
     setState({ query: debouncedQuery, page: 1 });
-  }, [debouncedQuery, setState]);
+    lastPushedQueryRef.current = debouncedQuery;
+  }, [debouncedQuery, setState, state.page, state.query]);
 
   useEffect(() => {
-    if (state.query !== localQuery && state.query !== debouncedQuery) {
-      setLocalQuery(state.query);
+    if (state.query === lastPushedQueryRef.current) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- omit localQuery/debouncedQuery so typing is not reset while debounce catches up
+    setLocalQuery(state.query);
+    lastPushedQueryRef.current = state.query;
   }, [state.query]);
 
   const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +59,7 @@ export default function MediaHeader({ totalCount }: Props) {
   };
 
   return (
-    <div className="sticky top-2 z-30 space-y-3 rounded-xl border border-border/60 bg-card/60 p-3 shadow-sm backdrop-blur-xl">
+    <div className="sticky top-2 z-30 space-y-3 rounded-xl border border-border/60 bg-card/95 p-3 shadow-sm">
       <div className="flex min-w-0 flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-x-3 md:gap-y-2">
         <Tabs
           className="w-full shrink-0 md:w-auto"

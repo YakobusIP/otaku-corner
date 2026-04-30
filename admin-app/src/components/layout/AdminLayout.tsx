@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useEffect } from "react";
+import { type CSSProperties, type ReactNode, type Ref, useEffect } from "react";
 
 import LogoutButton from "@/components/LogoutButton";
 import {
@@ -43,6 +43,7 @@ type Props = {
   children: ReactNode;
   actions?: ReactNode;
   hideHeader?: boolean;
+  scrollContainerRef?: Ref<HTMLDivElement>;
 };
 
 type NavItem = {
@@ -169,7 +170,8 @@ export default function AdminLayout({
   description,
   children,
   actions,
-  hideHeader = false
+  hideHeader = false,
+  scrollContainerRef
 }: Props) {
   return (
     <SidebarProvider
@@ -183,7 +185,10 @@ export default function AdminLayout({
       <MobileSidebarCloseOnNavigate />
       <AppSidebar />
       <SidebarInset className="min-h-0 overflow-hidden bg-transparent">
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div
+          ref={scrollContainerRef}
+          className="min-h-0 flex-1 overflow-y-auto"
+        >
           <section className="flex flex-col gap-4 p-4 md:p-6">
             {hideHeader ? null : (
               <header className="flex shrink-0 items-center gap-3 bg-transparent">
