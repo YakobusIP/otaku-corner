@@ -40,7 +40,7 @@ export default function MediaFilterSheet() {
           Filters
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full md:max-w-md overflow-y-auto">
+      <SheetContent className="w-full tablet:max-w-md desktop:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Advanced Filters</SheetTitle>
           <SheetDescription>

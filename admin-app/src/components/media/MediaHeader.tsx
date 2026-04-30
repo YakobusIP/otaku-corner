@@ -60,9 +60,9 @@ export default function MediaHeader({ totalCount }: Props) {
 
   return (
     <div className="sticky top-2 z-30 space-y-3 rounded-xl border border-border/60 bg-card/95 p-3 shadow-sm">
-      <div className="flex min-w-0 flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-x-3 md:gap-y-2">
+      <div className="flex min-w-0 flex-col gap-3">
         <Tabs
-          className="w-full shrink-0 md:w-auto"
+          className="w-full shrink-0"
           value={state.mediaType}
           onValueChange={(value) =>
             setState({
@@ -71,31 +71,31 @@ export default function MediaHeader({ totalCount }: Props) {
             })
           }
         >
-          <TabsList className="flex w-full md:inline-flex md:w-auto">
-            <TabsTrigger className="flex-1 md:flex-initial" value="all">
+          <TabsList className="flex w-full tablet:inline-flex tablet:w-auto tablet:max-w-full desktop:inline-flex desktop:w-auto">
+            <TabsTrigger className="flex-1 tablet:flex-initial desktop:flex-initial" value="all">
               All
             </TabsTrigger>
-            <TabsTrigger className="flex-1 md:flex-initial" value="anime">
+            <TabsTrigger className="flex-1 tablet:flex-initial desktop:flex-initial" value="anime">
               Anime
             </TabsTrigger>
-            <TabsTrigger className="flex-1 md:flex-initial" value="manga">
+            <TabsTrigger className="flex-1 tablet:flex-initial desktop:flex-initial" value="manga">
               Manga
             </TabsTrigger>
-            <TabsTrigger className="flex-1 md:flex-initial" value="lightNovel">
+            <TabsTrigger className="flex-1 tablet:flex-initial desktop:flex-initial" value="lightNovel">
               Light Novel
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <div className="flex w-full min-w-0 flex-col gap-2 md:min-w-0 md:flex-1 md:basis-0 md:flex-row md:flex-wrap md:items-center md:gap-2">
+        <div className="flex w-full min-w-0 flex-col gap-2 tablet:flex-row tablet:flex-wrap tablet:items-center tablet:gap-2 desktop:flex-row desktop:flex-wrap desktop:items-center desktop:gap-2">
           <Input
             placeholder="Search title or synonyms…"
             value={localQuery}
             onChange={handleSearch}
-            parentClassName="h-10 w-full min-w-0 flex-1 basis-full md:basis-0 md:min-w-0"
+            parentClassName="h-10 w-full min-w-0 flex-1 basis-full tablet:basis-0 tablet:min-w-[12rem] tablet:flex-1 desktop:min-w-[14rem]"
             startIcon={SearchIcon}
           />
-          <div className="grid w-full min-w-0 shrink-0 grid-cols-2 gap-2 md:flex md:w-auto md:max-w-full md:flex-none md:flex-row [&_button]:w-full md:[&_button]:w-auto">
+          <div className="grid w-full min-w-0 shrink-0 grid-cols-2 gap-2 tablet:flex tablet:w-auto tablet:max-w-full tablet:flex-none tablet:flex-row tablet:[&_button]:w-auto desktop:flex desktop:w-auto desktop:max-w-full desktop:flex-none desktop:flex-row desktop:[&_button]:w-auto [&_button]:w-full">
             <SortDirection
               sort={state.sortBy}
               order={state.sortOrder}

@@ -110,24 +110,24 @@ export default function MangaHero({ mangaDetail }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="relative flex flex-col gap-5 overflow-hidden rounded-2xl py-4 px-0 sm:py-5 md:flex-row md:items-center md:gap-6 md:p-6 xl:gap-8 xl:p-8">
-        <div className="relative flex justify-center md:block">
+      <div className="relative flex flex-col gap-5 overflow-hidden rounded-2xl py-4 px-0 sm:py-5 tablet:flex-row tablet:items-center tablet:gap-6 tablet:p-6 desktop:flex-row desktop:items-center desktop:gap-6 desktop:p-6 xl:gap-8 xl:p-8">
+        <div className="relative flex justify-center tablet:block desktop:block">
           <div className="relative shrink-0">
             <div className="absolute -inset-1 rounded-xl bg-gradient-to-br from-indigo-400/40 via-violet-400/30 to-transparent blur-md" />
             <img
               src={cover}
               alt={mangaDetail.title}
-              className="relative h-[260px] w-[185px] rounded-xl border border-border/60 object-cover shadow-2xl sm:h-[320px] sm:w-[225px] md:h-[280px] md:w-[200px] lg:h-[340px] lg:w-[240px] xl:h-[400px] xl:w-[280px]"
+              className="relative h-[260px] w-[185px] rounded-xl border border-border/60 object-cover shadow-2xl sm:h-[320px] sm:w-[225px] tablet:h-[280px] tablet:w-[200px] desktop:h-[280px] desktop:w-[200px] lg:h-[340px] lg:w-[240px] xl:h-[400px] xl:w-[280px]"
             />
           </div>
         </div>
 
-        <div className="relative flex min-w-0 flex-1 flex-col gap-4 md:max-w-[55%] lg:max-w-[50%]">
+        <div className="relative flex min-w-0 flex-1 flex-col gap-4 tablet:max-w-[55%] lg:max-w-[50%]">
           <div className="flex min-w-0 flex-col gap-1.5">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-indigo-300 sm:text-xs">
               Manga
             </p>
-            <h1 className="break-words text-xl font-bold leading-tight text-foreground drop-shadow-sm sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl">
+            <h1 className="break-words text-xl font-bold leading-tight text-foreground drop-shadow-sm sm:text-2xl tablet:text-2xl desktop:text-2xl lg:text-3xl xl:text-4xl">
               {mangaDetail.title}
             </h1>
             {mangaDetail.titleJapanese ? (
@@ -178,7 +178,7 @@ export default function MangaHero({ mangaDetail }: Props) {
                   </span>
                   <p
                     className={cn(
-                      "text-base font-bold leading-tight md:text-lg",
+                      "text-base font-bold leading-tight tablet:text-lg desktop:text-lg",
                       status.text
                     )}
                   >
@@ -186,7 +186,7 @@ export default function MangaHero({ mangaDetail }: Props) {
                   </p>
                 </div>
               </div>
-              <p className="hidden text-xs text-muted-foreground sm:block md:text-sm">
+              <p className="hidden text-xs text-muted-foreground sm:block tablet:text-sm desktop:text-sm">
                 {status.description}
               </p>
             </div>
@@ -226,7 +226,7 @@ export default function MangaHero({ mangaDetail }: Props) {
       </div>
 
       {mangaDetail.synopsis ? (
-        <div className="rounded-2xl border border-border/40 bg-background/35 p-4 shadow-sm backdrop-blur-sm sm:p-5 md:p-6">
+        <div className="rounded-2xl border border-border/40 bg-background/35 p-4 shadow-sm backdrop-blur-sm sm:p-5 tablet:p-6 desktop:p-6">
           <p className="max-h-48 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-foreground/90 sm:max-h-56 xl:text-[15px]">
             {mangaDetail.synopsis}
           </p>
@@ -283,7 +283,7 @@ function StatTile({ icon, tint, label, value }: StatTileProps) {
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           {label}
         </p>
-        <p className="truncate text-base font-bold tabular-nums text-foreground md:text-lg">
+        <p className="truncate text-base font-bold tabular-nums text-foreground tablet:text-lg desktop:text-lg">
           {value}
         </p>
       </div>

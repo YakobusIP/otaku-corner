@@ -86,7 +86,7 @@ function AppSidebar() {
               <img
                 src="/otaku-corner-logo.webp"
                 alt=""
-                className="h-14 w-auto max-w-[min(100%,280px)] shrink-0 object-contain object-left transition-[max-width,height,width] duration-200 ease-linear md:group-data-[state=expanded]:h-16 md:group-data-[state=expanded]:w-auto md:group-data-[state=expanded]:max-w-[min(calc(var(--sidebar-width)-1rem),288px)] md:group-data-[state=expanded]:object-left"
+                className="h-14 w-auto max-w-[min(100%,280px)] shrink-0 object-contain object-left transition-[max-width,height,width] duration-200 ease-linear tablet:group-data-[state=expanded]:h-16 tablet:group-data-[state=expanded]:w-auto tablet:group-data-[state=expanded]:max-w-[min(calc(var(--sidebar-width)-1rem),288px)] tablet:group-data-[state=expanded]:object-left desktop:group-data-[state=expanded]:h-16 desktop:group-data-[state=expanded]:w-auto desktop:group-data-[state=expanded]:max-w-[min(calc(var(--sidebar-width)-1rem),288px)] desktop:group-data-[state=expanded]:object-left"
               />
               <span className="truncate text-sm font-semibold tracking-tight text-foreground">
                 Admin
@@ -189,12 +189,12 @@ export default function AdminLayout({
           ref={scrollContainerRef}
           className="min-h-0 flex-1 overflow-y-auto"
         >
-          <section className="flex flex-col gap-4 p-4 md:p-6">
+          <section className="flex flex-col gap-4 p-4 tablet:p-6 desktop:p-6">
             {hideHeader ? null : (
               <header className="flex shrink-0 items-center gap-3 bg-transparent">
-                <SidebarTrigger className="md:hidden" />
+                <SidebarTrigger className="tablet:hidden" />
                 <div className="min-w-0 flex-1">
-                  <h1 className="inline-block max-w-full bg-gradient-to-r from-[#4F8CFF] via-[#7C6CF6] to-[#A855F7] bg-clip-text text-xl font-bold text-transparent md:text-3xl">
+                  <h1 className="inline-block max-w-full bg-gradient-to-r from-[#4F8CFF] via-[#7C6CF6] to-[#A855F7] bg-clip-text text-xl font-bold text-transparent tablet:text-3xl desktop:text-3xl">
                     {title}
                   </h1>
                   {description ? (

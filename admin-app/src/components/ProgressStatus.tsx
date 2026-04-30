@@ -54,38 +54,48 @@ export default function ProgressStatus({
     {
       value: "PLANNED",
       label: PROGRESS_STATUS.PLANNED,
-      icon: <EyeIcon className="mr-2 h-4 w-4" />,
-      color: "bg-sky-400"
+      Icon: EyeIcon,
+      iconClass: "text-slate-300",
+      triggerClass:
+        "bg-gradient-to-r from-slate-600 to-slate-700 text-white border-slate-500/40 shadow-sm [&_svg]:text-white"
     },
     {
       value: "ON_HOLD",
       label: PROGRESS_STATUS.ON_HOLD,
-      icon: <PauseCircleIcon className="mr-2 h-4 w-4" />,
-      color: "bg-yellow-400"
+      Icon: PauseCircleIcon,
+      iconClass: "text-amber-400",
+      triggerClass:
+        "bg-gradient-to-r from-amber-600 to-orange-600 text-white border-amber-500/30 shadow-sm [&_svg]:text-white"
     },
     {
       value: "ON_PROGRESS",
       label: PROGRESS_STATUS.ON_PROGRESS,
-      icon: <PlayCircleIcon className="mr-2 h-4 w-4" />,
-      color: "bg-green-300"
+      Icon: PlayCircleIcon,
+      iconClass: "text-sky-400",
+      triggerClass:
+        "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-500/40 shadow-sm [&_svg]:text-white"
     },
     {
       value: "COMPLETED",
       label: PROGRESS_STATUS.COMPLETED,
-      icon: <CheckCircleIcon className="mr-2 h-4 w-4" />,
-      color: "bg-purple-300"
+      Icon: CheckCircleIcon,
+      iconClass: "text-violet-400",
+      triggerClass:
+        "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-violet-500/30 shadow-sm [&_svg]:text-white"
     },
     {
       value: "DROPPED",
       label: PROGRESS_STATUS.DROPPED,
-      icon: <XCircleIcon className="mr-2 h-4 w-4" />,
-      color: "bg-destructive"
+      Icon: XCircleIcon,
+      iconClass: "text-rose-400",
+      triggerClass:
+        "bg-gradient-to-r from-rose-600 to-red-600 text-white border-rose-500/30 shadow-sm [&_svg]:text-white"
     }
   ];
 
-  const selectedStatusColor =
-    statusOptions.find((option) => option.value === selectedStatus)?.color ||
-    "bg-white";
+  const selectedTriggerClass =
+    statusOptions.find((option) => option.value === selectedStatus)
+      ?.triggerClass ?? "bg-gradient-to-r from-slate-600 to-slate-700 text-white";
 
   const updateProgressStatusMutation = useMutation({
     mutationFn: async (nextStatus: PROGRESS_STATUS) => {
@@ -143,25 +153,28 @@ export default function ProgressStatus({
       onValueChange={handleStatusChange}
     >
       <SelectTrigger
-        className={cn("w-[180px]", selectedStatusColor, triggerClassName)}
+        className={cn(
+          "w-[180px] border font-medium ring-offset-background [&_svg]:text-white",
+          selectedTriggerClass,
+          triggerClassName
+        )}
       >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {statusOptions.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            <div className="flex items-center">
-              {option.icon}
-              {option.label}
-              <span
-                className={cn(
-                  "aspect-square w-4 ml-2 rounded-full",
-                  option.color
-                )}
-              />
-            </div>
-          </SelectItem>
-        ))}
+        {statusOptions.map((option) => {
+          const ItemIcon = option.Icon;
+          return (
+            <SelectItem key={option.value} value={option.value}>
+              <div className="flex items-center">
+                <ItemIcon
+                  className={cn("mr-2 h-4 w-4 shrink-0", option.iconClass)}
+                />
+                {option.label}
+              </div>
+            </SelectItem>
+          );
+        })}
       </SelectContent>
     </Select>
   );

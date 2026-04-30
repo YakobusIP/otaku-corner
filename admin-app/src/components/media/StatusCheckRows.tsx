@@ -13,19 +13,19 @@ export default function StatusCheckRows({ checks, barAnimateIn }: Props) {
   const checksCount = checks.length;
 
   return (
-    <div className="space-y-2">
-      <div className="space-y-1">
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-row items-center gap-2">
         <StatusProgressBar
           key={barAnimateIn ? "open" : "closed"}
-          className="h-2 w-full"
+          className="h-2 min-w-[7rem] flex-1"
           value={(conditionSuccess / checksCount) * 100}
           animateIn={barAnimateIn}
         />
-        <span className="text-xs text-muted-foreground">
+        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
           {conditionSuccess} / {checksCount}
         </span>
       </div>
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5 desktop:flex-row desktop:flex-wrap desktop:gap-x-4 desktop:gap-y-1">
         {checks.map((check) => {
           const { key, Trigger, condition, triggerColor, message } = check;
           return (
@@ -42,7 +42,9 @@ export default function StatusCheckRows({ checks, barAnimateIn }: Props) {
                   condition ? triggerColor.success : triggerColor.failed
                 )}
               />
-              <span>{condition ? message.success : message.failed}</span>
+              <span className="whitespace-nowrap">
+                {condition ? message.success : message.failed}
+              </span>
             </div>
           );
         })}

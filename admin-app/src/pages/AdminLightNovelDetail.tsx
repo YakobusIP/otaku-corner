@@ -104,7 +104,7 @@ export default function AdminLightNovelDetail() {
     >
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <SidebarTrigger className="md:hidden" />
+          <SidebarTrigger className="tablet:hidden" />
           <Link to="/media-list">
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeftIcon className="h-4 w-4" />

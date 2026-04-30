@@ -74,8 +74,8 @@ function MediaRow({
         : {})}
     >
       <div className="rounded-lg border border-border/40 bg-background shadow-sm transition-colors hover:bg-muted/40">
-        <div className="grid grid-cols-1 gap-0 md:grid-cols-[minmax(0,1fr)_19rem_auto] md:gap-4 md:items-center">
-          <div className="flex min-w-0 items-center gap-3 p-3 md:p-4">
+        <div className="grid grid-cols-1 gap-0 tablet:grid-cols-[minmax(0,1fr)_19rem_auto] tablet:gap-4 tablet:items-center desktop:grid-cols-[minmax(0,1fr)_19rem_auto] desktop:gap-4 desktop:items-center">
+          <div className="flex min-w-0 items-center gap-3 p-3 tablet:p-4 desktop:p-4">
             <img
               src={imageUrl}
               alt={title}
@@ -103,7 +103,7 @@ function MediaRow({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 border-y border-border/40 bg-muted/10 px-3 py-2 md:grid md:w-full md:grid-cols-[3.75rem_4.75rem_minmax(0,1fr)] md:items-start md:gap-x-4 md:border-0 md:bg-transparent md:px-0 md:py-0">
+          <div className="grid grid-cols-3 gap-2 border-y border-border/40 bg-muted/10 px-3 py-2 tablet:grid tablet:w-full tablet:grid-cols-[3.75rem_4.75rem_minmax(0,1fr)] tablet:items-start tablet:gap-x-4 tablet:border-0 tablet:bg-transparent tablet:px-0 tablet:py-0 desktop:grid desktop:w-full desktop:grid-cols-[3.75rem_4.75rem_minmax(0,1fr)] desktop:items-start desktop:gap-x-4 desktop:border-0 desktop:bg-transparent desktop:px-0 desktop:py-0">
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">MAL</p>
               <p className="text-sm font-medium tabular-nums">{malScore}</p>
@@ -119,13 +119,13 @@ function MediaRow({
               {progressStatus ? (
                 <ProgressStatusBadge
                   progressStatus={progressStatus}
-                  className="mt-0.5 inline-flex md:mt-0"
+                  className="mt-0.5 inline-flex tablet:mt-0 desktop:mt-0"
                 />
               ) : null}
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-1 p-3 md:p-4">
+          <div className="flex items-center justify-end gap-1 p-3 tablet:p-4 desktop:p-4">
             {hasStatusChecks ? (
               <CollapsibleTrigger asChild>
                 <Button
@@ -159,14 +159,18 @@ function MediaRow({
 
           {hasStatusChecks ? (
             <CollapsibleContent className="col-span-full">
-              <div className="w-full border-t border-border/40 bg-muted/10 px-3 py-2 md:px-4">
-                <p className="text-xs font-medium text-muted-foreground mb-2">
-                  Review progress
-                </p>
-                <StatusCheckRows
-                  checks={statusChecks}
-                  barAnimateIn={reviewOpen}
-                />
+              <div className="w-full border-t border-border/40 bg-muted/10 px-3 py-2 tablet:px-4 desktop:px-4">
+                <div className="flex flex-col gap-2">
+                  <p className="shrink-0 text-xs font-medium text-muted-foreground">
+                    Review progress
+                  </p>
+                  <div className="min-w-0">
+                    <StatusCheckRows
+                      checks={statusChecks}
+                      barAnimateIn={reviewOpen}
+                    />
+                  </div>
+                </div>
               </div>
             </CollapsibleContent>
           ) : null}

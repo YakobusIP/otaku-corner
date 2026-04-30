@@ -107,9 +107,8 @@ export default {
         "4-auto": "repeat(4, minmax(0, auto))"
       },
       screens: {
-        "3xs": "320px",
-        "2xs": "400px",
-        xs: "480px"
+        tablet: "768px",
+        desktop: "1536px"
       }
     }
   },

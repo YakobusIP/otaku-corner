@@ -99,7 +99,7 @@ export default function AdminMangaDetail() {
     >
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <SidebarTrigger className="md:hidden" />
+          <SidebarTrigger className="tablet:hidden" />
           <Link to="/media-list">
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeftIcon className="h-4 w-4" />
@@ -129,7 +129,7 @@ function MangaDetailSkeleton() {
               <Skeleton className="h-6 w-16" />
               <Skeleton className="h-6 w-20" />
             </div>
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 tablet:grid-cols-4 desktop:grid-cols-4">
               <Skeleton className="h-14 rounded-lg" />
               <Skeleton className="h-14 rounded-lg" />
               <Skeleton className="h-14 rounded-lg" />

@@ -215,8 +215,8 @@ export default function LightNovelReviewSection({
           </div>
 
           <div className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/35 p-3 shadow-sm backdrop-blur-sm">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-emerald-500/25 to-teal-500/20">
-              <CalendarDaysIcon className="h-4 w-4 text-emerald-300" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-rose-500/25 to-red-500/20">
+              <CalendarDaysIcon className="h-4 w-4 text-rose-300" />
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-1.5">
               <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -239,7 +239,7 @@ export default function LightNovelReviewSection({
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Personal Ratings
           </p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 tablet:grid-cols-3 desktop:grid-cols-3 xl:grid-cols-5">
             <RatingSelect ratingFields={ratingFields} />
           </div>
         </div>
