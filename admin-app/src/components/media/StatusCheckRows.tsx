@@ -17,7 +17,7 @@ export default function StatusCheckRows({ checks, barAnimateIn }: Props) {
       <div className="flex flex-row items-center gap-2">
         <StatusProgressBar
           key={barAnimateIn ? "open" : "closed"}
-          className="h-2 min-w-[7rem] flex-1"
+          className="h-2 min-w-28 flex-1"
           value={(conditionSuccess / checksCount) * 100}
           animateIn={barAnimateIn}
         />

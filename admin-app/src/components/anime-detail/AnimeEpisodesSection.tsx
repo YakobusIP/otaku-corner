@@ -26,10 +26,10 @@ export default function AnimeEpisodesSection({ animeDetail }: Props) {
         : "from-emerald-500/70 to-emerald-400/70";
 
   return (
-    <div className="rounded-2xl border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm">
+    <div className="rounded-2xl border border-border/40 bg-background/35 shadow-xs backdrop-blur-xs">
       <div className="flex flex-col gap-3 border-b border-border/40 p-4 sm:p-5 tablet:flex-row tablet:items-center tablet:justify-between desktop:flex-row desktop:items-center desktop:justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-sky-500/30 to-indigo-500/20">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-linear-to-br from-sky-500/30 to-indigo-500/20">
             <ListVideoIcon className="h-4 w-4 text-sky-300" />
           </div>
           <div className="min-w-0">
@@ -46,7 +46,7 @@ export default function AnimeEpisodesSection({ animeDetail }: Props) {
           </p>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-background/35 sm:w-56 tablet:w-48 lg:w-56">
             <div
-              className={`h-full rounded-full bg-gradient-to-r transition-all ${barTone}`}
+              className={`h-full rounded-full bg-linear-to-r transition-all ${barTone}`}
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -59,9 +59,9 @@ export default function AnimeEpisodesSection({ animeDetail }: Props) {
             {animeDetail.episodes.map((episode) => (
               <div
                 key={episode.number}
-                className="group flex gap-3 rounded-lg border border-border/40 bg-background/35 p-3 shadow-sm backdrop-blur-sm transition-colors hover:border-indigo-400/40 hover:bg-background/40"
+                className="group flex gap-3 rounded-lg border border-border/40 bg-background/35 p-3 shadow-xs backdrop-blur-xs transition-colors hover:border-indigo-400/40 hover:bg-background/40"
               >
-                <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-md border border-border/40 bg-gradient-to-br from-indigo-500/20 to-violet-500/10">
+                <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-md border border-border/40 bg-linear-to-br from-indigo-500/20 to-violet-500/10">
                   <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
                     EP
                   </span>
@@ -92,7 +92,7 @@ export default function AnimeEpisodesSection({ animeDetail }: Props) {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border/40 bg-background/35 p-10 text-center shadow-sm backdrop-blur-sm">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border/40 bg-background/35 p-10 text-center shadow-xs backdrop-blur-xs">
             <ListVideoIcon className="h-6 w-6 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
               No episodes available yet

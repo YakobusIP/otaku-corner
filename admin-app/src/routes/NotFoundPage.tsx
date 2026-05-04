@@ -5,9 +5,9 @@ import { Link } from "react-router-dom";
 
 export default function NotFoundPage() {
   return (
-    <div className="relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-transparent px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+    <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden bg-transparent px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 overflow-hidden sm:gap-5">
-        <div className="w-full max-w-md rounded-2xl border border-border/40 bg-background/35 p-6 text-center shadow-sm backdrop-blur-sm sm:max-w-2xl sm:p-10">
+        <div className="w-full max-w-md rounded-2xl border border-border/40 bg-background/35 p-6 text-center shadow-xs backdrop-blur-xs sm:max-w-2xl sm:p-10">
           <img
             src="/not-found.webp"
             alt=""
@@ -37,7 +37,7 @@ export default function NotFoundPage() {
           <div className="mt-8 flex justify-center">
             <Button
               asChild
-              className="h-11 rounded-xl bg-gradient-to-r from-[#7c6cf6] to-[#a855f7] px-6 text-white shadow-md hover:from-[#6f5ee8] hover:to-[#9333ea] hover:text-white"
+              className="h-11 rounded-xl bg-linear-to-r from-[#7c6cf6] to-[#a855f7] px-6 text-white shadow-md hover:from-[#6f5ee8] hover:to-[#9333ea] hover:text-white"
             >
               <Link to="/" className="gap-2">
                 <HomeIcon className="size-4 shrink-0" aria-hidden />
@@ -47,9 +47,9 @@ export default function NotFoundPage() {
           </div>
         </div>
 
-        <div className="flex w-full max-w-md flex-col gap-4 rounded-2xl border border-border/40 bg-background/35 p-4 shadow-sm backdrop-blur-sm sm:max-w-2xl sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5">
+        <div className="flex w-full max-w-md flex-col gap-4 rounded-2xl border border-border/40 bg-background/35 p-4 shadow-xs backdrop-blur-xs sm:max-w-2xl sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5">
           <div className="flex min-w-0 flex-1 items-start gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-background/35 backdrop-blur-sm">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-background/35 backdrop-blur-xs">
               <SearchIcon className="size-5 text-violet-300" aria-hidden />
             </div>
             <div className="min-w-0 text-left">

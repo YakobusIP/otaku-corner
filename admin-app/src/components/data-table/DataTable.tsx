@@ -71,7 +71,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
       rowSelection,
       pagination: {
         pageIndex: page - 1,
-        pageSize: metadata?.limitPerPage || 10
+        pageSize: metadata?.limit || 10
       }
     },
     manualPagination: true,

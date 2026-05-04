@@ -260,10 +260,10 @@ export default function AnimeReviewSection({ animeDetail }: Props) {
           };
 
   return (
-    <div className="rounded-2xl border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm">
+    <div className="rounded-2xl border border-border/40 bg-background/35 shadow-xs backdrop-blur-xs">
       <div className="flex flex-col gap-1 border-b border-border/40 p-4 sm:p-5">
         <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-violet-500/30 to-fuchsia-500/20">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-linear-to-br from-violet-500/30 to-fuchsia-500/20">
             <NotebookPenIcon className="h-4 w-4 text-violet-300" />
           </div>
           <div className="min-w-0">
@@ -277,8 +277,8 @@ export default function AnimeReviewSection({ animeDetail }: Props) {
 
       <div className="flex flex-col gap-4 p-4 sm:gap-5 sm:p-5">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/35 p-3 shadow-sm backdrop-blur-sm">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-sky-500/25 to-indigo-500/20">
+          <div className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/35 p-3 shadow-xs backdrop-blur-xs">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-linear-to-br from-sky-500/25 to-indigo-500/20">
               <SignalIcon className="h-4 w-4 text-sky-300" />
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -294,10 +294,10 @@ export default function AnimeReviewSection({ animeDetail }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/35 p-3 shadow-sm backdrop-blur-sm">
+          <div className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/35 p-3 shadow-xs backdrop-blur-xs">
             <div
               className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br",
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-linear-to-br",
                 consumedMonth
                   ? "from-emerald-500/25 to-teal-500/20"
                   : "from-rose-500/25 to-red-500/20"
@@ -347,7 +347,7 @@ export default function AnimeReviewSection({ animeDetail }: Props) {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border/40 bg-background/35 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+        <div className="rounded-lg border border-border/40 bg-background/35 p-3 shadow-xs backdrop-blur-xs sm:p-4">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Personal Ratings
           </p>

@@ -73,14 +73,14 @@ function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-border/60 [&_[data-sidebar=sidebar]]:border-border/60 [&_[data-sidebar=sidebar]]:bg-card/85 [&_[data-sidebar=sidebar]]:text-foreground [&_[data-sidebar=sidebar]]:backdrop-blur-xl"
+      className="border-r border-border/60 **:data-[sidebar=sidebar]:border-border/60 **:data-[sidebar=sidebar]:bg-card/85 **:data-[sidebar=sidebar]:text-foreground **:data-[sidebar=sidebar]:backdrop-blur-xl"
     >
       <SidebarHeader className="border-b border-border/50 px-2 py-3">
         {showExpandedBrand ? (
           <div className="flex min-w-0 items-center justify-between gap-2">
             <Link
               to="/dashboard"
-              className="flex min-w-0 flex-1 items-center gap-2 rounded-md outline-none ring-sidebar-ring focus-visible:ring-2"
+              className="flex min-w-0 flex-1 items-center gap-2 rounded-md outline-hidden ring-sidebar-ring focus-visible:ring-2"
               aria-label="Otaku Corner Admin — Dashboard home"
             >
               <img
@@ -100,7 +100,7 @@ function AppSidebar() {
               type="button"
               onClick={toggleSidebar}
               aria-label="Expand sidebar"
-              className="group/collapsed-brand relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md outline-none ring-offset-background transition hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="group/collapsed-brand relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md outline-hidden ring-offset-background transition hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <img
                 src="/otaku-corner-logo.webp"
@@ -194,7 +194,7 @@ export default function AdminLayout({
               <header className="flex shrink-0 items-center gap-3 bg-transparent">
                 <SidebarTrigger className="tablet:hidden" />
                 <div className="min-w-0 flex-1">
-                  <h1 className="inline-block max-w-full bg-gradient-to-r from-[#4F8CFF] via-[#7C6CF6] to-[#A855F7] bg-clip-text text-xl font-bold text-transparent tablet:text-3xl desktop:text-3xl">
+                  <h1 className="inline-block max-w-full bg-linear-to-r from-[#4F8CFF] via-[#7C6CF6] to-[#A855F7] bg-clip-text text-xl font-bold text-transparent tablet:text-3xl desktop:text-3xl">
                     {title}
                   </h1>
                   {description ? (

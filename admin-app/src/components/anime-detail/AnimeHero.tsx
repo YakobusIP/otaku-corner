@@ -113,7 +113,7 @@ export default function AnimeHero({ animeDetail }: Props) {
       <div className="relative flex flex-col gap-5 overflow-hidden rounded-2xl py-4 px-0 sm:py-5 tablet:flex-row tablet:items-center tablet:gap-6 tablet:p-6 desktop:flex-row desktop:items-center desktop:gap-6 desktop:p-6 xl:gap-8 xl:p-8">
         <div className="relative flex justify-center tablet:block desktop:block">
           <div className="relative shrink-0">
-            <div className="absolute -inset-1 rounded-xl bg-gradient-to-br from-indigo-400/40 via-violet-400/30 to-transparent blur-md" />
+            <div className="absolute -inset-1 rounded-xl bg-linear-to-br from-indigo-400/40 via-violet-400/30 to-transparent blur-md" />
             <img
               src={cover}
               alt={animeDetail.title}
@@ -127,7 +127,7 @@ export default function AnimeHero({ animeDetail }: Props) {
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-indigo-300 sm:text-xs">
               Anime
             </p>
-            <h1 className="break-words text-xl font-bold leading-tight text-foreground drop-shadow-sm sm:text-2xl tablet:text-2xl desktop:text-2xl lg:text-3xl xl:text-4xl">
+            <h1 className="wrap-break-word text-xl font-bold leading-tight text-foreground drop-shadow-xs sm:text-2xl tablet:text-2xl desktop:text-2xl lg:text-3xl xl:text-4xl">
               {animeDetail.title}
             </h1>
             {animeDetail.titleJapanese ? (
@@ -139,7 +139,7 @@ export default function AnimeHero({ animeDetail }: Props) {
 
           <div
             className={cn(
-              "relative overflow-hidden rounded-xl border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm",
+              "relative overflow-hidden rounded-xl border border-border/40 bg-background/35 shadow-xs backdrop-blur-xs",
               status.shadow
             )}
           >
@@ -224,7 +224,7 @@ export default function AnimeHero({ animeDetail }: Props) {
       </div>
 
       {animeDetail.synopsis ? (
-        <div className="rounded-2xl border border-border/40 bg-background/35 p-4 shadow-sm backdrop-blur-sm sm:p-5 tablet:p-6 desktop:p-6">
+        <div className="rounded-2xl border border-border/40 bg-background/35 p-4 shadow-xs backdrop-blur-xs sm:p-5 tablet:p-6 desktop:p-6">
           <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90 xl:text-[15px]">
             {animeDetail.synopsis}
           </p>
@@ -268,7 +268,7 @@ type StatTileProps = {
 
 function StatTile({ icon, tint, label, value }: StatTileProps) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border/40 bg-background/35 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+    <div className="flex items-center gap-3 rounded-xl border border-border/40 bg-background/35 p-3 shadow-xs backdrop-blur-xs sm:p-4">
       <div
         className={cn(
           "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border",

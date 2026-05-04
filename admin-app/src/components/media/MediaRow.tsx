@@ -73,7 +73,7 @@ function MediaRow({
         ? { open: reviewOpen, onOpenChange: setReviewOpen }
         : {})}
     >
-      <div className="rounded-lg border border-border/40 bg-background shadow-sm transition-colors hover:bg-muted/40">
+      <div className="rounded-lg border border-border/40 bg-background shadow-xs transition-colors hover:bg-muted/40">
         <div className="grid grid-cols-1 gap-0 tablet:grid-cols-[minmax(0,1fr)_19rem_auto] tablet:gap-4 tablet:items-center desktop:grid-cols-[minmax(0,1fr)_19rem_auto] desktop:gap-4 desktop:items-center">
           <div className="flex min-w-0 items-center gap-3 p-3 tablet:p-4 desktop:p-4">
             <img

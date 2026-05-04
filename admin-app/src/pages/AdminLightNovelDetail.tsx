@@ -78,7 +78,7 @@ export default function AdminLightNovelDetail() {
         description="We couldn't load this light novel entry"
         actions={backAction}
       >
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border/40 bg-background/35 p-10 text-center shadow-sm backdrop-blur-sm">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border/40 bg-background/35 p-10 text-center shadow-xs backdrop-blur-xs">
           <AlertTriangleIcon className="h-8 w-8 text-rose-400" />
           <p className="text-sm text-muted-foreground">
             {error instanceof Error
@@ -130,7 +130,7 @@ export default function AdminLightNovelDetail() {
 function LightNovelDetailSkeleton() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-2xl border border-border/40 bg-background/35 p-6 shadow-sm backdrop-blur-sm">
+      <div className="rounded-2xl border border-border/40 bg-background/35 p-6 shadow-xs backdrop-blur-xs">
         <div className="flex flex-col gap-6 xl:flex-row">
           <Skeleton className="h-[340px] w-[240px] rounded-xl xl:h-[400px] xl:w-[280px]" />
           <div className="flex flex-1 flex-col gap-4">
@@ -150,7 +150,7 @@ function LightNovelDetailSkeleton() {
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-2 rounded-2xl border border-border/40 bg-background/35 p-6 shadow-sm backdrop-blur-sm">
+      <div className="flex items-center gap-2 rounded-2xl border border-border/40 bg-background/35 p-6 shadow-xs backdrop-blur-xs">
         <Loader2Icon className="h-4 w-4 animate-spin" />
         <span className="text-sm text-muted-foreground">
           Loading light novel details...

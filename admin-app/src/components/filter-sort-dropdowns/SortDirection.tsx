@@ -32,7 +32,7 @@ export default function SortDirection({
           variant="outline"
           size="default"
           className={cn(
-            "h-10 min-w-0 shrink-0 gap-1 px-2 text-sm tablet:w-auto tablet:max-w-[13rem] tablet:px-3 desktop:w-auto desktop:max-w-[13rem] desktop:px-3 lg:max-w-none lg:min-w-[170px]",
+            "h-10 min-w-0 shrink-0 gap-1 px-2 text-sm tablet:w-auto tablet:max-w-52 tablet:px-3 desktop:w-auto desktop:max-w-52 desktop:px-3 lg:max-w-none lg:min-w-[170px]",
             compactMobile
               ? "w-auto justify-center px-3 tablet:justify-start desktop:justify-start"
               : "w-full justify-center tablet:justify-start desktop:justify-start"

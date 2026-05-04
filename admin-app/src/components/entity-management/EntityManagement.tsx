@@ -64,7 +64,7 @@ export default function EntityManagement({
             <TabsTrigger value="studios">Studios</TabsTrigger>
             <TabsTrigger value="themes">Themes</TabsTrigger>
           </TabsList>
-          <ScrollArea className="h-[28rem]">
+          <ScrollArea className="h-112">
             <AuthorManagement resetParent={resetAuthor} />
             <GenreManagement resetParent={resetGenre} />
             <StudioManagement resetParent={resetStudio} />

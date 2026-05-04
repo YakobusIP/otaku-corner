@@ -267,7 +267,7 @@ export default function MediaListNavbar({
         </SheetTrigger>
         <SheetContent
           side="left"
-          className="bg-gradient-to-br from-[#a1c4fd] via-[#c2e9fb] to-[#fdfbfb]"
+          className="bg-linear-to-br from-[#a1c4fd] via-[#c2e9fb] to-[#fdfbfb]"
         >
           <ScrollArea className="h-full">
             <SheetHeader className="items-center">

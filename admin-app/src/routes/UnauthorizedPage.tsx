@@ -7,7 +7,7 @@ export default function UnauthorizedPage() {
   return (
     <div className="relative flex min-h-screen flex-col bg-transparent px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-1 flex-col items-center justify-center">
-        <div className="w-full max-w-md rounded-2xl border border-border/40 bg-background/35 p-8 text-center shadow-sm backdrop-blur-sm sm:max-w-2xl sm:p-10">
+        <div className="w-full max-w-md rounded-2xl border border-border/40 bg-background/35 p-8 text-center shadow-xs backdrop-blur-xs sm:max-w-2xl sm:p-10">
           <img
             src="/unauthorized.webp"
             alt=""
@@ -25,7 +25,7 @@ export default function UnauthorizedPage() {
           <div className="mt-8 flex justify-center">
             <Button
               asChild
-              className="h-11 rounded-xl bg-gradient-to-r from-[#7c6cf6] to-[#a855f7] px-6 text-white shadow-md hover:from-[#6f5ee8] hover:to-[#9333ea] hover:text-white"
+              className="h-11 rounded-xl bg-linear-to-r from-[#7c6cf6] to-[#a855f7] px-6 text-white shadow-md hover:from-[#6f5ee8] hover:to-[#9333ea] hover:text-white"
             >
               <Link to="/" className="gap-2">
                 <HomeIcon className="size-4 shrink-0" aria-hidden />

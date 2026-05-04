@@ -57,7 +57,7 @@ export default function ProgressStatus({
       Icon: EyeIcon,
       iconClass: "text-slate-300",
       triggerClass:
-        "bg-gradient-to-r from-slate-600 to-slate-700 text-white border-slate-500/40 shadow-sm [&_svg]:text-white"
+        "bg-linear-to-r from-slate-600 to-slate-700 text-white border-slate-500/40 shadow-xs [&_svg]:text-white"
     },
     {
       value: "ON_HOLD",
@@ -65,7 +65,7 @@ export default function ProgressStatus({
       Icon: PauseCircleIcon,
       iconClass: "text-amber-400",
       triggerClass:
-        "bg-gradient-to-r from-amber-600 to-orange-600 text-white border-amber-500/30 shadow-sm [&_svg]:text-white"
+        "bg-linear-to-r from-amber-600 to-orange-600 text-white border-amber-500/30 shadow-xs [&_svg]:text-white"
     },
     {
       value: "ON_PROGRESS",
@@ -73,7 +73,7 @@ export default function ProgressStatus({
       Icon: PlayCircleIcon,
       iconClass: "text-sky-400",
       triggerClass:
-        "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-500/40 shadow-sm [&_svg]:text-white"
+        "bg-linear-to-r from-blue-600 to-indigo-600 text-white border-blue-500/40 shadow-xs [&_svg]:text-white"
     },
     {
       value: "COMPLETED",
@@ -81,7 +81,7 @@ export default function ProgressStatus({
       Icon: CheckCircleIcon,
       iconClass: "text-violet-400",
       triggerClass:
-        "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-violet-500/30 shadow-sm [&_svg]:text-white"
+        "bg-linear-to-r from-violet-600 to-purple-600 text-white border-violet-500/30 shadow-xs [&_svg]:text-white"
     },
     {
       value: "DROPPED",
@@ -89,13 +89,13 @@ export default function ProgressStatus({
       Icon: XCircleIcon,
       iconClass: "text-rose-400",
       triggerClass:
-        "bg-gradient-to-r from-rose-600 to-red-600 text-white border-rose-500/30 shadow-sm [&_svg]:text-white"
+        "bg-linear-to-r from-rose-600 to-red-600 text-white border-rose-500/30 shadow-xs [&_svg]:text-white"
     }
   ];
 
   const selectedTriggerClass =
     statusOptions.find((option) => option.value === selectedStatus)
-      ?.triggerClass ?? "bg-gradient-to-r from-slate-600 to-slate-700 text-white";
+      ?.triggerClass ?? "bg-linear-to-r from-slate-600 to-slate-700 text-white";
 
   const updateProgressStatusMutation = useMutation({
     mutationFn: async (nextStatus: PROGRESS_STATUS) => {

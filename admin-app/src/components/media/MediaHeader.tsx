@@ -59,7 +59,7 @@ export default function MediaHeader({ totalCount }: Props) {
   };
 
   return (
-    <div className="sticky top-2 z-30 space-y-3 rounded-xl border border-border/60 bg-card/95 p-3 shadow-sm">
+    <div className="sticky top-2 z-30 space-y-3 rounded-xl border border-border/60 bg-card/95 p-3 shadow-xs">
       <div className="flex min-w-0 flex-col gap-3">
         <Tabs
           className="w-full shrink-0"
@@ -92,7 +92,7 @@ export default function MediaHeader({ totalCount }: Props) {
             placeholder="Search title or synonyms…"
             value={localQuery}
             onChange={handleSearch}
-            parentClassName="h-10 w-full min-w-0 flex-1 basis-full tablet:basis-0 tablet:min-w-[12rem] tablet:flex-1 desktop:min-w-[14rem]"
+            parentClassName="h-10 w-full min-w-0 flex-1 basis-full tablet:basis-0 tablet:min-w-48 tablet:flex-1 desktop:min-w-56"
             startIcon={SearchIcon}
           />
           <div className="grid w-full min-w-0 shrink-0 grid-cols-2 gap-2 tablet:flex tablet:w-auto tablet:max-w-full tablet:flex-none tablet:flex-row tablet:[&_button]:w-auto desktop:flex desktop:w-auto desktop:max-w-full desktop:flex-none desktop:flex-row desktop:[&_button]:w-auto [&_button]:w-full">

@@ -72,7 +72,7 @@ export default function LightNovelInfoSection({
       label: "Authors",
       icon: PenLineIcon,
       accent:
-        "bg-gradient-to-br from-sky-500/15 to-transparent border-sky-400/30",
+        "bg-linear-to-br from-sky-500/15 to-transparent border-sky-400/30",
       iconColor: "text-sky-300",
       items: lightNovelDetail.authors.map((a) => ({ id: a.id, name: a.name }))
     },
@@ -81,7 +81,7 @@ export default function LightNovelInfoSection({
       label: "Genres",
       icon: TagIcon,
       accent:
-        "bg-gradient-to-br from-indigo-500/15 to-transparent border-indigo-400/30",
+        "bg-linear-to-br from-indigo-500/15 to-transparent border-indigo-400/30",
       iconColor: "text-indigo-300",
       items: lightNovelDetail.genres.map((g) => ({ id: g.id, name: g.name }))
     },
@@ -90,7 +90,7 @@ export default function LightNovelInfoSection({
       label: "Themes",
       icon: DramaIcon,
       accent:
-        "bg-gradient-to-br from-fuchsia-500/15 to-transparent border-fuchsia-400/30",
+        "bg-linear-to-br from-fuchsia-500/15 to-transparent border-fuchsia-400/30",
       iconColor: "text-fuchsia-300",
       items: lightNovelDetail.themes.map((t) => ({ id: t.id, name: t.name }))
     }
@@ -98,9 +98,9 @@ export default function LightNovelInfoSection({
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <div className="rounded-2xl border border-border/40 bg-background/35 p-4 shadow-sm backdrop-blur-sm sm:p-5">
+      <div className="rounded-2xl border border-border/40 bg-background/35 p-4 shadow-xs backdrop-blur-xs sm:p-5">
         <div className="mb-4 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border/40 bg-background/35 shadow-xs backdrop-blur-xs">
             <BookOpenIcon className="h-4 w-4 text-indigo-300" />
           </div>
           <h3 className="text-base font-semibold">Publication Details</h3>
@@ -112,14 +112,14 @@ export default function LightNovelInfoSection({
             return (
               <div
                 key={item.key}
-                className="flex items-start gap-3 rounded-lg border border-border/40 bg-background/35 p-3 shadow-sm backdrop-blur-sm"
+                className="flex items-start gap-3 rounded-lg border border-border/40 bg-background/35 p-3 shadow-xs backdrop-blur-xs"
               >
                 <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${item.accent}`} />
                 <div className="min-w-0">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
                     {item.label}
                   </p>
-                  <p className="break-words text-sm font-medium text-foreground">
+                  <p className="wrap-break-word text-sm font-medium text-foreground">
                     {item.value}
                   </p>
                 </div>
@@ -136,9 +136,9 @@ export default function LightNovelInfoSection({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border/40 bg-background/35 p-4 shadow-sm backdrop-blur-sm sm:p-5">
+      <div className="rounded-2xl border border-border/40 bg-background/35 p-4 shadow-xs backdrop-blur-xs sm:p-5">
         <div className="mb-4 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border/40 bg-background/35 shadow-xs backdrop-blur-xs">
             <LayersIcon className="h-4 w-4 text-fuchsia-300" />
           </div>
           <h3 className="text-base font-semibold">Classification</h3>
@@ -167,7 +167,7 @@ export default function LightNovelInfoSection({
                       <Badge
                         key={entity.id}
                         variant="secondary"
-                        className="border border-border/40 bg-background/35 shadow-sm backdrop-blur-sm"
+                        className="border border-border/40 bg-background/35 shadow-xs backdrop-blur-xs"
                       >
                         {entity.name}
                       </Badge>
