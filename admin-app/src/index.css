@@ -67,6 +67,10 @@
   --breakpoint-tablet: 768px;
   --breakpoint-desktop: 1536px;
 
+  /* Container queries: align with viewport tablet/desktop for admin main column */
+  --container-tablet: 48rem;
+  --container-desktop: 96rem;
+
   @keyframes accordion-down {
     from {
       height: 0;

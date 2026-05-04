@@ -27,7 +27,7 @@ export default function AnimeEpisodesSection({ animeDetail }: Props) {
 
   return (
     <div className="rounded-2xl border border-border/40 bg-background/35 shadow-xs backdrop-blur-xs">
-      <div className="flex flex-col gap-3 border-b border-border/40 p-4 sm:p-5 tablet:flex-row tablet:items-center tablet:justify-between desktop:flex-row desktop:items-center desktop:justify-between">
+      <div className="flex flex-col gap-3 border-b border-border/40 p-4 sm:p-5 @tablet:flex-row @tablet:items-center @tablet:justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-linear-to-br from-sky-500/30 to-indigo-500/20">
             <ListVideoIcon className="h-4 w-4 text-sky-300" />
@@ -40,11 +40,11 @@ export default function AnimeEpisodesSection({ animeDetail }: Props) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 tablet:items-end desktop:items-end">
+        <div className="flex flex-col gap-1.5 @tablet:items-end">
           <p className={`text-sm font-semibold tabular-nums ${progressTone}`}>
             {fetched} / {total || "?"} episodes
           </p>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-background/35 sm:w-56 tablet:w-48 lg:w-56">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-background/35 @min-[40rem]:w-56 @tablet:w-48 @5xl:w-56">
             <div
               className={`h-full rounded-full bg-linear-to-r transition-all ${barTone}`}
               style={{ width: `${progress}%` }}
@@ -55,7 +55,7 @@ export default function AnimeEpisodesSection({ animeDetail }: Props) {
 
       <div className="p-2 sm:p-3">
         {animeDetail.episodes.length > 0 ? (
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 desktop:grid-cols-4">
+          <div className="grid grid-cols-1 gap-2 @min-[640px]:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4">
             {animeDetail.episodes.map((episode) => (
               <div
                 key={episode.number}

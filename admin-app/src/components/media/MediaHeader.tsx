@@ -71,31 +71,31 @@ export default function MediaHeader({ totalCount }: Props) {
             })
           }
         >
-          <TabsList className="flex w-full tablet:inline-flex tablet:w-auto tablet:max-w-full desktop:inline-flex desktop:w-auto">
-            <TabsTrigger className="flex-1 tablet:flex-initial desktop:flex-initial" value="all">
+          <TabsList className="flex w-full @tablet:inline-flex @tablet:w-auto @tablet:max-w-full @desktop:inline-flex @desktop:w-auto">
+            <TabsTrigger className="flex-1 @tablet:flex-initial @desktop:flex-initial" value="all">
               All
             </TabsTrigger>
-            <TabsTrigger className="flex-1 tablet:flex-initial desktop:flex-initial" value="anime">
+            <TabsTrigger className="flex-1 @tablet:flex-initial @desktop:flex-initial" value="anime">
               Anime
             </TabsTrigger>
-            <TabsTrigger className="flex-1 tablet:flex-initial desktop:flex-initial" value="manga">
+            <TabsTrigger className="flex-1 @tablet:flex-initial @desktop:flex-initial" value="manga">
               Manga
             </TabsTrigger>
-            <TabsTrigger className="flex-1 tablet:flex-initial desktop:flex-initial" value="lightNovel">
+            <TabsTrigger className="flex-1 @tablet:flex-initial @desktop:flex-initial" value="lightNovel">
               Light Novel
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <div className="flex w-full min-w-0 flex-col gap-2 tablet:flex-row tablet:flex-wrap tablet:items-center tablet:gap-2 desktop:flex-row desktop:flex-wrap desktop:items-center desktop:gap-2">
+        <div className="flex w-full min-w-0 flex-col gap-2 @tablet:flex-row @tablet:flex-wrap @tablet:items-center @tablet:gap-2 @desktop:flex-row @desktop:flex-wrap @desktop:items-center @desktop:gap-2">
           <Input
             placeholder="Search title or synonyms…"
             value={localQuery}
             onChange={handleSearch}
-            parentClassName="h-10 w-full min-w-0 flex-1 basis-full tablet:basis-0 tablet:min-w-48 tablet:flex-1 desktop:min-w-56"
+            parentClassName="h-10 w-full min-w-0 flex-1 basis-full @tablet:basis-0 @tablet:min-w-48 @tablet:flex-1 @desktop:min-w-56"
             startIcon={SearchIcon}
           />
-          <div className="grid w-full min-w-0 shrink-0 grid-cols-2 gap-2 tablet:flex tablet:w-auto tablet:max-w-full tablet:flex-none tablet:flex-row tablet:[&_button]:w-auto desktop:flex desktop:w-auto desktop:max-w-full desktop:flex-none desktop:flex-row desktop:[&_button]:w-auto [&_button]:w-full">
+          <div className="grid w-full min-w-0 shrink-0 grid-cols-2 gap-2 @tablet:flex @tablet:w-auto @tablet:max-w-full @tablet:flex-none @tablet:flex-row @tablet:[&_button]:w-auto @desktop:flex @desktop:w-auto @desktop:max-w-full @desktop:flex-none @desktop:flex-row @desktop:[&_button]:w-auto [&_button]:w-full">
             <SortDirection
               sort={state.sortBy}
               order={state.sortOrder}

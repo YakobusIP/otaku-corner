@@ -99,7 +99,7 @@ export default function AdminMangaDetail() {
     >
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <SidebarTrigger className="tablet:hidden" />
+          <SidebarTrigger className="@tablet:hidden" />
           <Link to="/media-list">
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeftIcon className="h-4 w-4" />
@@ -119,8 +119,8 @@ function MangaDetailSkeleton() {
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-2xl border border-border/40 bg-background/35 p-6 shadow-xs backdrop-blur-xs">
-        <div className="flex flex-col gap-6 xl:flex-row">
-          <Skeleton className="h-[340px] w-[240px] rounded-xl xl:h-[400px] xl:w-[280px]" />
+        <div className="flex flex-col gap-6 @7xl:flex-row">
+          <Skeleton className="h-[340px] w-[240px] rounded-xl @7xl:h-[400px] @7xl:w-[280px]" />
           <div className="flex flex-1 flex-col gap-4">
             <Skeleton className="h-8 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
@@ -129,7 +129,7 @@ function MangaDetailSkeleton() {
               <Skeleton className="h-6 w-16" />
               <Skeleton className="h-6 w-20" />
             </div>
-            <div className="grid grid-cols-2 gap-2 tablet:grid-cols-4 desktop:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 @tablet:grid-cols-4 @desktop:grid-cols-4">
               <Skeleton className="h-14 rounded-lg" />
               <Skeleton className="h-14 rounded-lg" />
               <Skeleton className="h-14 rounded-lg" />

@@ -184,17 +184,17 @@ export default function AdminLayout({
     >
       <MobileSidebarCloseOnNavigate />
       <AppSidebar />
-      <SidebarInset className="min-h-0 overflow-hidden bg-transparent">
+      <SidebarInset className="min-h-0 min-w-0 overflow-hidden bg-transparent">
         <div
           ref={scrollContainerRef}
-          className="min-h-0 flex-1 overflow-y-auto"
+          className="@container min-h-0 w-full min-w-0 flex-1 overflow-y-auto"
         >
-          <section className="flex flex-col gap-4 p-4 tablet:p-6 desktop:p-6">
+          <section className="flex flex-col gap-4 p-4 @tablet:p-6 @desktop:p-6">
             {hideHeader ? null : (
               <header className="flex shrink-0 items-center gap-3 bg-transparent">
-                <SidebarTrigger className="tablet:hidden" />
+                <SidebarTrigger className="@tablet:hidden" />
                 <div className="min-w-0 flex-1">
-                  <h1 className="inline-block max-w-full bg-linear-to-r from-[#4F8CFF] via-[#7C6CF6] to-[#A855F7] bg-clip-text text-xl font-bold text-transparent tablet:text-3xl desktop:text-3xl">
+                  <h1 className="inline-block max-w-full bg-linear-to-r from-[#4F8CFF] via-[#7C6CF6] to-[#A855F7] bg-clip-text text-xl font-bold text-transparent @tablet:text-3xl @desktop:text-3xl">
                     {title}
                   </h1>
                   {description ? (

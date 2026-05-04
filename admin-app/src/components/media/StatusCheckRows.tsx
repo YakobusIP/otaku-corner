@@ -25,7 +25,7 @@ export default function StatusCheckRows({ checks, barAnimateIn }: Props) {
           {conditionSuccess} / {checksCount}
         </span>
       </div>
-      <div className="flex flex-col gap-1.5 desktop:flex-row desktop:flex-wrap desktop:gap-x-4 desktop:gap-y-1">
+      <div className="flex flex-col gap-1.5 @4xl:flex-row @4xl:flex-wrap @4xl:gap-x-4 @4xl:gap-y-1">
         {checks.map((check) => {
           const { key, Trigger, condition, triggerColor, message } = check;
           return (

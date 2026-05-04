@@ -351,7 +351,7 @@ export default function MangaReviewSection({ mangaDetail }: Props) {
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Personal Ratings
           </p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 tablet:grid-cols-3 desktop:grid-cols-3 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 @min-[640px]:grid-cols-2 @tablet:grid-cols-3 @7xl:grid-cols-5">
             <RatingSelect ratingFields={ratingFields} />
           </div>
         </div>
