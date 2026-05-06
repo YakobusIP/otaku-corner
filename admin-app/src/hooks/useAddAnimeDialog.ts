@@ -175,7 +175,16 @@ export function useAddAnimeDialog({
       if (!response.success) throw new Error(response.error);
       return response.data;
     },
-    onSuccess: async (addedIds) => {
+    onSuccess: async (addedIds, variables) => {
+      if (variables?.length) {
+        await Promise.all(
+          variables.map((item) =>
+            queryClient.invalidateQueries({
+              queryKey: mediaKeys.malDuplicate("anime", item.id)
+            })
+          )
+        );
+      }
       await queryClient.invalidateQueries({ queryKey: mediaKeys.all });
       await queryClient.invalidateQueries({
         queryKey: mediaKeys.statusCounts("anime")
@@ -236,13 +245,24 @@ export function useAddAnimeDialog({
   };
 
   const submitAdds = useCallback(async () => {
-    const duplicateChecks = await Promise.all(
-      selectedAnime.map((a) => animeService.getDuplicates(a.mal_id))
+    const existsList = await Promise.all(
+      selectedAnime.map((a) =>
+        queryClient
+          .fetchQuery({
+            queryKey: mediaKeys.malDuplicate("anime", a.mal_id),
+            queryFn: async (): Promise<boolean> => {
+              const r = await animeService.getDuplicates(a.mal_id);
+              if (!r.success) throw new Error(r.error ?? "Duplicate check failed");
+              return r.data.exists;
+            },
+            staleTime: 60_000
+          })
+          .catch(() => null)
+      )
     );
-    const ready = selectedAnime.filter((_a, i) => {
-      const res = duplicateChecks[i];
-      return res.success && !res.data.exists;
-    });
+    const ready = selectedAnime.filter(
+      (_a, i) => existsList[i] === false
+    );
 
     if (ready.length === 0) {
       toast({
@@ -262,7 +282,7 @@ export function useAddAnimeDialog({
     );
 
     addAnimeMutation.mutate(payload);
-  }, [addAnimeMutation, selectedAnime]);
+  }, [addAnimeMutation, queryClient, selectedAnime]);
 
   const hasSelection = selectedAnime.length > 0;
 

@@ -101,7 +101,7 @@ export default function SelectedRow({
             ) : (
               <span className="flex items-center gap-1 rounded-md border border-emerald-500/40 bg-emerald-950/25 px-2.5 py-1.5 text-sm font-medium text-emerald-100">
                 <CheckCircle2Icon className="h-4 w-4 shrink-0 text-emerald-300" />
-                No duplicate
+                New
               </span>
             )}
             <Button

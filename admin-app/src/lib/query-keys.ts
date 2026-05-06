@@ -22,7 +22,12 @@ export const mediaKeys = {
   list: (filters: MediaFilters, mediaType: MediaTypeFilter) =>
     [...mediaKeys.lists(), mediaType, filters] as const,
   statusCounts: (type: "anime" | "manga" | "lightNovel") =>
-    [...mediaKeys.all, "statusCounts", type] as const
+    [...mediaKeys.all, "statusCounts", type] as const,
+  malDuplicates: () => [...mediaKeys.all, "malDuplicate"] as const,
+  malDuplicate: (
+    type: "anime" | "manga" | "lightNovel",
+    malId: number
+  ) => [...mediaKeys.malDuplicates(), type, malId] as const
 };
 
 export const entityKeys = {

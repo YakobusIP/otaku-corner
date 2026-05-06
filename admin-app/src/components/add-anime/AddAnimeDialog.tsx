@@ -1,14 +1,15 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
+import AnimeDetailPanel from "@/components/add-anime/AnimeDetailPanel";
 import SelectedRow from "@/components/add-anime/SelectedRow";
-import {
-  displayYear,
-  formatAired,
-  formatRatingLabel,
-  posterUrl
-} from "@/components/add-anime/anime-dialog-helpers";
+import { displayYear, posterUrl } from "@/components/add-anime/anime-dialog-helpers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from "@/components/ui/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -22,16 +23,15 @@ import { useAddAnimeDialog } from "@/hooks/useAddAnimeDialog";
 
 import { cn } from "@/lib/utils";
 
-import { Anime } from "@tutkli/jikan-ts";
 import {
   CheckIcon,
+  ChevronDownIcon,
   ChevronLeftIcon,
+  ChevronUpIcon,
   InfoIcon,
   Loader2Icon,
   PlusIcon,
-  SearchIcon,
-  StarIcon,
-  TvIcon
+  SearchIcon
 } from "lucide-react";
 
 type Props = {
@@ -45,6 +45,12 @@ export default function AddAnimeDialog({
   setOpenDialog,
   resetParent
 }: Props) {
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  useEffect(() => {
+    if (!openDialog) setDetailOpen(false);
+  }, [openDialog]);
+
   const {
     scrollAreaRef,
     loadMoreRef,
@@ -72,12 +78,28 @@ export default function AddAnimeDialog({
     selectionHasDuplicate
   } = useAddAnimeDialog({ openDialog, setOpenDialog, resetParent });
 
+  const selectedRows = selectedAnime.map((anime) => (
+    <SelectedRow
+      key={anime.mal_id}
+      anime={anime}
+      isActive={activeDetailId === anime.mal_id}
+      onDuplicateStatus={handleDuplicateStatus}
+      onPick={() =>
+        setActiveDetailId((id) => {
+          const next = id === anime.mal_id ? null : anime.mal_id;
+          setDetailOpen(next !== null);
+          return next;
+        })
+      }
+      onRemove={() => removeSelected(anime.mal_id)}
+    />
+  ));
+
   return (
     <Dialog open={openDialog} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn(
-          // Base DialogContent is `grid`; we need a column flex so flex-1 body fills `h-*`.
-          "flex! w-[calc(100vw-2rem)] flex-col gap-0! overflow-hidden p-0",
+          "flex w-[calc(100vw-2rem)] flex-col gap-0 overflow-hidden p-0",
           "h-[min(56rem,92vh)] max-h-[92vh]",
           hasSelection ? "max-w-5xl" : "max-w-md sm:max-w-lg"
         )}
@@ -93,8 +115,6 @@ export default function AddAnimeDialog({
 
         <div
           className={cn(
-            // Single column: flex fills flex-1 parent. Two columns: grid must use an explicit
-            // row track or auto-rows stay "auto" and the shell shrinks/grows with content.
             "flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-4 py-4 md:px-6",
             hasSelection &&
               "md:grid md:h-full md:min-h-0 md:grid-cols-2 md:grid-rows-[minmax(0,1fr)] md:items-stretch md:gap-4"
@@ -225,8 +245,8 @@ export default function AddAnimeDialog({
           </div>
 
           {hasSelection ? (
-            <div className="flex min-h-0 flex-1 flex-col gap-2 rounded-xl border border-border/50 bg-background/40 p-3 backdrop-blur-md md:h-full md:max-h-full md:min-h-0">
-              <div className="flex shrink-0 items-center justify-between gap-2">
+            <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-border/50 bg-background/40 backdrop-blur-md md:h-full md:max-h-full md:min-h-0">
+              <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border/40 px-3 py-1.5">
                 <p className="text-sm font-medium">
                   Selected Anime ({selectedAnime.length})
                 </p>
@@ -241,55 +261,79 @@ export default function AddAnimeDialog({
                 </Button>
               </div>
 
-              <div
-                className={cn(
-                  "min-h-0 flex-1 overflow-hidden",
-                  activeDetail
-                    ? "flex flex-col max-md:flex-1 max-md:min-h-0 md:grid md:min-h-0 md:grid-rows-[minmax(0,1fr)_minmax(0,1fr)] md:gap-4"
-                    : "flex flex-col"
-                )}
-              >
-                <div
-                  className={cn(
-                    "min-h-0 overflow-y-auto overscroll-contain",
-                    activeDetail ? "max-md:hidden" : "flex-1"
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:hidden">
+                  {!activeDetail ? (
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 pt-2">
+                      <ul className="flex flex-col gap-2 pr-1">
+                        {selectedRows}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-border/40">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 shrink-0 justify-start gap-1 px-3 pt-2"
+                        onClick={() => setActiveDetailId(null)}
+                      >
+                        <ChevronLeftIcon className="h-4 w-4" />
+                        Back to selected list
+                      </Button>
+                      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 pt-3">
+                        <AnimeDetailPanel anime={activeDetail} />
+                      </div>
+                    </div>
                   )}
-                >
-                  <ul className="flex flex-col gap-2 pr-1">
-                    {selectedAnime.map((anime) => (
-                      <SelectedRow
-                        key={anime.mal_id}
-                        anime={anime}
-                        isActive={activeDetailId === anime.mal_id}
-                        onDuplicateStatus={handleDuplicateStatus}
-                        onPick={() =>
-                          setActiveDetailId((id) =>
-                            id === anime.mal_id ? null : anime.mal_id
-                          )
-                        }
-                        onRemove={() => removeSelected(anime.mal_id)}
-                      />
-                    ))}
-                  </ul>
                 </div>
 
-                {activeDetail ? (
-                  <div className="flex min-h-0 flex-1 flex-col border-t border-border/40 pt-2 max-md:min-h-0 md:min-h-0 md:border-t-0 md:pt-0">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="mb-1 h-9 shrink-0 justify-start gap-1 px-2 md:hidden"
-                      onClick={() => setActiveDetailId(null)}
-                    >
-                      <ChevronLeftIcon className="h-4 w-4" />
-                      Back to selected list
-                    </Button>
-                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                      <AnimeDetailPanel anime={activeDetail} />
-                    </div>
+                <div className="hidden min-h-0 flex-1 flex-col overflow-hidden md:flex">
+                  <div
+                    className={cn(
+                      "min-h-0 overflow-y-auto overscroll-contain px-3 pb-3 pt-2",
+                      detailOpen ? "h-1/2 max-h-[50%] shrink-0" : "flex-1"
+                    )}
+                  >
+                    <ul className="flex flex-col gap-2 pr-1">{selectedRows}</ul>
                   </div>
-                ) : null}
+
+                  <Collapsible
+                    open={detailOpen}
+                    onOpenChange={setDetailOpen}
+                    className={cn(
+                      "flex flex-col border-t border-border/40",
+                      detailOpen
+                        ? "h-1/2 max-h-[50%] min-h-0 shrink-0"
+                        : "shrink-0"
+                    )}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm font-medium hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      >
+                        {detailOpen ? (
+                          <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200" />
+                        ) : (
+                          <ChevronUpIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200" />
+                        )}
+                        Anime Detail
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="min-h-0 flex-1 overflow-hidden">
+                      <div className="max-h-full min-h-0 overflow-y-auto overscroll-contain px-3 pb-3 pt-3">
+                        {activeDetail ? (
+                          <AnimeDetailPanel anime={activeDetail} />
+                        ) : (
+                          <p className="py-8 text-center text-sm text-muted-foreground">
+                            No detail
+                          </p>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
               </div>
             </div>
           ) : null}
@@ -325,72 +369,3 @@ export default function AddAnimeDialog({
     </Dialog>
   );
 }
-
-const AnimeDetailPanel = ({ anime }: { anime: Anime }) => {
-  const synopsis =
-    anime.synopsis?.replace(/\n\n+/g, "\n").trim() || "No synopsis available.";
-
-  return (
-    <div className="space-y-3 text-sm">
-      <div className="flex gap-3">
-        <img
-          src={posterUrl(anime)}
-          alt=""
-          className="h-36 w-24 shrink-0 rounded-lg object-cover"
-        />
-        <div className="min-w-0 flex-1 space-y-1">
-          <p className="font-semibold leading-snug">
-            {anime.title_english || anime.title}
-          </p>
-          <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
-            <Badge variant="outline">{anime.type ?? "—"}</Badge>
-            <Badge variant="outline">{displayYear(anime)}</Badge>
-          </div>
-          <div className="flex items-center gap-1 text-xs text-amber-400">
-            <StarIcon className="h-3.5 w-3.5 fill-current" />
-            <span className="font-medium">
-              {anime.score != null ? anime.score.toFixed(2) : "—"}
-            </span>
-            <span className="text-muted-foreground">
-              ({anime.scored_by?.toLocaleString() ?? "—"} users)
-            </span>
-          </div>
-        </div>
-      </div>
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        {synopsis}
-      </p>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-        <MetaRow label="Status" value={anime.status ?? "—"} />
-        <MetaRow label="Aired" value={formatAired(anime)} />
-        <MetaRow
-          label="Episodes"
-          value={anime.episodes != null ? String(anime.episodes) : "?"}
-        />
-        <MetaRow label="Studio" value={anime.studios?.[0]?.name ?? "—"} />
-        <MetaRow label="Source" value={anime.source ?? "—"} />
-        <MetaRow
-          label="Genres"
-          value={anime.genres?.map((g) => g.name).join(", ") || "—"}
-        />
-        <MetaRow
-          label="Themes"
-          value={anime.themes?.map((t) => t.name).join(", ") || "—"}
-        />
-        <MetaRow label="Rating" value={formatRatingLabel(anime)} />
-      </div>
-    </div>
-  );
-};
-
-const MetaRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex min-w-0 gap-2">
-    <TvIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-    <div className="min-w-0">
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className="wrap-break-word leading-snug">{value}</p>
-    </div>
-  </div>
-);

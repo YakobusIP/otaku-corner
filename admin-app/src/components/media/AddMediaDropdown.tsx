@@ -59,11 +59,12 @@ export default function AddMediaDropdown() {
           <Button
             size="sm"
             variant="ghost"
-            className="gap-2 border border-white/15 bg-linear-to-r from-[#4F8CFF] via-[#7C6CF6] to-[#A855F7] text-white shadow-md transition-[filter,box-shadow] hover:bg-linear-to-r hover:from-[#4F8CFF] hover:via-[#7C6CF6] hover:to-[#A855F7] hover:text-white hover:brightness-110 focus-visible:ring-white/35 active:brightness-95"
+            aria-label="Add media"
+            className="w-9 shrink-0 gap-2 border border-white/15 bg-linear-to-r from-[#4F8CFF] via-[#7C6CF6] to-[#A855F7] px-0 text-white shadow-md transition-[filter,box-shadow] hover:bg-linear-to-r hover:from-[#4F8CFF] hover:via-[#7C6CF6] hover:to-[#A855F7] hover:text-white hover:brightness-110 focus-visible:ring-white/35 active:brightness-95 md:w-auto md:px-3"
           >
             <PlusIcon className="h-4 w-4" />
-            Add Media
-            <ChevronDownIcon className="h-4 w-4 opacity-80" />
+            <span className="hidden md:inline">Add Media</span>
+            <ChevronDownIcon className="hidden h-4 w-4 opacity-80 md:inline-block" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
