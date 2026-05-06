@@ -12,36 +12,6 @@ import {
   ValidateNested
 } from "class-validator";
 
-export class CreateAnimeEpisodeDto {
-  @ApiProperty({ description: "Episode aired date", example: "2024-01-01" })
-  @IsString()
-  aired: string;
-
-  @ApiProperty({ description: "Episode number", example: 1 })
-  @IsInt()
-  number: number;
-
-  @ApiProperty({ description: "Episode title", example: "The Beginning" })
-  @IsString()
-  title: string;
-
-  @ApiPropertyOptional({
-    description: "Episode title in Japanese",
-    example: "始まり"
-  })
-  @IsOptional()
-  @IsString()
-  titleJapanese?: string;
-
-  @ApiPropertyOptional({
-    description: "Episode title in Romaji",
-    example: "Hajimari"
-  })
-  @IsOptional()
-  @IsString()
-  titleRomaji?: string;
-}
-
 export class CreateAnimeItemDto {
   @ApiProperty({ description: "MAL ID", example: 1 })
   @IsInt()
@@ -143,15 +113,6 @@ export class CreateAnimeItemDto {
   })
   @IsString()
   malUrl: string;
-
-  @ApiProperty({
-    description: "Episodes data",
-    type: [CreateAnimeEpisodeDto]
-  })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateAnimeEpisodeDto)
-  episodes: CreateAnimeEpisodeDto[];
 
   @ApiProperty({
     description: "Genre names",

@@ -3,8 +3,6 @@ import { Dispatch, SetStateAction, useState } from "react";
 
 import { mangaService } from "@/services/manga.service";
 
-import type { MangaCreateRequest } from "@/types/manga.type";
-
 import MangaSmallCard from "@/components/add-manga/MangaSmallCard";
 import SearchMangaJikan from "@/components/add-manga/SearchMangaJikan";
 import { Button } from "@/components/ui/button";
@@ -13,21 +11,21 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useToast } from "@/hooks/useToast";
-import useWideScreen from "@/hooks/useWideScreen";
+
+import type { MangaCreateRequest } from "@/types/manga.type";
 
 import { mediaKeys } from "@/lib/query-keys";
 import { generateSlug } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Manga } from "@tutkli/jikan-ts";
-import { BookOpenIcon, Loader2Icon } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 
 type Props = {
   openDialog: boolean;
@@ -41,7 +39,6 @@ export default function AddMangaDialog({
   resetParent
 }: Props) {
   const toast = useToast();
-  const isWideScreen = useWideScreen();
   const queryClient = useQueryClient();
 
   const [selectedManga, setSelectedManga] = useState<Manga[]>([]);
@@ -149,15 +146,6 @@ export default function AddMangaDialog({
 
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-      <DialogTrigger asChild>
-        <Button
-          className="w-full xl:w-fit"
-          variant={isWideScreen ? "default" : "outline"}
-        >
-          <BookOpenIcon className="w-4 h-4" />
-          Add Manga
-        </Button>
-      </DialogTrigger>
       <DialogContent className="w-full xl:w-3/5">
         <DialogHeader>
           <DialogTitle>Add new manga entry</DialogTitle>

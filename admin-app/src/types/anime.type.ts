@@ -56,6 +56,7 @@ type AnimeReview = {
 
 type AnimeCreateRequest = {
   id: number;
+  slug: string;
   type: string;
   status: string;
   rating: string;
@@ -68,7 +69,7 @@ type AnimeCreateRequest = {
   broadcast: string;
   episodesCount?: number | null;
   duration: string;
-  score: number;
+  score?: number;
   images: {
     image_url: string;
     large_image_url?: string | null;

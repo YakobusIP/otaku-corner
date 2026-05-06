@@ -1,0 +1,114 @@
+import { type SetStateAction, useCallback, useState } from "react";
+
+import AddAnimeDialog from "@/components/add-anime/AddAnimeDialog";
+import AddLightNovelDialog from "@/components/add-lightnovel/AddLightNovelDialog";
+import AddMangaDialog from "@/components/add-manga/AddMangaDialog";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+
+import { mediaKeys } from "@/lib/query-keys";
+
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  BookOpenIcon,
+  ChevronDownIcon,
+  FileTextIcon,
+  PlusIcon,
+  TvIcon
+} from "lucide-react";
+
+type DialogType = "anime" | "manga" | "lightNovel";
+
+export default function AddMediaDropdown() {
+  const queryClient = useQueryClient();
+
+  const resetLists = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: mediaKeys.all });
+  }, [queryClient]);
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeDialog, setActiveDialog] = useState<DialogType | null>(null);
+
+  const openDialogFromMenu = function openDialogForMenu(dialog: DialogType) {
+    return function handleMenuSelect(e: Event) {
+      e.preventDefault();
+      setMenuOpen(false);
+      setActiveDialog(dialog);
+    };
+  };
+
+  const makeDialogSetter = function makeDialogSetterFor(dialog: DialogType) {
+    return function setDialogOpen(next: SetStateAction<boolean>) {
+      setActiveDialog((prevDialog) => {
+        const prevOpen = prevDialog === dialog;
+        const nextOpen = typeof next === "function" ? next(prevOpen) : next;
+        return nextOpen ? dialog : null;
+      });
+    };
+  };
+
+  return (
+    <>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-2 border border-white/15 bg-linear-to-r from-[#4F8CFF] via-[#7C6CF6] to-[#A855F7] text-white shadow-md transition-[filter,box-shadow] hover:bg-linear-to-r hover:from-[#4F8CFF] hover:via-[#7C6CF6] hover:to-[#A855F7] hover:text-white hover:brightness-110 focus-visible:ring-white/35 active:brightness-95"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Media
+            <ChevronDownIcon className="h-4 w-4 opacity-80" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          className="min-w-50 border-border/60 bg-popover/95 backdrop-blur-md"
+        >
+          <DropdownMenuItem
+            className="gap-2"
+            onSelect={openDialogFromMenu("anime")}
+          >
+            <TvIcon className="h-4 w-4" />
+            Add Anime
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="gap-2"
+            onSelect={openDialogFromMenu("manga")}
+          >
+            <BookOpenIcon className="h-4 w-4" />
+            Add Manga
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="gap-2"
+            onSelect={openDialogFromMenu("lightNovel")}
+          >
+            <FileTextIcon className="h-4 w-4" />
+            Add Light Novel
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AddAnimeDialog
+        openDialog={activeDialog === "anime"}
+        setOpenDialog={makeDialogSetter("anime")}
+        resetParent={resetLists}
+      />
+      <AddMangaDialog
+        openDialog={activeDialog === "manga"}
+        setOpenDialog={makeDialogSetter("manga")}
+        resetParent={resetLists}
+      />
+      <AddLightNovelDialog
+        openDialog={activeDialog === "lightNovel"}
+        setOpenDialog={makeDialogSetter("lightNovel")}
+        resetParent={resetLists}
+      />
+    </>
+  );
+}

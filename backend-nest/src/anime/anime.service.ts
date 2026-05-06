@@ -278,7 +278,6 @@ export class AnimeService extends BaseCrudService<
       await this.prisma.$transaction(async (tx) => {
         for (const item of chunk) {
           const {
-            episodes,
             genres: genreNames,
             studios: studioNames,
             themes: themeNames,
@@ -312,21 +311,6 @@ export class AnimeService extends BaseCrudService<
                     .map((themeId) => ({ themeId }))
                 }
               },
-              ...(episodes.length > 0
-                ? {
-                    episodes: {
-                      createMany: {
-                        data: episodes.map((ep) => ({
-                          aired: ep.aired,
-                          number: ep.number,
-                          title: ep.title,
-                          titleJapanese: ep.titleJapanese,
-                          titleRomaji: ep.titleRomaji
-                        }))
-                      }
-                    }
-                  }
-                : {}),
               review: {
                 create: {}
               }

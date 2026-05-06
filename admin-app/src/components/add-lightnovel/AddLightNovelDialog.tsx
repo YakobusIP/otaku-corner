@@ -3,8 +3,6 @@ import { Dispatch, SetStateAction, useState } from "react";
 
 import { lightNovelService } from "@/services/light-novel.service";
 
-import type { LightNovelCreateRequest } from "@/types/light-novel.type";
-
 import LightNovelSmallCard from "@/components/add-lightnovel/LightNovelSmallCard";
 import SearchLightNovelJikan from "@/components/add-lightnovel/SearchLightNovelJikan";
 import { Button } from "@/components/ui/button";
@@ -13,21 +11,21 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useToast } from "@/hooks/useToast";
-import useWideScreen from "@/hooks/useWideScreen";
+
+import type { LightNovelCreateRequest } from "@/types/light-novel.type";
 
 import { mediaKeys } from "@/lib/query-keys";
 import { generateSlug } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Manga } from "@tutkli/jikan-ts";
-import { BookIcon, Loader2Icon } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 
 type Props = {
   openDialog: boolean;
@@ -41,7 +39,6 @@ export default function AddLightNovelDialog({
   resetParent
 }: Props) {
   const toast = useToast();
-  const isWideScreen = useWideScreen();
   const queryClient = useQueryClient();
 
   const [selectedLightNovel, setSelectedLightNovel] = useState<Manga[]>([]);
@@ -156,15 +153,6 @@ export default function AddLightNovelDialog({
 
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-      <DialogTrigger asChild>
-        <Button
-          className="w-full xl:w-fit"
-          variant={isWideScreen ? "default" : "outline"}
-        >
-          <BookIcon className="w-4 h-4" />
-          Add Light Novel
-        </Button>
-      </DialogTrigger>
       <DialogContent className="w-full xl:w-3/5">
         <DialogHeader>
           <DialogTitle>Add new light novel entry</DialogTitle>

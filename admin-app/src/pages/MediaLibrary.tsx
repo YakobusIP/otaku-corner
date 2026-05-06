@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { MediaFiltersProvider } from "@/components/context/MediaFiltersContext";
 import AdminLayout from "@/components/layout/AdminLayout";
+import AddMediaDropdown from "@/components/media/AddMediaDropdown";
 import MediaHeader from "@/components/media/MediaHeader";
 import MediaListSection from "@/components/media/MediaListSection";
 
@@ -17,6 +18,7 @@ function MediaLibraryContent() {
       title="Media Library"
       description="Combined search with dedicated sections for anime, manga, and light novel."
       scrollContainerRef={setScrollRoot}
+      actions={<AddMediaDropdown />}
     >
       <div className="space-y-4">
         <MediaHeader totalCount={totalCount} />
