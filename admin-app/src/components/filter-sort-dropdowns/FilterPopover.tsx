@@ -123,7 +123,10 @@ export default function FilterPopover<T, K extends string | number>({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="popover-content-width-full p-0">
+      <PopoverContent
+        className="popover-content-width-full p-0"
+        portalled={false}
+      >
         <Command>
           <CommandInput placeholder={placeholder} />
           <CommandList>
