@@ -1,8 +1,8 @@
 import { type SetStateAction, useCallback, useState } from "react";
 
-import AddAnimeDialog from "@/components/add-anime/AddAnimeDialog";
-import AddLightNovelDialog from "@/components/add-lightnovel/AddLightNovelDialog";
-import AddMangaDialog from "@/components/add-manga/AddMangaDialog";
+import AddAnimeDialog from "@/components/add-media/add-anime/AddAnimeDialog";
+import AddLightNovelDialog from "@/components/add-media/add-lightnovel/AddLightNovelDialog";
+import AddMangaDialog from "@/components/add-media/add-manga/AddMangaDialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

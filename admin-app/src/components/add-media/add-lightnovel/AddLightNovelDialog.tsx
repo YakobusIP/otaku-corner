@@ -1,8 +1,7 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-import AnimeDetailPanel from "@/components/add-anime/AnimeDetailPanel";
-import SelectedRow from "@/components/add-anime/SelectedRow";
-import { displayYear, posterUrl } from "@/components/add-anime/anime-dialog-helpers";
+import SelectedRow from "@/components/add-media/SelectedRow";
+import LightNovelDetailPanel from "@/components/add-media/add-lightnovel/LightNovelDetailPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,8 +18,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-import { useAddAnimeDialog } from "@/hooks/useAddAnimeDialog";
+import { useAddLightNovelDialog } from "@/hooks/useAddLightNovelDialog";
 
+import {
+  displayYearFromPublished,
+  posterUrl
+} from "@/lib/media-dialog-helpers";
 import { cn } from "@/lib/utils";
 
 import {
@@ -40,7 +43,7 @@ type Props = {
   resetParent: () => Promise<void>;
 };
 
-export default function AddAnimeDialog({
+export default function AddLightNovelDialog({
   openDialog,
   setOpenDialog,
   resetParent
@@ -67,31 +70,38 @@ export default function AddAnimeDialog({
     activeDetail,
     activeDetailId,
     setActiveDetailId,
-    selectedAnime,
+    selectedLightNovel,
     handleDuplicateStatus,
     removeSelected,
     clearSelection,
     hasSelection,
     handleOpenChange,
     submitAdds,
-    addAnimeMutation,
+    addLightNovelMutation,
     selectionHasDuplicate
-  } = useAddAnimeDialog({ openDialog, setOpenDialog, resetParent });
+  } = useAddLightNovelDialog({ openDialog, setOpenDialog, resetParent });
 
-  const selectedRows = selectedAnime.map((anime) => (
+  const selectedRows = selectedLightNovel.map((lightNovel) => (
     <SelectedRow
-      key={anime.mal_id}
-      anime={anime}
-      isActive={activeDetailId === anime.mal_id}
+      key={lightNovel.mal_id}
+      mediaType="lightNovel"
+      malId={lightNovel.mal_id}
+      titlePrimary={lightNovel.title_english || lightNovel.title}
+      titleSecondary={lightNovel.title_japanese || lightNovel.title}
+      typeLabel={lightNovel.type ?? "-"}
+      yearBadge={displayYearFromPublished(lightNovel)}
+      posterSrc={posterUrl(lightNovel)}
+      removeAriaTitle={lightNovel.title}
+      isActive={activeDetailId === lightNovel.mal_id}
       onDuplicateStatus={handleDuplicateStatus}
       onPick={() =>
         setActiveDetailId((id) => {
-          const next = id === anime.mal_id ? null : anime.mal_id;
+          const next = id === lightNovel.mal_id ? null : lightNovel.mal_id;
           setDetailOpen(next !== null);
           return next;
         })
       }
-      onRemove={() => removeSelected(anime.mal_id)}
+      onRemove={() => removeSelected(lightNovel.mal_id)}
     />
   ));
 
@@ -106,10 +116,10 @@ export default function AddAnimeDialog({
       >
         <DialogHeader className="shrink-0 space-y-1 border-b border-border/40 px-6 py-4 text-left">
           <DialogTitle className="text-lg font-semibold">
-            Add new anime entry
+            Add new light novel entry
           </DialogTitle>
           <DialogDescription>
-            Search and select anime to add to your collection
+            Search and select light novels to add to your collection
           </DialogDescription>
         </DialogHeader>
 
@@ -126,7 +136,7 @@ export default function AddAnimeDialog({
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search anime by title…"
+                placeholder="Search light novels by title…"
                 className="h-10 border-primary/50 bg-background/50 pl-9"
               />
             </div>
@@ -163,35 +173,37 @@ export default function AddAnimeDialog({
               ) : (
                 <>
                   <ul className="flex flex-col gap-2 pr-1">
-                    {searchResults.map((anime) => {
-                      const alreadySelected = selectedMalIds.has(anime.mal_id);
+                    {searchResults.map((lightNovel) => {
+                      const alreadySelected = selectedMalIds.has(
+                        lightNovel.mal_id
+                      );
                       return (
-                        <li key={anime.mal_id}>
+                        <li key={lightNovel.mal_id}>
                           <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/30 p-2">
                             <img
-                              src={posterUrl(anime)}
+                              src={posterUrl(lightNovel)}
                               alt=""
                               className="h-18 w-12 shrink-0 rounded object-cover"
                             />
                             <div className="min-w-0 flex-1">
                               <p className="truncate font-semibold leading-tight">
-                                {anime.title_english || anime.title}
+                                {lightNovel.title_english || lightNovel.title}
                               </p>
                               <p className="truncate text-xs text-muted-foreground">
-                                {anime.title_japanese || anime.title}
+                                {lightNovel.title_japanese || lightNovel.title}
                               </p>
                               <div className="mt-1 flex flex-wrap gap-1">
                                 <Badge
                                   variant="secondary"
                                   className="text-[10px]"
                                 >
-                                  {anime.type ?? "—"}
+                                  {lightNovel.type ?? "—"}
                                 </Badge>
                                 <Badge
                                   variant="secondary"
                                   className="text-[10px]"
                                 >
-                                  {displayYear(anime)}
+                                  {displayYearFromPublished(lightNovel)}
                                 </Badge>
                               </div>
                             </div>
@@ -206,11 +218,11 @@ export default function AddAnimeDialog({
                                   ? "border-emerald-500/50 bg-emerald-950/20 text-emerald-400"
                                   : "border-primary/40 bg-primary/15 text-primary hover:bg-primary/25"
                               )}
-                              onClick={() => addFromSearch(anime)}
+                              onClick={() => addFromSearch(lightNovel)}
                               aria-label={
                                 alreadySelected
-                                  ? `${anime.title_english || anime.title} already in selection`
-                                  : `Add ${anime.title_english || anime.title}`
+                                  ? `${lightNovel.title_english || lightNovel.title} already in selection`
+                                  : `Add ${lightNovel.title_english || lightNovel.title}`
                               }
                             >
                               {alreadySelected ? (
@@ -248,7 +260,7 @@ export default function AddAnimeDialog({
             <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-border/50 bg-background/40 backdrop-blur-md md:h-full md:max-h-full md:min-h-0">
               <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border/40 px-3 py-1.5">
                 <p className="text-sm font-medium">
-                  Selected Anime ({selectedAnime.length})
+                  Selected Light Novels ({selectedLightNovel.length})
                 </p>
                 <Button
                   type="button"
@@ -282,7 +294,7 @@ export default function AddAnimeDialog({
                         Back to selected list
                       </Button>
                       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 pt-3">
-                        <AnimeDetailPanel anime={activeDetail} />
+                        <LightNovelDetailPanel lightNovel={activeDetail} />
                       </div>
                     </div>
                   )}
@@ -318,13 +330,13 @@ export default function AddAnimeDialog({
                         ) : (
                           <ChevronUpIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200" />
                         )}
-                        Anime Detail
+                        Light novel detail
                       </button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="min-h-0 flex-1 overflow-hidden">
                       <div className="max-h-full min-h-0 overflow-y-auto overscroll-contain px-3 pb-3 pt-3">
                         {activeDetail ? (
-                          <AnimeDetailPanel anime={activeDetail} />
+                          <LightNovelDetailPanel lightNovel={activeDetail} />
                         ) : (
                           <p className="py-8 text-center text-sm text-muted-foreground">
                             No detail
@@ -351,18 +363,18 @@ export default function AddAnimeDialog({
             type="button"
             onClick={() => submitAdds()}
             disabled={
-              addAnimeMutation.isPending ||
-              selectedAnime.length === 0 ||
+              addLightNovelMutation.isPending ||
+              selectedLightNovel.length === 0 ||
               selectionHasDuplicate
             }
             className="gap-2 bg-primary"
           >
-            {addAnimeMutation.isPending ? (
+            {addLightNovelMutation.isPending ? (
               <Loader2Icon className="h-4 w-4 animate-spin" />
             ) : (
               <PlusIcon className="h-4 w-4" />
             )}
-            Add Selected ({selectedAnime.length})
+            Add Selected ({selectedLightNovel.length})
           </Button>
         </div>
       </DialogContent>

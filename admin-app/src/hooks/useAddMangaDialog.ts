@@ -7,11 +7,11 @@ import {
   useState
 } from "react";
 
-import { animeService } from "@/services/anime.service";
+import { mangaService } from "@/services/manga.service";
 
 import { toast } from "@/hooks/useToast";
 
-import type { AnimeCreateRequest } from "@/types/anime.type";
+import type { MangaCreateRequest } from "@/types/manga.type";
 
 import { mediaKeys } from "@/lib/query-keys";
 
@@ -20,30 +20,30 @@ import {
   useMutation,
   useQueryClient
 } from "@tanstack/react-query";
-import { Anime, AnimeClient } from "@tutkli/jikan-ts";
+import { Manga, MangaClient } from "@tutkli/jikan-ts";
 import { useInView } from "react-intersection-observer";
 import { useDebounce } from "use-debounce";
 
-import { animeToCreateRequest } from "@/lib/media-dialog-helpers";
+import { mangaToCreateRequest } from "@/lib/media-dialog-helpers";
 
-const animeClient = new AnimeClient();
+const mangaClient = new MangaClient();
 
-const JIKAN_ANIME_SEARCH_KEY = ["jikan-anime-search"] as const;
+const JIKAN_MANGA_SEARCH_KEY = ["jikan-manga-search"] as const;
 
-export type UseAddAnimeDialogArgs = {
+export type UseAddMangaDialogArgs = {
   openDialog: boolean;
   setOpenDialog: Dispatch<SetStateAction<boolean>>;
   resetParent: () => Promise<void>;
 };
 
-export function useAddAnimeDialog({
+export function useAddMangaDialog({
   openDialog,
   setOpenDialog,
   resetParent
-}: UseAddAnimeDialogArgs) {
+}: UseAddMangaDialogArgs) {
   const queryClient = useQueryClient();
 
-  const [selectedAnime, setSelectedAnime] = useState<Anime[]>([]);
+  const [selectedManga, setSelectedManga] = useState<Manga[]>([]);
   const [activeDetailId, setActiveDetailId] = useState<number | null>(null);
   const [duplicateMap, setDuplicateMap] = useState<
     Record<number, boolean | null>
@@ -60,17 +60,18 @@ export function useAddAnimeDialog({
   const searchEnabled = openDialog && searchTrimmed.length >= 2;
 
   const searchQueryInfinite = useInfiniteQuery({
-    queryKey: [...JIKAN_ANIME_SEARCH_KEY, searchTrimmed],
+    queryKey: [...JIKAN_MANGA_SEARCH_KEY, searchTrimmed],
     enabled: searchEnabled,
     initialPageParam: 1,
     retry: false,
     staleTime: 60_000,
     queryFn: async ({ pageParam }) => {
       try {
-        const response = await animeClient.getAnimeSearch({
+        const response = await mangaClient.getMangaSearch({
           q: searchTrimmed,
           limit: 10,
-          page: pageParam as number
+          page: pageParam as number,
+          type: "Manga"
         });
         return {
           results: response.data,
@@ -90,7 +91,7 @@ export function useAddAnimeDialog({
             : "Uh oh! Something went wrong",
           description: isRateLimited
             ? "Jikan is rate-limited. Wait a moment and try again."
-            : "Failed to fetch anime list from Jikan"
+            : "Failed to fetch manga list from Jikan"
         });
         throw err;
       }
@@ -137,8 +138,8 @@ export function useAddAnimeDialog({
   });
 
   const activeDetail = useMemo(
-    () => selectedAnime.find((a) => a.mal_id === activeDetailId) ?? null,
-    [selectedAnime, activeDetailId]
+    () => selectedManga.find((m) => m.mal_id === activeDetailId) ?? null,
+    [selectedManga, activeDetailId]
   );
 
   const handleDuplicateStatus = useCallback(
@@ -154,24 +155,24 @@ export function useAddAnimeDialog({
   useEffect(() => {
     setDuplicateMap((prev) => {
       const next: Record<number, boolean | null> = {};
-      for (const a of selectedAnime) {
-        if (a.mal_id in prev) next[a.mal_id] = prev[a.mal_id];
+      for (const m of selectedManga) {
+        if (m.mal_id in prev) next[m.mal_id] = prev[m.mal_id];
       }
       return next;
     });
-  }, [selectedAnime]);
+  }, [selectedManga]);
 
   const selectionHasDuplicate = useMemo(
-    () => selectedAnime.some((a) => duplicateMap[a.mal_id] === true),
-    [duplicateMap, selectedAnime]
+    () => selectedManga.some((m) => duplicateMap[m.mal_id] === true),
+    [duplicateMap, selectedManga]
   );
 
   const searchLoadingInitial =
     searchEnabled && isFetching && !isFetchingNextPage;
 
-  const addAnimeMutation = useMutation({
-    mutationFn: async (data: AnimeCreateRequest[]) => {
-      const response = await animeService.create(data);
+  const addMangaMutation = useMutation({
+    mutationFn: async (data: MangaCreateRequest[]) => {
+      const response = await mangaService.create(data);
       if (!response.success) throw new Error(response.error);
       return response.data;
     },
@@ -180,14 +181,14 @@ export function useAddAnimeDialog({
         await Promise.all(
           variables.map((item) =>
             queryClient.invalidateQueries({
-              queryKey: mediaKeys.malDuplicate("anime", item.id)
+              queryKey: mediaKeys.malDuplicate("manga", item.id)
             })
           )
         );
       }
       await queryClient.invalidateQueries({ queryKey: mediaKeys.all });
       await queryClient.invalidateQueries({
-        queryKey: mediaKeys.statusCounts("anime")
+        queryKey: mediaKeys.statusCounts("manga")
       });
       await resetParent();
 
@@ -195,11 +196,11 @@ export function useAddAnimeDialog({
         title: "All set!",
         description:
           addedIds.length === 1
-            ? "Anime added successfully"
-            : `${addedIds.length} anime added successfully`
+            ? "Manga added successfully"
+            : `${addedIds.length} manga added successfully`
       });
 
-      setSelectedAnime([]);
+      setSelectedManga([]);
       setActiveDetailId(null);
       setOpenDialog(false);
     },
@@ -215,43 +216,43 @@ export function useAddAnimeDialog({
   const handleOpenChange = (open: boolean) => {
     setOpenDialog(open);
     if (!open) {
-      setSelectedAnime([]);
+      setSelectedManga([]);
       setActiveDetailId(null);
       setDuplicateMap({});
       setSearchQuery("");
       queryClient.removeQueries({
-        queryKey: [...JIKAN_ANIME_SEARCH_KEY],
+        queryKey: [...JIKAN_MANGA_SEARCH_KEY],
         exact: false
       });
     }
   };
 
-  const addFromSearch = (anime: Anime) => {
-    setSelectedAnime((prev) => {
-      if (prev.some((a) => a.mal_id === anime.mal_id)) return prev;
-      return [...prev, anime];
+  const addFromSearch = (manga: Manga) => {
+    setSelectedManga((prev) => {
+      if (prev.some((m) => m.mal_id === manga.mal_id)) return prev;
+      return [...prev, manga];
     });
   };
 
   const clearSelection = () => {
-    setSelectedAnime([]);
+    setSelectedManga([]);
     setActiveDetailId(null);
     setDuplicateMap({});
   };
 
   const removeSelected = (malId: number) => {
-    setSelectedAnime((prev) => prev.filter((a) => a.mal_id !== malId));
+    setSelectedManga((prev) => prev.filter((m) => m.mal_id !== malId));
     setActiveDetailId((id) => (id === malId ? null : id));
   };
 
   const submitAdds = useCallback(async () => {
     const existsList = await Promise.all(
-      selectedAnime.map((a) =>
+      selectedManga.map((m) =>
         queryClient
           .fetchQuery({
-            queryKey: mediaKeys.malDuplicate("anime", a.mal_id),
+            queryKey: mediaKeys.malDuplicate("manga", m.mal_id),
             queryFn: async (): Promise<boolean> => {
-              const r = await animeService.getDuplicates(a.mal_id);
+              const r = await mangaService.getDuplicates(m.mal_id);
               if (!r.success) throw new Error(r.error ?? "Duplicate check failed");
               return r.data.exists;
             },
@@ -260,35 +261,33 @@ export function useAddAnimeDialog({
           .catch(() => null)
       )
     );
-    const ready = selectedAnime.filter(
-      (_a, i) => existsList[i] === false
-    );
+    const ready = selectedManga.filter((_m, i) => existsList[i] === false);
 
     if (ready.length === 0) {
       toast({
         variant: "destructive",
         title: "Nothing to add",
         description:
-          selectedAnime.length === 0
-            ? "Select at least one anime."
+          selectedManga.length === 0
+            ? "Select at least one manga."
             : "All selected titles are already in your library."
       });
       return;
     }
 
     const slugCounts: Record<string, number> = {};
-    const payload: AnimeCreateRequest[] = ready.map((anime) =>
-      animeToCreateRequest(anime, slugCounts)
+    const payload: MangaCreateRequest[] = ready.map((manga) =>
+      mangaToCreateRequest(manga, slugCounts)
     );
 
-    addAnimeMutation.mutate(payload);
-  }, [addAnimeMutation, queryClient, selectedAnime]);
+    addMangaMutation.mutate(payload);
+  }, [addMangaMutation, queryClient, selectedManga]);
 
-  const hasSelection = selectedAnime.length > 0;
+  const hasSelection = selectedManga.length > 0;
 
   const selectedMalIds = useMemo(
-    () => new Set(selectedAnime.map((a) => a.mal_id)),
-    [selectedAnime]
+    () => new Set(selectedManga.map((m) => m.mal_id)),
+    [selectedManga]
   );
 
   return {
@@ -307,14 +306,14 @@ export function useAddAnimeDialog({
     activeDetail,
     activeDetailId,
     setActiveDetailId,
-    selectedAnime,
+    selectedManga,
     handleDuplicateStatus,
     removeSelected,
     clearSelection,
     hasSelection,
     handleOpenChange,
     submitAdds,
-    addAnimeMutation,
+    addMangaMutation,
     selectionHasDuplicate
   };
 }

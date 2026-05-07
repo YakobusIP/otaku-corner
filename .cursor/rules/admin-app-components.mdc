@@ -24,7 +24,7 @@ export default function MediaCard(props: MediaCardProps) {
 ## Composition and reuse
 
 - Prefer **config + loop** over copy-pasted JSX: when the same child component repeats many times with only props changing, define an **array of objects** (or derive one) and render with **`.map()`**. Avoid long stacks of nearly identical siblings.
-- **Shared building blocks**: if a component is used or will be used by anime, manga, and light novel (or multiple features), place it in a **neutral, shared** path (e.g. `components/media/` or another cross-feature folder that fits the repo) instead of leaving it under a single feature folder (e.g. `add-anime/` only). **Promote** shared UI into that location when it becomes cross-flow—one implementation imported everywhere.
+- **Reuse before inventing**: Before adding a new UI primitive, **search** `admin-app/src/components` (and related hooks) for something that already fits or can be **generalized** with small prop changes. Prefer extending or extracting a shared piece over duplicating similar markup under separate feature folders.
 
 ## Non-component functions
 

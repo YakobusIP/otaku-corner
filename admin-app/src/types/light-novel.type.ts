@@ -54,6 +54,7 @@ type LightNovelVolumes = {
 
 type LightNovelCreateRequest = {
   id: number;
+  slug: string;
   status: string;
   title: string;
   titleJapanese: string;

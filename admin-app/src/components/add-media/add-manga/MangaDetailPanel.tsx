@@ -1,84 +1,89 @@
 import {
-  displayYear,
-  formatAired,
-  formatRatingLabel,
+  displayYearFromPublished,
+  formatPublished,
   posterUrl
-} from "@/components/add-anime/anime-dialog-helpers";
-import MetaRow from "@/components/add-anime/MetaRow";
+} from "@/lib/media-dialog-helpers";
+import MetaRow from "@/components/add-media/MetaRow";
 import { Badge } from "@/components/ui/badge";
 
-import type { Anime } from "@tutkli/jikan-ts";
+import type { Manga } from "@tutkli/jikan-ts";
 import type { LucideIcon } from "lucide-react";
 import {
-  ActivityIcon,
-  BookOpenIcon,
-  Building2Icon,
+  BookMarkedIcon,
   CalendarDaysIcon,
+  LibraryIcon,
   ListOrderedIcon,
-  ShieldIcon,
   SparklesIcon,
   StarIcon,
-  TagsIcon
+  TagsIcon,
+  UsersIcon
 } from "lucide-react";
 
 type Props = {
-  anime: Anime;
+  manga: Manga;
 };
 
-export default function AnimeDetailPanel({ anime }: Props) {
+export default function MangaDetailPanel({ manga }: Props) {
   const synopsis =
-    anime.synopsis?.replace(/\n\n+/g, "\n").trim() || "No synopsis available.";
+    manga.synopsis?.replace(/\n\n+/g, "\n").trim() || "No synopsis available.";
 
   const metaRows: { icon: LucideIcon; label: string; value: string }[] = [
-    { icon: ActivityIcon, label: "Status", value: anime.status ?? "—" },
-    { icon: CalendarDaysIcon, label: "Aired", value: formatAired(anime) },
+    { icon: BookMarkedIcon, label: "Status", value: manga.status ?? "—" },
+    {
+      icon: CalendarDaysIcon,
+      label: "Published",
+      value: formatPublished(manga)
+    },
     {
       icon: ListOrderedIcon,
-      label: "Episodes",
-      value: anime.episodes != null ? String(anime.episodes) : "?"
+      label: "Chapters",
+      value: manga.chapters != null ? String(manga.chapters) : "?"
     },
     {
-      icon: Building2Icon,
-      label: "Studio",
-      value: anime.studios?.[0]?.name ?? "—"
+      icon: LibraryIcon,
+      label: "Volumes",
+      value: manga.volumes != null ? String(manga.volumes) : "?"
     },
-    { icon: BookOpenIcon, label: "Source", value: anime.source ?? "—" },
+    {
+      icon: UsersIcon,
+      label: "Authors",
+      value: manga.authors?.map((a) => a.name).join(", ") || "—"
+    },
     {
       icon: TagsIcon,
       label: "Genres",
-      value: anime.genres?.map((g) => g.name).join(", ") || "—"
+      value: manga.genres?.map((g) => g.name).join(", ") || "—"
     },
     {
       icon: SparklesIcon,
       label: "Themes",
-      value: anime.themes?.map((t) => t.name).join(", ") || "—"
-    },
-    { icon: ShieldIcon, label: "Rating", value: formatRatingLabel(anime) }
+      value: manga.themes?.map((t) => t.name).join(", ") || "—"
+    }
   ];
 
   return (
     <div className="min-h-0 space-y-3 text-sm">
       <div className="flex gap-3">
         <img
-          src={posterUrl(anime)}
+          src={posterUrl(manga)}
           alt=""
           className="h-36 w-24 shrink-0 rounded-lg object-cover"
         />
         <div className="min-w-0 flex-1 space-y-1">
           <p className="font-semibold leading-snug">
-            {anime.title_english || anime.title}
+            {manga.title_english || manga.title}
           </p>
           <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
-            <Badge variant="outline">{anime.type ?? "—"}</Badge>
-            <Badge variant="outline">{displayYear(anime)}</Badge>
+            <Badge variant="outline">{manga.type ?? "—"}</Badge>
+            <Badge variant="outline">{displayYearFromPublished(manga)}</Badge>
           </div>
           <div className="flex items-center gap-1 text-xs text-amber-400">
             <StarIcon className="h-3.5 w-3.5 fill-current" />
             <span className="font-medium">
-              {anime.score != null ? anime.score.toFixed(2) : "—"}
+              {manga.score != null ? manga.score.toFixed(2) : "—"}
             </span>
             <span className="text-muted-foreground">
-              ({anime.scored_by?.toLocaleString() ?? "—"} users)
+              ({manga.scored_by?.toLocaleString() ?? "—"} users)
             </span>
           </div>
         </div>

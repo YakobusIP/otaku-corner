@@ -1,21 +1,25 @@
 import { useEffect } from "react";
 
-import {
-  displayYear,
-  posterUrl
-} from "@/components/add-anime/anime-dialog-helpers";
+import { useMediaMalDuplicate } from "@/hooks/useMediaMalDuplicate";
+
+import type { MediaType } from "@/types/general.type";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { useMalDuplicate } from "@/hooks/useMalDuplicate";
-
 import { cn } from "@/lib/utils";
 
-import type { Anime } from "@tutkli/jikan-ts";
 import { CheckCircle2Icon, Loader2Icon, XIcon } from "lucide-react";
 
-type Props = {
-  anime: Anime;
+export type SelectedRowProps = {
+  mediaType: MediaType;
+  malId: number;
+  titlePrimary: string;
+  titleSecondary: string;
+  typeLabel: string;
+  yearBadge: string;
+  posterSrc: string;
+  removeAriaTitle: string;
   isActive: boolean;
   onPick: () => void;
   onRemove: () => void;
@@ -23,17 +27,24 @@ type Props = {
 };
 
 export default function SelectedRow({
-  anime,
+  mediaType,
+  malId,
+  titlePrimary,
+  titleSecondary,
+  typeLabel,
+  yearBadge,
+  posterSrc,
+  removeAriaTitle,
   isActive,
   onPick,
   onRemove,
   onDuplicateStatus
-}: Props) {
-  const duplicateInDb = useMalDuplicate(anime.mal_id);
+}: SelectedRowProps) {
+  const duplicateInDb = useMediaMalDuplicate(mediaType, malId);
 
   useEffect(() => {
-    onDuplicateStatus?.(anime.mal_id, duplicateInDb);
-  }, [anime.mal_id, duplicateInDb, onDuplicateStatus]);
+    onDuplicateStatus?.(malId, duplicateInDb);
+  }, [malId, duplicateInDb, onDuplicateStatus]);
 
   const ringClass =
     duplicateInDb === null
@@ -68,23 +79,21 @@ export default function SelectedRow({
           )}
         >
           <img
-            src={posterUrl(anime)}
+            src={posterSrc}
             alt=""
             className="h-18 w-12 shrink-0 rounded object-cover"
           />
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold leading-tight">
-              {anime.title_english || anime.title}
-            </p>
+            <p className="truncate font-semibold leading-tight">{titlePrimary}</p>
             <p className="truncate text-xs text-muted-foreground">
-              {anime.title_japanese || anime.title}
+              {titleSecondary}
             </p>
             <div className="mt-1 flex flex-wrap gap-1">
               <Badge variant="secondary" className="text-[10px]">
-                {anime.type ?? "—"}
+                {typeLabel}
               </Badge>
               <Badge variant="secondary" className="text-[10px]">
-                {displayYear(anime)}
+                {yearBadge}
               </Badge>
             </div>
           </div>
@@ -113,7 +122,7 @@ export default function SelectedRow({
                 e.stopPropagation();
                 onRemove();
               }}
-              aria-label={`Remove ${anime.title}`}
+              aria-label={`Remove ${removeAriaTitle}`}
             >
               <XIcon className="h-4 w-4" />
             </Button>
