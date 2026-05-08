@@ -32,11 +32,19 @@ type PaginatedBody<T> = {
 
 type MediaType = "anime" | "manga" | "lightNovel";
 
+type FetchAllPagedOptions = {
+  page?: number;
+  limit?: number;
+  query?: string;
+  includeIds?: number[];
+};
+
 export type {
   ScoreOption,
   GenericKeyLabel,
   ServiceResult,
   PaginatedListPage,
   PaginatedBody,
-  MediaType
+  MediaType,
+  FetchAllPagedOptions
 };

@@ -1,4 +1,5 @@
 import { themeService } from "@/services/entity.service";
+import { entityFilterIncludeIds } from "@/lib/utils";
 
 import FilterPopover from "@/components/filter-sort-dropdowns/FilterPopover";
 
@@ -9,6 +10,8 @@ type Props = {
   handleFilterTheme: (key?: number) => void;
 };
 
+const PAGE_SIZE = 20;
+
 export default function FilterTheme({
   selectedTheme,
   handleFilterTheme
@@ -17,12 +20,18 @@ export default function FilterTheme({
     <FilterPopover<ThemeEntity, number>
       selectedKey={selectedTheme}
       onChange={(key) => handleFilterTheme(key)}
-      query={{
-        queryKey: ["themes"],
-        queryFn: async () => {
-          const r = await themeService.fetchAll<ThemeEntity>();
-          if (!r.success) throw new Error(r.error);
-          return r.data;
+      infiniteQuery={{
+        queryKey: (search) => ["themes", "filter-popover", search],
+        pageSize: PAGE_SIZE,
+        fetchPage: async (page, search, context) => {
+          const result = await themeService.fetchAll<ThemeEntity>({
+            page,
+            limit: PAGE_SIZE,
+            query: search || undefined,
+            includeIds: entityFilterIncludeIds(context)
+          });
+          if (!result.success) throw new Error(result.error);
+          return result.data;
         },
         refetchOnWindowFocus: false,
         staleTime: 24 * 60 * 60 * 1000

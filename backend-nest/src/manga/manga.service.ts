@@ -5,7 +5,7 @@ import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
-import { chunkArray } from "@/common/utils/chunk-array";
+import { chunkArray } from "@/common/utils";
 
 import { PrismaService } from "@/prisma/prisma.service";
 

@@ -1,7 +1,6 @@
 import {
   ApiResponse,
-  MessageResponse,
-  MetadataResponse
+  MessageResponse
 } from "@/types/api.type";
 import type {
   LightNovelCreateRequest,
@@ -10,9 +9,15 @@ import type {
   LightNovelList,
   LightNovelReviewRequest
 } from "@/types/light-novel.type";
-import type { PaginatedBody, PaginatedListPage, ServiceResult } from "@/types/general.type";
+import type {
+  PaginatedBody,
+  PaginatedListPage,
+  FetchAllPagedOptions,
+  ServiceResult
+} from "@/types/general.type";
 
 import interceptedAxios from "@/lib/axios";
+import { mapPaginatedBody } from "@/lib/utils";
 import { ok, err } from "@/lib/service-result";
 import { PROGRESS_STATUS } from "@/lib/enums";
 
@@ -20,11 +25,7 @@ const BASE_LIGHTNOVEL_URL = "/api/light-novels";
 
 const createLightNovelService = () => {
   const list = async (
-    params: LightNovelFilterSort & {
-      page: number;
-      limit: number;
-      query?: string;
-    }
+    params: LightNovelFilterSort & FetchAllPagedOptions
   ): Promise<ServiceResult<PaginatedListPage<LightNovelList>>> => {
     try {
       const response = await interceptedAxios.get<
@@ -34,6 +35,9 @@ const createLightNovelService = () => {
           page: params.page,
           limit: params.limit,
           query: params.query,
+          include_ids: params.includeIds?.length
+            ? params.includeIds.join(",")
+            : undefined,
           sort: params.sortBy,
           order: params.sortOrder,
           author: params.filterAuthor,
@@ -45,16 +49,7 @@ const createLightNovelService = () => {
           statusCheck: params.filterStatusCheck
         }
       });
-      const body = response.data;
-      return ok({
-        data: body.data,
-        metadata: {
-          page: body.page,
-          limit: body.limit,
-          pageCount: body.totalPages,
-          itemCount: body.total
-        } satisfies MetadataResponse
-      });
+      return ok(mapPaginatedBody(response.data));
     } catch (error) {
       return err(error);
     }

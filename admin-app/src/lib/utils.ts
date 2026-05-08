@@ -2,6 +2,9 @@ import { type ClassValue, clsx } from "clsx";
 import slugify from "slugify";
 import { twMerge } from "tailwind-merge";
 
+import type { MetadataResponse } from "@/types/api.type";
+import type { PaginatedBody, PaginatedListPage } from "@/types/general.type";
+
 export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
 };
@@ -40,3 +43,24 @@ export const extractImageIds = (markdown: string | undefined) => {
 export const generateSlug = (title: string) => {
   return slugify(title, { remove: /[:?/]/g, lower: true, trim: true });
 };
+
+export const entityFilterIncludeIds = (context?: {
+  includeIds?: (string | number)[];
+}): number[] | undefined => {
+  const parsed = context?.includeIds
+    ?.map((id) => Number(id))
+    .filter((n) => Number.isInteger(n) && n >= 1);
+  return parsed?.length ? parsed : undefined;
+};
+
+export const mapPaginatedBody = <T>(
+  body: PaginatedBody<T>
+): PaginatedListPage<T> => ({
+  data: body.data,
+  metadata: {
+    page: body.page,
+    limit: body.limit,
+    pageCount: body.totalPages,
+    itemCount: body.total
+  } satisfies MetadataResponse
+});

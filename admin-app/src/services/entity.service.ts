@@ -1,8 +1,12 @@
-import { MetadataResponse } from "@/types/api.type";
-import type { PaginatedBody, PaginatedListPage, ServiceResult } from "@/types/general.type";
-
 import interceptedAxios from "@/lib/axios";
-import { ok, err } from "@/lib/service-result";
+import { mapPaginatedBody } from "@/lib/utils";
+import { err, ok } from "@/lib/service-result";
+import type {
+  FetchAllPagedOptions,
+  PaginatedBody,
+  PaginatedListPage,
+  ServiceResult
+} from "@/types/general.type";
 
 const BASE_GENRE_URL = "/api/genres";
 const BASE_STUDIO_URL = "/api/studios";
@@ -12,34 +16,22 @@ const BASE_AUTHOR_URL = "/api/authors";
 type EntityResponse = { id: number; name: string };
 
 const createEntityService = (baseUrl: string) => {
-  const fetchAll = async <T>(): Promise<ServiceResult<T[]>> => {
-    try {
-      const response = await interceptedAxios.get<PaginatedBody<T>>(baseUrl);
-      return ok(response.data.data);
-    } catch (error) {
-      return err(error);
-    }
-  };
-
-  const fetchAllWithMediaCount = async <T>(
-    page?: number,
-    limit?: number,
-    query?: string
+  const fetchAll = async <T>(
+    opts?: FetchAllPagedOptions
   ): Promise<ServiceResult<PaginatedListPage<T>>> => {
     try {
+      const params = {
+        page: opts?.page,
+        limit: opts?.limit,
+        query: opts?.query,
+        include_ids: opts?.includeIds?.length
+          ? opts.includeIds.join(",")
+          : undefined
+      };
       const response = await interceptedAxios.get<PaginatedBody<T>>(baseUrl, {
-        params: { page, limit, query }
+        params
       });
-      const body = response.data;
-      return ok({
-        data: body.data,
-        metadata: {
-          page: body.page,
-          limit: body.limit,
-          pageCount: body.totalPages,
-          itemCount: body.total
-        } satisfies MetadataResponse
-      });
+      return ok(mapPaginatedBody(response.data));
     } catch (error) {
       return err(error);
     }
@@ -86,7 +78,6 @@ const createEntityService = (baseUrl: string) => {
 
   return {
     fetchAll,
-    fetchAllWithMediaCount,
     addEntity,
     updateEntity,
     deleteEntity

@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -7,7 +13,8 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList
+  CommandList,
+  CommandLoading
 } from "@/components/ui/command";
 import {
   Popover,
@@ -17,15 +24,36 @@ import {
 
 import { useToast } from "@/hooks/useToast";
 
+import type { PaginatedListPage } from "@/types/general.type";
+
 import { cn } from "@/lib/utils";
 
-import { QueryKey, UseQueryOptions, useQuery } from "@tanstack/react-query";
+import {
+  QueryKey,
+  UseQueryOptions,
+  useInfiniteQuery,
+  useQuery
+} from "@tanstack/react-query";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { useInView } from "react-intersection-observer";
+import { useDebounce } from "use-debounce";
 
 type QueryConfig<T> = {
   queryKey: QueryKey;
   queryFn: () => Promise<T[]>;
 } & Omit<UseQueryOptions<T[], unknown, T[], QueryKey>, "queryKey" | "queryFn">;
+
+type InfiniteQueryConfig<T, K extends string | number> = {
+  queryKey: (search: string) => QueryKey;
+  pageSize?: number;
+  fetchPage: (
+    page: number,
+    search: string,
+    context?: { includeIds?: K[] }
+  ) => Promise<PaginatedListPage<T>>;
+  refetchOnWindowFocus?: boolean;
+  staleTime?: number;
+};
 
 type Props<T, K extends string | number> = {
   selectedKey?: K;
@@ -33,6 +61,7 @@ type Props<T, K extends string | number> = {
 
   items?: T[];
   query?: QueryConfig<T>;
+  infiniteQuery?: InfiniteQueryConfig<T, K>;
 
   getKey: (item: T) => K;
   getLabel: (item: T) => string;
@@ -52,6 +81,7 @@ export default function FilterPopover<T, K extends string | number>({
   onChange,
   items,
   query,
+  infiniteQuery,
   getKey,
   getLabel,
   title = "Filter by",
@@ -64,27 +94,121 @@ export default function FilterPopover<T, K extends string | number>({
 }: Props<T, K>) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [scrollRoot, setScrollRoot] = useState<Element | null>(null);
 
-  const { data, error } = useQuery({
-    enabled: !!query,
-    ...(query || ({} as QueryConfig<T>))
-  }) as { data?: T[]; error: Error | null };
+  const [debouncedSearch] = useDebounce(searchInput, 300);
 
-  const options: T[] | undefined = useMemo(() => data ?? items, [data, items]);
+  const isInfinite = Boolean(infiniteQuery);
 
   useEffect(() => {
-    if (error) {
+    if (!isOpen) setSearchInput("");
+  }, [isOpen]);
+
+  const {
+    data,
+    error,
+    isPending: queryPending,
+    isFetching: queryFetching
+  } = useQuery({
+    ...(query ?? ({} as QueryConfig<T>)),
+    enabled:
+      Boolean(query) &&
+      !isInfinite &&
+      isOpen &&
+      (query?.enabled ?? true)
+  }) as {
+    data?: T[];
+    error: Error | null;
+    isPending: boolean;
+    isFetching: boolean;
+  };
+
+  const pageSize = infiniteQuery?.pageSize ?? 20;
+
+  const {
+    data: infiniteData,
+    error: infiniteError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isPending: infinitePending,
+    isFetching: infiniteFetching
+  } = useInfiniteQuery({
+    queryKey: infiniteQuery
+      ? [
+          ...infiniteQuery.queryKey(debouncedSearch),
+          pageSize,
+          selectedKey ?? null
+        ]
+      : (["filter-popover-infinite-disabled"] as const),
+    enabled: Boolean(infiniteQuery && isOpen),
+    queryFn: async ({ pageParam }) => {
+      if (!infiniteQuery) throw new Error("Missing infinite query config");
+      const page = pageParam as number;
+      const includeIds =
+        page === 1 && selectedKey !== undefined ? [selectedKey] : undefined;
+      return infiniteQuery.fetchPage(page, debouncedSearch, { includeIds });
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { page, pageCount } = lastPage.metadata;
+      return page < pageCount ? page + 1 : undefined;
+    },
+    staleTime: infiniteQuery?.staleTime,
+    refetchOnWindowFocus: infiniteQuery?.refetchOnWindowFocus
+  });
+
+  const fetchNextIfNeeded = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const { ref: loadMoreRef } = useInView({
+    skip:
+      !isInfinite ||
+      !isOpen ||
+      !hasNextPage ||
+      isFetchingNextPage ||
+      !scrollRoot,
+    root: scrollRoot ?? undefined,
+    rootMargin: "80px 0px",
+    threshold: 0,
+    initialInView: false,
+    onChange: (visible) => {
+      if (!visible) return;
+      fetchNextIfNeeded();
+    }
+  });
+
+  const flattened: T[] = useMemo(() => {
+    if (isInfinite) {
+      const pages = infiniteData?.pages ?? [];
+      return pages.flatMap((p) => p.data);
+    }
+    return [];
+  }, [infiniteData?.pages, isInfinite]);
+
+  const options: T[] | undefined = useMemo(() => {
+    if (isInfinite) return flattened;
+    return data ?? items;
+  }, [data, flattened, isInfinite, items]);
+
+  const firstError = error ?? infiniteError;
+
+  useEffect(() => {
+    if (firstError) {
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
-        description: error.message
+        description: firstError.message
       });
     }
-  }, [error, toast]);
+  }, [firstError, toast]);
 
   const selected = useMemo(() => {
-    if (!options || selectedKey === undefined) return undefined;
-    return options.find((o) => getKey(o) === selectedKey);
+    if (selectedKey === undefined) return undefined;
+    return options?.find((option) => getKey(option) === selectedKey);
   }, [options, selectedKey, getKey]);
 
   const buttonLabel = selected ? getLabel(selected) : buttonFallbackLabel;
@@ -104,6 +228,27 @@ export default function FilterPopover<T, K extends string | number>({
     }
     setIsOpen(false);
   };
+
+  const listLoadingFirst =
+    isOpen &&
+    ((isInfinite && infinitePending && !flattened.length) ||
+      (!isInfinite &&
+        Boolean(query) &&
+        queryPending &&
+        data === undefined));
+  const listEmpty =
+    (isInfinite &&
+      isOpen &&
+      !infiniteFetching &&
+      !flattened.length &&
+      !infinitePending) ||
+    (!isInfinite &&
+      isOpen &&
+      Boolean(query) &&
+      !queryPending &&
+      !queryFetching &&
+      Array.isArray(data) &&
+      data.length === 0);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen} modal>
@@ -127,10 +272,30 @@ export default function FilterPopover<T, K extends string | number>({
         className="popover-content-width-full p-0"
         portalled={false}
       >
-        <Command>
-          <CommandInput placeholder={placeholder} />
-          <CommandList>
-            <CommandEmpty>{emptyText}</CommandEmpty>
+        <Command shouldFilter={!isInfinite}>
+          <CommandInput
+            placeholder={placeholder}
+            {...(isInfinite
+              ? {
+                  value: searchInput,
+                  onChange: (e: ChangeEvent<HTMLInputElement>) =>
+                    setSearchInput(e.target.value)
+                }
+              : {})}
+          />
+          <CommandList ref={setScrollRoot}>
+            {listLoadingFirst ? (
+              <CommandLoading>Loading...</CommandLoading>
+            ) : null}
+            {isInfinite ? (
+              listEmpty ? (
+                <div className="text-muted-foreground py-6 text-center text-sm">
+                  {emptyText}
+                </div>
+              ) : null
+            ) : (
+              <CommandEmpty>{emptyText}</CommandEmpty>
+            )}
             <CommandGroup>
               {showAllOption && (
                 <CommandItem
@@ -152,8 +317,8 @@ export default function FilterPopover<T, K extends string | number>({
                 const label = getLabel(item);
                 return (
                   <CommandItem
-                    key={key}
-                    value={label}
+                    key={String(key)}
+                    value={`${String(key)}\u0000${label}`}
                     onSelect={() => handlePick(item)}
                   >
                     <CheckIcon
@@ -166,6 +331,18 @@ export default function FilterPopover<T, K extends string | number>({
                   </CommandItem>
                 );
               })}
+              {isInfinite && hasNextPage ? (
+                <div
+                  ref={loadMoreRef}
+                  className="pointer-events-none h-2 w-full shrink-0"
+                  aria-hidden
+                />
+              ) : null}
+              {isInfinite && isFetchingNextPage ? (
+                <div className="text-muted-foreground py-2 text-center text-xs">
+                  Loading more…
+                </div>
+              ) : null}
             </CommandGroup>
           </CommandList>
         </Command>

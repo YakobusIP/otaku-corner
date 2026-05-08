@@ -4,10 +4,14 @@ import FilterPopover from "@/components/filter-sort-dropdowns/FilterPopover";
 
 import { StudioEntity } from "@/types/entity.type";
 
+import { entityFilterIncludeIds } from "@/lib/utils";
+
 type Props = {
   selectedStudio?: number;
   handleFilterStudio: (key?: number) => void;
 };
+
+const PAGE_SIZE = 20;
 
 export default function FilterStudio({
   selectedStudio,
@@ -17,12 +21,18 @@ export default function FilterStudio({
     <FilterPopover<StudioEntity, number>
       selectedKey={selectedStudio}
       onChange={(key) => handleFilterStudio(key)}
-      query={{
-        queryKey: ["studios"],
-        queryFn: async () => {
-          const r = await studioService.fetchAll<StudioEntity>();
-          if (!r.success) throw new Error(r.error);
-          return r.data;
+      infiniteQuery={{
+        queryKey: (search) => ["studios", "filter-popover", search],
+        pageSize: PAGE_SIZE,
+        fetchPage: async (page, search, context) => {
+          const result = await studioService.fetchAll<StudioEntity>({
+            page,
+            limit: PAGE_SIZE,
+            query: search || undefined,
+            includeIds: entityFilterIncludeIds(context)
+          });
+          if (!result.success) throw new Error(result.error);
+          return result.data;
         },
         refetchOnWindowFocus: false,
         staleTime: 24 * 60 * 60 * 1000

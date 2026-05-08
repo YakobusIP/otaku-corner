@@ -7,17 +7,18 @@ import {
 } from "@/types/anime.type";
 import {
   ApiResponse,
-  MessageResponse,
-  MetadataResponse
+  MessageResponse
 } from "@/types/api.type";
 import type {
   PaginatedBody,
   PaginatedListPage,
+  FetchAllPagedOptions,
   ServiceResult
 } from "@/types/general.type";
 import { StatusFilter } from "@/types/statistic.type";
 
 import interceptedAxios from "@/lib/axios";
+import { mapPaginatedBody } from "@/lib/utils";
 import { ok, err } from "@/lib/service-result";
 import { PROGRESS_STATUS } from "@/lib/enums";
 
@@ -25,11 +26,7 @@ const BASE_ANIME_URL = "/api/animes";
 
 const createAnimeService = () => {
   const list = async (
-    params: AnimeFilterSort & {
-      page: number;
-      limit: number;
-      query?: string;
-    }
+    params: AnimeFilterSort & FetchAllPagedOptions
   ): Promise<ServiceResult<PaginatedListPage<AnimeList>>> => {
     try {
       const response = await interceptedAxios.get<PaginatedBody<AnimeList>>(
@@ -39,6 +36,9 @@ const createAnimeService = () => {
             page: params.page,
             limit: params.limit,
             query: params.query,
+            include_ids: params.includeIds?.length
+              ? params.includeIds.join(",")
+              : undefined,
             sort: params.sortBy,
             order: params.sortOrder,
             genre: params.filterGenre,
@@ -52,16 +52,7 @@ const createAnimeService = () => {
           }
         }
       );
-      const body = response.data;
-      return ok({
-        data: body.data,
-        metadata: {
-          page: body.page,
-          limit: body.limit,
-          pageCount: body.totalPages,
-          itemCount: body.total
-        } satisfies MetadataResponse
-      });
+      return ok(mapPaginatedBody(response.data));
     } catch (error) {
       return err(error);
     }

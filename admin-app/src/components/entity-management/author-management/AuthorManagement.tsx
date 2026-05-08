@@ -44,11 +44,11 @@ export default function AuthorManagement({ resetParent }: Props) {
   const fetchAuthorList = useCallback(async () => {
     setIsLoadingAuthor(true);
     const response =
-      await authorService.fetchAllWithMediaCount<AuthorWithMediaCount>(
-        authorListPage,
-        10,
-        debouncedSearch
-      );
+      await authorService.fetchAll<AuthorWithMediaCount>({
+        page: authorListPage,
+        limit: 10,
+        query: debouncedSearch
+      });
     if (response.success) {
       setAuthorList(response.data.data);
       setAuthorMetadata(response.data.metadata);

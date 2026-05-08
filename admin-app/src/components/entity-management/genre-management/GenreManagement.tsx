@@ -43,12 +43,11 @@ export default function GenreManagement({ resetParent }: Props) {
 
   const fetchGenreList = useCallback(async () => {
     setIsLoadingGenre(true);
-    const response =
-      await genreService.fetchAllWithMediaCount<GenreWithMediaCount>(
-        genreListPage,
-        5,
-        debouncedSearch
-      );
+    const response = await genreService.fetchAll<GenreWithMediaCount>({
+      page: genreListPage,
+      limit: 5,
+      query: debouncedSearch
+    });
     if (response.success) {
       setGenreList(response.data.data);
       setGenreMetadata(response.data.metadata);

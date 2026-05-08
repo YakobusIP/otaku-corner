@@ -44,11 +44,11 @@ export default function ThemeManagement({ resetParent }: Props) {
   const fetchThemeList = useCallback(async () => {
     setIsLoadingTheme(true);
     const response =
-      await themeService.fetchAllWithMediaCount<ThemeWithMediaCount>(
-        themeListPage,
-        5,
-        debouncedSearch
-      );
+      await themeService.fetchAll<ThemeWithMediaCount>({
+        page: themeListPage,
+        limit: 5,
+        query: debouncedSearch
+      });
     if (response.success) {
       setThemeList(response.data.data);
       setThemeMetadata(response.data.metadata);

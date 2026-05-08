@@ -47,7 +47,7 @@ export default function MediaCard(props: MediaCardProps) {
 
 ## Naming
 
-- Prefer **clear, full words** for locals, **function parameters**, and **props / attributes**: e.g. `const result = …`, `const mediaItem = …`, not `r`, `m`, `d`, `res` unless the scope is tiny and meaning is obvious.
+- Prefer **clear, full words** for locals, **function parameters**, and **props / attributes**: e.g. `const result = …`, `const mediaItem = …`, not `r`, `m`, `d`, `res`.
 - Match existing domain terms in the repo (anime, manga, light novel, MAL, etc.) and reuse names across similar features for consistency.
 
 ## Utility-only modules

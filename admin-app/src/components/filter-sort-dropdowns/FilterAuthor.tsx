@@ -4,10 +4,14 @@ import FilterPopover from "@/components/filter-sort-dropdowns/FilterPopover";
 
 import { AuthorEntity } from "@/types/entity.type";
 
+import { entityFilterIncludeIds } from "@/lib/utils";
+
 type Props = {
   selectedAuthor?: number;
   handleFilterAuthor: (key?: number) => void;
 };
+
+const PAGE_SIZE = 20;
 
 export default function FilterAuthor({
   selectedAuthor,
@@ -17,12 +21,18 @@ export default function FilterAuthor({
     <FilterPopover<AuthorEntity, number>
       selectedKey={selectedAuthor}
       onChange={(key) => handleFilterAuthor(key)}
-      query={{
-        queryKey: ["authors"],
-        queryFn: async () => {
-          const r = await authorService.fetchAll<AuthorEntity>();
-          if (!r.success) throw new Error(r.error);
-          return r.data;
+      infiniteQuery={{
+        queryKey: (search) => ["authors", "filter-popover", search],
+        pageSize: PAGE_SIZE,
+        fetchPage: async (page, search, context) => {
+          const result = await authorService.fetchAll<AuthorEntity>({
+            page,
+            limit: PAGE_SIZE,
+            query: search || undefined,
+            includeIds: entityFilterIncludeIds(context)
+          });
+          if (!result.success) throw new Error(result.error);
+          return result.data;
         },
         refetchOnWindowFocus: false,
         staleTime: 24 * 60 * 60 * 1000

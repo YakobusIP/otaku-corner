@@ -44,11 +44,11 @@ export default function StudioManagement({ resetParent }: Props) {
   const fetchStudioList = useCallback(async () => {
     setIsLoadingStudio(true);
     const response =
-      await studioService.fetchAllWithMediaCount<StudioWithMediaCount>(
-        studioListPage,
-        5,
-        debouncedSearch
-      );
+      await studioService.fetchAll<StudioWithMediaCount>({
+        page: studioListPage,
+        limit: 5,
+        query: debouncedSearch
+      });
     if (response.success) {
       setStudioList(response.data.data);
       setStudioMetadata(response.data.metadata);
