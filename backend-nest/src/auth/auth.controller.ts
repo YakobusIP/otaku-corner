@@ -143,10 +143,10 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: "Invalid refresh token" })
   async refresh(@Req() req: Request): Promise<RefreshResponseDto> {
-    const token = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
-    if (!token || typeof token !== "string") {
+    const rawRefresh = req.cookies[REFRESH_TOKEN_COOKIE_NAME] as unknown;
+    if (typeof rawRefresh !== "string" || !rawRefresh) {
       throw new UnauthorizedException("Missing refresh token");
     }
-    return this.authService.refresh(token);
+    return this.authService.refresh(rawRefresh);
   }
 }
