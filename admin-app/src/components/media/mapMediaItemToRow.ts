@@ -1,4 +1,4 @@
-import type { StatusCheck } from "@/components/data-table/DataTableStatuses";
+import type { StatusCheck } from "@/types/status-check.type";
 
 import type { MediaLibraryListItem } from "@/types/media-library.type";
 

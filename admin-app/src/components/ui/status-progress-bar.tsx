@@ -10,10 +10,10 @@ type StatusProgressBarProps = React.ComponentPropsWithoutRef<
   animateIn?: boolean;
 };
 
-function clampPct(n: number) {
+const clampPct = (n: number) => {
   if (!Number.isFinite(n)) return 0;
   return Math.min(100, Math.max(0, n));
-}
+};
 
 const StatusProgressBar = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
@@ -75,4 +75,3 @@ const StatusProgressBar = React.forwardRef<
 StatusProgressBar.displayName = ProgressPrimitive.Root.displayName;
 
 export { StatusProgressBar };
-export type { StatusProgressBarProps };

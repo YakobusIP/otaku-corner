@@ -1,4 +1,4 @@
-import type { StatusCheck } from "@/components/data-table/DataTableStatuses";
+import type { StatusCheck } from "@/types/status-check.type";
 import { StatusProgressBar } from "@/components/ui/status-progress-bar";
 
 import { cn } from "@/lib/utils";

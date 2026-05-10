@@ -6,7 +6,7 @@ import { generateSlug } from "@/lib/utils";
 
 import { type Anime, type AnimeRating, type Manga } from "@tutkli/jikan-ts";
 
-export const RATING_LABELS: Record<AnimeRating, string> = {
+const RATING_LABELS: Record<AnimeRating, string> = {
   g: "G - All Ages",
   pg: "PG - Children",
   pg13: "PG-13 - Teens 13 or older",
@@ -85,12 +85,12 @@ export const formatRatingLabel = (anime: Anime) => {
   return RATING_LABELS[anime.rating] ?? anime.rating;
 };
 
-export const ratingForApi = (anime: Anime) => {
+const ratingForApi = (anime: Anime) => {
   if (!anime.rating) return "Unrated";
   return RATING_LABELS[anime.rating] ?? "Unrated";
 };
 
-function allocateSlug(title: string, slugCounts: Record<string, number>) {
+const allocateSlug = (title: string, slugCounts: Record<string, number>) => {
   let slug = generateSlug(title);
   if (slugCounts[slug]) {
     slugCounts[slug] += 1;
@@ -99,7 +99,7 @@ function allocateSlug(title: string, slugCounts: Record<string, number>) {
     slugCounts[slug] = 1;
   }
   return slug;
-}
+};
 
 export const animeToCreateRequest = (
   anime: Anime,
