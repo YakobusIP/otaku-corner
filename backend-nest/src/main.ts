@@ -7,8 +7,10 @@ import { PrismaExceptionFilter } from "@/common/filters/prisma-exception.filter"
 import { WinstonLoggerService } from "@/common/logging/winston-logger.service";
 
 import { AppModule } from "@/app.module";
+import { CORS_ALLOWED_ORIGINS } from "@/config/cors-origins";
 import { FileStorageService } from "@/storage/file-storage.service";
 
+import cookieParser from "cookie-parser";
 import * as express from "express";
 
 async function bootstrap() {
@@ -18,9 +20,26 @@ async function bootstrap() {
 
   app.setGlobalPrefix("api");
 
+  app.use(cookieParser());
+
+  const allowed = new Set<string>(CORS_ALLOWED_ORIGINS);
+
   app.enableCors({
-    origin: true,
-    credentials: true
+    credentials: true,
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean | string) => void
+    ) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (allowed.has(origin)) {
+        callback(null, origin);
+        return;
+      }
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    }
   });
 
   app.useGlobalPipes(

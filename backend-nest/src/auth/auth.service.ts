@@ -4,7 +4,7 @@ import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 
 import { PrismaService } from "@/prisma/prisma.service";
 
-import { AuthResponseDto, LoginDto, RefreshResponseDto } from "@/auth/dto";
+import { LoginDto, RefreshResponseDto } from "@/auth/dto";
 import { JwtPayload } from "@/auth/strategies/jwt.strategy";
 
 import * as bcrypt from "bcrypt";
@@ -17,7 +17,9 @@ export class AuthService {
     private configService: ConfigService
   ) {}
 
-  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+  async login(
+    loginDto: LoginDto
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const storedPins = await this.prisma.adminPin.findFirst();
 
     if (!storedPins) {
@@ -37,10 +39,7 @@ export class AuthService {
     );
     const refreshToken = await this.generateRefreshToken(storedPins.id);
 
-    return {
-      accessToken,
-      refreshToken
-    };
+    return { accessToken, refreshToken };
   }
 
   async refresh(refreshToken: string): Promise<RefreshResponseDto> {

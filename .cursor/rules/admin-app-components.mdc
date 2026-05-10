@@ -1,7 +1,7 @@
 ---
 description: Admin app — components, composition, types, shared UI, hooks, TanStack Query, infinite lists, naming, Fragment
 globs: admin-app/**/*.{tsx,ts}
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Admin app — components and data

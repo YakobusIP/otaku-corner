@@ -1,40 +1,19 @@
 import { ApiResponseError } from "@/types/api.type";
 
+import { queryClient } from "@/lib/query-client";
+
+import { AUTH_SESSION_QUERY_KEY } from "@/auth/auth-query-key";
 import axios, { AxiosError, AxiosInstance } from "axios";
 
 let accessToken: string | null = null;
-let refreshToken: string | null = null;
 let refreshTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-/** In-flight refresh promise; shared by concurrent 401s to avoid duplicate refresh calls. */
 let refreshPromise: Promise<string | null> | null = null;
+
+let ensureSessionPromise: Promise<boolean> | null = null;
 
 const REFRESH_BUFFER_SECONDS = 60;
 const AUTH_REFRESH_PATH = "/api/auth/refresh";
-const REFRESH_TOKEN_STORAGE_KEY = "refreshToken";
-
-function getStoredRefreshToken(): string | null {
-  try {
-    const token = localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
-    return token || null;
-  } catch {
-    return null;
-  }
-}
-
-function persistRefreshToken(token: string | null) {
-  try {
-    if (token) {
-      localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, token);
-    } else {
-      localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
-    }
-  } catch {
-    // Ignore storage failures; in-memory token still works.
-  }
-}
-
-refreshToken = getStoredRefreshToken();
 
 const interceptedAxios: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_AXIOS_BASE_URL,
@@ -68,13 +47,10 @@ function decodeJwtPayload(token: string): JwtPayload | null {
 }
 
 async function refreshAccessToken(): Promise<string | null> {
-  const activeRefreshToken = refreshToken ?? getStoredRefreshToken();
-  if (!activeRefreshToken) return null;
-  refreshToken = activeRefreshToken;
   try {
     const response = await axios.post<{ accessToken: string }>(
       `${import.meta.env.VITE_AXIOS_BASE_URL}/api/auth/refresh`,
-      { refreshToken: activeRefreshToken },
+      {},
       { withCredentials: true }
     );
     return response.data.accessToken;
@@ -104,12 +80,9 @@ function scheduleProactiveRefresh(token: string) {
     refreshTimeoutId = null;
     const newToken = await refreshAccessToken();
     if (newToken) {
-      accessToken = newToken;
-      interceptedAxios.defaults.headers.common["Authorization"] =
-        `Bearer ${newToken}`;
-      scheduleProactiveRefresh(newToken);
+      setAccessToken(newToken);
     } else {
-      clearAuth();
+      clearAuthAndLogoutServer();
     }
   }, delayMs);
 }
@@ -120,41 +93,70 @@ export const setAccessToken = (token: string | null) => {
     accessToken = token;
     interceptedAxios.defaults.headers.common["Authorization"] =
       `Bearer ${token}`;
+    scheduleProactiveRefresh(token);
   } else {
     accessToken = null;
     delete interceptedAxios.defaults.headers.common["Authorization"];
   }
 };
 
-export const setRefreshToken = (token: string | null) => {
-  refreshToken = token;
-  persistRefreshToken(token);
-};
-
-/**
- * Sets both access and refresh tokens and schedules proactive refresh.
- * Call this after login with the full auth response.
- */
-export const setAuthTokens = (
-  newAccessToken: string,
-  newRefreshToken?: string | null
-) => {
+export const setAuthTokens = (newAccessToken: string) => {
   setAccessToken(newAccessToken);
-  if (newRefreshToken) {
-    setRefreshToken(newRefreshToken);
-  }
-  scheduleProactiveRefresh(newAccessToken);
 };
 
-/**
- * Clears all auth state and cancels any pending refresh.
- */
-export const clearAuth = () => {
+export function ensureValidAccessToken(): Promise<boolean> {
+  if (!ensureSessionPromise) {
+    ensureSessionPromise = ensureValidAccessTokenImpl().finally(() => {
+      ensureSessionPromise = null;
+    });
+  }
+  return ensureSessionPromise;
+}
+
+async function ensureValidAccessTokenImpl(): Promise<boolean> {
+  if (accessToken) {
+    const payload = decodeJwtPayload(accessToken);
+    const exp = payload?.exp;
+    if (typeof exp === "number") {
+      const now = Math.floor(Date.now() / 1000);
+      const refreshAt = exp - REFRESH_BUFFER_SECONDS;
+      if (now < refreshAt) {
+        scheduleProactiveRefresh(accessToken);
+        return true;
+      }
+    }
+  }
+
+  const newToken = await refreshAccessToken();
+  if (!newToken) {
+    clearAuthAndLogoutServer();
+    return false;
+  }
+  setAccessToken(newToken);
+  return true;
+}
+
+export const clearClientAuth = () => {
   clearRefreshTimer();
   refreshPromise = null;
   accessToken = null;
-  setRefreshToken(null);
   delete interceptedAxios.defaults.headers.common["Authorization"];
+};
+
+export const clearAuthAndLogoutServer = () => {
+  clearClientAuth();
+  void axios
+    .post(
+      `${import.meta.env.VITE_AXIOS_BASE_URL}/api/auth/logout`,
+      {},
+      { withCredentials: true }
+    )
+    .catch(() => {})
+    .finally(() => {
+      void queryClient.invalidateQueries({
+        queryKey: AUTH_SESSION_QUERY_KEY
+      });
+    });
 };
 
 interceptedAxios.interceptors.request.use(
@@ -177,7 +179,7 @@ interceptedAxios.interceptors.response.use(
       return Promise.reject(error);
     }
     if (originalRequest._retry) {
-      clearAuth();
+      clearAuthAndLogoutServer();
       return Promise.reject(error);
     }
 
@@ -190,12 +192,7 @@ interceptedAxios.interceptors.response.use(
     const isRefreshRequest = url.includes(AUTH_REFRESH_PATH);
 
     if (isRefreshRequest) {
-      clearAuth();
-      return Promise.reject(error);
-    }
-
-    if (!refreshToken && !getStoredRefreshToken()) {
-      clearAuth();
+      clearAuthAndLogoutServer();
       return Promise.reject(error);
     }
 
@@ -208,18 +205,17 @@ interceptedAxios.interceptors.response.use(
     try {
       token = await refreshPromise;
       if (!token) {
-        clearAuth();
+        clearAuthAndLogoutServer();
         return Promise.reject(error);
       }
       originalRequest._retry = true;
       setAccessToken(token);
-      scheduleProactiveRefresh(token);
       if (originalRequest.headers) {
         originalRequest.headers["Authorization"] = `Bearer ${token}`;
       }
       return interceptedAxios(originalRequest);
     } catch {
-      clearAuth();
+      clearAuthAndLogoutServer();
       return Promise.reject(error);
     }
   }

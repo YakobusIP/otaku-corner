@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 import { useToast } from "@/hooks/useToast";
 
-import { clearAuth } from "@/lib/axios";
+import { clearClientAuth } from "@/lib/axios";
 import { cn } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,26 +22,23 @@ export default function LogoutButton({ fullWidth = false, className }: Props) {
   const navigate = useNavigate();
 
   const mutation = useMutation({
-    mutationFn: async () => {
-      const result = await authService.logout();
-      if (!result.success) throw new Error(result.error);
-      return result.data;
-    },
-    onSuccess: (data) => {
-      clearAuth();
+    mutationFn: () => authService.logout(),
+    onSettled: (result) => {
+      clearClientAuth();
       queryClient.clear();
       navigate("/", { replace: true });
-      toast.toast({
-        title: "All set!",
-        description: data?.message ?? "Logged out successfully"
-      });
-    },
-    onError: (error) => {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: error.message
-      });
+      if (result?.success) {
+        toast.toast({
+          title: "Signed out",
+          description: result.data.message || "Logged out successfully"
+        });
+      } else {
+        toast.toast({
+          title: "Signed out",
+          description:
+            "Your session was cleared on this device. The server could not be reached to clear the remote session."
+        });
+      }
     }
   });
 

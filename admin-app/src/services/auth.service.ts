@@ -8,7 +8,6 @@ const BASE_AUTH_URL = "/api/auth";
 
 type LoginResponse = {
   accessToken: string;
-  refreshToken?: string;
 };
 
 const createAuthService = () => {

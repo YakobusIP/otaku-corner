@@ -4,6 +4,9 @@ import { authService } from "@/services/auth.service";
 
 import { useToast } from "@/hooks/useToast";
 
+import { AUTH_SESSION_QUERY_KEY } from "@/auth/auth-query-key";
+
+import { queryClient } from "@/lib/query-client";
 import { setAuthTokens } from "@/lib/axios";
 
 import { useMutation } from "@tanstack/react-query";
@@ -24,7 +27,8 @@ export function useLogin() {
       return response.data;
     },
     onSuccess: (data) => {
-      setAuthTokens(data.accessToken, data.refreshToken ?? undefined);
+      setAuthTokens(data.accessToken);
+      queryClient.removeQueries({ queryKey: AUTH_SESSION_QUERY_KEY });
       navigate("/dashboard");
       toast.toast({
         title: "All set!",
