@@ -21,7 +21,7 @@ import {
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
 import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { Public } from "@/common/decorators/public.decorator";
-import { BulkDeleteDto, PaginationQueryDto } from "@/common/dto";
+import { BulkDeleteDto, EntityPaginationQueryDto } from "@/common/dto";
 
 import { AuthorsService } from "@/author/authors.service";
 import {
@@ -74,13 +74,20 @@ export class AuthorsController extends BaseCrudController<
     description: "Search by author name (case-insensitive)",
     example: "Action"
   })
+  @ApiQuery({
+    name: "connected_media",
+    required: false,
+    type: Boolean,
+    description:
+      "When true, each author includes connectedMediaCount (manga + light novel links)."
+  })
   @ApiResponse({
     status: 200,
     description: "Returns list of authors",
     type: PaginatedAuthorsResponseDto
   })
   async findAll(
-    @Query() paginationQuery: PaginationQueryDto
+    @Query() paginationQuery: EntityPaginationQueryDto
   ): Promise<PaginatedAuthorsResponseDto> {
     return this.baseFindAll(paginationQuery);
   }

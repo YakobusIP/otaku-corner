@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class StudioResponseDto {
   @ApiProperty({ description: "Studio ID", example: 1 })
@@ -21,4 +21,10 @@ export class StudioResponseDto {
     example: "2024-01-01T00:00:00Z"
   })
   updatedAt: Date;
+
+  @ApiPropertyOptional({
+    description:
+      "Total anime entries linked to this studio, when requested via connected_media"
+  })
+  connectedMediaCount?: number;
 }

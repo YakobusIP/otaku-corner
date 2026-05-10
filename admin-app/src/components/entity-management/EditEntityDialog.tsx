@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,33 +11,63 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-import { Loader2Icon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+import { Loader2Icon, PencilIcon } from "lucide-react";
 
 type Props = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   entityType: string;
   entityId: number;
   entity: string;
   editHandler: (id: number, entity: string) => void;
   isLoadingEditEntity: boolean;
+  triggerVariant?: "button" | "icon";
 };
 
 export default function EditEntityDialog({
+  open,
+  onOpenChange,
   entityType,
   entityId,
   entity,
   editHandler,
-  isLoadingEditEntity
+  isLoadingEditEntity,
+  triggerVariant = "button"
 }: Props) {
   const [entityState, setEntityState] = useState(entity);
 
+  useEffect(() => {
+    setEntityState(entity);
+  }, [entity]);
+
   return (
-    <Dialog>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        onOpenChange(next);
+        if (!next) setEntityState(entity);
+      }}
+    >
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="float-right">
-          Edit
-        </Button>
+        {triggerVariant === "icon" ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 shrink-0 border-border/60 bg-background/40"
+            aria-label={`Edit ${entityType}`}
+          >
+            <PencilIcon className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button variant="outline" size="sm" className="float-right">
+            Edit
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="max-w-[400px]">
+      <DialogContent className={cn("max-w-[400px]", "border-border/60")}>
         <DialogHeader>
           <DialogTitle>Edit {entityType}</DialogTitle>
         </DialogHeader>
@@ -49,9 +79,9 @@ export default function EditEntityDialog({
         <DialogFooter>
           <Button onClick={() => editHandler(entityId, entityState)}>
             {isLoadingEditEntity && (
-              <Loader2Icon className="w-4 h-4 animate-spin" />
+              <Loader2Icon className="h-4 w-4 animate-spin" />
             )}
-            Edit
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

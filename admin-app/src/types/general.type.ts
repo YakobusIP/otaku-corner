@@ -37,6 +37,7 @@ type FetchAllPagedOptions = {
   limit?: number;
   query?: string;
   includeIds?: number[];
+  connectedMedia?: boolean;
 };
 
 export type {

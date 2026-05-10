@@ -1,4 +1,11 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  useEffect,
+  useRef,
+  useState
+} from "react";
+
+import { motion } from "framer-motion";
 
 import { useMediaFilters } from "@/components/context/MediaFiltersContext";
 import SortDirection from "@/components/filter-sort-dropdowns/SortDirection";
@@ -14,12 +21,37 @@ import {
   SORT_ORDER
 } from "@/lib/enums";
 
+import { cn } from "@/lib/utils";
+
 import { SearchIcon } from "lucide-react";
 import { useDebounce } from "use-debounce";
 
 type Props = {
   totalCount?: number;
 };
+
+const PROGRESS_STATUS_KEYS = Object.keys(PROGRESS_STATUS) as ProgressStatusKey[];
+
+const MEDIA_TYPE_TABS: {
+  value: "all" | "anime" | "manga" | "lightNovel";
+  label: string;
+}[] = [
+  { value: "all", label: "All" },
+  { value: "anime", label: "Anime" },
+  { value: "manga", label: "Manga" },
+  { value: "lightNovel", label: "Light Novel" }
+];
+
+const slidingTabHighlightTransition = {
+  type: "spring" as const,
+  stiffness: 420,
+  damping: 34
+};
+
+const mediaTypeTabTriggerClass =
+  "relative z-10 flex-1 rounded-sm @tablet:flex-initial @desktop:flex-initial data-[state=active]:bg-transparent data-[state=active]:shadow-none";
+
+const activeProgressButtonClass = "text-background hover:!text-background";
 
 export default function MediaHeader({ totalCount }: Props) {
   const { state, setState } = useMediaFilters();
@@ -71,19 +103,30 @@ export default function MediaHeader({ totalCount }: Props) {
             })
           }
         >
-          <TabsList className="flex w-full @tablet:inline-flex @tablet:w-auto @tablet:max-w-full @desktop:inline-flex @desktop:w-auto">
-            <TabsTrigger className="flex-1 @tablet:flex-initial @desktop:flex-initial" value="all">
-              All
-            </TabsTrigger>
-            <TabsTrigger className="flex-1 @tablet:flex-initial @desktop:flex-initial" value="anime">
-              Anime
-            </TabsTrigger>
-            <TabsTrigger className="flex-1 @tablet:flex-initial @desktop:flex-initial" value="manga">
-              Manga
-            </TabsTrigger>
-            <TabsTrigger className="flex-1 @tablet:flex-initial @desktop:flex-initial" value="lightNovel">
-              Light Novel
-            </TabsTrigger>
+          <TabsList
+            className="relative flex w-full @tablet:inline-flex @tablet:w-auto @tablet:max-w-full @desktop:inline-flex @desktop:w-auto"
+          >
+            {MEDIA_TYPE_TABS.map(({ value, label }) => {
+              const isActive = state.mediaType === value;
+
+              return (
+                <TabsTrigger
+                  key={value}
+                  value={value}
+                  className={mediaTypeTabTriggerClass}
+                >
+                  {isActive ? (
+                    <motion.span
+                      layoutId="media-type-tab-highlight"
+                      aria-hidden
+                      className="pointer-events-none absolute top-0.5 bottom-0.5 left-0 right-0 z-0 rounded-sm bg-background shadow-xs"
+                      transition={slidingTabHighlightTransition}
+                    />
+                  ) : null}
+                  <span className="relative z-10">{label}</span>
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
         </Tabs>
 
@@ -106,36 +149,63 @@ export default function MediaHeader({ totalCount }: Props) {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto">
-        <Button
-          size="sm"
-          variant={state.progressStatus ? "ghost" : "default"}
-          onClick={() => setState({ page: 1, progressStatus: undefined })}
-          className="whitespace-nowrap"
-        >
-          All
-          {!state.progressStatus && totalCount !== undefined ? (
-            <Badge variant="secondary" className="ml-2">
-              {totalCount}
-            </Badge>
-          ) : null}
-        </Button>
-        {(Object.keys(PROGRESS_STATUS) as ProgressStatusKey[]).map((key) => (
+      <div className="overflow-x-auto">
+        <div className="relative inline-flex min-w-min items-center gap-2">
           <Button
-            key={key}
             size="sm"
-            variant={state.progressStatus === key ? "default" : "ghost"}
-            onClick={() => setState({ page: 1, progressStatus: key })}
-            className="whitespace-nowrap"
+            variant="ghost"
+            onClick={() => setState({ page: 1, progressStatus: undefined })}
+            className={cn(
+              "relative z-10 whitespace-nowrap",
+              !state.progressStatus && activeProgressButtonClass
+            )}
           >
-            {PROGRESS_STATUS[key]}
-            {state.progressStatus === key && totalCount !== undefined ? (
-              <Badge variant="secondary" className="ml-2">
+            {!state.progressStatus ? (
+              <motion.span
+                layoutId="progress-status-highlight"
+                aria-hidden
+                className="pointer-events-none absolute inset-0 z-0 rounded-md bg-primary shadow-xs"
+                transition={slidingTabHighlightTransition}
+              />
+            ) : null}
+            <span className="relative z-10">All</span>
+            {!state.progressStatus && totalCount !== undefined ? (
+              <Badge variant="secondary" className="relative z-10 ml-2">
                 {totalCount}
               </Badge>
             ) : null}
           </Button>
-        ))}
+          {PROGRESS_STATUS_KEYS.map((key) => {
+            const isActive = state.progressStatus === key;
+            return (
+              <Button
+                key={key}
+                size="sm"
+                variant="ghost"
+                onClick={() => setState({ page: 1, progressStatus: key })}
+                className={cn(
+                  "relative z-10 whitespace-nowrap",
+                  isActive && activeProgressButtonClass
+                )}
+              >
+                {isActive ? (
+                  <motion.span
+                    layoutId="progress-status-highlight"
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 z-0 rounded-md bg-primary shadow-xs"
+                    transition={slidingTabHighlightTransition}
+                  />
+                ) : null}
+                <span className="relative z-10">{PROGRESS_STATUS[key]}</span>
+                {isActive && totalCount !== undefined ? (
+                  <Badge variant="secondary" className="relative z-10 ml-2">
+                    {totalCount}
+                  </Badge>
+                ) : null}
+              </Button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

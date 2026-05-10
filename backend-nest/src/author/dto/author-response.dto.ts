@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class AuthorResponseDto {
   @ApiProperty({ description: "Author ID", example: 1 })
@@ -21,4 +21,10 @@ export class AuthorResponseDto {
     example: "2024-01-01T00:00:00Z"
   })
   updatedAt: Date;
+
+  @ApiPropertyOptional({
+    description:
+      "Total manga + light novel entries linked to this author, when requested via connected_media"
+  })
+  connectedMediaCount?: number;
 }

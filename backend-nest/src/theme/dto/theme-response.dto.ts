@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class ThemeResponseDto {
   @ApiProperty({ description: "Theme ID", example: 1 })
@@ -21,4 +21,10 @@ export class ThemeResponseDto {
     example: "2024-01-01T00:00:00Z"
   })
   updatedAt: Date;
+
+  @ApiPropertyOptional({
+    description:
+      "Total media entries linked to this theme (anime + manga + light novel), when requested via connected_media"
+  })
+  connectedMediaCount?: number;
 }

@@ -3,11 +3,14 @@ import { type SetStateAction, useCallback, useState } from "react";
 import AddAnimeDialog from "@/components/add-media/add-anime/AddAnimeDialog";
 import AddLightNovelDialog from "@/components/add-media/add-lightnovel/AddLightNovelDialog";
 import AddMangaDialog from "@/components/add-media/add-manga/AddMangaDialog";
+import MediaEntityManagementModal from "@/components/entity-management/MediaEntityManagementModal";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
@@ -18,7 +21,7 @@ import {
   BookOpenIcon,
   ChevronDownIcon,
   FileTextIcon,
-  PlusIcon,
+  SettingsIcon,
   TvIcon
 } from "lucide-react";
 
@@ -33,6 +36,7 @@ export default function AddMediaDropdown() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeDialog, setActiveDialog] = useState<DialogType | null>(null);
+  const [entityModalOpen, setEntityModalOpen] = useState(false);
 
   const openDialogFromMenu = function openDialogForMenu(dialog: DialogType) {
     return function handleMenuSelect(e: Event) {
@@ -40,6 +44,12 @@ export default function AddMediaDropdown() {
       setMenuOpen(false);
       setActiveDialog(dialog);
     };
+  };
+
+  const openEntityModal = (e: Event) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    setEntityModalOpen(true);
   };
 
   const makeDialogSetter = function makeDialogSetterFor(dialog: DialogType) {
@@ -59,11 +69,11 @@ export default function AddMediaDropdown() {
           <Button
             size="sm"
             variant="ghost"
-            aria-label="Add media"
+            aria-label="Manage media"
             className="w-9 shrink-0 gap-2 border border-white/15 bg-linear-to-r from-[#4F8CFF] via-[#7C6CF6] to-[#A855F7] px-0 text-white shadow-md transition-[filter,box-shadow] hover:bg-linear-to-r hover:from-[#4F8CFF] hover:via-[#7C6CF6] hover:to-[#A855F7] hover:text-white hover:brightness-110 focus-visible:ring-white/35 active:brightness-95 md:w-auto md:px-3"
           >
-            <PlusIcon className="h-4 w-4" />
-            <span className="hidden md:inline">Add Media</span>
+            <SettingsIcon className="h-4 w-4" />
+            <span className="hidden md:inline">Manage</span>
             <ChevronDownIcon className="hidden h-4 w-4 opacity-80 md:inline-block" />
           </Button>
         </DropdownMenuTrigger>
@@ -71,6 +81,9 @@ export default function AddMediaDropdown() {
           align="end"
           className="min-w-50 border-border/60 bg-popover/95 backdrop-blur-md"
         >
+          <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+            Media
+          </DropdownMenuLabel>
           <DropdownMenuItem
             className="gap-2"
             onSelect={openDialogFromMenu("anime")}
@@ -92,6 +105,16 @@ export default function AddMediaDropdown() {
             <FileTextIcon className="h-4 w-4" />
             Add Light Novel
           </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+            Management
+          </DropdownMenuLabel>
+          <DropdownMenuItem className="gap-2" onSelect={openEntityModal}>
+            <SettingsIcon className="h-4 w-4" />
+            Entity Management
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -109,6 +132,12 @@ export default function AddMediaDropdown() {
         openDialog={activeDialog === "lightNovel"}
         setOpenDialog={makeDialogSetter("lightNovel")}
         resetParent={resetLists}
+      />
+
+      <MediaEntityManagementModal
+        open={entityModalOpen}
+        onOpenChange={setEntityModalOpen}
+        resetMediaQueries={resetLists}
       />
     </>
   );

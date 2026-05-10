@@ -24,6 +24,8 @@ const createEntityService = (baseUrl: string) => {
         page: opts?.page,
         limit: opts?.limit,
         query: opts?.query,
+        connected_media:
+          opts?.connectedMedia === true ? true : undefined,
         include_ids: opts?.includeIds?.length
           ? opts.includeIds.join(",")
           : undefined
@@ -83,6 +85,8 @@ const createEntityService = (baseUrl: string) => {
     deleteEntity
   };
 };
+
+export type EntityCrudService = ReturnType<typeof createEntityService>;
 
 export const genreService = createEntityService(BASE_GENRE_URL);
 export const studioService = createEntityService(BASE_STUDIO_URL);

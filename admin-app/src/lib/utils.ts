@@ -1,9 +1,9 @@
+import type { MetadataResponse } from "@/types/api.type";
+import type { PaginatedBody, PaginatedListPage } from "@/types/general.type";
+
 import { type ClassValue, clsx } from "clsx";
 import slugify from "slugify";
 import { twMerge } from "tailwind-merge";
-
-import type { MetadataResponse } from "@/types/api.type";
-import type { PaginatedBody, PaginatedListPage } from "@/types/general.type";
 
 export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
@@ -64,3 +64,42 @@ export const mapPaginatedBody = <T>(
     itemCount: body.total
   } satisfies MetadataResponse
 });
+
+export type PaginationPageSlot = number | "ellipsis";
+
+const PAGINATION_SLOT_FULL_LIST_MAX = 7;
+const PAGINATION_SLOT_NEIGHBOR_RADIUS = 1;
+
+export const buildPaginationPageSlots = (
+  currentPage: number,
+  totalPages: number
+): PaginationPageSlot[] => {
+  if (totalPages <= 0) return [];
+  if (totalPages <= PAGINATION_SLOT_FULL_LIST_MAX) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const neighbors = PAGINATION_SLOT_NEIGHBOR_RADIUS;
+  const boundaryPages = new Set<number>([1, totalPages]);
+  for (
+    let page = currentPage - neighbors;
+    page <= currentPage + neighbors;
+    page++
+  ) {
+    if (page >= 1 && page <= totalPages) boundaryPages.add(page);
+  }
+
+  const sortedPages = [...boundaryPages].sort((a, b) => a - b);
+  const slots: PaginationPageSlot[] = [];
+  let previousPage = 0;
+
+  for (const page of sortedPages) {
+    if (previousPage > 0 && page - previousPage > 1) {
+      slots.push("ellipsis");
+    }
+    slots.push(page);
+    previousPage = page;
+  }
+
+  return slots;
+};

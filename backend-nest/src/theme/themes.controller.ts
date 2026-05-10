@@ -21,7 +21,7 @@ import {
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
 import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { Public } from "@/common/decorators/public.decorator";
-import { BulkDeleteDto, PaginationQueryDto } from "@/common/dto";
+import { BulkDeleteDto, EntityPaginationQueryDto } from "@/common/dto";
 
 import {
   CreateThemeDto,
@@ -74,13 +74,20 @@ export class ThemesController extends BaseCrudController<
     description: "Search by theme name (case-insensitive)",
     example: "Action"
   })
+  @ApiQuery({
+    name: "connected_media",
+    required: false,
+    type: Boolean,
+    description:
+      "When true, each theme includes connectedMediaCount (anime + manga + light novel links)."
+  })
   @ApiResponse({
     status: 200,
     description: "Returns list of themes",
     type: PaginatedThemesResponseDto
   })
   async findAll(
-    @Query() paginationQuery: PaginationQueryDto
+    @Query() paginationQuery: EntityPaginationQueryDto
   ): Promise<PaginatedThemesResponseDto> {
     return this.baseFindAll(paginationQuery);
   }
