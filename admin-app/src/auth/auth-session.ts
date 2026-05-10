@@ -2,7 +2,7 @@ import { authService } from "@/services/auth.service";
 
 import { ensureValidAccessToken } from "@/lib/axios";
 
-export async function fetchAuthSession(): Promise<void> {
+export async function fetchAuthSession(): Promise<boolean> {
   const sessionOk = await ensureValidAccessToken();
   if (!sessionOk) {
     throw new Error("Unauthorized");
@@ -11,4 +11,5 @@ export async function fetchAuthSession(): Promise<void> {
   if (!response.success) {
     throw new Error("Unauthorized");
   }
+  return true;
 }
