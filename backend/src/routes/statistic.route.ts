@@ -27,11 +27,6 @@ class StatisticRouter {
       this.statisticController.getMediaConsumption
     );
     this.router.get(
-      "/media-progress",
-      authMiddleware,
-      this.statisticController.getMediaProgress
-    );
-    this.router.get(
       "/genre-consumption",
       authMiddleware,
       this.statisticController.getGenreConsumption

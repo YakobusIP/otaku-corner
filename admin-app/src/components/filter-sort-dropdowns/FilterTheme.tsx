@@ -1,9 +1,10 @@
 import { themeService } from "@/services/entity.service";
-import { entityFilterIncludeIds } from "@/lib/utils";
 
 import FilterPopover from "@/components/filter-sort-dropdowns/FilterPopover";
 
 import { ThemeEntity } from "@/types/entity.type";
+
+import { entityFilterIncludeIds } from "@/lib/utils";
 
 type Props = {
   selectedTheme?: number;

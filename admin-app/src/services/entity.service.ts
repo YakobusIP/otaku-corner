@@ -1,12 +1,13 @@
-import interceptedAxios from "@/lib/axios";
-import { mapPaginatedBody } from "@/lib/utils";
-import { err, ok } from "@/lib/service-result";
 import type {
   FetchAllPagedOptions,
   PaginatedBody,
   PaginatedListPage,
   ServiceResult
 } from "@/types/general.type";
+
+import interceptedAxios from "@/lib/axios";
+import { err, ok } from "@/lib/service-result";
+import { mapPaginatedBody } from "@/lib/utils";
 
 const BASE_GENRE_URL = "/api/genres";
 const BASE_STUDIO_URL = "/api/studios";
@@ -24,8 +25,7 @@ const createEntityService = (baseUrl: string) => {
         page: opts?.page,
         limit: opts?.limit,
         query: opts?.query,
-        connected_media:
-          opts?.connectedMedia === true ? true : undefined,
+        connected_media: opts?.connectedMedia === true ? true : undefined,
         include_ids: opts?.includeIds?.length
           ? opts.includeIds.join(",")
           : undefined

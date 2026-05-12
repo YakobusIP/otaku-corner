@@ -1,13 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
-import { Type } from "class-transformer";
-import { IsIn, IsInt, IsString, Max, Min, ValidateIf } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import {
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  ValidateIf
+} from "class-validator";
 
 const ALLOWED_VIEWS = ["monthly", "yearly"] as const;
-const ALLOWED_MEDIA = ["anime", "manga", "lightNovel"] as const;
 
 export type StatisticsViewValue = (typeof ALLOWED_VIEWS)[number];
-export type MediaValue = (typeof ALLOWED_MEDIA)[number];
 
 export class MediaConsumptionQueryDto {
   @ApiProperty({
@@ -29,12 +36,56 @@ export class MediaConsumptionQueryDto {
   year?: number;
 }
 
-export class MediaProgressQueryDto {
-  @ApiProperty({
-    enum: ALLOWED_MEDIA,
-    description: "Media type to get progress statistics for"
+export class DashboardYearQueryDto {
+  @ApiPropertyOptional({
+    description:
+      "Calendar year for dashboard KPIs and year-scoped sections (omit when allTime is true)",
+    minimum: 1970,
+    maximum: 2100
   })
-  @IsString()
-  @IsIn(ALLOWED_MEDIA)
-  media: MediaValue;
+  @ValidateIf((o: DashboardYearQueryDto) => !o.allTime)
+  @IsInt()
+  @Min(1970)
+  @Max(2100)
+  @Type(() => Number)
+  year?: number;
+
+  @ApiPropertyOptional({
+    description:
+      "When true, returns current snapshot with no year-over-year comparison"
+  })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === "true")
+  @IsBoolean()
+  allTime?: boolean;
+}
+
+export class RecentReviewsQueryDto {
+  @ApiPropertyOptional({
+    description: "Maximum number of recent reviews to return",
+    minimum: 1,
+    maximum: 50,
+    default: 10
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  @Type(() => Number)
+  limit?: number;
+}
+
+export class TasteProfileQueryDto {
+  @ApiPropertyOptional({
+    description: "Rows per taste tab (genres, themes, studios, authors)",
+    minimum: 1,
+    maximum: 30,
+    default: 10
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(30)
+  @Type(() => Number)
+  limit?: number;
 }

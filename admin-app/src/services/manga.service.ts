@@ -1,7 +1,10 @@
-import {
-  ApiResponse,
-  MessageResponse
-} from "@/types/api.type";
+import { ApiResponse, MessageResponse } from "@/types/api.type";
+import type {
+  FetchAllPagedOptions,
+  PaginatedBody,
+  PaginatedListPage,
+  ServiceResult
+} from "@/types/general.type";
 import type {
   MangaCreateRequest,
   MangaDetail,
@@ -9,17 +12,11 @@ import type {
   MangaList,
   MangaReviewRequest
 } from "@/types/manga.type";
-import type {
-  PaginatedBody,
-  PaginatedListPage,
-  FetchAllPagedOptions,
-  ServiceResult
-} from "@/types/general.type";
 
 import interceptedAxios from "@/lib/axios";
-import { mapPaginatedBody } from "@/lib/utils";
-import { ok, err } from "@/lib/service-result";
 import { PROGRESS_STATUS } from "@/lib/enums";
+import { err, ok } from "@/lib/service-result";
+import { mapPaginatedBody } from "@/lib/utils";
 
 const BASE_MANGA_URL = "/api/mangas";
 

@@ -70,9 +70,7 @@ export default function Login() {
               </Button>
             )}
             <Button onClick={handlePinInput} className="w-full">
-              {isPending && (
-                <Loader2Icon className="w-4 h-4 animate-spin" />
-              )}
+              {isPending && <Loader2Icon className="w-4 h-4 animate-spin" />}
               {inputStep === 1 ? "Next" : "Submit"}
             </Button>
           </CardFooter>

@@ -1,6 +1,11 @@
 import { useState } from "react";
 
-import { motion } from "framer-motion";
+import {
+  authorService,
+  genreService,
+  studioService,
+  themeService
+} from "@/services/entity.service";
 
 import EntityTabManagement from "@/components/entity-management/EntityTabManagement";
 import { getMediaEntityTableColumns } from "@/components/entity-management/EntityTableColumns";
@@ -14,13 +19,6 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
-  authorService,
-  genreService,
-  studioService,
-  themeService
-} from "@/services/entity.service";
-
-import {
   AuthorWithMediaCount,
   GenreWithMediaCount,
   StudioWithMediaCount,
@@ -28,8 +26,9 @@ import {
 } from "@/types/entity.type";
 
 import { entityKeys } from "@/lib/query-keys";
-
 import { cn } from "@/lib/utils";
+
+import { motion } from "framer-motion";
 
 type Props = {
   open: boolean;

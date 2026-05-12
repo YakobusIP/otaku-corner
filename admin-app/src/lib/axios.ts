@@ -2,7 +2,7 @@ import { ApiResponseError } from "@/types/api.type";
 
 import { queryClient } from "@/lib/query-client";
 
-import { AUTH_SESSION_QUERY_KEY } from "@/auth/auth-query-key";
+import { AUTH_SESSION_QUERY_KEY } from "@/auth";
 import axios, { AxiosError, AxiosInstance } from "axios";
 
 let accessToken: string | null = null;
@@ -87,7 +87,7 @@ function scheduleProactiveRefresh(token: string) {
   }, delayMs);
 }
 
-export const setAccessToken = (token: string | null) => {
+const setAccessToken = (token: string | null) => {
   clearRefreshTimer();
   if (token) {
     accessToken = token;
@@ -143,7 +143,7 @@ export const clearClientAuth = () => {
   delete interceptedAxios.defaults.headers.common["Authorization"];
 };
 
-export const clearAuthAndLogoutServer = () => {
+const clearAuthAndLogoutServer = () => {
   clearClientAuth();
   void axios
     .post(

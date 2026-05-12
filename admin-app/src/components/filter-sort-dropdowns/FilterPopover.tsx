@@ -1,9 +1,9 @@
 import {
+  type ChangeEvent,
   useCallback,
   useEffect,
   useMemo,
-  useState,
-  type ChangeEvent
+  useState
 } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -112,11 +112,7 @@ export default function FilterPopover<T, K extends string | number>({
     isFetching: queryFetching
   } = useQuery({
     ...(query ?? ({} as QueryConfig<T>)),
-    enabled:
-      Boolean(query) &&
-      !isInfinite &&
-      isOpen &&
-      (query?.enabled ?? true)
+    enabled: Boolean(query) && !isInfinite && isOpen && (query?.enabled ?? true)
   }) as {
     data?: T[];
     error: Error | null;
@@ -232,10 +228,7 @@ export default function FilterPopover<T, K extends string | number>({
   const listLoadingFirst =
     isOpen &&
     ((isInfinite && infinitePending && !flattened.length) ||
-      (!isInfinite &&
-        Boolean(query) &&
-        queryPending &&
-        data === undefined));
+      (!isInfinite && Boolean(query) && queryPending && data === undefined));
   const listEmpty =
     (isInfinite &&
       isOpen &&

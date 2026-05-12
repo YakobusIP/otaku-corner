@@ -1,6 +1,5 @@
 import { memo, useState } from "react";
 
-import type { StatusCheck } from "@/types/status-check.type";
 import StatusCheckRows from "@/components/media/StatusCheckRows";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,8 +10,10 @@ import {
 } from "@/components/ui/collapsible";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
-import { ProgressStatusKey } from "@/lib/enums";
 import { MediaType } from "@/types/general.type";
+import type { StatusCheck } from "@/types/status-check.type";
+
+import { ProgressStatusKey } from "@/lib/enums";
 
 import { ChevronDownIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { Link } from "react-router-dom";

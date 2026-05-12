@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
 import { useMediaMalDuplicate } from "@/hooks/useMediaMalDuplicate";
 
 import type { MediaType } from "@/types/general.type";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
 
@@ -84,7 +84,9 @@ export default function SelectedRow({
             className="h-18 w-12 shrink-0 rounded object-cover"
           />
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold leading-tight">{titlePrimary}</p>
+            <p className="truncate font-semibold leading-tight">
+              {titlePrimary}
+            </p>
             <p className="truncate text-xs text-muted-foreground">
               {titleSecondary}
             </p>

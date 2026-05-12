@@ -54,13 +54,7 @@ export function useEntityTabManagement<T extends { id: number }>({
   }, [debouncedSearch]);
 
   const listQuery = useQuery({
-    queryKey: [
-      ...entityQueryKey,
-      "tabList",
-      PAGE_SIZE,
-      page,
-      debouncedSearch
-    ],
+    queryKey: [...entityQueryKey, "tabList", PAGE_SIZE, page, debouncedSearch],
     enabled,
     queryFn: async (): Promise<PaginatedListPage<T>> => {
       const response = await service.fetchAll<T>({

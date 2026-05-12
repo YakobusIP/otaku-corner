@@ -17,18 +17,6 @@ type MediaConsumption = {
   lightNovelCount: number;
 };
 
-type RawMediaProgressData = {
-  progressStatus: ProgressStatus;
-  _count: {
-    progressStatus: number;
-  };
-};
-
-type MediaProgressMap = {
-  status: string;
-  count: number;
-};
-
 type GenreConsumption = {
   name: string;
   animeCount: number;
@@ -214,56 +202,6 @@ export class StatisticService {
       }
 
       return data;
-    } catch (error) {
-      throw new InternalServerError((error as Error).message);
-    }
-  };
-
-  generateMediaProgress = async (media: "anime" | "manga" | "lightNovel") => {
-    try {
-      const allProgressStatus = Object.values(ProgressStatus);
-      const progressMap = new Map<string, MediaProgressMap>();
-
-      allProgressStatus.forEach((status) => {
-        progressMap.set(status, {
-          status,
-          count: 0
-        });
-      });
-
-      const updateProgressMap = (rawData: RawMediaProgressData[]) => {
-        rawData.forEach((item) => {
-          const status = item.progressStatus;
-          const count = item._count.progressStatus;
-
-          const currentData = progressMap.get(status)!;
-          currentData.count = count;
-        });
-      };
-
-      if (media === "anime") {
-        const animeRaw = await prisma.animeReview.groupBy({
-          by: ["progressStatus"],
-          _count: { progressStatus: true }
-        });
-        updateProgressMap(animeRaw);
-      } else if (media === "manga") {
-        const mangaRaw = await prisma.mangaReview.groupBy({
-          by: ["progressStatus"],
-          _count: { progressStatus: true }
-        });
-        updateProgressMap(mangaRaw);
-      } else if (media === "lightNovel") {
-        const lightNovelRaw = await prisma.lightNovelReview.groupBy({
-          by: ["progressStatus"],
-          _count: { progressStatus: true }
-        });
-        updateProgressMap(lightNovelRaw);
-      }
-
-      const result = Array.from(progressMap.values());
-
-      return result;
     } catch (error) {
       throw new InternalServerError((error as Error).message);
     }

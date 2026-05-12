@@ -1,10 +1,11 @@
+import MetaRow from "@/components/add-media/MetaRow";
+import { Badge } from "@/components/ui/badge";
+
 import {
   displayYearFromPublished,
   formatPublished,
   posterUrl
 } from "@/lib/media-dialog-helpers";
-import MetaRow from "@/components/add-media/MetaRow";
-import { Badge } from "@/components/ui/badge";
 
 import type { Manga } from "@tutkli/jikan-ts";
 import type { LucideIcon } from "lucide-react";

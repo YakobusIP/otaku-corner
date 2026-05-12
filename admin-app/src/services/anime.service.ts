@@ -5,22 +5,19 @@ import {
   AnimeList,
   AnimeReviewRequest
 } from "@/types/anime.type";
-import {
-  ApiResponse,
-  MessageResponse
-} from "@/types/api.type";
+import { ApiResponse, MessageResponse } from "@/types/api.type";
 import type {
+  FetchAllPagedOptions,
   PaginatedBody,
   PaginatedListPage,
-  FetchAllPagedOptions,
   ServiceResult
 } from "@/types/general.type";
 import { StatusFilter } from "@/types/statistic.type";
 
 import interceptedAxios from "@/lib/axios";
-import { mapPaginatedBody } from "@/lib/utils";
-import { ok, err } from "@/lib/service-result";
 import { PROGRESS_STATUS } from "@/lib/enums";
+import { err, ok } from "@/lib/service-result";
+import { mapPaginatedBody } from "@/lib/utils";
 
 const BASE_ANIME_URL = "/api/animes";
 

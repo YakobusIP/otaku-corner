@@ -1,9 +1,9 @@
 import { MessageResponse } from "@/types/api.type";
-import { UploadImage } from "@/types/upload.type";
 import type { ServiceResult } from "@/types/general.type";
+import { UploadImage } from "@/types/upload.type";
 
 import interceptedAxios from "@/lib/axios";
-import { ok, err } from "@/lib/service-result";
+import { err, ok } from "@/lib/service-result";
 
 const BASE_UPLOAD_URL = "/api/upload";
 
@@ -34,7 +34,9 @@ const createUploadService = () => {
     }
   };
 
-  const remove = async (id: string): Promise<ServiceResult<MessageResponse>> => {
+  const remove = async (
+    id: string
+  ): Promise<ServiceResult<MessageResponse>> => {
     try {
       const response = await interceptedAxios.delete<MessageResponse>(
         `${BASE_UPLOAD_URL}/${id}`

@@ -1,12 +1,14 @@
-import { Get, Query } from "@nestjs/common";
+import { BadRequestException, Get, Query } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 
 import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { Public } from "@/common/decorators/public.decorator";
 
 import {
+  DashboardYearQueryDto,
   MediaConsumptionQueryDto,
-  MediaProgressQueryDto
+  RecentReviewsQueryDto,
+  TasteProfileQueryDto
 } from "@/statistic/dto";
 import { StatisticsView } from "@/statistic/enums/statistics-view.enum";
 import { StatisticService } from "@/statistic/statistic.service";
@@ -32,45 +34,63 @@ export class StatisticController {
     );
   }
 
-  @Get("media-progress")
-  @ApiOperation({ summary: "Get media progress statistics" })
-  @ApiResponse({ status: 200, description: "Media progress data retrieved" })
-  getMediaProgress(@Query() query: MediaProgressQueryDto) {
-    return this.statisticService.getMediaProgress(query.media);
+  @Get("dashboard-kpis")
+  @ApiOperation({ summary: "Dashboard headline KPIs with YoY vs prior year" })
+  @ApiResponse({ status: 200, description: "Dashboard KPIs retrieved" })
+  getDashboardKpis(@Query() query: DashboardYearQueryDto) {
+    if (query.allTime) {
+      return this.statisticService.getDashboardKpisAllTime();
+    }
+    if (query.year === undefined || query.year === null) {
+      throw new BadRequestException(
+        "year is required when allTime is not true"
+      );
+    }
+    return this.statisticService.getDashboardKpis(query.year);
   }
 
-  @Get("genre-consumption")
-  @ApiOperation({ summary: "Get top genre consumption statistics" })
-  @ApiResponse({ status: 200, description: "Genre consumption data retrieved" })
-  getGenreConsumption() {
-    return this.statisticService.getGenreConsumption();
-  }
-
-  @Get("studio-consumption")
-  @ApiOperation({ summary: "Get top studio consumption statistics" })
-  @ApiResponse({
-    status: 200,
-    description: "Studio consumption data retrieved"
+  @Get("top-rated")
+  @ApiOperation({
+    summary:
+      "Highest personal score per media type among items consumed in the calendar year (anime/manga: review consumedAt; light novel: any volume consumedAt)"
   })
-  getStudioConsumption() {
-    return this.statisticService.getStudioConsumption();
+  @ApiResponse({ status: 200, description: "Top rated items retrieved" })
+  getTopRatedThisYear(@Query() query: DashboardYearQueryDto) {
+    if (query.allTime) {
+      return this.statisticService.getTopRatedAllTime();
+    }
+    if (query.year === undefined || query.year === null) {
+      throw new BadRequestException(
+        "year is required when allTime is not true"
+      );
+    }
+    return this.statisticService.getTopRatedThisYear(query.year);
   }
 
-  @Get("theme-consumption")
-  @ApiOperation({ summary: "Get top theme consumption statistics" })
-  @ApiResponse({ status: 200, description: "Theme consumption data retrieved" })
-  getThemeConsumption() {
-    return this.statisticService.getThemeConsumption();
-  }
-
-  @Get("author-consumption")
-  @ApiOperation({ summary: "Get top author consumption statistics" })
-  @ApiResponse({
-    status: 200,
-    description: "Author consumption data retrieved"
+  @Get("library-health")
+  @ApiOperation({
+    summary: "Library counts by progress status across all media types"
   })
-  getAuthorConsumption() {
-    return this.statisticService.getAuthorConsumption();
+  @ApiResponse({ status: 200, description: "Library health retrieved" })
+  getLibraryHealth() {
+    return this.statisticService.getLibraryHealth();
+  }
+
+  @Get("recent-reviews")
+  @ApiOperation({ summary: "Most recently updated reviews across media types" })
+  @ApiResponse({ status: 200, description: "Recent reviews retrieved" })
+  getRecentReviews(@Query() query: RecentReviewsQueryDto) {
+    return this.statisticService.getRecentReviews(query.limit ?? 10);
+  }
+
+  @Get("taste-profile")
+  @ApiOperation({
+    summary:
+      "Top genres, themes, studios, authors; percentage is share of the full library (not only the returned rows)"
+  })
+  @ApiResponse({ status: 200, description: "Taste profile retrieved" })
+  getTasteProfile(@Query() query: TasteProfileQueryDto) {
+    return this.statisticService.getTasteProfile(query.limit ?? 10);
   }
 
   @Public()

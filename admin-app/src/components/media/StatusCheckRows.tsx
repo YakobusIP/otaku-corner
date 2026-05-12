@@ -1,5 +1,6 @@
-import type { StatusCheck } from "@/types/status-check.type";
 import { StatusProgressBar } from "@/components/ui/status-progress-bar";
+
+import type { StatusCheck } from "@/types/status-check.type";
 
 import { cn } from "@/lib/utils";
 

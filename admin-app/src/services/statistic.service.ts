@@ -1,17 +1,16 @@
-import {
-  AllTimeStatistic,
-  AuthorConsumption,
-  GenreConsumption,
-  MediaConsumption,
-  MediaProgress,
-  StudioConsumption,
-  ThemeConsumption
-} from "@/types/statistic.type";
 import type { ServiceResult } from "@/types/general.type";
+import {
+  DashboardKpis,
+  LibraryHealth,
+  MediaConsumption,
+  RecentReviewItem,
+  TasteProfile,
+  TopRatedThisYear
+} from "@/types/statistic.type";
 
 import interceptedAxios from "@/lib/axios";
-import { ok, err } from "@/lib/service-result";
 import { STATISTICS_VIEW } from "@/lib/enums";
+import { err, ok } from "@/lib/service-result";
 
 const BASE_STATISTIC_URL = "/api/statistic";
 
@@ -48,13 +47,15 @@ const createStatisticService = () => {
     }
   };
 
-  const fetchMediaProgress = async (
-    media: "anime" | "manga" | "lightNovel"
-  ): Promise<ServiceResult<MediaProgress[]>> => {
+  const fetchDashboardKpis = async (
+    yearScope: number | "all"
+  ): Promise<ServiceResult<DashboardKpis>> => {
     try {
-      const response = await interceptedAxios.get<MediaProgress[]>(
-        `${BASE_STATISTIC_URL}/media-progress`,
-        { params: { media } }
+      const params =
+        yearScope === "all" ? { allTime: true } : { year: yearScope };
+      const response = await interceptedAxios.get<DashboardKpis>(
+        `${BASE_STATISTIC_URL}/dashboard-kpis`,
+        { params }
       );
       return ok(response.data);
     } catch (error) {
@@ -62,12 +63,15 @@ const createStatisticService = () => {
     }
   };
 
-  const fetchGenreConsumption = async (): Promise<
-    ServiceResult<GenreConsumption[]>
-  > => {
+  const fetchTopRatedThisYear = async (
+    yearScope: number | "all"
+  ): Promise<ServiceResult<TopRatedThisYear>> => {
     try {
-      const response = await interceptedAxios.get<GenreConsumption[]>(
-        `${BASE_STATISTIC_URL}/genre-consumption`
+      const params =
+        yearScope === "all" ? { allTime: true } : { year: yearScope };
+      const response = await interceptedAxios.get<TopRatedThisYear>(
+        `${BASE_STATISTIC_URL}/top-rated`,
+        { params }
       );
       return ok(response.data);
     } catch (error) {
@@ -75,12 +79,12 @@ const createStatisticService = () => {
     }
   };
 
-  const fetchStudioConsumption = async (): Promise<
-    ServiceResult<StudioConsumption[]>
+  const fetchLibraryHealth = async (): Promise<
+    ServiceResult<LibraryHealth>
   > => {
     try {
-      const response = await interceptedAxios.get<StudioConsumption[]>(
-        `${BASE_STATISTIC_URL}/studio-consumption`
+      const response = await interceptedAxios.get<LibraryHealth>(
+        `${BASE_STATISTIC_URL}/library-health`
       );
       return ok(response.data);
     } catch (error) {
@@ -88,12 +92,13 @@ const createStatisticService = () => {
     }
   };
 
-  const fetchThemeConsumption = async (): Promise<
-    ServiceResult<ThemeConsumption[]>
-  > => {
+  const fetchRecentReviews = async (
+    limit = 10
+  ): Promise<ServiceResult<RecentReviewItem[]>> => {
     try {
-      const response = await interceptedAxios.get<ThemeConsumption[]>(
-        `${BASE_STATISTIC_URL}/theme-consumption`
+      const response = await interceptedAxios.get<RecentReviewItem[]>(
+        `${BASE_STATISTIC_URL}/recent-reviews`,
+        { params: { limit } }
       );
       return ok(response.data);
     } catch (error) {
@@ -101,25 +106,13 @@ const createStatisticService = () => {
     }
   };
 
-  const fetchAuthorConsumption = async (): Promise<
-    ServiceResult<AuthorConsumption[]>
-  > => {
+  const fetchTasteProfile = async (
+    limit = 10
+  ): Promise<ServiceResult<TasteProfile>> => {
     try {
-      const response = await interceptedAxios.get<AuthorConsumption[]>(
-        `${BASE_STATISTIC_URL}/author-consumption`
-      );
-      return ok(response.data);
-    } catch (error) {
-      return err(error);
-    }
-  };
-
-  const fetchAllTimeStatistic = async (): Promise<
-    ServiceResult<AllTimeStatistic>
-  > => {
-    try {
-      const response = await interceptedAxios.get<AllTimeStatistic>(
-        `${BASE_STATISTIC_URL}/all-time`
+      const response = await interceptedAxios.get<TasteProfile>(
+        `${BASE_STATISTIC_URL}/taste-profile`,
+        { params: { limit } }
       );
       return ok(response.data);
     } catch (error) {
@@ -130,12 +123,11 @@ const createStatisticService = () => {
   return {
     fetchYearRange,
     fetchMediaConsumption,
-    fetchMediaProgress,
-    fetchGenreConsumption,
-    fetchStudioConsumption,
-    fetchThemeConsumption,
-    fetchAuthorConsumption,
-    fetchAllTimeStatistic
+    fetchDashboardKpis,
+    fetchTopRatedThisYear,
+    fetchLibraryHealth,
+    fetchRecentReviews,
+    fetchTasteProfile
   };
 };
 

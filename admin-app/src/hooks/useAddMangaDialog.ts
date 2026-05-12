@@ -13,6 +13,7 @@ import { toast } from "@/hooks/useToast";
 
 import type { MangaCreateRequest } from "@/types/manga.type";
 
+import { mangaToCreateRequest } from "@/lib/media-dialog-helpers";
 import { mediaKeys } from "@/lib/query-keys";
 
 import {
@@ -23,8 +24,6 @@ import {
 import { Manga, MangaClient } from "@tutkli/jikan-ts";
 import { useInView } from "react-intersection-observer";
 import { useDebounce } from "use-debounce";
-
-import { mangaToCreateRequest } from "@/lib/media-dialog-helpers";
 
 const mangaClient = new MangaClient();
 
@@ -253,7 +252,8 @@ export function useAddMangaDialog({
             queryKey: mediaKeys.malDuplicate("manga", m.mal_id),
             queryFn: async (): Promise<boolean> => {
               const r = await mangaService.getDuplicates(m.mal_id);
-              if (!r.success) throw new Error(r.error ?? "Duplicate check failed");
+              if (!r.success)
+                throw new Error(r.error ?? "Duplicate check failed");
               return r.data.exists;
             },
             staleTime: 60_000

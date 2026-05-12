@@ -1,10 +1,11 @@
+import MetaRow from "@/components/add-media/MetaRow";
+import { Badge } from "@/components/ui/badge";
+
 import {
   displayYearFromPublished,
   formatPublished,
   posterUrl
 } from "@/lib/media-dialog-helpers";
-import MetaRow from "@/components/add-media/MetaRow";
-import { Badge } from "@/components/ui/badge";
 
 import type { Manga } from "@tutkli/jikan-ts";
 import type { LucideIcon } from "lucide-react";
@@ -74,7 +75,9 @@ export default function LightNovelDetailPanel({ lightNovel }: Props) {
           </p>
           <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
             <Badge variant="outline">{lightNovel.type ?? "—"}</Badge>
-            <Badge variant="outline">{displayYearFromPublished(lightNovel)}</Badge>
+            <Badge variant="outline">
+              {displayYearFromPublished(lightNovel)}
+            </Badge>
           </div>
           <div className="flex items-center gap-1 text-xs text-amber-400">
             <StarIcon className="h-3.5 w-3.5 fill-current" />

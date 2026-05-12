@@ -9,7 +9,7 @@ import type { PaginatedListPage } from "@/types/general.type";
 import type { MediaLibraryListItem } from "@/types/media-library.type";
 
 import type { ProgressStatusKey } from "@/lib/enums";
-import { mediaKeys, type MediaFilters } from "@/lib/query-keys";
+import { type MediaFilters, mediaKeys } from "@/lib/query-keys";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 

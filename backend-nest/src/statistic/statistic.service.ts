@@ -2,7 +2,6 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 
 import { PrismaService } from "@/prisma/prisma.service";
 
-import { MediaValue } from "@/statistic/dto/statistic-query.dto";
 import { StatisticsView } from "@/statistic/enums/statistics-view.enum";
 
 import { Prisma, ProgressStatus } from "@prisma/client";
@@ -19,18 +18,6 @@ type MediaConsumption = {
   animeCount: number;
   mangaCount: number;
   lightNovelCount: number;
-};
-
-type MediaProgressMap = {
-  status: string;
-  count: number;
-};
-
-type RawMediaProgressData = {
-  progressStatus: ProgressStatus;
-  _count: {
-    progressStatus: number;
-  };
 };
 
 type GenreConsumption = {
@@ -218,46 +205,665 @@ export class StatisticService {
     return data;
   }
 
-  async getMediaProgress(media: MediaValue): Promise<MediaProgressMap[]> {
-    const allProgressStatus = Object.values(ProgressStatus);
-    const progressMap = new Map<string, MediaProgressMap>();
+  async getAllTimeStatistics() {
+    const [
+      consumedAnimeCount,
+      consumedMangaCount,
+      consumedLightNovelCount,
+      animeMalAgg,
+      mangaMalAgg,
+      lightNovelMalAgg,
+      animePersonalAgg,
+      mangaPersonalAgg,
+      lightNovelPersonalAgg
+    ] = await Promise.all([
+      this.prisma.animeReview.count({
+        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
+      }),
+      this.prisma.mangaReview.count({
+        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
+      }),
+      this.prisma.lightNovelReview.count({
+        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
+      }),
+      this.prisma.anime.aggregate({
+        where: { score: { not: null } },
+        _sum: { score: true },
+        _count: { id: true }
+      }),
+      this.prisma.manga.aggregate({
+        where: { score: { not: null } },
+        _sum: { score: true },
+        _count: { id: true }
+      }),
+      this.prisma.lightNovel.aggregate({
+        where: { score: { not: null } },
+        _sum: { score: true },
+        _count: { id: true }
+      }),
+      this.prisma.animeReview.aggregate({
+        where: { personalScore: { not: null } },
+        _sum: { personalScore: true },
+        _count: { id: true }
+      }),
+      this.prisma.mangaReview.aggregate({
+        where: { personalScore: { not: null } },
+        _sum: { personalScore: true },
+        _count: { id: true }
+      }),
+      this.prisma.lightNovelReview.aggregate({
+        where: { personalScore: { not: null } },
+        _sum: { personalScore: true },
+        _count: { id: true }
+      })
+    ]);
 
-    allProgressStatus.forEach((status) => {
-      progressMap.set(status, { status, count: 0 });
-    });
+    const malSum =
+      (animeMalAgg._sum.score ?? 0) +
+      (mangaMalAgg._sum.score ?? 0) +
+      (lightNovelMalAgg._sum.score ?? 0);
+    const malCount =
+      animeMalAgg._count.id +
+      mangaMalAgg._count.id +
+      lightNovelMalAgg._count.id;
+    const averageMalScore =
+      malCount === 0 ? 0 : Math.round((malSum / malCount) * 100) / 100;
 
-    const updateProgressMap = (rawData: RawMediaProgressData[]) => {
-      rawData.forEach((item) => {
-        const current = progressMap.get(item.progressStatus)!;
-        current.count = item._count.progressStatus;
-      });
+    const personalSum =
+      (animePersonalAgg._sum.personalScore ?? 0) +
+      (mangaPersonalAgg._sum.personalScore ?? 0) +
+      (lightNovelPersonalAgg._sum.personalScore ?? 0);
+    const personalCount =
+      animePersonalAgg._count.id +
+      mangaPersonalAgg._count.id +
+      lightNovelPersonalAgg._count.id;
+    const averagePersonalScore =
+      personalCount === 0
+        ? 0
+        : Math.round((personalSum / personalCount) * 100) / 100;
+
+    return {
+      allMediaCount:
+        consumedAnimeCount + consumedMangaCount + consumedLightNovelCount,
+      animeCount: consumedAnimeCount,
+      mangaCount: consumedMangaCount,
+      lightNovelCount: consumedLightNovelCount,
+      averageMalScore,
+      averagePersonalScore
     };
-
-    if (media === "anime") {
-      const raw = await this.prisma.animeReview.groupBy({
-        by: ["progressStatus"],
-        _count: { progressStatus: true }
-      });
-      updateProgressMap(raw);
-    } else if (media === "manga") {
-      const raw = await this.prisma.mangaReview.groupBy({
-        by: ["progressStatus"],
-        _count: { progressStatus: true }
-      });
-      updateProgressMap(raw);
-    } else if (media === "lightNovel") {
-      const raw = await this.prisma.lightNovelReview.groupBy({
-        by: ["progressStatus"],
-        _count: { progressStatus: true }
-      });
-      updateProgressMap(raw);
-    }
-
-    return Array.from(progressMap.values());
   }
 
-  async getGenreConsumption(): Promise<GenreConsumption[]> {
-    const query = Prisma.sql`
+  private cutoffForDashboardYear(year: number, now: Date): Date {
+    if (year > now.getUTCFullYear()) {
+      throw new BadRequestException("Year cannot be in the future");
+    }
+    const endOfYear = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
+    if (year < now.getUTCFullYear()) {
+      return endOfYear;
+    }
+    return now.getTime() < endOfYear.getTime() ? now : endOfYear;
+  }
+
+  private shiftUtcYears(date: Date, deltaYears: number): Date {
+    const copy = new Date(date.getTime());
+    copy.setUTCFullYear(copy.getUTCFullYear() + deltaYears);
+    return copy;
+  }
+
+  private async totalMediaAt(cutoff: Date): Promise<number> {
+    const [anime, manga, lightNovel] = await Promise.all([
+      this.prisma.anime.count({ where: { createdAt: { lte: cutoff } } }),
+      this.prisma.manga.count({ where: { createdAt: { lte: cutoff } } }),
+      this.prisma.lightNovel.count({ where: { createdAt: { lte: cutoff } } })
+    ]);
+    return anime + manga + lightNovel;
+  }
+
+  private async inProgressSnapshotAt(cutoff: Date): Promise<number> {
+    const [animeC, mangaC, lnC] = await Promise.all([
+      this.prisma.$queryRaw<[{ c: bigint }]>(Prisma.sql`
+        SELECT COUNT(*)::bigint AS c FROM "AnimeReview" r
+        WHERE (
+          (r."progressStatus" = 'ON_PROGRESS' AND r."updatedAt" <= ${cutoff})
+          OR (r."progressStatus" = 'COMPLETED' AND r."updatedAt" > ${cutoff})
+        )
+      `),
+      this.prisma.$queryRaw<[{ c: bigint }]>(Prisma.sql`
+        SELECT COUNT(*)::bigint AS c FROM "MangaReview" r
+        WHERE (
+          (r."progressStatus" = 'ON_PROGRESS' AND r."updatedAt" <= ${cutoff})
+          OR (r."progressStatus" = 'COMPLETED' AND r."updatedAt" > ${cutoff})
+        )
+      `),
+      this.prisma.$queryRaw<[{ c: bigint }]>(Prisma.sql`
+        SELECT COUNT(*)::bigint AS c FROM "LightNovelReview" r
+        WHERE (
+          (r."progressStatus" = 'ON_PROGRESS' AND r."updatedAt" <= ${cutoff})
+          OR (r."progressStatus" = 'COMPLETED' AND r."updatedAt" > ${cutoff})
+        )
+      `)
+    ]);
+    return (
+      Number(animeC[0]?.c ?? 0n) +
+      Number(mangaC[0]?.c ?? 0n) +
+      Number(lnC[0]?.c ?? 0n)
+    );
+  }
+
+  private async averagePersonalSnapshotAt(cutoff: Date): Promise<number> {
+    const [a, m, ln] = await Promise.all([
+      this.prisma.animeReview.aggregate({
+        where: { personalScore: { not: null }, createdAt: { lte: cutoff } },
+        _sum: { personalScore: true },
+        _count: { id: true }
+      }),
+      this.prisma.mangaReview.aggregate({
+        where: { personalScore: { not: null }, createdAt: { lte: cutoff } },
+        _sum: { personalScore: true },
+        _count: { id: true }
+      }),
+      this.prisma.lightNovelReview.aggregate({
+        where: { personalScore: { not: null }, createdAt: { lte: cutoff } },
+        _sum: { personalScore: true },
+        _count: { id: true }
+      })
+    ]);
+    const sum =
+      (a._sum.personalScore ?? 0) +
+      (m._sum.personalScore ?? 0) +
+      (ln._sum.personalScore ?? 0);
+    const n = a._count.id + m._count.id + ln._count.id;
+    return n === 0 ? 0 : Math.round((sum / n) * 100) / 100;
+  }
+
+  private async maxPersonalSnapshotAt(cutoff: Date): Promise<number> {
+    const [a, m, ln] = await Promise.all([
+      this.prisma.animeReview.aggregate({
+        where: { personalScore: { not: null }, createdAt: { lte: cutoff } },
+        _max: { personalScore: true }
+      }),
+      this.prisma.mangaReview.aggregate({
+        where: { personalScore: { not: null }, createdAt: { lte: cutoff } },
+        _max: { personalScore: true }
+      }),
+      this.prisma.lightNovelReview.aggregate({
+        where: { personalScore: { not: null }, createdAt: { lte: cutoff } },
+        _max: { personalScore: true }
+      })
+    ]);
+    return Math.max(
+      a._max.personalScore ?? 0,
+      m._max.personalScore ?? 0,
+      ln._max.personalScore ?? 0
+    );
+  }
+
+  private buildKpiMetric(current: number, previous: number) {
+    const changeAbsolute = Math.round((current - previous) * 100) / 100;
+    const changePercent =
+      previous === 0
+        ? current === 0
+          ? 0
+          : 100
+        : Math.round(((current - previous) / previous) * 1000) / 10;
+    return {
+      value: current,
+      previousValue: previous,
+      changePercent,
+      changeAbsolute
+    };
+  }
+
+  async getDashboardKpis(year: number) {
+    const now = new Date();
+    const cutoff = this.cutoffForDashboardYear(year, now);
+    const priorCutoff = this.shiftUtcYears(cutoff, -1);
+
+    const [
+      totalMediaNow,
+      totalMediaPrev,
+      inProgressNow,
+      inProgressPrev,
+      avgNow,
+      avgPrev,
+      topNow,
+      topPrev
+    ] = await Promise.all([
+      this.totalMediaAt(cutoff),
+      this.totalMediaAt(priorCutoff),
+      this.inProgressSnapshotAt(cutoff),
+      this.inProgressSnapshotAt(priorCutoff),
+      this.averagePersonalSnapshotAt(cutoff),
+      this.averagePersonalSnapshotAt(priorCutoff),
+      this.maxPersonalSnapshotAt(cutoff),
+      this.maxPersonalSnapshotAt(priorCutoff)
+    ]);
+
+    return {
+      year,
+      cutoffAt: cutoff.toISOString(),
+      priorCutoffAt: priorCutoff.toISOString(),
+      totalMedia: this.buildKpiMetric(totalMediaNow, totalMediaPrev),
+      inProgress: this.buildKpiMetric(inProgressNow, inProgressPrev),
+      averagePersonalScore: this.buildKpiMetric(avgNow, avgPrev),
+      topRatedPersonalScore: this.buildKpiMetric(topNow, topPrev)
+    };
+  }
+
+  async getDashboardKpisAllTime() {
+    const now = new Date();
+    const [totalMediaNow, inProgressNow, avgNow, topNow] = await Promise.all([
+      this.totalMediaAt(now),
+      this.inProgressSnapshotAt(now),
+      this.averagePersonalSnapshotAt(now),
+      this.maxPersonalSnapshotAt(now)
+    ]);
+
+    return {
+      year: null,
+      cutoffAt: now.toISOString(),
+      priorCutoffAt: now.toISOString(),
+      totalMedia: this.buildKpiMetric(totalMediaNow, totalMediaNow),
+      inProgress: this.buildKpiMetric(inProgressNow, inProgressNow),
+      averagePersonalScore: this.buildKpiMetric(avgNow, avgNow),
+      topRatedPersonalScore: this.buildKpiMetric(topNow, topNow)
+    };
+  }
+
+  private topRatedYearBounds(year: number, now: Date) {
+    if (year > now.getUTCFullYear()) {
+      throw new BadRequestException("Year cannot be in the future");
+    }
+    const start = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0));
+    const endOfYear = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
+    const end =
+      year === now.getUTCFullYear() && now.getTime() < endOfYear.getTime()
+        ? now
+        : endOfYear;
+    return { start, end };
+  }
+
+  async getTopRatedThisYear(year: number) {
+    const now = new Date();
+    const { start, end } = this.topRatedYearBounds(year, now);
+
+    const [topAnime, topManga, topLightNovel] = await Promise.all([
+      this.prisma.anime.findFirst({
+        where: {
+          review: {
+            personalScore: { not: null },
+            consumedAt: { not: null, gte: start, lte: end }
+          }
+        },
+        orderBy: { review: { personalScore: "desc" } },
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          images: true,
+          review: { select: { personalScore: true } }
+        }
+      }),
+      this.prisma.manga.findFirst({
+        where: {
+          review: {
+            personalScore: { not: null },
+            consumedAt: { not: null, gte: start, lte: end }
+          }
+        },
+        orderBy: { review: { personalScore: "desc" } },
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          images: true,
+          review: { select: { personalScore: true } }
+        }
+      }),
+      this.prisma.lightNovel.findFirst({
+        where: {
+          review: { personalScore: { not: null } },
+          volumeProgress: {
+            some: {
+              consumedAt: { not: null, gte: start, lte: end }
+            }
+          }
+        },
+        orderBy: { review: { personalScore: "desc" } },
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          images: true,
+          review: { select: { personalScore: true } }
+        }
+      })
+    ]);
+
+    const pack = (
+      row: {
+        id: number;
+        slug: string;
+        title: string;
+        images: Prisma.JsonValue;
+        review: { personalScore: number | null } | null;
+      } | null
+    ) =>
+      row
+        ? {
+            id: row.id,
+            slug: row.slug,
+            title: row.title,
+            images: row.images,
+            personalScore: row.review?.personalScore ?? null
+          }
+        : null;
+
+    return {
+      year,
+      anime: pack(topAnime),
+      manga: pack(topManga),
+      lightNovel: pack(topLightNovel)
+    };
+  }
+
+  async getTopRatedAllTime() {
+    const [topAnime, topManga, topLightNovel] = await Promise.all([
+      this.prisma.anime.findFirst({
+        where: { review: { personalScore: { not: null } } },
+        orderBy: { review: { personalScore: "desc" } },
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          images: true,
+          review: { select: { personalScore: true } }
+        }
+      }),
+      this.prisma.manga.findFirst({
+        where: { review: { personalScore: { not: null } } },
+        orderBy: { review: { personalScore: "desc" } },
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          images: true,
+          review: { select: { personalScore: true } }
+        }
+      }),
+      this.prisma.lightNovel.findFirst({
+        where: { review: { personalScore: { not: null } } },
+        orderBy: { review: { personalScore: "desc" } },
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          images: true,
+          review: { select: { personalScore: true } }
+        }
+      })
+    ]);
+
+    const pack = (
+      row: {
+        id: number;
+        slug: string;
+        title: string;
+        images: Prisma.JsonValue;
+        review: { personalScore: number | null } | null;
+      } | null
+    ) =>
+      row
+        ? {
+            id: row.id,
+            slug: row.slug,
+            title: row.title,
+            images: row.images,
+            personalScore: row.review?.personalScore ?? null
+          }
+        : null;
+
+    return {
+      year: null,
+      anime: pack(topAnime),
+      manga: pack(topManga),
+      lightNovel: pack(topLightNovel)
+    };
+  }
+
+  async getLibraryHealth() {
+    const allStatuses = Object.values(ProgressStatus);
+
+    const [animeG, mangaG, lnG] = await Promise.all([
+      this.prisma.animeReview.groupBy({
+        by: ["progressStatus"],
+        where: { progressStatus: { in: allStatuses } },
+        _count: { progressStatus: true }
+      }),
+      this.prisma.mangaReview.groupBy({
+        by: ["progressStatus"],
+        where: { progressStatus: { in: allStatuses } },
+        _count: { progressStatus: true }
+      }),
+      this.prisma.lightNovelReview.groupBy({
+        by: ["progressStatus"],
+        where: { progressStatus: { in: allStatuses } },
+        _count: { progressStatus: true }
+      })
+    ]);
+
+    const merge = new Map<string, number>();
+    const addAll = (
+      rows: {
+        progressStatus: ProgressStatus;
+        _count: { progressStatus: number };
+      }[]
+    ) => {
+      for (const row of rows) {
+        const key = row.progressStatus;
+        merge.set(key, (merge.get(key) ?? 0) + row._count.progressStatus);
+      }
+    };
+    addAll(animeG);
+    addAll(mangaG);
+    addAll(lnG);
+
+    const segments = allStatuses.map((status) => ({
+      status,
+      count: merge.get(status) ?? 0
+    }));
+    const total = segments.reduce((s, x) => s + x.count, 0);
+    return {
+      total,
+      segments: segments.map((s) => ({
+        ...s,
+        percentage: total === 0 ? 0 : Math.round((s.count / total) * 1000) / 10
+      }))
+    };
+  }
+
+  async getRecentReviews(limit: number) {
+    const takeEach = Math.min(50, Math.max(limit, 10));
+
+    type ReviewRow = {
+      mediaType: "anime" | "manga" | "lightNovel";
+      mediaId: number;
+      slug: string;
+      title: string;
+      images: Prisma.JsonValue;
+      personalScore: number | null;
+      updatedAt: Date;
+    };
+
+    const [animeRows, mangaRows, lnRows] = await Promise.all([
+      this.prisma.animeReview.findMany({
+        orderBy: { updatedAt: "desc" },
+        take: takeEach,
+        select: {
+          updatedAt: true,
+          personalScore: true,
+          anime: {
+            select: { id: true, slug: true, title: true, images: true }
+          }
+        }
+      }),
+      this.prisma.mangaReview.findMany({
+        orderBy: { updatedAt: "desc" },
+        take: takeEach,
+        select: {
+          updatedAt: true,
+          personalScore: true,
+          manga: {
+            select: { id: true, slug: true, title: true, images: true }
+          }
+        }
+      }),
+      this.prisma.lightNovelReview.findMany({
+        orderBy: { updatedAt: "desc" },
+        take: takeEach,
+        select: {
+          updatedAt: true,
+          personalScore: true,
+          lightNovel: {
+            select: { id: true, slug: true, title: true, images: true }
+          }
+        }
+      })
+    ]);
+
+    const merged: ReviewRow[] = [
+      ...animeRows.map((row) => ({
+        mediaType: "anime" as const,
+        mediaId: row.anime.id,
+        slug: row.anime.slug,
+        title: row.anime.title,
+        images: row.anime.images,
+        personalScore: row.personalScore,
+        updatedAt: row.updatedAt
+      })),
+      ...mangaRows.map((row) => ({
+        mediaType: "manga" as const,
+        mediaId: row.manga.id,
+        slug: row.manga.slug,
+        title: row.manga.title,
+        images: row.manga.images,
+        personalScore: row.personalScore,
+        updatedAt: row.updatedAt
+      })),
+      ...lnRows.map((row) => ({
+        mediaType: "lightNovel" as const,
+        mediaId: row.lightNovel.id,
+        slug: row.lightNovel.slug,
+        title: row.lightNovel.title,
+        images: row.lightNovel.images,
+        personalScore: row.personalScore,
+        updatedAt: row.updatedAt
+      }))
+    ];
+
+    merged.sort((a, b) => {
+      const dt = b.updatedAt.getTime() - a.updatedAt.getTime();
+      if (dt !== 0) {
+        return dt;
+      }
+      if (a.mediaType !== b.mediaType) {
+        return a.mediaType.localeCompare(b.mediaType);
+      }
+      return a.mediaId - b.mediaId;
+    });
+
+    return merged.slice(0, limit).map((row) => ({
+      mediaType: row.mediaType,
+      mediaId: row.mediaId,
+      slug: row.slug,
+      title: row.title,
+      images: row.images,
+      personalScore: row.personalScore,
+      updatedAt: row.updatedAt.toISOString()
+    }));
+  }
+
+  private withLibrarySharePercentages<
+    T extends { totalCount: number | bigint }
+  >(rows: T[], libraryTotal: number): (T & { percentage: number })[] {
+    const denom = libraryTotal <= 0 ? 0 : libraryTotal;
+    return rows.map((r) => {
+      const rowTotal = Number(r.totalCount);
+      return {
+        ...r,
+        percentage: denom === 0 ? 0 : Math.round((rowTotal / denom) * 1000) / 10
+      };
+    });
+  }
+
+  private async tasteGenresLibraryTotal(): Promise<number> {
+    const rows = await this.prisma.$queryRaw<[{ total: bigint }]>(Prisma.sql`
+      SELECT COALESCE(SUM(sub.c), 0)::bigint AS total
+      FROM (
+        SELECT
+          (COUNT(DISTINCT ag."animeId")::bigint
+            + COUNT(DISTINCT mg."mangaId")::bigint
+            + COUNT(DISTINCT lg."lightNovelId")::bigint) AS c
+        FROM "Genre" g
+        LEFT JOIN "AnimeGenres" ag ON g.id = ag."genreId"
+        LEFT JOIN "MangaGenres" mg ON g.id = mg."genreId"
+        LEFT JOIN "LightNovelGenres" lg ON g.id = lg."genreId"
+        GROUP BY g.id
+      ) sub
+    `);
+    return Number(rows[0]?.total ?? 0n);
+  }
+
+  private async tasteThemesLibraryTotal(): Promise<number> {
+    const rows = await this.prisma.$queryRaw<[{ total: bigint }]>(Prisma.sql`
+      SELECT COALESCE(SUM(sub.c), 0)::bigint AS total
+      FROM (
+        SELECT
+          (COUNT(DISTINCT at2."animeId")::bigint
+            + COUNT(DISTINCT mt."mangaId")::bigint
+            + COUNT(DISTINCT lnt."lightNovelId")::bigint) AS c
+        FROM "Theme" t
+        LEFT JOIN "AnimeThemes" at2 ON t.id = at2."themeId"
+        LEFT JOIN "MangaThemes" mt ON t.id = mt."themeId"
+        LEFT JOIN "LightNovelThemes" lnt ON t.id = lnt."themeId"
+        GROUP BY t.id
+      ) sub
+    `);
+    return Number(rows[0]?.total ?? 0n);
+  }
+
+  private async tasteStudiosLibraryTotal(): Promise<number> {
+    const rows = await this.prisma.$queryRaw<[{ total: bigint }]>(Prisma.sql`
+      SELECT COALESCE(SUM(sub.c), 0)::bigint AS total
+      FROM (
+        SELECT COUNT(DISTINCT as2."animeId")::bigint AS c
+        FROM "Studio" s
+        LEFT JOIN "AnimeStudios" as2 ON s.id = as2."studioId"
+        GROUP BY s.id
+      ) sub
+    `);
+    return Number(rows[0]?.total ?? 0n);
+  }
+
+  private async tasteAuthorsLibraryTotal(): Promise<number> {
+    const rows = await this.prisma.$queryRaw<[{ total: bigint }]>(Prisma.sql`
+      SELECT COALESCE(SUM(sub.c), 0)::bigint AS total
+      FROM (
+        SELECT
+          (COUNT(DISTINCT ma."mangaId")::bigint
+            + COUNT(DISTINCT lna."lightNovelId")::bigint) AS c
+        FROM "Author" a
+        LEFT JOIN "MangaAuthors" ma ON a.id = ma."authorId"
+        LEFT JOIN "LightNovelAuthors" lna ON a.id = lna."authorId"
+        GROUP BY a.id
+      ) sub
+    `);
+    return Number(rows[0]?.total ?? 0n);
+  }
+
+  async getTasteProfile(limit: number) {
+    const lim = Number(limit);
+    const genreQuery = Prisma.sql`
       SELECT 
         g.name, 
         COUNT(DISTINCT ag."animeId")::INTEGER AS "animeCount",
@@ -270,30 +876,9 @@ export class StatisticService {
       LEFT JOIN "LightNovelGenres" lg ON g.id = lg."genreId" 
       GROUP BY g.name
       ORDER BY "totalCount" DESC
-      LIMIT 5
+      LIMIT ${lim}
     `;
-
-    return this.prisma.$queryRaw<GenreConsumption[]>(query);
-  }
-
-  async getStudioConsumption(): Promise<StudioConsumption[]> {
-    const query = Prisma.sql`
-      SELECT 
-        s.name, 
-        COUNT(DISTINCT as2."animeId")::INTEGER AS "animeCount",
-        COUNT(DISTINCT as2."animeId")::INTEGER AS "totalCount"
-      FROM "Studio" s 
-      LEFT JOIN "AnimeStudios" as2 ON s.id = as2."studioId" 
-      GROUP BY s.name
-      ORDER BY "totalCount" DESC
-      LIMIT 5
-    `;
-
-    return this.prisma.$queryRaw<StudioConsumption[]>(query);
-  }
-
-  async getThemeConsumption(): Promise<ThemeConsumption[]> {
-    const query = Prisma.sql`
+    const themeQuery = Prisma.sql`
       SELECT 
         t.name, 
         COUNT(DISTINCT at2."animeId")::INTEGER AS "animeCount",
@@ -306,14 +891,20 @@ export class StatisticService {
       LEFT JOIN "LightNovelThemes" lnt ON t.id = lnt."themeId" 
       GROUP BY t.name
       ORDER BY "totalCount" DESC
-      LIMIT 5
+      LIMIT ${lim}
     `;
-
-    return this.prisma.$queryRaw<ThemeConsumption[]>(query);
-  }
-
-  async getAuthorConsumption(): Promise<AuthorConsumption[]> {
-    const query = Prisma.sql`
+    const studioQuery = Prisma.sql`
+      SELECT 
+        s.name, 
+        COUNT(DISTINCT as2."animeId")::INTEGER AS "animeCount",
+        COUNT(DISTINCT as2."animeId")::INTEGER AS "totalCount"
+      FROM "Studio" s 
+      LEFT JOIN "AnimeStudios" as2 ON s.id = as2."studioId" 
+      GROUP BY s.name
+      ORDER BY "totalCount" DESC
+      LIMIT ${lim}
+    `;
+    const authorQuery = Prisma.sql`
       SELECT 
         a.name, 
         COUNT(DISTINCT ma."mangaId")::INTEGER AS "mangaCount",
@@ -324,81 +915,34 @@ export class StatisticService {
       LEFT JOIN "LightNovelAuthors" lna ON a.id = lna."authorId" 
       GROUP BY a.name
       ORDER BY "totalCount" DESC
-      LIMIT 5
+      LIMIT ${lim}
     `;
 
-    return this.prisma.$queryRaw<AuthorConsumption[]>(query);
-  }
-
-  async getAllTimeStatistics() {
     const [
-      consumedAnimeCount,
-      consumedMangaCount,
-      consumedLightNovelCount,
-      averageAnimeMALScores,
-      averageMangaMALScores,
-      averageLightNovelMALScores,
-      averageAnimePersonalScores,
-      averageMangaPersonalScores,
-      averageLightNovelPersonalScores
+      genreLibraryTotal,
+      themeLibraryTotal,
+      studioLibraryTotal,
+      authorLibraryTotal,
+      genres,
+      themes,
+      studios,
+      authors
     ] = await Promise.all([
-      this.prisma.animeReview.count({
-        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
-      }),
-      this.prisma.mangaReview.count({
-        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
-      }),
-      this.prisma.lightNovelReview.count({
-        where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
-      }),
-      this.prisma.anime.aggregate({ _avg: { score: true } }),
-      this.prisma.manga.aggregate({ _avg: { score: true } }),
-      this.prisma.lightNovel.aggregate({ _avg: { score: true } }),
-      this.prisma.animeReview.aggregate({ _avg: { personalScore: true } }),
-      this.prisma.mangaReview.aggregate({ _avg: { personalScore: true } }),
-      this.prisma.lightNovelReview.aggregate({
-        _avg: { personalScore: true }
-      })
+      this.tasteGenresLibraryTotal(),
+      this.tasteThemesLibraryTotal(),
+      this.tasteStudiosLibraryTotal(),
+      this.tasteAuthorsLibraryTotal(),
+      this.prisma.$queryRaw<GenreConsumption[]>(genreQuery),
+      this.prisma.$queryRaw<ThemeConsumption[]>(themeQuery),
+      this.prisma.$queryRaw<StudioConsumption[]>(studioQuery),
+      this.prisma.$queryRaw<AuthorConsumption[]>(authorQuery)
     ]);
 
-    const malScores = [
-      averageAnimeMALScores._avg.score,
-      averageMangaMALScores._avg.score,
-      averageLightNovelMALScores._avg.score
-    ];
-
-    const personalScores = [
-      averageAnimePersonalScores._avg.personalScore,
-      averageMangaPersonalScores._avg.personalScore,
-      averageLightNovelPersonalScores._avg.personalScore
-    ];
-
-    const validMalScores = malScores.filter(
-      (score): score is number => score !== null
-    );
-    const averageMalScore =
-      validMalScores.length > 0
-        ? validMalScores.reduce((sum, score) => sum + score, 0) /
-          validMalScores.length
-        : 0;
-
-    const validPersonalScores = personalScores.filter(
-      (score): score is number => score !== null
-    );
-    const averagePersonalScore =
-      validPersonalScores.length > 0
-        ? validPersonalScores.reduce((sum, score) => sum + score, 0) /
-          validPersonalScores.length
-        : 0;
-
     return {
-      allMediaCount:
-        consumedAnimeCount + consumedMangaCount + consumedLightNovelCount,
-      animeCount: consumedAnimeCount,
-      mangaCount: consumedMangaCount,
-      lightNovelCount: consumedLightNovelCount,
-      averageMalScore,
-      averagePersonalScore
+      genres: this.withLibrarySharePercentages(genres, genreLibraryTotal),
+      themes: this.withLibrarySharePercentages(themes, themeLibraryTotal),
+      studios: this.withLibrarySharePercentages(studios, studioLibraryTotal),
+      authors: this.withLibrarySharePercentages(authors, authorLibraryTotal)
     };
   }
 

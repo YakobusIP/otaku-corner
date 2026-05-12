@@ -1,5 +1,4 @@
-import { RequireAuth } from "@/auth/RequireAuth";
-
+import { RequireAuth } from "@/auth";
 import AdminAnimeDetail from "@/pages/AdminAnimeDetail";
 import AdminLightNovelDetail from "@/pages/AdminLightNovelDetail";
 import AdminMangaDetail from "@/pages/AdminMangaDetail";

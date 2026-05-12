@@ -13,6 +13,7 @@ import { toast } from "@/hooks/useToast";
 
 import type { LightNovelCreateRequest } from "@/types/light-novel.type";
 
+import { lightNovelToCreateRequest } from "@/lib/media-dialog-helpers";
 import { mediaKeys } from "@/lib/query-keys";
 
 import {
@@ -23,8 +24,6 @@ import {
 import { Manga, MangaClient } from "@tutkli/jikan-ts";
 import { useInView } from "react-intersection-observer";
 import { useDebounce } from "use-debounce";
-
-import { lightNovelToCreateRequest } from "@/lib/media-dialog-helpers";
 
 const mangaClient = new MangaClient();
 
@@ -138,8 +137,7 @@ export function useAddLightNovelDialog({
   });
 
   const activeDetail = useMemo(
-    () =>
-      selectedLightNovel.find((m) => m.mal_id === activeDetailId) ?? null,
+    () => selectedLightNovel.find((m) => m.mal_id === activeDetailId) ?? null,
     [selectedLightNovel, activeDetailId]
   );
 
@@ -164,8 +162,7 @@ export function useAddLightNovelDialog({
   }, [selectedLightNovel]);
 
   const selectionHasDuplicate = useMemo(
-    () =>
-      selectedLightNovel.some((m) => duplicateMap[m.mal_id] === true),
+    () => selectedLightNovel.some((m) => duplicateMap[m.mal_id] === true),
     [duplicateMap, selectedLightNovel]
   );
 
@@ -255,7 +252,8 @@ export function useAddLightNovelDialog({
             queryKey: mediaKeys.malDuplicate("lightNovel", m.mal_id),
             queryFn: async (): Promise<boolean> => {
               const r = await lightNovelService.getDuplicates(m.mal_id);
-              if (!r.success) throw new Error(r.error ?? "Duplicate check failed");
+              if (!r.success)
+                throw new Error(r.error ?? "Duplicate check failed");
               return r.data.exists;
             },
             staleTime: 60_000

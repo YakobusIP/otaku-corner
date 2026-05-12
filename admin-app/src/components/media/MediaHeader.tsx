@@ -1,11 +1,4 @@
-import {
-  ChangeEvent,
-  useEffect,
-  useRef,
-  useState
-} from "react";
-
-import { motion } from "framer-motion";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 
 import { useMediaFilters } from "@/components/context/MediaFiltersContext";
 import SortDirection from "@/components/filter-sort-dropdowns/SortDirection";
@@ -20,9 +13,9 @@ import {
   type ProgressStatusKey,
   SORT_ORDER
 } from "@/lib/enums";
-
 import { cn } from "@/lib/utils";
 
+import { motion } from "framer-motion";
 import { SearchIcon } from "lucide-react";
 import { useDebounce } from "use-debounce";
 
@@ -30,7 +23,9 @@ type Props = {
   totalCount?: number;
 };
 
-const PROGRESS_STATUS_KEYS = Object.keys(PROGRESS_STATUS) as ProgressStatusKey[];
+const PROGRESS_STATUS_KEYS = Object.keys(
+  PROGRESS_STATUS
+) as ProgressStatusKey[];
 
 const MEDIA_TYPE_TABS: {
   value: "all" | "anime" | "manga" | "lightNovel";
@@ -103,9 +98,7 @@ export default function MediaHeader({ totalCount }: Props) {
             })
           }
         >
-          <TabsList
-            className="relative flex w-full @tablet:inline-flex @tablet:w-auto @tablet:max-w-full @desktop:inline-flex @desktop:w-auto"
-          >
+          <TabsList className="relative flex w-full @tablet:inline-flex @tablet:w-auto @tablet:max-w-full @desktop:inline-flex @desktop:w-auto">
             {MEDIA_TYPE_TABS.map(({ value, label }) => {
               const isActive = state.mediaType === value;
 

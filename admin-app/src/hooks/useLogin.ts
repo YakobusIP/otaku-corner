@@ -4,11 +4,10 @@ import { authService } from "@/services/auth.service";
 
 import { useToast } from "@/hooks/useToast";
 
-import { AUTH_SESSION_QUERY_KEY } from "@/auth/auth-query-key";
-
-import { queryClient } from "@/lib/query-client";
 import { setAuthTokens } from "@/lib/axios";
+import { queryClient } from "@/lib/query-client";
 
+import { AUTH_SESSION_QUERY_KEY } from "@/auth";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
@@ -21,7 +20,13 @@ export function useLogin() {
   const [pin1, setPin1] = useState("");
 
   const loginMutation = useMutation({
-    mutationFn: async ({ pin1: first, pin2 }: { pin1: string; pin2: string }) => {
+    mutationFn: async ({
+      pin1: first,
+      pin2
+    }: {
+      pin1: string;
+      pin2: string;
+    }) => {
       const response = await authService.login(first, pin2);
       if (!response.success) throw new Error(response.error);
       return response.data;

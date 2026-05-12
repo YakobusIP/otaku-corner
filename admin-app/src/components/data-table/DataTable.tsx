@@ -1,4 +1,4 @@
-import { ReactNode, Dispatch, SetStateAction } from "react";
+import { Dispatch, ReactNode, SetStateAction } from "react";
 
 import {
   AlertDialog,
@@ -23,7 +23,7 @@ import {
 
 import { MetadataResponse } from "@/types/api.type";
 
-import { cn, buildPaginationPageSlots } from "@/lib/utils";
+import { buildPaginationPageSlots, cn } from "@/lib/utils";
 
 import {
   ColumnDef,

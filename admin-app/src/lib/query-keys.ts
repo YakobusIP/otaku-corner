@@ -1,3 +1,5 @@
+import { STATISTICS_VIEW } from "@/lib/enums";
+
 export type MediaTypeFilter = "all" | "anime" | "manga" | "lightNovel";
 
 export type MediaFilters = {
@@ -24,10 +26,8 @@ export const mediaKeys = {
   statusCounts: (type: "anime" | "manga" | "lightNovel") =>
     [...mediaKeys.all, "statusCounts", type] as const,
   malDuplicates: () => [...mediaKeys.all, "malDuplicate"] as const,
-  malDuplicate: (
-    type: "anime" | "manga" | "lightNovel",
-    malId: number
-  ) => [...mediaKeys.malDuplicates(), type, malId] as const
+  malDuplicate: (type: "anime" | "manga" | "lightNovel", malId: number) =>
+    [...mediaKeys.malDuplicates(), type, malId] as const
 };
 
 export const entityKeys = {
@@ -42,4 +42,20 @@ export const detailKeys = {
   anime: (id: number) => [...mediaKeys.all, "anime", id] as const,
   manga: (id: number) => [...mediaKeys.all, "manga", id] as const,
   lightNovel: (id: number) => [...mediaKeys.all, "lightNovel", id] as const
+};
+
+export const statisticKeys = {
+  all: ["statistic"] as const,
+  yearRange: () => [...statisticKeys.all, "year-range"] as const,
+  dashboardKpis: (yearScope: number | "all") =>
+    [...statisticKeys.all, "dashboard-kpis", yearScope] as const,
+  topRatedThisYear: (yearScope: number | "all") =>
+    [...statisticKeys.all, "top-rated", yearScope] as const,
+  libraryHealth: () => [...statisticKeys.all, "library-health"] as const,
+  tasteProfile: (limit: number) =>
+    [...statisticKeys.all, "taste-profile", limit] as const,
+  recentReviews: (limit: number) =>
+    [...statisticKeys.all, "recent-reviews", limit] as const,
+  mediaConsumption: (view: STATISTICS_VIEW, yearOrAllYears: string) =>
+    [...statisticKeys.all, "media-consumption", view, yearOrAllYears] as const
 };

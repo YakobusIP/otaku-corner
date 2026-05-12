@@ -2,7 +2,7 @@ import { MessageResponse } from "@/types/api.type";
 import type { ServiceResult } from "@/types/general.type";
 
 import interceptedAxios from "@/lib/axios";
-import { ok, err } from "@/lib/service-result";
+import { err, ok } from "@/lib/service-result";
 
 const BASE_AUTH_URL = "/api/auth";
 

@@ -67,7 +67,10 @@ export default function NotFoundPage() {
             className="h-11 shrink-0 rounded-xl border-violet-400/70 bg-transparent text-white hover:bg-violet-500/15 hover:text-white"
           >
             <Link to="/" className="gap-2">
-              <HomeIcon className="size-4 shrink-0 text-violet-300" aria-hidden />
+              <HomeIcon
+                className="size-4 shrink-0 text-violet-300"
+                aria-hidden
+              />
               Go to homepage
             </Link>
           </Button>

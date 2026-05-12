@@ -1,6 +1,5 @@
-import type { StatusCheck } from "@/types/status-check.type";
-
 import type { MediaLibraryListItem } from "@/types/media-library.type";
+import type { StatusCheck } from "@/types/status-check.type";
 
 import { type ProgressStatusKey } from "@/lib/enums";
 
@@ -43,9 +42,9 @@ const getBaseRow = (item: MediaLibraryListItem) => {
     titleJapanese: item.titleJapanese,
     score: item.score,
     personalScore: item.personalScore,
-    progressStatus: (item.progressStatus
-      ? item.progressStatus
-      : "") as ProgressStatusKey | "",
+    progressStatus: (item.progressStatus ? item.progressStatus : "") as
+      | ProgressStatusKey
+      | "",
     imageUrl: item.images.large_image_url ?? item.images.image_url
   };
 };

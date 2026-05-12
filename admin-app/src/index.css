@@ -302,9 +302,9 @@
         rgba(30, 27, 75, 0.68) 50%,
         rgba(30, 41, 59, 0.72) 100%
       ),
-      url("/mobile-background.webp");
+      url("/wallpaper-background.webp");
     background-size: cover;
-    background-position: center center;
+    background-position: 70% center;
     background-repeat: no-repeat;
     background-attachment: fixed;
     min-height: 100vh;
@@ -318,7 +318,8 @@
           rgba(30, 27, 75, 0.62) 50%,
           rgba(30, 41, 59, 0.7) 100%
         ),
-        url("/desktop-background.webp");
+        url("/wallpaper-background.webp");
+      background-position: center center;
     }
   }
 

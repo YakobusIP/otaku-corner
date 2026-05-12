@@ -14,13 +14,6 @@ const querySchema = z.object({
   year: z.string().optional()
 });
 
-const allowedMedias = ["anime", "manga", "lightNovel"] as const;
-type Media = (typeof allowedMedias)[number];
-
-function isAllowedMedia(media: string): media is Media {
-  return allowedMedias.includes(media as Media);
-}
-
 export class StatisticController {
   constructor(private readonly statisticService: StatisticService) {}
 
@@ -64,33 +57,6 @@ export class StatisticController {
         view as STATISTICS_VIEW,
         parsedYear
       );
-
-      return res.json({ data: statistics });
-    } catch (error) {
-      return next(error);
-    }
-  };
-
-  getMediaProgress = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const media = req.query.media as string;
-
-      if (!media) {
-        throw new UnprocessableEntityError("Media params missing!");
-      }
-
-      if (!isAllowedMedia(media)) {
-        throw new BadRequestError(
-          "Only anime, manga, or lightNovel media is allowed!"
-        );
-      }
-
-      const statistics =
-        await this.statisticService.generateMediaProgress(media);
 
       return res.json({ data: statistics });
     } catch (error) {

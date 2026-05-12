@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useAuthSession } from "@/auth/useAuthSession";
+import { useAuthSession } from "@/auth";
 import { Outlet, useNavigate } from "react-router-dom";
 
 export function RequireAuth() {

@@ -1,5 +1,4 @@
-import { AUTH_SESSION_QUERY_KEY } from "@/auth/auth-query-key";
-import { fetchAuthSession } from "@/auth/auth-session";
+import { AUTH_SESSION_QUERY_KEY, fetchAuthSession } from "@/auth";
 import { useQuery } from "@tanstack/react-query";
 
 export function useAuthSession() {

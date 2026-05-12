@@ -1,56 +1,81 @@
+import type { MediaType } from "@/types/general.type";
+
 import { ProgressStatusKey } from "@/lib/enums";
 
 type MediaConsumption = {
   period: string;
-  anime: number;
-  manga: number;
-  lightNovel: number;
+  animeCount: number;
+  mangaCount: number;
+  lightNovelCount: number;
 };
 
-type AllowedMedia = "anime" | "manga" | "lightNovel";
+type DashboardKpiMetric = {
+  value: number;
+  previousValue: number;
+  changePercent: number;
+  changeAbsolute: number;
+};
 
-type MediaProgress = {
+type DashboardKpis = {
+  year: number | null;
+  cutoffAt: string;
+  priorCutoffAt: string;
+  totalMedia: DashboardKpiMetric;
+  inProgress: DashboardKpiMetric;
+  averagePersonalScore: DashboardKpiMetric;
+  topRatedPersonalScore: DashboardKpiMetric;
+};
+
+type TopRatedMediaRow = {
+  id: number;
+  slug: string;
+  title: string;
+  images: unknown;
+  personalScore: number | null;
+};
+
+type TopRatedThisYear = {
+  year: number | null;
+  anime: TopRatedMediaRow | null;
+  manga: TopRatedMediaRow | null;
+  lightNovel: TopRatedMediaRow | null;
+};
+
+type LibraryHealthSegment = {
   status: string;
   count: number;
-  fill?: string;
+  percentage: number;
 };
 
-type GenreConsumption = {
+type LibraryHealth = {
+  total: number;
+  segments: LibraryHealthSegment[];
+};
+
+type RecentReviewItem = {
+  mediaType: MediaType;
+  mediaId: number;
+  slug: string;
+  title: string;
+  images: unknown;
+  personalScore: number | null;
+  updatedAt: string;
+};
+
+type TasteProfileRow = {
   name: string;
-  animeCount: number;
-  mangaCount: number;
-  lightNovelCount: number;
+  percentage: number;
   totalCount: number;
+  animeCount?: number;
+  mangaCount?: number;
+  lightNovelCount?: number;
 };
 
-type StudioConsumption = {
-  name: string;
-  animeCount: number;
-  totalCount: number;
-};
-
-type ThemeConsumption = {
-  name: string;
-  animeCount: number;
-  mangaCount: number;
-  lightNovelCount: number;
-  totalCount: number;
-};
-
-type AuthorConsumption = {
-  name: string;
-  mangaCount: number;
-  lightNovelCount: number;
-  totalCount: number;
-};
-
-type AllTimeStatistic = {
-  allMediaCount: number;
-  animeCount: number;
-  mangaCount: number;
-  lightNovelCount: number;
-  averageMalScore: number;
-  averagePersonalScore: number;
+type TasteProfile = {
+  genres: TasteProfileRow[];
+  themes: TasteProfileRow[];
+  studios: TasteProfileRow[];
+  authors: TasteProfileRow[];
 };
 
 type StatusFilter = {
@@ -61,12 +86,11 @@ type StatusFilter = {
 
 export type {
   MediaConsumption,
-  MediaProgress,
-  AllowedMedia,
-  GenreConsumption,
-  StudioConsumption,
-  ThemeConsumption,
-  AuthorConsumption,
-  AllTimeStatistic,
-  StatusFilter
+  StatusFilter,
+  DashboardKpis,
+  TopRatedThisYear,
+  LibraryHealth,
+  RecentReviewItem,
+  TasteProfileRow,
+  TasteProfile
 };

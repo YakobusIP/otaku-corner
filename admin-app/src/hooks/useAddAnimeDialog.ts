@@ -13,6 +13,7 @@ import { toast } from "@/hooks/useToast";
 
 import type { AnimeCreateRequest } from "@/types/anime.type";
 
+import { animeToCreateRequest } from "@/lib/media-dialog-helpers";
 import { mediaKeys } from "@/lib/query-keys";
 
 import {
@@ -23,8 +24,6 @@ import {
 import { Anime, AnimeClient } from "@tutkli/jikan-ts";
 import { useInView } from "react-intersection-observer";
 import { useDebounce } from "use-debounce";
-
-import { animeToCreateRequest } from "@/lib/media-dialog-helpers";
 
 const animeClient = new AnimeClient();
 
@@ -252,7 +251,8 @@ export function useAddAnimeDialog({
             queryKey: mediaKeys.malDuplicate("anime", a.mal_id),
             queryFn: async (): Promise<boolean> => {
               const r = await animeService.getDuplicates(a.mal_id);
-              if (!r.success) throw new Error(r.error ?? "Duplicate check failed");
+              if (!r.success)
+                throw new Error(r.error ?? "Duplicate check failed");
               return r.data.exists;
             },
             staleTime: 60_000
@@ -260,9 +260,7 @@ export function useAddAnimeDialog({
           .catch(() => null)
       )
     );
-    const ready = selectedAnime.filter(
-      (_a, i) => existsList[i] === false
-    );
+    const ready = selectedAnime.filter((_a, i) => existsList[i] === false);
 
     if (ready.length === 0) {
       toast({
