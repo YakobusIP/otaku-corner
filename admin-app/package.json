@@ -54,7 +54,11 @@
     "use-debounce": "^10.0.1",
     "zod": "^4.1.11"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
   "devDependencies": {
+    "@remix-run/router": "1.21.0",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-query-devtools": "^5.91.3",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
@@ -71,5 +75,6 @@
     "tailwindcss": "^4.2.4",
     "typescript": "^5.2.2",
     "vite": "^5.3.4"
-  }
+  },
+  "packageManager": "pnpm@11.1.1+sha512.d1fdf5f73c617b64fa1a56a81c3c8dfe0e966e33a6010aa256b517ae77be21d93e05affc0de1a83b0e4f29d569f68b446ae8f068cd7247c0bb3df0fb4d7bdf9a"
 }

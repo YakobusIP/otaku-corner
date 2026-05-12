@@ -14,6 +14,7 @@ let ensureSessionPromise: Promise<boolean> | null = null;
 
 const REFRESH_BUFFER_SECONDS = 60;
 const AUTH_REFRESH_PATH = "/api/auth/refresh";
+const AUTH_LOGIN_PATH = "/api/auth/login";
 
 const interceptedAxios: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_AXIOS_BASE_URL,
@@ -189,6 +190,11 @@ interceptedAxios.interceptors.response.use(
         : originalRequest.baseURL
           ? `${originalRequest.baseURL}${originalRequest.url ?? ""}`
           : "";
+    const isLoginRequest = url.includes(AUTH_LOGIN_PATH);
+    if (isLoginRequest) {
+      return Promise.reject(error);
+    }
+
     const isRefreshRequest = url.includes(AUTH_REFRESH_PATH);
 
     if (isRefreshRequest) {

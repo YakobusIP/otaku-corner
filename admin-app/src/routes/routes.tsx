@@ -7,9 +7,10 @@ import Login from "@/pages/Login";
 import MediaLibrary from "@/pages/MediaLibrary";
 import NotFoundPage from "@/routes/NotFoundPage";
 import UnauthorizedPage from "@/routes/UnauthorizedPage";
+import type { Router } from "@remix-run/router";
 import { createBrowserRouter } from "react-router-dom";
 
-export const router = createBrowserRouter([
+export const router: Router = createBrowserRouter([
   {
     path: "/",
     element: <Login />

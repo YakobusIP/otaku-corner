@@ -1,10 +1,4 @@
-import {
-  type ChangeEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -269,11 +263,7 @@ export default function FilterPopover<T, K extends string | number>({
           <CommandInput
             placeholder={placeholder}
             {...(isInfinite
-              ? {
-                  value: searchInput,
-                  onChange: (e: ChangeEvent<HTMLInputElement>) =>
-                    setSearchInput(e.target.value)
-                }
+              ? { value: searchInput, onValueChange: setSearchInput }
               : {})}
           />
           <CommandList ref={setScrollRoot}>
