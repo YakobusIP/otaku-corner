@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { writeFile } from "node:fs/promises";
 import { basename, join, resolve as resolvePath } from "node:path";
 
 import { BadRequestException, Injectable, OnModuleInit } from "@nestjs/common";
@@ -36,6 +37,12 @@ export class FileStorageService implements OnModuleInit {
     FileStorageService.assertSafeStorageFilename(filename);
     const filePath = join(this.absoluteRoot, filename);
     writeFileSync(filePath, data);
+  }
+
+  async writeFileAsync(filename: string, data: Buffer): Promise<void> {
+    FileStorageService.assertSafeStorageFilename(filename);
+    const filePath = join(this.absoluteRoot, filename);
+    await writeFile(filePath, data);
   }
 
   deleteFileIfExists(filename: string): void {

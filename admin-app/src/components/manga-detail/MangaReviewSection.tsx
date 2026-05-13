@@ -1,8 +1,3 @@
-import { useEffect, useRef, useState } from "react";
-
-import { mangaService } from "@/services/manga.service";
-import { uploadService } from "@/services/upload.service";
-
 import ProgressStatus from "@/components/ProgressStatus";
 import RatingSelect from "@/components/RatingSelect";
 import ReviewEditor from "@/components/ReviewEditor";
@@ -15,249 +10,43 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 
-import { useToast } from "@/hooks/useToast";
+import { useMangaReviewSection } from "@/hooks/useMangaReviewSection";
 
-import { MangaDetail, MangaReviewRequest } from "@/types/manga.type";
+import type { MangaDetail } from "@/types/manga.type";
 
-import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
-import { detailKeys } from "@/lib/query-keys";
-import { cn, createUTCDate, extractImageIds } from "@/lib/utils";
+import { MEDIA_TYPE } from "@/lib/enums";
+import { cn, createUTCDate } from "@/lib/utils";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CalendarDaysIcon,
-  CheckCircle2Icon,
-  CloudIcon,
   Loader2Icon,
   NotebookPenIcon,
   PencilLineIcon,
   SaveIcon,
   SignalIcon
 } from "lucide-react";
-import { useDebounce } from "use-debounce";
 
 type Props = {
   mangaDetail: MangaDetail;
 };
 
 export default function MangaReviewSection({ mangaDetail }: Props) {
-  const toast = useToast();
-  const queryClient = useQueryClient();
-  const reviewObject = mangaDetail.review;
-
-  const [reviewText, setReviewText] = useState(
-    reviewObject.reviewText ?? undefined
-  );
-  const [uploadedImages, setUploadedImages] = useState<string[]>(
-    extractImageIds(reviewObject.reviewText ?? undefined)
-  );
-
-  const [progressStatus, setProgressStatus] = useState(
-    reviewObject.progressStatus as string
-  );
-  const [consumedMonth, setConsumedMonth] = useState<Date | null>(
-    reviewObject.consumedAt ? new Date(reviewObject.consumedAt) : null
-  );
-  const [storylineRating, setStorylineRating] = useState(
-    reviewObject.storylineRating || 10
-  );
-  const [artStyleRating, setArtStyleRating] = useState(
-    reviewObject.artStyleRating || 10
-  );
-  const [charDevelopmentRating, setCharDevelopmentRating] = useState(
-    reviewObject.charDevelopmentRating || 10
-  );
-  const [worldBuildingRating, setWorldBuildingRating] = useState(
-    reviewObject.worldBuildingRating || 10
-  );
-  const [originalityRating, setOriginalityRating] = useState(
-    reviewObject.originalityRating || 10
-  );
-
-  const ratingFields = [
-    {
-      key: "storyline",
-      label: "Storyline",
-      rating: storylineRating,
-      setRating: setStorylineRating
-    },
-    {
-      key: "artstyle",
-      label: "Art Style",
-      rating: artStyleRating,
-      setRating: setArtStyleRating
-    },
-    {
-      key: "characterdevelopment",
-      label: "Character Development",
-      rating: charDevelopmentRating,
-      setRating: setCharDevelopmentRating
-    },
-    {
-      key: "worldbuilding",
-      label: "World Building",
-      rating: worldBuildingRating,
-      setRating: setWorldBuildingRating
-    },
-    {
-      key: "originality",
-      label: "Originality",
-      rating: originalityRating,
-      setRating: setOriginalityRating
-    }
-  ];
-
-  const snapshot = JSON.stringify({
-    reviewText: reviewText ?? "",
+  const {
+    reviewObject,
+    reviewText,
+    setReviewText,
+    setUploadedImages,
     progressStatus,
-    consumedAt: consumedMonth
-      ? createUTCDate(
-          consumedMonth.getUTCFullYear(),
-          consumedMonth.getUTCMonth()
-        ).toISOString()
-      : null,
-    storylineRating,
-    artStyleRating,
-    charDevelopmentRating,
-    worldBuildingRating,
-    originalityRating
-  });
-
-  const savedSnapshotRef = useRef<string>(snapshot);
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
-  const [debouncedSnapshot] = useDebounce(snapshot, 5000);
-
-  const updateReviewMutation = useMutation({
-    mutationFn: async (payload: {
-      currentImageIds: string[];
-      data: MangaReviewRequest;
-      snapshotAtSave: string;
-      silent: boolean;
-    }) => {
-      const previouslyUploadedImageIds = Object.values(uploadedImages);
-      const removedImageIds = previouslyUploadedImageIds.filter(
-        (id) => !payload.currentImageIds.includes(id)
-      );
-
-      await Promise.all(
-        removedImageIds.map(async (id) => {
-          const response = await uploadService.remove(id);
-          if (!response.success) throw new Error(response.error);
-          return response.data;
-        })
-      );
-
-      const reviewResponse = await mangaService.updateReview(
-        mangaDetail.id,
-        payload.data
-      );
-      if (!reviewResponse.success) throw new Error(reviewResponse.error);
-
-      return {
-        message: reviewResponse.data?.message,
-        currentImageIds: payload.currentImageIds,
-        snapshotAtSave: payload.snapshotAtSave,
-        silent: payload.silent
-      };
-    },
-    onSuccess: async ({ message, currentImageIds, snapshotAtSave, silent }) => {
-      savedSnapshotRef.current = snapshotAtSave;
-      setLastSavedAt(new Date());
-      await queryClient.invalidateQueries({
-        queryKey: detailKeys.manga(mangaDetail.id)
-      });
-      setUploadedImages([...currentImageIds]);
-      if (!silent) {
-        toast.toast({
-          title: "All set!",
-          description: message ?? "Review saved successfully"
-        });
-      }
-    },
-    onError: (error: Error) => {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: error.message
-      });
-    }
-  });
-
-  const buildPayload = (silent: boolean, snapshotAtSave: string) => {
-    const currentImageIds = extractImageIds(reviewText);
-    const adjustedConsumedMonth = consumedMonth
-      ? createUTCDate(
-          consumedMonth.getUTCFullYear(),
-          consumedMonth.getUTCMonth()
-        )
-      : null;
-
-    const data: MangaReviewRequest = {
-      reviewText,
-      progressStatus: progressStatus as PROGRESS_STATUS,
-      consumedAt: adjustedConsumedMonth,
-      storylineRating,
-      artStyleRating,
-      charDevelopmentRating,
-      worldBuildingRating,
-      originalityRating
-    };
-
-    return { currentImageIds, data, snapshotAtSave, silent };
-  };
-
-  const handleSubmit = () => {
-    updateReviewMutation.mutate(buildPayload(false, snapshot));
-  };
-
-  useEffect(() => {
-    if (
-      debouncedSnapshot !== savedSnapshotRef.current &&
-      !updateReviewMutation.isPending
-    ) {
-      updateReviewMutation.mutate(buildPayload(true, debouncedSnapshot));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSnapshot, updateReviewMutation.isPending]);
-
-  const isDirty = snapshot !== savedSnapshotRef.current;
-
-  const consumedLabel = consumedMonth
-    ? `${consumedMonth.toLocaleString("default", {
-        month: "long"
-      })} ${consumedMonth.getUTCFullYear()}`
-    : "Not set";
-
-  const saveStatus: {
-    icon: React.ReactNode;
-    text: string;
-    tone: string;
-  } = updateReviewMutation.isPending
-    ? {
-        icon: <Loader2Icon className="h-3.5 w-3.5 animate-spin" />,
-        text: "Saving...",
-        tone: "text-sky-300"
-      }
-    : isDirty
-      ? {
-          icon: <CloudIcon className="h-3.5 w-3.5" />,
-          text: "Unsaved changes — autosave 5s after you stop editing",
-          tone: "text-amber-300"
-        }
-      : lastSavedAt
-        ? {
-            icon: <CheckCircle2Icon className="h-3.5 w-3.5" />,
-            text: `Saved at ${lastSavedAt.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit"
-            })}`,
-            tone: "text-emerald-300"
-          }
-        : {
-            icon: <CloudIcon className="h-3.5 w-3.5" />,
-            text: "Autosave 5s after you stop editing",
-            tone: "text-muted-foreground"
-          };
+    setProgressStatus,
+    consumedMonth,
+    setConsumedMonth,
+    consumedLabel,
+    ratingFields,
+    updateReviewMutation,
+    handleSubmit,
+    isDirty,
+    saveStatusDisplay
+  } = useMangaReviewSection(mangaDetail);
 
   return (
     <div className="rounded-2xl border border-border/40 bg-background/35 shadow-xs backdrop-blur-xs">
@@ -374,10 +163,10 @@ export default function MangaReviewSection({ mangaDetail }: Props) {
 
         <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div
-            className={`inline-flex items-center gap-1.5 text-xs ${saveStatus.tone}`}
+            className={`inline-flex items-center gap-1.5 text-xs ${saveStatusDisplay.tone}`}
           >
-            {saveStatus.icon}
-            <span>{saveStatus.text}</span>
+            {saveStatusDisplay.icon}
+            <span>{saveStatusDisplay.text}</span>
           </div>
           <Button
             type="submit"

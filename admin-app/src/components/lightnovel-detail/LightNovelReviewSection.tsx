@@ -1,8 +1,3 @@
-import { useEffect, useState } from "react";
-
-import { lightNovelService } from "@/services/light-novel.service";
-import { uploadService } from "@/services/upload.service";
-
 import ProgressStatus from "@/components/ProgressStatus";
 import RatingSelect from "@/components/RatingSelect";
 import ReviewEditor from "@/components/ReviewEditor";
@@ -10,18 +5,12 @@ import VolumeProgressModal from "@/components/lightnovel-detail/VolumeProgressMo
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
-import { useToast } from "@/hooks/useToast";
+import { useLightNovelReviewSection } from "@/hooks/useLightNovelReviewSection";
 
-import {
-  LightNovelDetail,
-  LightNovelReviewRequest
-} from "@/types/light-novel.type";
+import type { LightNovelDetail } from "@/types/light-novel.type";
 
-import { MEDIA_TYPE, PROGRESS_STATUS } from "@/lib/enums";
-import { detailKeys } from "@/lib/query-keys";
-import { extractImageIds } from "@/lib/utils";
+import { MEDIA_TYPE } from "@/lib/enums";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CalendarDaysIcon,
   Loader2Icon,
@@ -40,144 +29,19 @@ export default function LightNovelReviewSection({
   lightNovelDetail,
   resetParent
 }: Props) {
-  const toast = useToast();
-  const queryClient = useQueryClient();
-  const reviewObject = lightNovelDetail.review;
-
-  const [reviewText, setReviewText] = useState(
-    reviewObject.reviewText ?? undefined
-  );
-  const [uploadedImages, setUploadedImages] = useState<string[]>(
-    extractImageIds(reviewObject.reviewText ?? undefined)
-  );
-
-  const [progressStatus, setProgressStatus] = useState(
-    reviewObject.progressStatus as string
-  );
-  const [storylineRating, setStorylineRating] = useState(
-    reviewObject.storylineRating || 10
-  );
-  const [worldBuildingRating, setWorldBuildingRating] = useState(
-    reviewObject.worldBuildingRating || 10
-  );
-  const [writingStyleRating, setWritingStyleRating] = useState(
-    reviewObject.writingStyleRating || 10
-  );
-  const [charDevelopmentRating, setCharDevelopmentRating] = useState(
-    reviewObject.charDevelopmentRating || 10
-  );
-  const [originalityRating, setOriginalityRating] = useState(
-    reviewObject.originalityRating || 10
-  );
-
-  useEffect(() => {
-    const r = lightNovelDetail.review;
-    setReviewText(r.reviewText ?? undefined);
-    setUploadedImages(extractImageIds(r.reviewText ?? undefined));
-    setProgressStatus(r.progressStatus as string);
-    setStorylineRating(r.storylineRating || 10);
-    setWorldBuildingRating(r.worldBuildingRating || 10);
-    setWritingStyleRating(r.writingStyleRating || 10);
-    setCharDevelopmentRating(r.charDevelopmentRating || 10);
-    setOriginalityRating(r.originalityRating || 10);
-  }, [lightNovelDetail.id, lightNovelDetail.review]);
-
-  const ratingFields = [
-    {
-      key: "storyline",
-      label: "Storyline",
-      rating: storylineRating,
-      setRating: setStorylineRating
-    },
-    {
-      key: "worldbuilding",
-      label: "World Building",
-      rating: worldBuildingRating,
-      setRating: setWorldBuildingRating
-    },
-    {
-      key: "writingstyle",
-      label: "Writing Style",
-      rating: writingStyleRating,
-      setRating: setWritingStyleRating
-    },
-    {
-      key: "characterdevelopment",
-      label: "Character Development",
-      rating: charDevelopmentRating,
-      setRating: setCharDevelopmentRating
-    },
-    {
-      key: "originality",
-      label: "Originality",
-      rating: originalityRating,
-      setRating: setOriginalityRating
-    }
-  ];
-
-  const updateReviewMutation = useMutation({
-    mutationFn: async (payload: {
-      currentImageIds: string[];
-      data: LightNovelReviewRequest;
-    }) => {
-      const previouslyUploadedImageIds = Object.values(uploadedImages);
-      const removedImageIds = previouslyUploadedImageIds.filter(
-        (id) => !payload.currentImageIds.includes(id)
-      );
-
-      await Promise.all(
-        removedImageIds.map(async (id) => {
-          const response = await uploadService.remove(id);
-          if (!response.success) throw new Error(response.error);
-          return response.data;
-        })
-      );
-
-      const reviewResponse = await lightNovelService.updateReview(
-        lightNovelDetail.id,
-        payload.data
-      );
-      if (!reviewResponse.success) throw new Error(reviewResponse.error);
-
-      return {
-        message: reviewResponse.data?.message,
-        currentImageIds: payload.currentImageIds
-      };
-    },
-    onSuccess: async ({ message, currentImageIds }) => {
-      await queryClient.invalidateQueries({
-        queryKey: detailKeys.lightNovel(lightNovelDetail.id)
-      });
-      await resetParent();
-      setUploadedImages([...currentImageIds]);
-      toast.toast({
-        title: "All set!",
-        description: message ?? "Review saved successfully"
-      });
-    },
-    onError: (error: Error) => {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: error.message
-      });
-    }
-  });
-
-  const onSubmit = () => {
-    const currentImageIds = extractImageIds(reviewText);
-    const data: LightNovelReviewRequest = {
-      reviewText,
-      progressStatus: progressStatus as PROGRESS_STATUS,
-      storylineRating,
-      worldBuildingRating,
-      writingStyleRating,
-      charDevelopmentRating,
-      originalityRating
-    };
-
-    updateReviewMutation.mutate({ currentImageIds, data });
-  };
+  const {
+    reviewObject,
+    reviewText,
+    setReviewText,
+    setUploadedImages,
+    progressStatus,
+    setProgressStatus,
+    ratingFields,
+    updateReviewMutation,
+    handleSubmit,
+    isDirty,
+    saveStatusDisplay
+  } = useLightNovelReviewSection({ lightNovelDetail, resetParent });
 
   return (
     <div className="rounded-2xl border border-border/40 bg-background/35 shadow-xs backdrop-blur-xs">
@@ -260,11 +124,17 @@ export default function LightNovelReviewSection({
           />
         </div>
 
-        <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end">
+        <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            className={`inline-flex items-center gap-1.5 text-xs ${saveStatusDisplay.tone}`}
+          >
+            {saveStatusDisplay.icon}
+            <span>{saveStatusDisplay.text}</span>
+          </div>
           <Button
             type="submit"
-            onClick={onSubmit}
-            disabled={updateReviewMutation.isPending}
+            onClick={handleSubmit}
+            disabled={updateReviewMutation.isPending || !isDirty}
             className="w-full gap-2 sm:w-auto"
           >
             {updateReviewMutation.isPending ? (

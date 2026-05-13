@@ -1,3 +1,4 @@
+export * from "@/common/crud/media-review-list-query";
 export * from "@/common/crud/types";
 export * from "@/common/crud/crud-hooks.interface";
 export * from "@/common/crud/crud-query-builder.interface";

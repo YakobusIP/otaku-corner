@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { extname } from "node:path";
 
 import {
   BadRequestException,
@@ -7,11 +6,17 @@ import {
   Injectable,
   NotFoundException
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
 import { PrismaService } from "@/prisma/prisma.service";
 
 import { FileStorageService } from "@/storage/file-storage.service";
 import { MediaType } from "@/upload/enums/media-type.enum";
+import {
+  assertDeclaredMimeMatchesImageBuffer,
+  detectImageFormatFromBuffer,
+  fileExtensionForDetectedImageFormat
+} from "@/upload/image-buffer-validation";
 
 import { Prisma } from "@prisma/client";
 
@@ -19,7 +24,8 @@ import { Prisma } from "@prisma/client";
 export class UploadService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly fileStorage: FileStorageService
+    private readonly fileStorage: FileStorageService,
+    private readonly config: ConfigService
   ) {}
 
   async uploadImage(
@@ -31,11 +37,24 @@ export class UploadService {
       throw new BadRequestException("An image file is required");
     }
 
+    const maxBytes = this.config.getOrThrow<number>("MAX_FILE_SIZE");
+    if (file.buffer.length > maxBytes) {
+      throw new BadRequestException("Image exceeds maximum allowed size");
+    }
+
+    const format = detectImageFormatFromBuffer(file.buffer);
+    if (!format) {
+      throw new BadRequestException(
+        "Unsupported image format (allowed: JPEG, PNG, GIF, WebP)"
+      );
+    }
+    assertDeclaredMimeMatchesImageBuffer(file.mimetype, format);
+
     const id = randomUUID();
-    const ext = extname(file.originalname);
+    const ext = fileExtensionForDetectedImageFormat(format);
     const filename = `${id}${ext}`;
 
-    this.fileStorage.writeFile(filename, file.buffer);
+    await this.fileStorage.writeFileAsync(filename, file.buffer);
     const url = this.fileStorage.publicUrlForFile(filename);
 
     const reviewConnect = this.buildReviewConnect(type, reviewId);

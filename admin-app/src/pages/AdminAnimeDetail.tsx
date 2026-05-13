@@ -113,7 +113,7 @@ export default function AdminAnimeDetail() {
         {animeDetail.type !== "Movie" ? (
           <AnimeEpisodesSection animeDetail={animeDetail} />
         ) : null}
-        <AnimeReviewSection animeDetail={animeDetail} />
+        <AnimeReviewSection key={animeDetail.id} animeDetail={animeDetail} />
       </div>
     </AdminLayout>
   );

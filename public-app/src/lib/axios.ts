@@ -8,7 +8,9 @@ export const axiosClient = axios.create({
 });
 
 export const handleAxiosError = (error: unknown) => {
-  console.error(error);
+  if (process.env.NODE_ENV === "development") {
+    console.error(error);
+  }
   if (error instanceof AxiosError && error.response?.data) {
     if (error.response.status === 404) {
       notFound();

@@ -5,7 +5,11 @@ import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
-import { chunkArray } from "@/common/utils";
+import {
+  buildRelationIdLookupMap,
+  requireRelationIdFromMap
+} from "@/common/utils";
+import { chunkArray } from "@/common/utils/chunk-array";
 
 import { PrismaService } from "@/prisma/prisma.service";
 
@@ -23,7 +27,7 @@ import { GenresService } from "@/genre/genres.service";
 import { StudiosService } from "@/studio/studios.service";
 import { ThemesService } from "@/theme/themes.service";
 
-import { Prisma } from "@prisma/client";
+import { Prisma, ProgressStatus } from "@prisma/client";
 
 interface AnimeWithReviewAndCount {
   id: number;
@@ -100,6 +104,12 @@ interface SitemapRow {
   slug: string;
   review: { createdAt: Date; updatedAt: Date } | null;
 }
+
+export type AnimeStatusCountItemDto = {
+  label: string;
+  value: ProgressStatus | null;
+  count: number;
+};
 
 @Injectable()
 export class AnimeService extends BaseCrudService<
@@ -267,14 +277,16 @@ export class AnimeService extends BaseCrudService<
       this.themesService.getOrCreateMany(allThemeNames)
     ]);
 
-    const genreMap = new Map(genres.map((g) => [g.name, g.id]));
-    const studioMap = new Map(studios.map((s) => [s.name, s.id]));
-    const themeMap = new Map(themes.map((t) => [t.name, t.id]));
+    const genreMap = buildRelationIdLookupMap(genres);
+    const studioMap = buildRelationIdLookupMap(studios);
+    const themeMap = buildRelationIdLookupMap(themes);
 
     const chunks = chunkArray(data, 5);
     const results: number[] = [];
 
     for (const chunk of chunks) {
+      const enqueueAfterChunk: { id: number; type: string }[] = [];
+
       await this.prisma.$transaction(async (tx) => {
         for (const item of chunk) {
           const {
@@ -289,26 +301,27 @@ export class AnimeService extends BaseCrudService<
               ...animeData,
               genres: {
                 createMany: {
-                  data: genreNames
-                    .map((name) => genreMap.get(name))
-                    .filter((id): id is number => id !== undefined)
-                    .map((genreId) => ({ genreId }))
+                  data: genreNames.map((name) => ({
+                    genreId: requireRelationIdFromMap(genreMap, name, "Genre")
+                  }))
                 }
               },
               studios: {
                 createMany: {
-                  data: studioNames
-                    .map((name) => studioMap.get(name))
-                    .filter((id): id is number => id !== undefined)
-                    .map((studioId) => ({ studioId }))
+                  data: studioNames.map((name) => ({
+                    studioId: requireRelationIdFromMap(
+                      studioMap,
+                      name,
+                      "Studio"
+                    )
+                  }))
                 }
               },
               themes: {
                 createMany: {
-                  data: themeNames
-                    .map((name) => themeMap.get(name))
-                    .filter((id): id is number => id !== undefined)
-                    .map((themeId) => ({ themeId }))
+                  data: themeNames.map((name) => ({
+                    themeId: requireRelationIdFromMap(themeMap, name, "Theme")
+                  }))
                 }
               },
               review: {
@@ -317,14 +330,18 @@ export class AnimeService extends BaseCrudService<
             }
           });
 
-          this.fetchEpisodesQueue.enqueueAfterCreate(
-            item.id,
-            item.type,
-            requestLog
-          );
+          enqueueAfterChunk.push({ id: item.id, type: item.type });
           results.push(item.id);
         }
       });
+
+      for (const job of enqueueAfterChunk) {
+        this.fetchEpisodesQueue.enqueueAfterCreate(
+          job.id,
+          job.type,
+          requestLog
+        );
+      }
     }
 
     return results;
@@ -405,16 +422,26 @@ export class AnimeService extends BaseCrudService<
     }));
   }
 
-  async getStatusCounts() {
+  async getStatusCounts(): Promise<AnimeStatusCountItemDto[]> {
+    const totalCount = await this.prisma.anime.count();
+
     const counts = await this.prisma.animeReview.groupBy({
       by: ["progressStatus"],
       _count: { _all: true }
     });
 
-    return counts.map((item) => ({
-      status: item.progressStatus,
-      label: PROGRESS_STATUSES[item.progressStatus] ?? item.progressStatus,
-      count: item._count._all
+    const countsMap = Object.fromEntries(
+      counts.map((c) => [c.progressStatus, c._count._all])
+    );
+
+    const mappedStatus = (
+      Object.keys(PROGRESS_STATUSES) as ProgressStatus[]
+    ).map((status) => ({
+      label: PROGRESS_STATUSES[status] ?? status,
+      value: status,
+      count: countsMap[status] ?? 0
     }));
+
+    return [{ label: "All", value: null, count: totalCount }, ...mappedStatus];
   }
 }

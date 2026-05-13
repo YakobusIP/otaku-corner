@@ -5,7 +5,11 @@ import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
-import { chunkArray } from "@/common/utils";
+import {
+  buildRelationIdLookupMap,
+  requireRelationIdFromMap
+} from "@/common/utils";
+import { chunkArray } from "@/common/utils/chunk-array";
 
 import { PrismaService } from "@/prisma/prisma.service";
 
@@ -289,9 +293,9 @@ export class LightNovelService extends BaseCrudService<
       this.themesService.getOrCreateMany(allThemeNames)
     ]);
 
-    const authorMap = new Map(authors.map((a) => [a.name, a.id]));
-    const genreMap = new Map(genres.map((g) => [g.name, g.id]));
-    const themeMap = new Map(themes.map((t) => [t.name, t.id]));
+    const authorMap = buildRelationIdLookupMap(authors);
+    const genreMap = buildRelationIdLookupMap(genres);
+    const themeMap = buildRelationIdLookupMap(themes);
 
     const chunks = chunkArray(data, 5);
     const results: number[] = [];
@@ -312,26 +316,27 @@ export class LightNovelService extends BaseCrudService<
               images: lightNovelData.images as Prisma.InputJsonValue,
               authors: {
                 createMany: {
-                  data: authorNames
-                    .map((name) => authorMap.get(name.trim()))
-                    .filter((id): id is number => id !== undefined)
-                    .map((authorId) => ({ authorId }))
+                  data: authorNames.map((name) => ({
+                    authorId: requireRelationIdFromMap(
+                      authorMap,
+                      name,
+                      "Author"
+                    )
+                  }))
                 }
               },
               genres: {
                 createMany: {
-                  data: genreNames
-                    .map((name) => genreMap.get(name.trim()))
-                    .filter((id): id is number => id !== undefined)
-                    .map((genreId) => ({ genreId }))
+                  data: genreNames.map((name) => ({
+                    genreId: requireRelationIdFromMap(genreMap, name, "Genre")
+                  }))
                 }
               },
               themes: {
                 createMany: {
-                  data: themeNames
-                    .map((name) => themeMap.get(name.trim()))
-                    .filter((id): id is number => id !== undefined)
-                    .map((themeId) => ({ themeId }))
+                  data: themeNames.map((name) => ({
+                    themeId: requireRelationIdFromMap(themeMap, name, "Theme")
+                  }))
                 }
               },
               review: { create: {} },

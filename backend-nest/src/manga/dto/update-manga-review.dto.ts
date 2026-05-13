@@ -2,7 +2,15 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 
 import { ProgressStatus } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsDate, IsEnum, IsInt, IsOptional, IsString } from "class-validator";
+import {
+  IsDate,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min
+} from "class-validator";
 
 export class UpdateMangaReviewDto {
   @ApiPropertyOptional({ description: "Review text" })
@@ -13,11 +21,15 @@ export class UpdateMangaReviewDto {
   @ApiPropertyOptional({ description: "Storyline rating (1-10)", example: 8 })
   @IsOptional()
   @IsInt()
+  @Min(1)
+  @Max(10)
   storylineRating?: number;
 
   @ApiPropertyOptional({ description: "Art style rating (1-10)", example: 9 })
   @IsOptional()
   @IsInt()
+  @Min(1)
+  @Max(10)
   artStyleRating?: number;
 
   @ApiPropertyOptional({
@@ -26,6 +38,8 @@ export class UpdateMangaReviewDto {
   })
   @IsOptional()
   @IsInt()
+  @Min(1)
+  @Max(10)
   charDevelopmentRating?: number;
 
   @ApiPropertyOptional({
@@ -34,6 +48,8 @@ export class UpdateMangaReviewDto {
   })
   @IsOptional()
   @IsInt()
+  @Min(1)
+  @Max(10)
   worldBuildingRating?: number;
 
   @ApiPropertyOptional({
@@ -42,6 +58,8 @@ export class UpdateMangaReviewDto {
   })
   @IsOptional()
   @IsInt()
+  @Min(1)
+  @Max(10)
   originalityRating?: number;
 
   @ApiPropertyOptional({

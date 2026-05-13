@@ -1,6 +1,7 @@
 import {
   Body,
   Delete,
+  FileTypeValidator,
   Param,
   ParseFilePipe,
   Post,
@@ -21,7 +22,6 @@ import {
 import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 
 import { UploadImageDto, UploadResponseDto } from "@/upload/dto";
-import { MediaType } from "@/upload/enums/media-type.enum";
 import { UploadService } from "@/upload/upload.service";
 
 @AuthenticatedApiController({ tag: "Upload", path: "upload" })
@@ -42,17 +42,18 @@ export class UploadController {
   async uploadImage(
     @UploadedFile(
       new ParseFilePipe({
-        fileIsRequired: true
+        fileIsRequired: true,
+        validators: [
+          new FileTypeValidator({
+            fileType: /^image\/(jpeg|jpg|pjpeg|png|gif|webp)$/i
+          })
+        ]
       })
     )
     file: Express.Multer.File,
     @Body() dto: UploadImageDto
   ): Promise<UploadResponseDto> {
-    return this.uploadService.uploadImage(
-      file,
-      dto.type as MediaType,
-      dto.reviewId
-    );
+    return this.uploadService.uploadImage(file, dto.type, dto.reviewId);
   }
 
   @Delete(":id")

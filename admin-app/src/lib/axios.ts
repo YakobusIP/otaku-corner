@@ -230,7 +230,9 @@ interceptedAxios.interceptors.response.use(
 export default interceptedAxios;
 
 export const handleAxiosError = (error: unknown) => {
-  console.error(error);
+  if (import.meta.env.DEV) {
+    console.error(error);
+  }
   if (error instanceof AxiosError && error.response?.data) {
     const data = error.response.data as
       | ApiResponseError

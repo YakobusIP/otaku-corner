@@ -5,7 +5,11 @@ import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
-import { chunkArray } from "@/common/utils";
+import {
+  buildRelationIdLookupMap,
+  requireRelationIdFromMap
+} from "@/common/utils";
+import { chunkArray } from "@/common/utils/chunk-array";
 
 import { PrismaService } from "@/prisma/prisma.service";
 
@@ -238,14 +242,21 @@ export class MangaService extends BaseCrudService<
       this.themesService.getOrCreateMany(allThemeNames)
     ]);
 
-    const authorMap = new Map(authors.map((a) => [a.name, a.id]));
-    const genreMap = new Map(genres.map((g) => [g.name, g.id]));
-    const themeMap = new Map(themes.map((t) => [t.name, t.id]));
+    const authorMap = buildRelationIdLookupMap(authors);
+    const genreMap = buildRelationIdLookupMap(genres);
+    const themeMap = buildRelationIdLookupMap(themes);
 
     const chunks = chunkArray(data, 5);
     const results: number[] = [];
 
     for (const chunk of chunks) {
+      const enqueueAfterChunk: {
+        id: number;
+        title: string;
+        titleJapanese: string;
+        status: string;
+      }[] = [];
+
       await this.prisma.$transaction(async (tx) => {
         for (const item of chunk) {
           const {
@@ -260,26 +271,27 @@ export class MangaService extends BaseCrudService<
               ...mangaData,
               authors: {
                 createMany: {
-                  data: authorNames
-                    .map((name) => authorMap.get(name))
-                    .filter((id): id is number => id !== undefined)
-                    .map((authorId) => ({ authorId }))
+                  data: authorNames.map((name) => ({
+                    authorId: requireRelationIdFromMap(
+                      authorMap,
+                      name,
+                      "Author"
+                    )
+                  }))
                 }
               },
               genres: {
                 createMany: {
-                  data: genreNames
-                    .map((name) => genreMap.get(name))
-                    .filter((id): id is number => id !== undefined)
-                    .map((genreId) => ({ genreId }))
+                  data: genreNames.map((name) => ({
+                    genreId: requireRelationIdFromMap(genreMap, name, "Genre")
+                  }))
                 }
               },
               themes: {
                 createMany: {
-                  data: themeNames
-                    .map((name) => themeMap.get(name))
-                    .filter((id): id is number => id !== undefined)
-                    .map((themeId) => ({ themeId }))
+                  data: themeNames.map((name) => ({
+                    themeId: requireRelationIdFromMap(themeMap, name, "Theme")
+                  }))
                 }
               },
               review: {
@@ -288,16 +300,25 @@ export class MangaService extends BaseCrudService<
             }
           });
 
-          this.fetchMangaDataQueue.enqueueAfterCreate(
-            item.id,
-            item.title,
-            item.titleJapanese,
-            item.status,
-            requestLog
-          );
+          enqueueAfterChunk.push({
+            id: item.id,
+            title: item.title,
+            titleJapanese: item.titleJapanese,
+            status: item.status
+          });
           results.push(item.id);
         }
       });
+
+      for (const job of enqueueAfterChunk) {
+        this.fetchMangaDataQueue.enqueueAfterCreate(
+          job.id,
+          job.title,
+          job.titleJapanese,
+          job.status,
+          requestLog
+        );
+      }
     }
 
     return results;

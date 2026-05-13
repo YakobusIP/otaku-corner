@@ -4,6 +4,7 @@ import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import { EntityPaginationQueryDto } from "@/common/dto";
+import { getOrCreateManyNameRows } from "@/common/utils/relation-get-or-create-many";
 
 import { PrismaService } from "@/prisma/prisma.service";
 
@@ -96,20 +97,6 @@ export class GenresService extends BaseCrudService<
   }
 
   async getOrCreateMany(names: string[]) {
-    const normalized = names.map((n) => n.trim());
-    const existing = await this.prisma.genre.findMany({
-      where: { name: { in: normalized } }
-    });
-    const existingSet = new Set(existing.map((g) => g.name));
-    const newNames = normalized.filter((n) => !existingSet.has(n));
-
-    if (newNames.length === 0) return existing;
-
-    const created = await this.prisma.genre.createManyAndReturn({
-      data: newNames.map((name) => ({ name })),
-      skipDuplicates: true
-    });
-
-    return [...existing, ...created];
+    return getOrCreateManyNameRows(this.prisma.genre, names);
   }
 }

@@ -4,7 +4,7 @@ import { PaginationQueryDto } from "@/common/dto";
 
 import { ProgressStatus } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsEnum, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsInt, IsOptional, IsString } from "class-validator";
 
 export class AnimeQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ description: "Sort field", example: "title" })
@@ -20,16 +20,19 @@ export class AnimeQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ description: "Filter by genre ID", example: 1 })
   @IsOptional()
   @Type(() => Number)
+  @IsInt()
   genre?: number;
 
   @ApiPropertyOptional({ description: "Filter by studio ID", example: 1 })
   @IsOptional()
   @Type(() => Number)
+  @IsInt()
   studio?: number;
 
   @ApiPropertyOptional({ description: "Filter by theme ID", example: 1 })
   @IsOptional()
   @Type(() => Number)
+  @IsInt()
   theme?: number;
 
   @ApiPropertyOptional({

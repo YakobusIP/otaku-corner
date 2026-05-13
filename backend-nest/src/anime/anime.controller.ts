@@ -126,7 +126,9 @@ export class AnimeController extends BaseCrudController<
 
   @Get("status-count")
   @Public()
-  @ApiOperation({ summary: "Get anime counts grouped by progress status" })
+  @ApiOperation({
+    summary: "Get anime counts grouped by progress status"
+  })
   @ApiResponse({
     status: 200,
     description: "Returns status counts"
