@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { lightNovelService } from "@/services/light-novel.service";
 
@@ -14,6 +14,10 @@ import type {
 
 import { PROGRESS_STATUS } from "@/lib/enums";
 import { detailKeys } from "@/lib/query-keys";
+import {
+  computeRoundedWeightedPersonalScore,
+  LIGHT_NOVEL_REVIEW_PERSONAL_SCORE_WEIGHTS
+} from "@/lib/review-personal-score";
 import { extractImageIds } from "@/lib/utils";
 
 type Params = {
@@ -96,6 +100,27 @@ export const useLightNovelReviewSection = ({
     originalityRating
   });
 
+  const previewPersonalScore = useMemo(
+    () =>
+      computeRoundedWeightedPersonalScore(
+        {
+          storylineRating,
+          worldBuildingRating,
+          writingStyleRating,
+          charDevelopmentRating,
+          originalityRating
+        },
+        LIGHT_NOVEL_REVIEW_PERSONAL_SCORE_WEIGHTS
+      ),
+    [
+      storylineRating,
+      worldBuildingRating,
+      writingStyleRating,
+      charDevelopmentRating,
+      originalityRating
+    ]
+  );
+
   const { updateReviewMutation, handleSubmit, isDirty, saveStatus } =
     useDetailReviewAutosave<LightNovelReviewRequest>({
       entityId: lightNovelDetail.id,
@@ -138,6 +163,7 @@ export const useLightNovelReviewSection = ({
     progressStatus,
     setProgressStatus,
     ratingFields,
+    previewPersonalScore,
     updateReviewMutation,
     handleSubmit,
     isDirty,

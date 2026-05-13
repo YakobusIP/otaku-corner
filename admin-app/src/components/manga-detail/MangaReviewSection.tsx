@@ -42,6 +42,7 @@ export default function MangaReviewSection({ mangaDetail }: Props) {
     setConsumedMonth,
     consumedLabel,
     ratingFields,
+    previewPersonalScore,
     updateReviewMutation,
     handleSubmit,
     isDirty,
@@ -137,9 +138,19 @@ export default function MangaReviewSection({ mangaDetail }: Props) {
         </div>
 
         <div className="rounded-lg border border-border/40 bg-background/35 p-3 shadow-xs backdrop-blur-xs sm:p-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Personal Ratings
-          </p>
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Personal Ratings
+            </p>
+            {previewPersonalScore != null ? (
+              <p className="text-xs tabular-nums text-muted-foreground">
+                Weighted score{" "}
+                <span className="font-semibold text-foreground">
+                  {previewPersonalScore.toFixed(2)}
+                </span>
+              </p>
+            ) : null}
+          </div>
           <div className="grid grid-cols-1 gap-3 @min-[640px]:grid-cols-2 @tablet:grid-cols-3 @7xl:grid-cols-5">
             <RatingSelect ratingFields={ratingFields} />
           </div>

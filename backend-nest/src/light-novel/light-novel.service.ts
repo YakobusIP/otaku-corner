@@ -6,6 +6,10 @@ import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
 import {
+  LIGHT_NOVEL_REVIEW_PERSONAL_SCORE_WEIGHTS,
+  computeRoundedWeightedPersonalScore
+} from "@/common/review-personal-score";
+import {
   buildRelationIdLookupMap,
   requireRelationIdFromMap
 } from "@/common/utils";
@@ -383,16 +387,10 @@ export class LightNovelService extends BaseCrudService<
         data.originalityRating ?? lightNovel.review?.originalityRating
     };
 
-    let personalScore: number | null = null;
-    const allRatings = Object.values(ratings);
-    if (allRatings.every((r) => r != null)) {
-      personalScore =
-        ratings.storylineRating! * 0.3 +
-        ratings.worldBuildingRating! * 0.25 +
-        ratings.writingStyleRating! * 0.2 +
-        ratings.charDevelopmentRating! * 0.15 +
-        ratings.originalityRating! * 0.1;
-    }
+    const personalScore = computeRoundedWeightedPersonalScore(
+      ratings,
+      LIGHT_NOVEL_REVIEW_PERSONAL_SCORE_WEIGHTS
+    );
 
     const updateData: Record<string, unknown> = { ...data };
     if (personalScore !== null) {

@@ -6,6 +6,10 @@ import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
 import {
+  MANGA_REVIEW_PERSONAL_SCORE_WEIGHTS,
+  computeRoundedWeightedPersonalScore
+} from "@/common/review-personal-score";
+import {
   buildRelationIdLookupMap,
   requireRelationIdFromMap
 } from "@/common/utils";
@@ -325,35 +329,35 @@ export class MangaService extends BaseCrudService<
   }
 
   async updateReview(id: number, data: UpdateMangaReviewDto) {
-    const updateData: Record<string, unknown> = { ...data };
+    const manga = await this.prisma.manga.findUnique({
+      where: { id },
+      include: { review: true }
+    });
+
+    if (!manga) {
+      throw new NotFoundException("Manga not found");
+    }
+
+    const review = manga.review;
 
     const ratings = {
-      storylineRating: data.storylineRating,
-      artStyleRating: data.artStyleRating,
-      charDevelopmentRating: data.charDevelopmentRating,
-      worldBuildingRating: data.worldBuildingRating,
-      originalityRating: data.originalityRating
+      storylineRating: data.storylineRating ?? review?.storylineRating,
+      artStyleRating: data.artStyleRating ?? review?.artStyleRating,
+      charDevelopmentRating:
+        data.charDevelopmentRating ?? review?.charDevelopmentRating,
+      worldBuildingRating:
+        data.worldBuildingRating ?? review?.worldBuildingRating,
+      originalityRating: data.originalityRating ?? review?.originalityRating
     };
 
-    const weights = {
-      storylineRating: 0.3,
-      artStyleRating: 0.25,
-      charDevelopmentRating: 0.2,
-      worldBuildingRating: 0.15,
-      originalityRating: 0.1
-    };
+    const updateData: Record<string, unknown> = { ...data };
 
-    const allRatingsPresent = Object.values(ratings).every(
-      (r) => r !== undefined && r !== null
+    const personalScore = computeRoundedWeightedPersonalScore(
+      ratings,
+      MANGA_REVIEW_PERSONAL_SCORE_WEIGHTS
     );
-
-    if (allRatingsPresent) {
-      let personalScore = 0;
-      for (const [key, weight] of Object.entries(weights)) {
-        personalScore +=
-          (ratings[key as keyof typeof ratings] as number) * weight;
-      }
-      updateData.personalScore = Math.round(personalScore * 100) / 100;
+    if (personalScore !== null) {
+      updateData.personalScore = personalScore;
     }
 
     return this.prisma.mangaReview.update({

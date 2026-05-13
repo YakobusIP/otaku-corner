@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { animeService } from "@/services/anime.service";
 
@@ -11,6 +11,10 @@ import type { AnimeDetail, AnimeReviewRequest } from "@/types/anime.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
 import { detailKeys } from "@/lib/query-keys";
+import {
+  ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS,
+  computeRoundedWeightedPersonalScore
+} from "@/lib/review-personal-score";
 import { createUTCDate, extractImageIds } from "@/lib/utils";
 
 export const useAnimeReviewSection = (animeDetail: AnimeDetail) => {
@@ -94,6 +98,27 @@ export const useAnimeReviewSection = (animeDetail: AnimeDetail) => {
     charDevelopmentRating
   });
 
+  const previewPersonalScore = useMemo(
+    () =>
+      computeRoundedWeightedPersonalScore(
+        {
+          storylineRating,
+          qualityRating,
+          voiceActingRating,
+          soundTrackRating,
+          charDevelopmentRating
+        },
+        ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS
+      ),
+    [
+      storylineRating,
+      qualityRating,
+      voiceActingRating,
+      soundTrackRating,
+      charDevelopmentRating
+    ]
+  );
+
   const { updateReviewMutation, handleSubmit, isDirty, saveStatus } =
     useDetailReviewAutosave<AnimeReviewRequest>({
       entityId: animeDetail.id,
@@ -152,6 +177,7 @@ export const useAnimeReviewSection = (animeDetail: AnimeDetail) => {
     setConsumedMonth,
     consumedLabel,
     ratingFields,
+    previewPersonalScore,
     updateReviewMutation,
     handleSubmit,
     isDirty,

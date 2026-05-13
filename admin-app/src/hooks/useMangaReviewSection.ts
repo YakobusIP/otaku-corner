@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { mangaService } from "@/services/manga.service";
 
@@ -11,6 +11,10 @@ import type { MangaDetail, MangaReviewRequest } from "@/types/manga.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
 import { detailKeys } from "@/lib/query-keys";
+import {
+  computeRoundedWeightedPersonalScore,
+  MANGA_REVIEW_PERSONAL_SCORE_WEIGHTS
+} from "@/lib/review-personal-score";
 import { createUTCDate, extractImageIds } from "@/lib/utils";
 
 export const useMangaReviewSection = (mangaDetail: MangaDetail) => {
@@ -94,6 +98,27 @@ export const useMangaReviewSection = (mangaDetail: MangaDetail) => {
     originalityRating
   });
 
+  const previewPersonalScore = useMemo(
+    () =>
+      computeRoundedWeightedPersonalScore(
+        {
+          storylineRating,
+          artStyleRating,
+          charDevelopmentRating,
+          worldBuildingRating,
+          originalityRating
+        },
+        MANGA_REVIEW_PERSONAL_SCORE_WEIGHTS
+      ),
+    [
+      storylineRating,
+      artStyleRating,
+      charDevelopmentRating,
+      worldBuildingRating,
+      originalityRating
+    ]
+  );
+
   const { updateReviewMutation, handleSubmit, isDirty, saveStatus } =
     useDetailReviewAutosave<MangaReviewRequest>({
       entityId: mangaDetail.id,
@@ -152,6 +177,7 @@ export const useMangaReviewSection = (mangaDetail: MangaDetail) => {
     setConsumedMonth,
     consumedLabel,
     ratingFields,
+    previewPersonalScore,
     updateReviewMutation,
     handleSubmit,
     isDirty,

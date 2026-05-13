@@ -6,6 +6,10 @@ import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
 import {
+  ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS,
+  computeRoundedWeightedPersonalScore
+} from "@/common/review-personal-score";
+import {
   buildRelationIdLookupMap,
   requireRelationIdFromMap
 } from "@/common/utils";
@@ -348,35 +352,34 @@ export class AnimeService extends BaseCrudService<
   }
 
   async updateReview(id: number, data: UpdateAnimeReviewDto) {
-    const updateData: Record<string, unknown> = { ...data };
+    const anime = await this.prisma.anime.findUnique({
+      where: { id },
+      include: { review: true }
+    });
+
+    if (!anime) {
+      throw new NotFoundException("Anime not found");
+    }
+
+    const review = anime.review;
 
     const ratings = {
-      storylineRating: data.storylineRating,
-      qualityRating: data.qualityRating,
-      voiceActingRating: data.voiceActingRating,
-      soundTrackRating: data.soundTrackRating,
-      charDevelopmentRating: data.charDevelopmentRating
+      storylineRating: data.storylineRating ?? review?.storylineRating,
+      qualityRating: data.qualityRating ?? review?.qualityRating,
+      voiceActingRating: data.voiceActingRating ?? review?.voiceActingRating,
+      soundTrackRating: data.soundTrackRating ?? review?.soundTrackRating,
+      charDevelopmentRating:
+        data.charDevelopmentRating ?? review?.charDevelopmentRating
     };
 
-    const weights = {
-      storylineRating: 0.3,
-      qualityRating: 0.25,
-      voiceActingRating: 0.2,
-      soundTrackRating: 0.15,
-      charDevelopmentRating: 0.1
-    };
+    const updateData: Record<string, unknown> = { ...data };
 
-    const allRatingsPresent = Object.values(ratings).every(
-      (r) => r !== undefined && r !== null
+    const personalScore = computeRoundedWeightedPersonalScore(
+      ratings,
+      ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS
     );
-
-    if (allRatingsPresent) {
-      let personalScore = 0;
-      for (const [key, weight] of Object.entries(weights)) {
-        personalScore +=
-          (ratings[key as keyof typeof ratings] as number) * weight;
-      }
-      updateData.personalScore = Math.round(personalScore * 100) / 100;
+    if (personalScore !== null) {
+      updateData.personalScore = personalScore;
     }
 
     return this.prisma.animeReview.update({
