@@ -310,10 +310,11 @@ model AdminPin {
 }
 
 model ReviewImage {
-  id        String   @id @default(uuid())
-  url       String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(uuid())
+  url        String   @unique
+  storageKey String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   animeReview   AnimeReview? @relation("AnimeReviewImages", fields: [animeReviewId], references: [id], onDelete: Cascade)
   animeReviewId Int?

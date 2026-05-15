@@ -54,6 +54,10 @@ export const fileExtensionForDetectedImageFormat = (
   format: DetectedImageFormat
 ): string => EXT_BY_FORMAT[format];
 
+export const mimeTypeForDetectedImageFormat = (
+  format: DetectedImageFormat
+): string => MIME_BY_FORMAT[format];
+
 export const assertDeclaredMimeMatchesImageBuffer = (
   declaredMime: string | undefined,
   format: DetectedImageFormat

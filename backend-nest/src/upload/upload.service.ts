@@ -3,29 +3,40 @@ import { randomUUID } from "node:crypto";
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+import { WinstonLoggerService } from "@/common/logging/winston-logger.service";
+
 import { PrismaService } from "@/prisma/prisma.service";
 
-import { FileStorageService } from "@/storage/file-storage.service";
+import {
+  FILE_STORAGE,
+  type FileStorage
+} from "@/storage/file-storage.interface";
 import { MediaType } from "@/upload/enums/media-type.enum";
 import {
   assertDeclaredMimeMatchesImageBuffer,
   detectImageFormatFromBuffer,
-  fileExtensionForDetectedImageFormat
+  fileExtensionForDetectedImageFormat,
+  mimeTypeForDetectedImageFormat
 } from "@/upload/image-buffer-validation";
 
 import { Prisma } from "@prisma/client";
 
+const REVIEW_IMAGE_CACHE_CONTROL = "public, max-age=31536000, immutable";
+
 @Injectable()
 export class UploadService {
   constructor(
+    @Inject(FILE_STORAGE) private readonly fileStorage: FileStorage,
     private readonly prisma: PrismaService,
-    private readonly fileStorage: FileStorageService,
-    private readonly config: ConfigService
+    private readonly config: ConfigService,
+    private readonly logger: WinstonLoggerService
   ) {}
 
   async uploadImage(
@@ -52,25 +63,29 @@ export class UploadService {
 
     const id = randomUUID();
     const ext = fileExtensionForDetectedImageFormat(format);
-    const filename = `${id}${ext}`;
+    // TODO: Future file uploads should go to a general table
+    const storageKey = `review-images/${id}${ext}`;
 
-    await this.fileStorage.writeFileAsync(filename, file.buffer);
-    const url = this.fileStorage.publicUrlForFile(filename);
+    await this.fileStorage.writeFileAsync(storageKey, file.buffer, {
+      contentType: mimeTypeForDetectedImageFormat(format),
+      cacheControl: REVIEW_IMAGE_CACHE_CONTROL
+    });
+    const url = this.fileStorage.publicUrlForFile(storageKey);
 
     const reviewConnect = this.buildReviewConnect(type, reviewId);
 
     try {
       await this.prisma.reviewImage.create({
-        data: { id, url, ...reviewConnect }
+        data: { id, url, storageKey, ...reviewConnect }
       });
     } catch (error) {
-      this.fileStorage.deleteFileIfExists(filename);
+      await this.fileStorage.deleteFileIfExists(storageKey);
 
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        throw new ConflictException("Image with this URL already exists");
+        throw new ConflictException("Image already exists");
       }
       throw error;
     }
@@ -85,14 +100,26 @@ export class UploadService {
       throw new NotFoundException(`Image with id "${id}" not found`);
     }
 
-    const raw = image.url.split("/").pop()?.split("?")[0];
-    const filename = raw ? decodeURIComponent(raw) : "";
-    if (filename) {
-      try {
-        this.fileStorage.deleteFileIfExists(filename);
-      } catch {
-        // Ignore invalid or legacy keys; DB row is still removed.
-      }
+    if (!image.storageKey || image.storageKey.trim() === "") {
+      this.logger.error(
+        `ReviewImage ${id} is missing storageKey`,
+        undefined,
+        UploadService.name
+      );
+      throw new InternalServerErrorException("Image record is incomplete");
+    }
+
+    try {
+      await this.fileStorage.deleteFileIfExists(image.storageKey);
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete stored object for ReviewImage ${id}`,
+        error instanceof Error ? error.stack : undefined,
+        UploadService.name
+      );
+      throw new InternalServerErrorException(
+        "Failed to delete stored image. Try again later."
+      );
     }
 
     await this.prisma.reviewImage.delete({ where: { id } });
