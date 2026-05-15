@@ -25,14 +25,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { useToast } from "@/hooks/useToast";
-
 import { LightNovelDetail } from "@/types/light-novel.type";
 
 import { detailKeys } from "@/lib/query-keys";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, PencilIcon } from "lucide-react";
+import { toast } from "sonner";
 
 type Props = {
   lightNovelDetail: LightNovelDetail;
@@ -43,7 +42,6 @@ export default function EditVolumesModal({
   lightNovelDetail,
   resetParent
 }: Props) {
-  const toast = useToast();
   const queryClient = useQueryClient();
   const [volumesCount, setVolumesCount] = useState(
     lightNovelDetail.volumesCount ?? 0
@@ -65,16 +63,13 @@ export default function EditVolumesModal({
         queryKey: detailKeys.lightNovel(lightNovelDetail.id)
       });
       await resetParent();
-      toast.toast({
-        title: "All set!",
+      toast.success("All set!", {
         description: data?.message ?? "Volumes updated successfully"
       });
       setOpenAlertDialog(false);
     },
     onError: (error: Error) => {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }

@@ -10,10 +10,11 @@ import {
 
 import { uploadService } from "@/services/upload.service";
 
-import { useToast } from "@/hooks/useToast";
+import { extractUploadedImageMap } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2Icon, CloudIcon, Loader2Icon } from "lucide-react";
+import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 
 export type DetailReviewSaveStatusVariant =
@@ -24,6 +25,7 @@ export type DetailReviewSaveStatusVariant =
 
 type MutationPayload<TData> = {
   currentImageIds: string[];
+  reviewMarkdown: string;
   data: TData;
   snapshotAtSave: string;
   silent: boolean;
@@ -39,9 +41,13 @@ type UseDetailReviewAutosaveOptions<TData> = {
   entityId: number;
   detailQueryKey: readonly unknown[];
   snapshot: string;
-  uploadedImages: string[];
-  setUploadedImages: Dispatch<SetStateAction<string[]>>;
-  buildSavePayload: () => { currentImageIds: string[]; data: TData };
+  uploadedImages: Record<string, string>;
+  setUploadedImages: Dispatch<SetStateAction<Record<string, string>>>;
+  buildSavePayload: () => {
+    currentImageIds: string[];
+    reviewMarkdown: string;
+    data: TData;
+  };
   saveReview: (entityId: number, data: TData) => Promise<SaveReviewResult>;
   debounceMs?: number;
   onAfterInvalidateSuccess?: () => Promise<void>;
@@ -124,7 +130,6 @@ export const useDetailReviewAutosave = <TData,>({
   debounceMs = 5000,
   onAfterInvalidateSuccess
 }: UseDetailReviewAutosaveOptions<TData>) => {
-  const toast = useToast();
   const queryClient = useQueryClient();
 
   const savedSnapshotRef = useRef<string>(snapshot);
@@ -142,50 +147,67 @@ export const useDetailReviewAutosave = <TData,>({
 
   const updateReviewMutation = useMutation({
     mutationFn: async (payload: MutationPayload<TData>) => {
-      const previouslyUploadedImageIds = Object.values(
-        uploadedImagesRef.current
-      );
+      const previouslyUploadedImageIds = Object.values(uploadedImagesRef.current);
       const removedImageIds = previouslyUploadedImageIds.filter(
         (id) => !payload.currentImageIds.includes(id)
-      );
-
-      await Promise.all(
-        removedImageIds.map(async (id) => {
-          const response = await uploadService.remove(id);
-          if (!response.success) throw new Error(response.error);
-          return response.data;
-        })
       );
 
       const reviewResponse = await saveReview(entityId, payload.data);
       if (!reviewResponse.success) throw new Error(reviewResponse.error);
 
+      const cleanupFailures: string[] = [];
+      await Promise.all(
+        removedImageIds.map(async (id) => {
+          const response = await uploadService.remove(id);
+          if (!response.success) {
+            cleanupFailures.push(id);
+          }
+        })
+      );
+
+      if (cleanupFailures.length > 0 && import.meta.env.DEV) {
+        console.warn(
+          "[useDetailReviewAutosave] Failed to delete removed asset(s):",
+          cleanupFailures
+        );
+      }
+
       return {
         message: reviewResponse.message,
-        currentImageIds: payload.currentImageIds,
+        reviewMarkdown: payload.reviewMarkdown,
         snapshotAtSave: payload.snapshotAtSave,
-        silent: payload.silent
+        silent: payload.silent,
+        cleanupFailures
       };
     },
-    onSuccess: async ({ message, currentImageIds, snapshotAtSave, silent }) => {
+    onSuccess: async ({
+      message,
+      reviewMarkdown,
+      snapshotAtSave,
+      silent,
+      cleanupFailures
+    }) => {
       savedSnapshotRef.current = snapshotAtSave;
       setLastSavedAt(new Date());
       await queryClient.invalidateQueries({ queryKey: detailQueryKey });
       if (onAfterInvalidateSuccess) {
         await onAfterInvalidateSuccess();
       }
-      setUploadedImages([...currentImageIds]);
+      setUploadedImages(extractUploadedImageMap(reviewMarkdown));
       if (!silent) {
-        toast.toast({
-          title: "All set!",
-          description: message ?? "Review saved successfully"
+        const baseDescription =
+          message ?? "Review saved successfully.";
+        const cleanupNote =
+          cleanupFailures.length > 0
+            ? ` ${cleanupFailures.length} former image(s) could not be removed from storage yet; try saving again.`
+            : "";
+        toast.success("All set!", {
+          description: baseDescription + cleanupNote
         });
       }
     },
     onError: (error: Error) => {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }
@@ -199,10 +221,12 @@ export const useDetailReviewAutosave = <TData,>({
       debouncedSnapshot !== savedSnapshotRef.current &&
       !updateReviewMutation.isPending
     ) {
-      const { currentImageIds, data } = buildSavePayloadRef.current();
+      const { currentImageIds, data, reviewMarkdown } =
+        buildSavePayloadRef.current();
       mutateRef.current({
         currentImageIds,
         data,
+        reviewMarkdown,
         snapshotAtSave: debouncedSnapshot,
         silent: true
       });
@@ -210,10 +234,12 @@ export const useDetailReviewAutosave = <TData,>({
   }, [debouncedSnapshot, updateReviewMutation.isPending]);
 
   const handleSubmit = useCallback(() => {
-    const { currentImageIds, data } = buildSavePayloadRef.current();
+    const { currentImageIds, data, reviewMarkdown } =
+      buildSavePayloadRef.current();
     mutateRef.current({
       currentImageIds,
       data,
+      reviewMarkdown,
       snapshotAtSave: snapshotRef.current,
       silent: false
     });

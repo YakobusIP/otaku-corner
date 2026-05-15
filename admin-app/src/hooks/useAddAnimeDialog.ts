@@ -9,7 +9,7 @@ import {
 
 import { animeService } from "@/services/anime.service";
 
-import { toast } from "@/hooks/useToast";
+import { toast } from "sonner";
 
 import type { AnimeCreateRequest } from "@/types/anime.type";
 
@@ -82,15 +82,16 @@ export function useAddAnimeDialog({
           "response" in err &&
           (err as { response?: { status?: number } }).response?.status;
         const isRateLimited = status === 429;
-        toast({
-          variant: "destructive",
-          title: isRateLimited
+        toast.error(
+          isRateLimited
             ? "Too many requests"
             : "Uh oh! Something went wrong",
-          description: isRateLimited
-            ? "Jikan is rate-limited. Wait a moment and try again."
-            : "Failed to fetch anime list from Jikan"
-        });
+          {
+            description: isRateLimited
+              ? "Jikan is rate-limited. Wait a moment and try again."
+              : "Failed to fetch anime list from Jikan"
+          }
+        );
         throw err;
       }
     },
@@ -190,8 +191,7 @@ export function useAddAnimeDialog({
       });
       await resetParent();
 
-      toast({
-        title: "All set!",
+      toast.success("All set!", {
         description:
           addedIds.length === 1
             ? "Anime added successfully"
@@ -203,9 +203,7 @@ export function useAddAnimeDialog({
       setOpenDialog(false);
     },
     onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }
@@ -263,9 +261,7 @@ export function useAddAnimeDialog({
     const ready = selectedAnime.filter((_a, i) => existsList[i] === false);
 
     if (ready.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Nothing to add",
+      toast.error("Nothing to add", {
         description:
           selectedAnime.length === 0
             ? "Select at least one anime."

@@ -18,7 +18,7 @@ import {
   computeRoundedWeightedPersonalScore,
   LIGHT_NOVEL_REVIEW_PERSONAL_SCORE_WEIGHTS
 } from "@/lib/review-personal-score";
-import { extractImageIds } from "@/lib/utils";
+import { extractImageIds, extractUploadedImageMap } from "@/lib/utils";
 
 type Params = {
   lightNovelDetail: LightNovelDetail;
@@ -34,8 +34,10 @@ export const useLightNovelReviewSection = ({
   const [reviewText, setReviewText] = useState(
     reviewObject.reviewText ?? undefined
   );
-  const [uploadedImages, setUploadedImages] = useState<string[]>(
-    extractImageIds(reviewObject.reviewText ?? undefined)
+  const [uploadedImages, setUploadedImages] = useState<
+    Record<string, string>
+  >(() =>
+    extractUploadedImageMap(reviewObject.reviewText ?? undefined)
   );
 
   const [progressStatus, setProgressStatus] = useState(
@@ -129,7 +131,8 @@ export const useLightNovelReviewSection = ({
       uploadedImages,
       setUploadedImages,
       buildSavePayload: () => {
-        const currentImageIds = extractImageIds(reviewText);
+        const reviewMarkdown = reviewText ?? "";
+        const currentImageIds = extractImageIds(reviewMarkdown);
         const data: LightNovelReviewRequest = {
           reviewText,
           progressStatus: progressStatus as PROGRESS_STATUS,
@@ -140,7 +143,7 @@ export const useLightNovelReviewSection = ({
           originalityRating
         };
 
-        return { currentImageIds, data };
+        return { currentImageIds, reviewMarkdown, data };
       },
       saveReview: async (id, data) => {
         const res = await lightNovelService.updateReview(id, data);

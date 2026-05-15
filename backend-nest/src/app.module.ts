@@ -12,6 +12,7 @@ import { AuthModule } from "@/auth/auth.module";
 import { AnimeModule } from "@/anime/anime.module";
 import { AppController } from "@/app.controller";
 import { AppService } from "@/app.service";
+import { AssetsModule } from "@/assets/assets.module";
 import { AuthorsModule } from "@/author/authors.module";
 import { validateEnv } from "@/config/validate-env";
 import { GenresModule } from "@/genre/genres.module";
@@ -19,9 +20,9 @@ import { LightNovelModule } from "@/light-novel/light-novel.module";
 import { MangaModule } from "@/manga/manga.module";
 import { MediaLibraryModule } from "@/media-library/media-library.module";
 import { StatisticModule } from "@/statistic/statistic.module";
+import { StorageModule } from "@/storage/storage.module";
 import { StudiosModule } from "@/studio/studios.module";
 import { ThemesModule } from "@/theme/themes.module";
-import { UploadModule } from "@/upload/upload.module";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { UploadModule } from "@/upload/upload.module";
       isGlobal: true,
       validate: validateEnv
     }),
+    StorageModule,
     LoggingModule,
     BullQueueModule,
     PrismaModule,
@@ -42,7 +44,7 @@ import { UploadModule } from "@/upload/upload.module";
     LightNovelModule,
     MediaLibraryModule,
     StatisticModule,
-    UploadModule
+    AssetsModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaExceptionFilter]

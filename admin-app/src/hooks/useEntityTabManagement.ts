@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { EntityCrudService } from "@/services/entity.service";
 
-import { toast } from "@/hooks/useToast";
+import { toast } from "sonner";
 
 import type { PaginatedListPage } from "@/types/general.type";
 
@@ -70,9 +70,7 @@ export function useEntityTabManagement<T extends { id: number }>({
 
   useEffect(() => {
     if (!listQuery.isError || !listQuery.error) return;
-    toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
+    toast.error("Uh oh! Something went wrong", {
       description: listQuery.error.message
     });
   }, [listQuery.isError, listQuery.error]);
@@ -101,16 +99,13 @@ export function useEntityTabManagement<T extends { id: number }>({
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: entityQueryKey });
       await resetParent();
-      toast({
-        title: "All set!",
+      toast.success("All set!", {
         description: `${entityTypeLabel} added successfully`
       });
       setIsOpenAdd(false);
     },
     onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }
@@ -125,16 +120,13 @@ export function useEntityTabManagement<T extends { id: number }>({
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: entityQueryKey });
       await resetParent();
-      toast({
-        title: "All set!",
+      toast.success("All set!", {
         description: `${entityTypeLabel} updated successfully`
       });
       setEditingEntityId(null);
     },
     onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }
@@ -149,16 +141,13 @@ export function useEntityTabManagement<T extends { id: number }>({
     onSuccess: async (deletedIds) => {
       await queryClient.invalidateQueries({ queryKey: entityQueryKey });
       await resetParent();
-      toast({
-        title: "All set!",
+      toast.success("All set!", {
         description: `${deletedIds.length} ${entityNounLower}(s) deleted successfully`
       });
       setRowSelection({});
     },
     onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
       setRowSelection({});

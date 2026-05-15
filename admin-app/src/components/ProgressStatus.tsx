@@ -8,8 +8,6 @@ import {
   SelectValue
 } from "@/components/ui/select";
 
-import { useToast } from "@/hooks/useToast";
-
 import { MessageResponse } from "@/types/api.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
@@ -24,6 +22,7 @@ import {
   PlayCircleIcon,
   XCircleIcon
 } from "lucide-react";
+import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 
 type Props = {
@@ -47,7 +46,6 @@ export default function ProgressStatus({
   triggerClassName
 }: Props) {
   const [selectedStatus, setSelectedStatus] = useState(progressStatus);
-  const toast = useToast();
   const queryClient = useQueryClient();
 
   const statusOptions = [
@@ -115,15 +113,12 @@ export default function ProgressStatus({
       await queryClient.invalidateQueries({
         queryKey: mediaKeys.statusCounts("lightNovel")
       });
-      toast.toast({
-        title: "All set!",
+      toast.success("All set!", {
         description: data?.message ?? "Progress status updated successfully"
       });
     },
     onError: (error: Error) => {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }

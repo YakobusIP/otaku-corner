@@ -13,32 +13,32 @@ export const createUTCDate = (year: number, month: number) => {
   return new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
 };
 
-export const extractImageIds = (markdown: string | undefined) => {
-  if (!markdown) return [];
+export const extractUploadedImageMap = (
+  markdown: string | undefined
+): Record<string, string> => {
+  if (!markdown) return {};
 
-  const ids: string[] = [];
-
+  const map: Record<string, string> = {};
   const markdownImageRegex = /!\[.*?\]\((.*?)\)/g;
-  const matches = markdown.matchAll(markdownImageRegex);
 
-  for (const match of matches) {
+  for (const match of markdown.matchAll(markdownImageRegex)) {
     const url = match[1];
-
     const lastSlashIndex = url.lastIndexOf("/");
     const lastDotIndex = url.lastIndexOf(".");
 
-    if (
-      lastSlashIndex !== 1 &&
-      lastDotIndex !== 1 &&
-      lastDotIndex > lastSlashIndex
-    ) {
+    if (lastSlashIndex >= 0 && lastDotIndex > lastSlashIndex) {
       const id = url.substring(lastSlashIndex + 1, lastDotIndex);
-      ids.push(id);
+      if (id.length > 0) {
+        map[url] = id;
+      }
     }
   }
 
-  return ids;
+  return map;
 };
+
+export const extractImageIds = (markdown: string | undefined): string[] =>
+  Object.values(extractUploadedImageMap(markdown));
 
 export const generateSlug = (title: string) => {
   return slugify(title, { remove: /[:?/]/g, lower: true, trim: true });

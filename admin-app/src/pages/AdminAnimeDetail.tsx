@@ -10,17 +10,16 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useAnimeDetail } from "@/hooks/useAnimeDetail";
-import { useToast } from "@/hooks/useToast";
 
 import { AlertTriangleIcon, ArrowLeftIcon, Loader2Icon } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function AdminAnimeDetail() {
   const { animeId } = useParams();
   const parsedId = animeId ? parseInt(animeId, 10) : undefined;
   const hasValidId = typeof parsedId === "number" && Number.isFinite(parsedId);
 
-  const toast = useToast();
   const {
     data: animeDetail,
     isLoading,
@@ -38,13 +37,11 @@ export default function AdminAnimeDetail() {
 
   useEffect(() => {
     if (isError && error instanceof Error) {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }
-  }, [error, isError, toast]);
+  }, [error, isError]);
 
   const backAction = (
     <Link to="/media-list">

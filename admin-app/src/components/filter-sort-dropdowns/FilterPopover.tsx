@@ -16,8 +16,6 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 
-import { useToast } from "@/hooks/useToast";
-
 import type { PaginatedListPage } from "@/types/general.type";
 
 import { cn } from "@/lib/utils";
@@ -31,6 +29,7 @@ import {
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 import { useDebounce } from "use-debounce";
+import { toast } from "sonner";
 
 type QueryConfig<T> = {
   queryKey: QueryKey;
@@ -86,7 +85,6 @@ export default function FilterPopover<T, K extends string | number>({
   showAllOption = false,
   allOptionLabel
 }: Props<T, K>) {
-  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [scrollRoot, setScrollRoot] = useState<Element | null>(null);
@@ -188,13 +186,11 @@ export default function FilterPopover<T, K extends string | number>({
 
   useEffect(() => {
     if (firstError) {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: firstError.message
       });
     }
-  }, [firstError, toast]);
+  }, [firstError]);
 
   const selected = useMemo(() => {
     if (selectedKey === undefined) return undefined;

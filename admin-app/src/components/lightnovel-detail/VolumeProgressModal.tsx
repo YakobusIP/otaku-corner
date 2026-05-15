@@ -25,8 +25,6 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip";
 
-import { useToast } from "@/hooks/useToast";
-
 import { LightNovelDetail } from "@/types/light-novel.type";
 
 import { detailKeys } from "@/lib/query-keys";
@@ -34,6 +32,7 @@ import { cn, createUTCDate } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CalendarDaysIcon, Loader2Icon } from "lucide-react";
+import { toast } from "sonner";
 
 type Props = {
   lightNovelDetail: LightNovelDetail;
@@ -44,7 +43,6 @@ export default function VolumeProgressModal({
   lightNovelDetail,
   resetParent
 }: Props) {
-  const toast = useToast();
   const queryClient = useQueryClient();
   const [volumeProgress, setVolumeProgress] = useState(
     lightNovelDetail.volumeProgress
@@ -64,15 +62,12 @@ export default function VolumeProgressModal({
         queryKey: detailKeys.lightNovel(lightNovelDetail.id)
       });
       await resetParent();
-      toast.toast({
-        title: "All set!",
+      toast.success("All set!", {
         description: data?.message ?? "Volume progress updated successfully"
       });
     },
     onError: (error: Error) => {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }

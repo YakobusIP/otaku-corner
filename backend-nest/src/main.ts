@@ -8,10 +8,8 @@ import { WinstonLoggerService } from "@/common/logging/winston-logger.service";
 
 import { AppModule } from "@/app.module";
 import { CORS_ALLOWED_ORIGINS } from "@/config/cors-origins";
-import { LocalFileStorageService } from "@/storage/local-file-storage.service";
 
 import cookieParser from "cookie-parser";
-import * as express from "express";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -56,14 +54,6 @@ async function bootstrap() {
   app.useGlobalFilters(app.get(PrismaExceptionFilter));
 
   const configService = app.get(ConfigService);
-
-  const storageDriver =
-    configService.get<"local" | "r2">("STORAGE_DRIVER") ?? "local";
-  if (storageDriver === "local") {
-    const uploadsRoot =
-      LocalFileStorageService.resolveAbsoluteRootDir(configService);
-    app.use("/uploads", express.static(uploadsRoot));
-  }
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle("Otaku Corner API")

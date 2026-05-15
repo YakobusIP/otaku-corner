@@ -15,14 +15,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { useToast } from "@/hooks/useToast";
-
 import { MangaDetail } from "@/types/manga.type";
 
 import { detailKeys } from "@/lib/query-keys";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, PencilIcon } from "lucide-react";
+import { toast } from "sonner";
 
 type Props = {
   mangaDetail: MangaDetail;
@@ -33,7 +32,6 @@ export default function EditChapterVolumesModal({
   mangaDetail,
   resetParent
 }: Props) {
-  const toast = useToast();
   const queryClient = useQueryClient();
   const [chaptersCount, setChaptersCount] = useState(
     mangaDetail.chaptersCount ?? 0
@@ -60,16 +58,13 @@ export default function EditChapterVolumesModal({
         queryKey: detailKeys.manga(mangaDetail.id)
       });
       await resetParent?.();
-      toast.toast({
-        title: "All set!",
+      toast.success("All set!", {
         description:
           data?.message ?? "Chapters and volumes updated successfully"
       });
     },
     onError: (error: Error) => {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }

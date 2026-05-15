@@ -9,17 +9,16 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useLightNovelDetail } from "@/hooks/useLightNovelDetail";
-import { useToast } from "@/hooks/useToast";
 
 import { AlertTriangleIcon, ArrowLeftIcon, Loader2Icon } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function AdminLightNovelDetail() {
   const { lightNovelId } = useParams();
   const parsedId = lightNovelId ? parseInt(lightNovelId, 10) : undefined;
   const hasValidId = typeof parsedId === "number" && Number.isFinite(parsedId);
 
-  const toast = useToast();
   const {
     data: lightNovelDetail,
     isLoading,
@@ -38,13 +37,11 @@ export default function AdminLightNovelDetail() {
 
   useEffect(() => {
     if (isError && error instanceof Error) {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }
-  }, [error, isError, toast]);
+  }, [error, isError]);
 
   const backAction = (
     <Link to="/media-list">

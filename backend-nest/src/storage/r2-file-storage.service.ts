@@ -3,14 +3,12 @@ import { ConfigService } from "@nestjs/config";
 
 import {
   DeleteObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-import type {
-  FileStorage,
-  FileStorageWriteOptions
-} from "./file-storage.interface";
 import { assertSafeObjectStorageKey } from "./storage-object-key";
 
 type R2Runtime = {
@@ -19,8 +17,15 @@ type R2Runtime = {
   publicBaseUrl: string;
 };
 
+export type R2HeadObjectResult = {
+  contentLength: number;
+  contentType?: string;
+};
+
+export const R2_ASSET_CACHE_CONTROL = "public, max-age=31536000, immutable";
+
 @Injectable()
-export class R2FileStorageService implements FileStorage {
+export class R2FileStorageService {
   private runtime: R2Runtime | undefined;
 
   constructor(private readonly config: ConfigService) {}
@@ -52,25 +57,7 @@ export class R2FileStorageService implements FileStorage {
     return this.runtime;
   }
 
-  async writeFileAsync(
-    key: string,
-    data: Buffer,
-    options?: FileStorageWriteOptions
-  ): Promise<void> {
-    assertSafeObjectStorageKey(key);
-    const { client, bucketName } = this.getRuntime();
-    await client.send(
-      new PutObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-        Body: data,
-        ...(options?.contentType ? { ContentType: options.contentType } : {}),
-        ...(options?.cacheControl ? { CacheControl: options.cacheControl } : {})
-      })
-    );
-  }
-
-  async deleteFileIfExists(key: string): Promise<void> {
+  async deleteObject(key: string): Promise<void> {
     assertSafeObjectStorageKey(key);
     const { client, bucketName } = this.getRuntime();
     await client.send(
@@ -79,6 +66,63 @@ export class R2FileStorageService implements FileStorage {
         Key: key
       })
     );
+  }
+
+  async headObject(key: string): Promise<R2HeadObjectResult | null> {
+    assertSafeObjectStorageKey(key);
+    const { client, bucketName } = this.getRuntime();
+    try {
+      const out = await client.send(
+        new HeadObjectCommand({
+          Bucket: bucketName,
+          Key: key
+        })
+      );
+      const len = out.ContentLength;
+      if (typeof len !== "number" || !Number.isFinite(len)) {
+        return null;
+      }
+      return {
+        contentLength: len,
+        contentType: out.ContentType?.trim() || undefined
+      };
+    } catch (error: unknown) {
+      const httpStatus =
+        error &&
+        typeof error === "object" &&
+        "$metadata" in error &&
+        error.$metadata &&
+        typeof error.$metadata === "object" &&
+        "httpStatusCode" in error.$metadata
+          ? (error.$metadata as { httpStatusCode?: number }).httpStatusCode
+          : undefined;
+      const name =
+        error && typeof error === "object" && "name" in error
+          ? String((error as { name?: string }).name)
+          : "";
+      if (httpStatus === 404 || name === "NotFound") {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  async getPresignedPutUrl(params: {
+    key: string;
+    contentType: string;
+    expiresInSeconds?: number;
+  }): Promise<string> {
+    assertSafeObjectStorageKey(params.key);
+    const { client, bucketName } = this.getRuntime();
+    const cmd = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: params.key,
+      ContentType: params.contentType,
+      CacheControl: R2_ASSET_CACHE_CONTROL
+    });
+    return getSignedUrl(client, cmd, {
+      expiresIn: params.expiresInSeconds ?? 900
+    });
   }
 
   publicUrlForFile(key: string): string {

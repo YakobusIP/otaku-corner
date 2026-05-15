@@ -29,6 +29,21 @@ enum QueueStatus {
   FAILED
 }
 
+enum AssetMediaType {
+  IMAGE
+  VIDEO
+}
+
+enum AssetStatus {
+  PENDING
+  READY
+  FAILED
+}
+
+enum ReviewAssetUsage {
+  IMAGE
+}
+
 model Anime {
   id            Int      @id
   slug          String   @unique
@@ -86,6 +101,7 @@ model AnimeReview {
   updatedAt             DateTime       @updatedAt
 
   reviewImages ReviewImage[] @relation("AnimeReviewImages")
+  reviewAssets ReviewAsset[]
   anime        Anime         @relation(fields: [animeId], references: [id], onDelete: Cascade)
   animeId      Int           @unique
 }
@@ -128,6 +144,7 @@ model MangaReview {
   updatedAt             DateTime       @updatedAt
 
   reviewImages ReviewImage[] @relation("MangaReviewImages")
+  reviewAssets ReviewAsset[]
   manga        Manga         @relation(fields: [mangaId], references: [id], onDelete: Cascade)
   mangaId      Int           @unique
 }
@@ -170,6 +187,7 @@ model LightNovelReview {
   updatedAt DateTime @updatedAt
 
   reviewImages ReviewImage[] @relation("LightNovelReviewImages")
+  reviewAssets ReviewAsset[]
   lightNovel   LightNovel    @relation(fields: [lightNovelId], references: [id], onDelete: Cascade)
   lightNovelId Int           @unique
 }
@@ -324,6 +342,48 @@ model ReviewImage {
 
   lightNovelReview   LightNovelReview? @relation("LightNovelReviewImages", fields: [lightNovelReviewId], references: [id], onDelete: Cascade)
   lightNovelReviewId Int?
+}
+
+model Asset {
+  id               String         @id @default(uuid())
+  storageKey       String         @unique
+  url              String         @unique
+  mimeType         String
+  mediaType        AssetMediaType
+  expectedFileSize Int
+  fileSize         Int?
+  width            Int?
+  height           Int?
+  durationMs       Int?
+  status           AssetStatus    @default(PENDING)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  reviewAssets ReviewAsset[]
+
+  @@index([status, createdAt])
+  @@index([mediaType])
+}
+
+model ReviewAsset {
+  id                 String            @id @default(uuid())
+  assetId            String
+  asset              Asset             @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  animeReviewId      Int?
+  mangaReviewId      Int?
+  lightNovelReviewId Int?
+  usage              ReviewAssetUsage  @default(IMAGE)
+  sortOrder          Int?
+  createdAt          DateTime          @default(now())
+
+  animeReview      AnimeReview?      @relation(fields: [animeReviewId], references: [id], onDelete: Cascade)
+  mangaReview      MangaReview?      @relation(fields: [mangaReviewId], references: [id], onDelete: Cascade)
+  lightNovelReview LightNovelReview? @relation(fields: [lightNovelReviewId], references: [id], onDelete: Cascade)
+
+  @@index([animeReviewId])
+  @@index([mangaReviewId])
+  @@index([lightNovelReviewId])
+  @@index([assetId])
 }
 
 model RequestLog {

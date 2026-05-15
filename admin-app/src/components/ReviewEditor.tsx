@@ -1,12 +1,13 @@
-import { ClipboardEventHandler, Dispatch, SetStateAction } from "react";
+import {
+  ClipboardEventHandler,
+  Dispatch,
+  SetStateAction
+} from "react";
 
-import { uploadService } from "@/services/upload.service";
-
-import { useToast } from "@/hooks/useToast";
+import { useReviewAssetUpload } from "@/hooks/useReviewAssetUpload";
 
 import { MEDIA_TYPE } from "@/lib/enums";
 
-import { useMutation } from "@tanstack/react-query";
 import MDEditor from "@uiw/react-md-editor";
 
 type Props = {
@@ -14,7 +15,7 @@ type Props = {
   setReview: Dispatch<SetStateAction<string | undefined>>;
   mediaType: MEDIA_TYPE;
   reviewId: number;
-  setUploadedImages: Dispatch<SetStateAction<string[]>>;
+  setUploadedImages: Dispatch<SetStateAction<Record<string, string>>>;
 };
 
 export default function ReviewEditor({
@@ -24,32 +25,21 @@ export default function ReviewEditor({
   reviewId,
   setUploadedImages
 }: Props) {
-  const toast = useToast();
+  const { insertImage } = useReviewAssetUpload(
+    mediaType,
+    reviewId,
+    setUploadedImages
+  );
 
-  const uploadImageMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const response = await uploadService.upload(file, mediaType, reviewId);
-      if (!response.success) throw new Error(response.error);
-      return response.data;
-    },
-    onError: (error: Error) => {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: error.message
-      });
-    }
-  });
-
-  const insertImage = async (file: File) => {
-    try {
-      const { url, id } = await uploadImageMutation.mutateAsync(file);
-      return { url, id };
-    } catch {
-      // Handled by mutation onError.
-    }
-
-    return null;
+  const insertTextAtCursor = (text: string) => {
+    const textarea = document.querySelector("textarea");
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(end, textarea.value.length);
+    textarea.value = before + text + after;
+    setReview(textarea.value);
   };
 
   const handlePaste: ClipboardEventHandler<HTMLDivElement> = async (event) => {
@@ -61,24 +51,12 @@ export default function ReviewEditor({
         if (file) {
           const image = await insertImage(file);
           if (image) {
-            setUploadedImages((prev) => ({ ...prev, [image.url]: image.id }));
             const markdownImage = `![image](${image.url})`;
             insertTextAtCursor(markdownImage);
           }
         }
       }
     }
-  };
-
-  const insertTextAtCursor = (text: string) => {
-    const textarea = document.querySelector("textarea");
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = textarea.value.substring(0, start);
-    const after = textarea.value.substring(end, textarea.value.length);
-    textarea.value = before + text + after;
-    setReview(textarea.value);
   };
 
   return (

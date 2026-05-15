@@ -10,7 +10,6 @@ import { mapMediaItemToRow } from "@/components/media/mapMediaItemToRow";
 import { Button } from "@/components/ui/button";
 
 import type { UseMediaLibraryListResult } from "@/hooks/useMediaLibraryList";
-import { useToast } from "@/hooks/useToast";
 
 import { MediaType } from "@/types/general.type";
 
@@ -18,6 +17,7 @@ import { mediaKeys } from "@/lib/query-keys";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
+import { toast } from "sonner";
 
 type DeleteTarget = {
   mediaType: MediaType;
@@ -31,7 +31,6 @@ type Props = {
 };
 
 export default function MediaListSection({ listQuery, scrollRoot }: Props) {
-  const toast = useToast();
   const queryClient = useQueryClient();
 
   const [pendingDelete, setPendingDelete] = useState<DeleteTarget | null>(null);
@@ -58,17 +57,10 @@ export default function MediaListSection({ listQuery, scrollRoot }: Props) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaKeys.all });
-      toast.toast({
-        title: "Deleted",
-        description: "Media removed successfully"
-      });
+      toast.success("Deleted", { description: "Media removed successfully" });
     },
     onError: (error: Error) => {
-      toast.toast({
-        variant: "destructive",
-        title: "Delete failed",
-        description: error.message
-      });
+      toast.error("Delete failed", { description: error.message });
     }
   });
 

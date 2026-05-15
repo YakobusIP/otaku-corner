@@ -15,7 +15,7 @@ import {
   computeRoundedWeightedPersonalScore,
   MANGA_REVIEW_PERSONAL_SCORE_WEIGHTS
 } from "@/lib/review-personal-score";
-import { createUTCDate, extractImageIds } from "@/lib/utils";
+import { createUTCDate, extractImageIds, extractUploadedImageMap } from "@/lib/utils";
 
 export const useMangaReviewSection = (mangaDetail: MangaDetail) => {
   const reviewObject = mangaDetail.review;
@@ -23,8 +23,10 @@ export const useMangaReviewSection = (mangaDetail: MangaDetail) => {
   const [reviewText, setReviewText] = useState(
     reviewObject.reviewText ?? undefined
   );
-  const [uploadedImages, setUploadedImages] = useState<string[]>(
-    extractImageIds(reviewObject.reviewText ?? undefined)
+  const [uploadedImages, setUploadedImages] = useState<
+    Record<string, string>
+  >(() =>
+    extractUploadedImageMap(reviewObject.reviewText ?? undefined)
   );
 
   const [progressStatus, setProgressStatus] = useState(
@@ -127,7 +129,8 @@ export const useMangaReviewSection = (mangaDetail: MangaDetail) => {
       uploadedImages,
       setUploadedImages,
       buildSavePayload: () => {
-        const currentImageIds = extractImageIds(reviewText);
+        const reviewMarkdown = reviewText ?? "";
+        const currentImageIds = extractImageIds(reviewMarkdown);
         const adjustedConsumedMonth = consumedMonth
           ? createUTCDate(
               consumedMonth.getUTCFullYear(),
@@ -146,7 +149,7 @@ export const useMangaReviewSection = (mangaDetail: MangaDetail) => {
           originalityRating
         };
 
-        return { currentImageIds, data };
+        return { currentImageIds, reviewMarkdown, data };
       },
       saveReview: async (id, data) => {
         const res = await mangaService.updateReview(id, data);

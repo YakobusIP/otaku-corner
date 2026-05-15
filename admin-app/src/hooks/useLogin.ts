@@ -2,17 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 
 import { authService } from "@/services/auth.service";
 
-import { useToast } from "@/hooks/useToast";
-
 import { setAuthTokens } from "@/lib/axios";
 import { queryClient } from "@/lib/query-client";
 
 import { AUTH_SESSION_QUERY_KEY } from "@/auth";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export function useLogin() {
-  const toast = useToast();
   const navigate = useNavigate();
 
   const [inputState, setInputState] = useState("");
@@ -35,15 +33,10 @@ export function useLogin() {
       setAuthTokens(data.accessToken);
       queryClient.removeQueries({ queryKey: AUTH_SESSION_QUERY_KEY });
       navigate("/dashboard");
-      toast.toast({
-        title: "All set!",
-        description: "Login successful"
-      });
+      toast.success("All set!", { description: "Login successful" });
     },
     onError: (error: Error) => {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }

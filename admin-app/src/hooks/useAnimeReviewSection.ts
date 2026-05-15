@@ -15,7 +15,7 @@ import {
   ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS,
   computeRoundedWeightedPersonalScore
 } from "@/lib/review-personal-score";
-import { createUTCDate, extractImageIds } from "@/lib/utils";
+import { createUTCDate, extractImageIds, extractUploadedImageMap } from "@/lib/utils";
 
 export const useAnimeReviewSection = (animeDetail: AnimeDetail) => {
   const reviewObject = animeDetail.review;
@@ -23,8 +23,10 @@ export const useAnimeReviewSection = (animeDetail: AnimeDetail) => {
   const [reviewText, setReviewText] = useState(
     reviewObject.reviewText ?? undefined
   );
-  const [uploadedImages, setUploadedImages] = useState<string[]>(
-    extractImageIds(reviewObject.reviewText ?? undefined)
+  const [uploadedImages, setUploadedImages] = useState<
+    Record<string, string>
+  >(() =>
+    extractUploadedImageMap(reviewObject.reviewText ?? undefined)
   );
 
   const [progressStatus, setProgressStatus] = useState(
@@ -127,7 +129,8 @@ export const useAnimeReviewSection = (animeDetail: AnimeDetail) => {
       uploadedImages,
       setUploadedImages,
       buildSavePayload: () => {
-        const currentImageIds = extractImageIds(reviewText);
+        const reviewMarkdown = reviewText ?? "";
+        const currentImageIds = extractImageIds(reviewMarkdown);
         const adjustedConsumedMonth = consumedMonth
           ? createUTCDate(
               consumedMonth.getUTCFullYear(),
@@ -146,7 +149,7 @@ export const useAnimeReviewSection = (animeDetail: AnimeDetail) => {
           charDevelopmentRating
         };
 
-        return { currentImageIds, data };
+        return { currentImageIds, reviewMarkdown, data };
       },
       saveReview: async (id, data) => {
         const res = await animeService.updateReview(id, data);

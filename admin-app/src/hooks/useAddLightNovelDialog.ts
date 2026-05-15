@@ -9,7 +9,7 @@ import {
 
 import { lightNovelService } from "@/services/light-novel.service";
 
-import { toast } from "@/hooks/useToast";
+import { toast } from "sonner";
 
 import type { LightNovelCreateRequest } from "@/types/light-novel.type";
 
@@ -83,15 +83,16 @@ export function useAddLightNovelDialog({
           "response" in err &&
           (err as { response?: { status?: number } }).response?.status;
         const isRateLimited = status === 429;
-        toast({
-          variant: "destructive",
-          title: isRateLimited
+        toast.error(
+          isRateLimited
             ? "Too many requests"
             : "Uh oh! Something went wrong",
-          description: isRateLimited
-            ? "Jikan is rate-limited. Wait a moment and try again."
-            : "Failed to fetch light novel list from Jikan"
-        });
+          {
+            description: isRateLimited
+              ? "Jikan is rate-limited. Wait a moment and try again."
+              : "Failed to fetch light novel list from Jikan"
+          }
+        );
         throw err;
       }
     },
@@ -191,8 +192,7 @@ export function useAddLightNovelDialog({
       });
       await resetParent();
 
-      toast({
-        title: "All set!",
+      toast.success("All set!", {
         description:
           addedIds.length === 1
             ? "Light novel added successfully"
@@ -204,9 +204,7 @@ export function useAddLightNovelDialog({
       setOpenDialog(false);
     },
     onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
+      toast.error("Uh oh! Something went wrong", {
         description: error.message
       });
     }
@@ -264,9 +262,7 @@ export function useAddLightNovelDialog({
     const ready = selectedLightNovel.filter((_m, i) => existsList[i] === false);
 
     if (ready.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Nothing to add",
+      toast.error("Nothing to add", {
         description:
           selectedLightNovel.length === 0
             ? "Select at least one light novel."

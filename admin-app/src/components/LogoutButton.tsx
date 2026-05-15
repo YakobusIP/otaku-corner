@@ -2,14 +2,13 @@ import { authService } from "@/services/auth.service";
 
 import { Button } from "@/components/ui/button";
 
-import { useToast } from "@/hooks/useToast";
-
 import { clearClientAuth } from "@/lib/axios";
 import { cn } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, LogOutIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 type Props = {
   fullWidth?: boolean;
@@ -18,7 +17,6 @@ type Props = {
 
 export default function LogoutButton({ fullWidth = false, className }: Props) {
   const queryClient = useQueryClient();
-  const toast = useToast();
   const navigate = useNavigate();
 
   const mutation = useMutation({
@@ -28,13 +26,11 @@ export default function LogoutButton({ fullWidth = false, className }: Props) {
       queryClient.clear();
       navigate("/", { replace: true });
       if (result?.success) {
-        toast.toast({
-          title: "Signed out",
+        toast.success("Signed out", {
           description: result.data.message || "Logged out successfully"
         });
       } else {
-        toast.toast({
-          title: "Signed out",
+        toast.success("Signed out", {
           description:
             "Your session was cleared on this device. The server could not be reached to clear the remote session."
         });
