@@ -174,7 +174,7 @@ export default function MangaReviewSection({ mangaDetail }: Props) {
 
         <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div
-            className={`inline-flex items-center gap-1.5 text-xs ${saveStatusDisplay.tone}`}
+            className={`inline-flex items-center gap-1.5 text-sm ${saveStatusDisplay.tone}`}
           >
             {saveStatusDisplay.icon}
             <span>{saveStatusDisplay.text}</span>

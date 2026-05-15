@@ -1,20 +1,19 @@
 import {
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
   useCallback,
   useEffect,
   useRef,
-  useState,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction
+  useState
 } from "react";
-
-import { CheckCircle2Icon, CloudIcon, Loader2Icon } from "lucide-react";
 
 import { uploadService } from "@/services/upload.service";
 
 import { useToast } from "@/hooks/useToast";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CheckCircle2Icon, CloudIcon, Loader2Icon } from "lucide-react";
 import { useDebounce } from "use-debounce";
 
 export type DetailReviewSaveStatusVariant =
@@ -99,16 +98,16 @@ export const buildDetailReviewSaveStatusDisplay = (
   let icon: ReactNode;
   switch (saveStatus.variant) {
     case "pending":
-      icon = <Loader2Icon className="h-3.5 w-3.5 animate-spin" />;
+      icon = <Loader2Icon className="h-4 w-4 animate-spin" />;
       break;
     case "dirty":
-      icon = <CloudIcon className="h-3.5 w-3.5" />;
+      icon = <CloudIcon className="h-4 w-4" />;
       break;
     case "saved":
-      icon = <CheckCircle2Icon className="h-3.5 w-3.5" />;
+      icon = <CheckCircle2Icon className="h-4 w-4" />;
       break;
     default:
-      icon = <CloudIcon className="h-3.5 w-3.5" />;
+      icon = <CloudIcon className="h-4 w-4" />;
   }
 
   return { icon, text: saveStatus.text, tone: saveStatus.tone };
@@ -168,12 +167,7 @@ export const useDetailReviewAutosave = <TData,>({
         silent: payload.silent
       };
     },
-    onSuccess: async ({
-      message,
-      currentImageIds,
-      snapshotAtSave,
-      silent
-    }) => {
+    onSuccess: async ({ message, currentImageIds, snapshotAtSave, silent }) => {
       savedSnapshotRef.current = snapshotAtSave;
       setLastSavedAt(new Date());
       await queryClient.invalidateQueries({ queryKey: detailQueryKey });
