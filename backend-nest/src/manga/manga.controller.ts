@@ -125,6 +125,28 @@ export class MangaController extends BaseCrudController<
     return this.service.getStatusCounts();
   }
 
+  @Post(":id/metadata-sync")
+  @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({
+    summary:
+      "Enqueue AniList metadata sync (volumes and chapters) for this manga"
+  })
+  @ApiParam({ name: "id", description: "Manga ID", type: Number })
+  @ApiResponse({
+    status: 202,
+    description: "Job accepted on the fetch queue (processed asynchronously)"
+  })
+  async enqueueMetadataSync(
+    @Param("id", ParseIntPipe) id: number,
+    @Req() req: Request
+  ): Promise<{ queued: true }> {
+    await this.service.enqueueExternalMetadataSync(
+      id,
+      getRequestLogContextFromRequest(req)
+    );
+    return { queued: true };
+  }
+
   @Get(":id")
   @Public()
   @ApiOperation({ summary: "Get manga detail by ID" })

@@ -110,7 +110,7 @@ export default function EditVolumesModal({
             Override Volumes
           </Button>
         </DialogTrigger>
-        <DialogContent className="w-full xl:w-1/5">
+        <DialogContent className="w-full xl:w-1/4">
           <DialogHeader>
             <DialogTitle>Override Volumes</DialogTitle>
             <DialogDescription>

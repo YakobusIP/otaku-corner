@@ -126,6 +126,28 @@ export class LightNovelController extends BaseCrudController<
     return this.service.getStatusCounts();
   }
 
+  @Post(":id/metadata-sync")
+  @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({
+    summary:
+      "Enqueue RanobeDB volume sync (volumesCount and volume progress rows) for this light novel"
+  })
+  @ApiParam({ name: "id", description: "Light novel ID", type: Number })
+  @ApiResponse({
+    status: 202,
+    description: "Job accepted on the fetch queue (processed asynchronously)"
+  })
+  async enqueueMetadataSync(
+    @Param("id", ParseIntPipe) id: number,
+    @Req() req: Request
+  ): Promise<{ queued: true }> {
+    await this.service.enqueueExternalMetadataSync(
+      id,
+      getRequestLogContextFromRequest(req)
+    );
+    return { queued: true };
+  }
+
   @Get(":id")
   @Public()
   @ApiOperation({ summary: "Get light novel detail by ID" })

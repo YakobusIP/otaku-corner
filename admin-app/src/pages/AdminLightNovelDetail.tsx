@@ -10,7 +10,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { useLightNovelDetail } from "@/hooks/useLightNovelDetail";
 
-import { AlertTriangleIcon, ArrowLeftIcon, Loader2Icon } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  ArrowLeftIcon,
+  Loader2Icon,
+  RefreshCwIcon
+} from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -24,7 +29,8 @@ export default function AdminLightNovelDetail() {
     isLoading,
     isError,
     error,
-    refetch
+    refetch,
+    syncMetadataMutation
   } = useLightNovelDetail(hasValidId ? parsedId : undefined);
 
   useEffect(() => {
@@ -100,14 +106,30 @@ export default function AdminLightNovelDetail() {
       hideHeader
     >
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger className="@tablet:hidden" />
-          <Link to="/media-list">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <ArrowLeftIcon className="h-4 w-4" />
-              <span>Back to library</span>
-            </Button>
-          </Link>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="@tablet:hidden" />
+            <Link to="/media-list">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <ArrowLeftIcon className="h-4 w-4" />
+                <span>Back to library</span>
+              </Button>
+            </Link>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            disabled={syncMetadataMutation.isPending}
+            onClick={() => syncMetadataMutation.mutate()}
+          >
+            <RefreshCwIcon
+              className={`h-4 w-4 ${syncMetadataMutation.isPending ? "animate-spin" : ""}`}
+            />
+            <span className="hidden sm:inline">Sync details</span>
+            <span className="sm:hidden">Sync</span>
+          </Button>
         </div>
         <LightNovelHero lightNovelDetail={lightNovelDetail} />
         <LightNovelInfoSection

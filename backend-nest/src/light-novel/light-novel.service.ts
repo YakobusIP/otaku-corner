@@ -29,6 +29,7 @@ import {
   UpdateLightNovelReviewDto,
   UpdateVolumeProgressItemDto
 } from "@/light-novel/dto";
+import { FetchLightNovelRanobeDbQueueService } from "@/light-novel/fetch-light-novel-ranobedb.queue";
 import { ThemesService } from "@/theme/themes.service";
 
 import { Prisma, ProgressStatus } from "@prisma/client";
@@ -77,7 +78,8 @@ export class LightNovelService extends BaseCrudService<
     queryBuilder: CrudQueryBuilder,
     private readonly authorsService: AuthorsService,
     private readonly genresService: GenresService,
-    private readonly themesService: ThemesService
+    private readonly themesService: ThemesService,
+    private readonly fetchLightNovelRanobeDbQueue: FetchLightNovelRanobeDbQueueService
   ) {
     super(prisma, queryBuilder);
   }
@@ -164,12 +166,19 @@ export class LightNovelService extends BaseCrudService<
       throw new NotFoundException("Light Novel not found");
     }
 
+    const { authors, genres, themes, volumeProgress, ...rest } = result;
+
     return {
-      ...result,
+      ...rest,
       images: result.images as object,
-      authors: result.authors.map((a) => a.author),
-      genres: result.genres.map((g) => g.genre),
-      themes: result.themes.map((t) => t.theme)
+      volumeProgress: volumeProgress.map((row) => ({
+        id: row.id,
+        volumeNumber: row.volumeNumber,
+        consumedAt: row.consumedAt
+      })),
+      authors: authors.map((a) => a.author),
+      genres: genres.map((g) => g.genre),
+      themes: themes.map((t) => t.theme)
     } as unknown as LightNovelDetailResponseDto;
   }
 
@@ -277,10 +286,8 @@ export class LightNovelService extends BaseCrudService<
 
   async createBulk(
     data: CreateLightNovelItemDto[],
-    _requestLog?: RequestLogContextStore
+    requestLog?: RequestLogContextStore
   ): Promise<number[]> {
-    void _requestLog;
-
     const allAuthorNames = [
       ...new Set(data.flatMap((d) => d.authors.map((n) => n.trim())))
     ];
@@ -305,6 +312,12 @@ export class LightNovelService extends BaseCrudService<
     const results: number[] = [];
 
     for (const chunk of chunks) {
+      const enqueueAfterChunk: {
+        id: number;
+        title: string;
+        titleJapanese: string;
+      }[] = [];
+
       await this.prisma.$transaction(async (tx) => {
         for (const item of chunk) {
           const {
@@ -356,12 +369,47 @@ export class LightNovelService extends BaseCrudService<
             }
           });
 
+          enqueueAfterChunk.push({
+            id: item.id,
+            title: item.title,
+            titleJapanese: item.titleJapanese
+          });
           results.push(item.id);
         }
       });
+
+      for (const job of enqueueAfterChunk) {
+        this.fetchLightNovelRanobeDbQueue.enqueueAfterCreate(
+          job.id,
+          job.title,
+          job.titleJapanese,
+          requestLog
+        );
+      }
     }
 
     return results;
+  }
+
+  async enqueueExternalMetadataSync(
+    id: number,
+    requestLog?: RequestLogContextStore
+  ): Promise<void> {
+    const row = await this.prisma.lightNovel.findUnique({
+      where: { id },
+      select: { id: true, title: true, titleJapanese: true }
+    });
+
+    if (!row) {
+      throw new NotFoundException("Light Novel not found");
+    }
+
+    this.fetchLightNovelRanobeDbQueue.enqueueAfterCreate(
+      row.id,
+      row.title,
+      row.titleJapanese,
+      requestLog
+    );
   }
 
   async updateReview(id: number, data: UpdateLightNovelReviewDto) {

@@ -2,6 +2,11 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 
 import { BullQueueService } from "@/common/bull/bull-queue.service";
 import {
+  externalMetadataQueueRedisOptions,
+  jobErrorFromUnknown,
+  logMetadataSyncNoConfidentMatch
+} from "@/common/bull/external-metadata-queue";
+import {
   type RequestLogContextStore,
   getRequestLogContext
 } from "@/common/logging/request-log-context";
@@ -9,13 +14,49 @@ import { StructuredLogger } from "@/common/logging/structured-logger.service";
 
 import { PrismaService } from "@/prisma/prisma.service";
 
-import axios from "axios";
+import { Prisma } from "@prisma/client";
+import axios, { isAxiosError } from "axios";
 import type Bull from "bull";
 import { stringSimilarity } from "string-similarity-js";
 import { v4 as uuidv4 } from "uuid";
 
-const BASE_MANGADEX_URL = "https://api.mangadex.org";
+/**
+ * AniList manga search resolution (see `pickAnilistMedia`):
+ *
+ * 1. **MAL id (`idMal`)** — `Manga.id` is the MyAnimeList manga id. If any search hit has
+ *    `idMal` equal to that id, we use it immediately. This avoids wrong picks when AniList
+ *    has multiple entries with the same title (e.g. main series vs one-shot).
+ * 2. **Title / synonym similarity** — existing thresholds when no `idMal` match.
+ * 3. **Format preference** — when several hits tie on title rules, we prefer **`MANGA`**
+ *    over **`ONE_SHOT`** (then any non–one-shot over one-shot) so volume/chapter sync does
+ *    not latch onto a same-titled one-shot. A one-shot added later as its own MAL row still
+ *    wins via step 1.
+ */
+
+const ANILIST_GRAPHQL_URL = "https://graphql.anilist.co";
 const SIMILARITY_THRESHOLD = 0.9;
+const MANGA_SEARCH_PER_PAGE = 25;
+
+const MANGA_SEARCH_QUERY = `
+query ($search: String!, $page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    media(search: $search, type: MANGA) {
+      id
+      idMal
+      format
+      status
+      volumes
+      chapters
+      title {
+        romaji
+        english
+        native
+      }
+      synonyms
+    }
+  }
+}
+`;
 
 type FetchMangaDataJobData = {
   id: number;
@@ -25,45 +66,218 @@ type FetchMangaDataJobData = {
   request_id?: string | null;
 };
 
-type FetchMangaStatisticsJobData = {
+type AnilistMediaTitle = {
+  romaji: string | null;
+  english: string | null;
+  native: string | null;
+};
+
+type AnilistMedia = {
   id: number;
-  mangadex_id: string;
-  correlation_id?: string;
-  request_id?: string | null;
+  idMal: number | null;
+  format: string;
+  status: string;
+  volumes: number | null;
+  chapters: number | null;
+  title: AnilistMediaTitle;
+  synonyms: string[] | null;
 };
 
-type AltTitle = Record<string, string>;
-
-type MangaDexData = {
-  id: string;
-  attributes: {
-    title: Record<string, string>;
-    altTitles: AltTitle[];
-    lastVolume: string;
-    lastChapter: string;
-    status: string;
+type AnilistMangaSearchData = {
+  Page: {
+    media: AnilistMedia[] | null;
   };
 };
 
-type MangaDexResponse = {
-  result: string;
-  data: MangaDexData[];
+type AnilistGraphqlEnvelope<T> = {
+  data?: T;
+  errors?: { message: string; status?: number }[];
 };
 
-type MangaDexStatisticsResponse = {
-  result: string;
-  volumes: {
-    [volumeKey: string]: {
-      volume: string;
-      count: number;
-      chapters: {
-        [chapterKey: string]: {
-          chapter: string;
-          id: string;
-        };
-      };
-    };
-  };
+const preferMangaFormatAmongCandidates = (
+  candidates: AnilistMedia[]
+): AnilistMedia | null => {
+  if (candidates.length === 0) {
+    return null;
+  }
+  const asManga = candidates.find((media) => media.format === "MANGA");
+  if (asManga !== undefined) {
+    return asManga;
+  }
+  const notOneshot = candidates.find((media) => media.format !== "ONE_SHOT");
+  if (notOneshot !== undefined) {
+    return notOneshot;
+  }
+  return candidates[0] ?? null;
+};
+
+const pickAnilistMedia = (
+  items: AnilistMedia[],
+  malMangaId: number,
+  title: string,
+  titleJapanese: string
+): AnilistMedia | null => {
+  if (items.length === 0) {
+    return null;
+  }
+
+  const byMal = items.find((media) => media.idMal === malMangaId);
+  if (byMal !== undefined) {
+    return byMal;
+  }
+
+  if (titleJapanese.length > 0) {
+    const exactNative = items.filter((media) => {
+      const native = media.title.native ?? "";
+      return native.length > 0 && titleJapanese === native;
+    });
+    const fromExactNative = preferMangaFormatAmongCandidates(exactNative);
+    if (fromExactNative !== null) {
+      return fromExactNative;
+    }
+
+    const exactSynonym = items.filter((media) =>
+      (media.synonyms ?? []).some(
+        (synonym) => synonym.length > 0 && titleJapanese === synonym
+      )
+    );
+    const fromExactSynonym = preferMangaFormatAmongCandidates(exactSynonym);
+    if (fromExactSynonym !== null) {
+      return fromExactSynonym;
+    }
+
+    const similarNative = items.filter((media) => {
+      const native = media.title.native ?? "";
+      return (
+        native.length > 0 &&
+        stringSimilarity(titleJapanese, native) > SIMILARITY_THRESHOLD
+      );
+    });
+    const fromSimilarNative = preferMangaFormatAmongCandidates(similarNative);
+    if (fromSimilarNative !== null) {
+      return fromSimilarNative;
+    }
+
+    const similarSynonym = items.filter((media) =>
+      (media.synonyms ?? []).some(
+        (synonym) =>
+          synonym.length > 0 &&
+          stringSimilarity(titleJapanese, synonym) > SIMILARITY_THRESHOLD
+      )
+    );
+    const fromSimilarSynonym = preferMangaFormatAmongCandidates(similarSynonym);
+    if (fromSimilarSynonym !== null) {
+      return fromSimilarSynonym;
+    }
+
+    return null;
+  }
+
+  const similarEnglish = items.filter((media) => {
+    const english = media.title.english ?? "";
+    return (
+      english.length > 0 &&
+      stringSimilarity(title, english) > SIMILARITY_THRESHOLD
+    );
+  });
+  const fromEnglish = preferMangaFormatAmongCandidates(similarEnglish);
+  if (fromEnglish !== null) {
+    return fromEnglish;
+  }
+
+  const similarRomaji = items.filter((media) => {
+    const romaji = media.title.romaji ?? "";
+    return (
+      romaji.length > 0 &&
+      stringSimilarity(title, romaji) > SIMILARITY_THRESHOLD
+    );
+  });
+  const fromRomaji = preferMangaFormatAmongCandidates(similarRomaji);
+  if (fromRomaji !== null) {
+    return fromRomaji;
+  }
+
+  return null;
+};
+
+const postAnilistGraphql = async <T>(
+  query: string,
+  variables: Record<string, unknown>
+): Promise<T> => {
+  try {
+    const response = await axios.post<AnilistGraphqlEnvelope<T>>(
+      ANILIST_GRAPHQL_URL,
+      { query, variables },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        }
+      }
+    );
+
+    if (response.data.errors?.length) {
+      const rateLimited = response.data.errors.some((e) => e.status === 429);
+      if (rateLimited) {
+        throw new Error("AniList GraphQL rate limited (429)");
+      }
+      throw new Error(
+        response.data.errors.map((e) => e.message).join("; ") ||
+          "AniList GraphQL error"
+      );
+    }
+
+    if (response.data.data === undefined || response.data.data === null) {
+      throw new Error("AniList response missing data");
+    }
+
+    return response.data.data as T;
+  } catch (error: unknown) {
+    if (isAxiosError(error) && error.response?.status === 429) {
+      const retryAfterRaw: unknown = error.response.headers["retry-after"];
+      const retryAfter =
+        typeof retryAfterRaw === "string" ? retryAfterRaw : undefined;
+      throw new Error(
+        `AniList HTTP 429${retryAfter !== undefined ? `; Retry-After: ${retryAfter}` : ""}`
+      );
+    }
+    throw error;
+  }
+};
+
+const floorCount = (value: number | null): number | null => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return null;
+  }
+  const floored = Math.floor(value);
+  return floored >= 0 ? floored : null;
+};
+
+const applyVolumesAndChapters = async (
+  prisma: PrismaService,
+  mangaId: number,
+  volumes: number | null,
+  chapters: number | null
+): Promise<void> => {
+  const data: Prisma.MangaUpdateInput = {};
+  const volumesCount = floorCount(volumes);
+  const chaptersCount = floorCount(chapters);
+
+  if (volumesCount !== null) {
+    data.volumesCount = volumesCount;
+  }
+  if (chaptersCount !== null) {
+    data.chaptersCount = chaptersCount;
+  }
+
+  if (Object.keys(data).length === 0) {
+    return;
+  }
+
+  await prisma.manga.update({
+    where: { id: mangaId },
+    data
+  });
 };
 
 @Injectable()
@@ -71,7 +285,6 @@ export class FetchMangaDataQueueService
   implements OnModuleInit, OnModuleDestroy
 {
   private dataQueue!: Bull.Queue<FetchMangaDataJobData>;
-  private statisticsQueue!: Bull.Queue<FetchMangaStatisticsJobData>;
 
   constructor(
     private readonly bullQueue: BullQueueService,
@@ -80,46 +293,26 @@ export class FetchMangaDataQueueService
   ) {}
 
   onModuleInit(): void {
-    const redisOpts = {
-      limiter: { max: 1, duration: 2000 },
-      defaultJobOptions: {
-        attempts: 5,
-        backoff: { type: "exponential" as const, delay: 1000 }
-      }
-    };
-
     const dataQ = this.bullQueue.createQueue<FetchMangaDataJobData>(
       "fetchMangaDataQueue",
-      redisOpts
-    );
-    const statsQ = this.bullQueue.createQueue<FetchMangaStatisticsJobData>(
-      "fetchMangaStatisticsQueue",
-      redisOpts
+      externalMetadataQueueRedisOptions
     );
 
     this.dataQueue = dataQ;
-    this.statisticsQueue = statsQ;
 
-    void dataQ.process((job) => this.processFetchMangaData(job, statsQ));
-    void statsQ.process((job) => this.processFetchMangaStatistics(job));
+    void dataQ.process((job) => this.processFetchMangaData(job));
   }
 
   async onModuleDestroy(): Promise<void> {
     await this.dataQueue.close();
-    await this.statisticsQueue.close();
   }
 
-  enqueueAfterCreate(
+  private enqueueJob(
     mangaId: number,
     title: string,
     titleJapanese: string,
-    status: string,
     requestLog?: RequestLogContextStore
   ): void {
-    if (status === "Upcoming") {
-      return;
-    }
-
     const als = getRequestLogContext();
     const correlation_id =
       requestLog?.correlation_id ?? als?.correlation_id ?? undefined;
@@ -137,15 +330,8 @@ export class FetchMangaDataQueueService
         this.logger.logApplication({
           level: "warn",
           event: "queue.fetch_manga.enqueue_failed",
-          message: "Failed to enqueue MangaDex fetch job",
-          error:
-            error instanceof Error
-              ? {
-                  name: error.name,
-                  message: error.message,
-                  stack: error.stack ?? ""
-                }
-              : null,
+          message: "Failed to enqueue AniList fetch job",
+          error: jobErrorFromUnknown(error),
           meta: {
             queue_name: "fetchMangaDataQueue",
             operation: "enqueue",
@@ -157,52 +343,31 @@ export class FetchMangaDataQueueService
       });
   }
 
-  private async handleMangaCompleted(
-    id: number,
-    manga: MangaDexData
-  ): Promise<boolean> {
-    const { lastVolume, lastChapter, status } = manga.attributes;
-
-    if (status === "completed") {
-      const volumesCount = parseFloat(lastVolume);
-      const chaptersCount = parseFloat(lastChapter);
-
-      if (!isNaN(volumesCount) && !isNaN(chaptersCount)) {
-        await this.prisma.manga.update({
-          where: { id },
-          data: {
-            volumesCount: Math.floor(volumesCount),
-            chaptersCount: Math.floor(chaptersCount)
-          }
-        });
-
-        return true;
-      }
+  enqueueAfterCreate(
+    mangaId: number,
+    title: string,
+    titleJapanese: string,
+    status: string,
+    requestLog?: RequestLogContextStore
+  ): void {
+    if (status === "Upcoming") {
+      return;
     }
-
-    return false;
+    this.enqueueJob(mangaId, title, titleJapanese, requestLog);
   }
 
-  private async processMangaData(
-    id: number,
-    manga: MangaDexData,
-    statsQueue: Bull.Queue<FetchMangaStatisticsJobData>,
-    correlation_id: string,
-    request_id: string | null
-  ): Promise<void> {
-    if (!(await this.handleMangaCompleted(id, manga))) {
-      await statsQueue.add({
-        id,
-        mangadex_id: manga.id,
-        correlation_id,
-        request_id
-      });
-    }
+  /** Enqueues AniList metadata fetch regardless of publishing status (admin resync). */
+  enqueueMetadataSync(
+    mangaId: number,
+    title: string,
+    titleJapanese: string,
+    requestLog?: RequestLogContextStore
+  ): void {
+    this.enqueueJob(mangaId, title, titleJapanese, requestLog);
   }
 
   private async processFetchMangaData(
-    job: Bull.Job<FetchMangaDataJobData>,
-    statsQueue: Bull.Queue<FetchMangaStatisticsJobData>
+    job: Bull.Job<FetchMangaDataJobData>
   ): Promise<void> {
     const correlation_id =
       job.data.correlation_id ??
@@ -235,209 +400,47 @@ export class FetchMangaDataQueueService
     });
 
     try {
-      const query =
+      const search =
         job.data.titleJapanese.length > 0
           ? job.data.titleJapanese
           : job.data.title;
 
-      const response = await axios.get<MangaDexResponse>(
-        `${BASE_MANGADEX_URL}/manga?title=${encodeURIComponent(query)}`
+      const data = await postAnilistGraphql<AnilistMangaSearchData>(
+        MANGA_SEARCH_QUERY,
+        {
+          search,
+          page: 1,
+          perPage: MANGA_SEARCH_PER_PAGE
+        }
       );
 
-      if (response.status === 200 && response.data.result === "ok") {
-        if (response.data.data.length > 1) {
-          let foundHighSimilarity = false;
-
-          for (const manga of response.data.data) {
-            const attributes = manga.attributes;
-            let similarity = 0;
-
-            if (job.data.titleJapanese.length > 0) {
-              for (const alt of attributes.altTitles) {
-                if ("ja" in alt) {
-                  if (job.data.titleJapanese === alt["ja"]) {
-                    foundHighSimilarity = true;
-                    await this.processMangaData(
-                      job.data.id,
-                      manga,
-                      statsQueue,
-                      correlation_id,
-                      request_id
-                    );
-                    break;
-                  }
-
-                  similarity = stringSimilarity(
-                    job.data.titleJapanese,
-                    alt["ja"]
-                  );
-                  if (similarity > SIMILARITY_THRESHOLD) {
-                    foundHighSimilarity = true;
-                    await this.processMangaData(
-                      job.data.id,
-                      manga,
-                      statsQueue,
-                      correlation_id,
-                      request_id
-                    );
-                    break;
-                  }
-                }
-              }
-              if (foundHighSimilarity) break;
-            } else if ("en" in attributes.title) {
-              similarity = stringSimilarity(
-                job.data.title,
-                attributes.title["en"]
-              );
-
-              if (similarity > SIMILARITY_THRESHOLD) {
-                foundHighSimilarity = true;
-                await this.processMangaData(
-                  job.data.id,
-                  manga,
-                  statsQueue,
-                  correlation_id,
-                  request_id
-                );
-                break;
-              }
-            }
-          }
-
-          if (!foundHighSimilarity && response.data.data.length > 0) {
-            const manga = response.data.data[0];
-            await this.processMangaData(
-              job.data.id,
-              manga,
-              statsQueue,
-              correlation_id,
-              request_id
-            );
-          }
-        } else if (response.data.data.length === 1) {
-          const manga = response.data.data[0];
-          await this.processMangaData(
-            job.data.id,
-            manga,
-            statsQueue,
-            correlation_id,
-            request_id
-          );
-        }
-      }
-
-      const duration_ms = Math.round(performance.now() - started);
-      this.logger.logQueue({
-        level: "info",
-        event: "queue.job.completed",
-        message: "Queue job completed",
-        correlation_id,
-        request_id,
-        user_id: null,
-        error: null,
-        meta: {
-          ...queueMetaBase,
-          duration_ms
-        }
-      });
-    } catch (error) {
-      const duration_ms = Math.round(performance.now() - started);
-      const err =
-        error instanceof Error
-          ? {
-              name: error.name,
-              message: error.message,
-              stack: error.stack ?? ""
-            }
-          : {
-              name: "Error",
-              message: String(error),
-              stack: ""
-            };
-      this.logger.logQueue({
-        level: "error",
-        event: "queue.job.failed",
-        message: "Queue job failed",
-        correlation_id,
-        request_id,
-        user_id: null,
-        error: err,
-        meta: { ...queueMetaBase, duration_ms }
-      });
-      throw error;
-    }
-  }
-
-  private async processFetchMangaStatistics(
-    job: Bull.Job<FetchMangaStatisticsJobData>
-  ): Promise<void> {
-    const correlation_id =
-      job.data.correlation_id ??
-      getRequestLogContext()?.correlation_id ??
-      uuidv4();
-    const request_id = job.data.request_id ?? null;
-    const started = performance.now();
-    const maxAttempts =
-      typeof job.opts.attempts === "number" ? job.opts.attempts : 5;
-
-    const queueMetaBase = {
-      queue_name: "fetchMangaStatisticsQueue",
-      job_id: String(job.id),
-      job_name: "fetch-manga-statistics",
-      attempt: job.attemptsMade + 1,
-      max_attempts: maxAttempts,
-      duration_ms: null as number | null,
-      manga_id: job.data.id
-    };
-
-    this.logger.logQueue({
-      level: "info",
-      event: "queue.job.started",
-      message: "Queue job started",
-      correlation_id,
-      request_id,
-      user_id: null,
-      error: null,
-      meta: { ...queueMetaBase }
-    });
-
-    try {
-      const response = await axios.get<MangaDexStatisticsResponse>(
-        `${BASE_MANGADEX_URL}/manga/${job.data.mangadex_id}/aggregate`
+      const mediaList = data.Page?.media ?? [];
+      const chosen = pickAnilistMedia(
+        mediaList,
+        job.data.id,
+        job.data.title,
+        job.data.titleJapanese
       );
 
-      if (response.status === 200 && response.data.result === "ok") {
-        const volumes = response.data.volumes;
-
-        const volumeNumbers = Object.keys(volumes)
-          .filter((key) => key !== "none")
-          .map((key) => parseInt(key, 10))
-          .filter((num) => !isNaN(num));
-
-        const maxVolumeNumber =
-          volumeNumbers.length > 0 ? Math.max(...volumeNumbers) : 0;
-
-        const volumesCount = maxVolumeNumber + 1;
-
-        const lastVolume = volumes["none"];
-        let chaptersCount = 0;
-
-        if (lastVolume?.chapters) {
-          const chapterNumbers = Object.keys(lastVolume.chapters)
-            .map((key) => parseFloat(key))
-            .filter((num) => !isNaN(num));
-
-          chaptersCount =
-            chapterNumbers.length > 0 ? Math.max(...chapterNumbers) : 0;
-
-          chaptersCount = Math.floor(chaptersCount);
-        }
-
-        await this.prisma.manga.update({
-          where: { id: job.data.id },
-          data: { volumesCount, chaptersCount }
+      if (chosen === null) {
+        logMetadataSyncNoConfidentMatch(this.logger, {
+          correlation_id,
+          request_id,
+          queue_name: "fetchMangaDataQueue",
+          job_id: String(job.id),
+          job_name: "fetch-manga-data",
+          provider: "anilist",
+          manga_id: job.data.id,
+          search_query: search,
+          candidate_count: mediaList.length
         });
+      } else {
+        await applyVolumesAndChapters(
+          this.prisma,
+          job.data.id,
+          chosen.volumes,
+          chosen.chapters
+        );
       }
 
       const duration_ms = Math.round(performance.now() - started);
@@ -456,18 +459,6 @@ export class FetchMangaDataQueueService
       });
     } catch (error) {
       const duration_ms = Math.round(performance.now() - started);
-      const err =
-        error instanceof Error
-          ? {
-              name: error.name,
-              message: error.message,
-              stack: error.stack ?? ""
-            }
-          : {
-              name: "Error",
-              message: String(error),
-              stack: ""
-            };
       this.logger.logQueue({
         level: "error",
         event: "queue.job.failed",
@@ -475,7 +466,7 @@ export class FetchMangaDataQueueService
         correlation_id,
         request_id,
         user_id: null,
-        error: err,
+        error: jobErrorFromUnknown(error),
         meta: { ...queueMetaBase, duration_ms }
       });
       throw error;

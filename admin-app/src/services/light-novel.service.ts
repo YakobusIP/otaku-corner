@@ -149,6 +149,19 @@ const createLightNovelService = () => {
     }
   };
 
+  const enqueueMetadataSync = async (
+    id: number
+  ): Promise<ServiceResult<{ queued: true }>> => {
+    try {
+      const response = await interceptedAxios.post<{ queued: true }>(
+        `${BASE_LIGHTNOVEL_URL}/${id}/metadata-sync`
+      );
+      return ok(response.data);
+    } catch (error) {
+      return err(error);
+    }
+  };
+
   const remove = async (ids: number[]): Promise<ServiceResult<undefined>> => {
     try {
       await interceptedAxios.delete<ApiResponse<void>>(BASE_LIGHTNOVEL_URL, {
@@ -169,6 +182,7 @@ const createLightNovelService = () => {
     updateProgressStatus,
     updateVolumes,
     updateVolumeProgress,
+    enqueueMetadataSync,
     remove
   };
 };

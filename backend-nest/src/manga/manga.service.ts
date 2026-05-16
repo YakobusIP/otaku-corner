@@ -328,6 +328,27 @@ export class MangaService extends BaseCrudService<
     return results;
   }
 
+  async enqueueExternalMetadataSync(
+    id: number,
+    requestLog?: RequestLogContextStore
+  ): Promise<void> {
+    const row = await this.prisma.manga.findUnique({
+      where: { id },
+      select: { id: true, title: true, titleJapanese: true }
+    });
+
+    if (!row) {
+      throw new NotFoundException("Manga not found");
+    }
+
+    this.fetchMangaDataQueue.enqueueMetadataSync(
+      row.id,
+      row.title,
+      row.titleJapanese,
+      requestLog
+    );
+  }
+
   async updateReview(id: number, data: UpdateMangaReviewDto) {
     const manga = await this.prisma.manga.findUnique({
       where: { id },

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { lightNovelService } from "@/services/light-novel.service";
 
@@ -47,6 +47,10 @@ export default function VolumeProgressModal({
   const [volumeProgress, setVolumeProgress] = useState(
     lightNovelDetail.volumeProgress
   );
+
+  useEffect(() => {
+    setVolumeProgress(lightNovelDetail.volumeProgress);
+  }, [lightNovelDetail.id, lightNovelDetail.volumeProgress]);
 
   const updateVolumeProgressMutation = useMutation({
     mutationFn: async (
@@ -102,7 +106,7 @@ export default function VolumeProgressModal({
           }
         />
       </DialogTrigger>
-      <DialogContent className="w-full xl:w-1/5">
+      <DialogContent className="w-full xl:w-1/4">
         <DialogHeader>
           <DialogTitle>{lightNovelDetail.title} Volume Progress</DialogTitle>
           <DialogDescription>

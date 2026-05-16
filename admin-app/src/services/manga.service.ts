@@ -140,6 +140,19 @@ const createMangaService = () => {
     }
   };
 
+  const enqueueMetadataSync = async (
+    id: number
+  ): Promise<ServiceResult<{ queued: true }>> => {
+    try {
+      const response = await interceptedAxios.post<{ queued: true }>(
+        `${BASE_MANGA_URL}/${id}/metadata-sync`
+      );
+      return ok(response.data);
+    } catch (error) {
+      return err(error);
+    }
+  };
+
   const remove = async (ids: number[]): Promise<ServiceResult<undefined>> => {
     try {
       await interceptedAxios.delete<ApiResponse<void>>(BASE_MANGA_URL, {
@@ -159,6 +172,7 @@ const createMangaService = () => {
     updateReview,
     updateProgressStatus,
     updateVolumeAndChapters,
+    enqueueMetadataSync,
     remove
   };
 };
