@@ -18,8 +18,7 @@ type ProgressStatusInput =
   | null
   | undefined;
 
-interface ProgressStatusBadgeProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface ProgressStatusBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   progressStatus: ProgressStatusInput;
 }
 

@@ -47,9 +47,7 @@ export default function LightNovelCard({ lightNovel }: Props) {
           </div>
 
           <div className="absolute top-2 right-2">
-            <ProgressStatusBadge
-              progressStatus={lightNovel.progressStatus}
-            />
+            <ProgressStatusBadge progressStatus={lightNovel.progressStatus} />
           </div>
         </div>
 
