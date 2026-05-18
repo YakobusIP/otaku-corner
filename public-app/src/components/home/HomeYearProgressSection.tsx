@@ -19,6 +19,7 @@ import { useHomeYearProgressStatistics } from "@/hooks/useHomeYearProgressStatis
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { FlowerIcon, Loader2Icon } from "lucide-react";
 import {
   CartesianGrid,
@@ -47,8 +48,21 @@ const LINE_COLORS = {
 
 type ChartTab = "all" | "anime" | "manga" | "lightNovel";
 
+const chartTabHighlightTransition = {
+  type: "spring" as const,
+  stiffness: 420,
+  damping: 34
+};
+
+const CHART_TABS: { value: ChartTab; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "anime", label: "Anime" },
+  { value: "manga", label: "Manga" },
+  { value: "lightNovel", label: "Light Novels" }
+];
+
 const tabClassName =
-  "shrink-0 rounded-lg px-4 text-xs text-[#4b3a4c] data-[state=active]:bg-rose-50 data-[state=active]:text-rose-600 data-[state=active]:shadow-none hover:cursor-pointer";
+  "relative z-10 shrink-0 rounded-lg px-4 py-1.5 text-xs text-[#4b3a4c] data-[state=active]:bg-transparent data-[state=active]:text-rose-600 data-[state=active]:shadow-none hover:cursor-pointer";
 
 export default function HomeYearProgressSection() {
   const thisCalendarYear = new Date().getFullYear();
@@ -238,22 +252,28 @@ export default function HomeYearProgressSection() {
                       onValueChange={(value) => setChartTab(value as ChartTab)}
                     >
                       <div className="min-w-0">
-                        <TabsList className="flex h-auto min-h-9 w-full max-w-full flex-wrap items-center justify-center gap-1 bg-transparent p-0 sm:inline-flex sm:h-9 sm:w-auto sm:max-w-none sm:justify-start">
-                          <TabsTrigger value="all" className={tabClassName}>
-                            All
-                          </TabsTrigger>
-                          <TabsTrigger value="anime" className={tabClassName}>
-                            Anime
-                          </TabsTrigger>
-                          <TabsTrigger value="manga" className={tabClassName}>
-                            Manga
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="lightNovel"
-                            className={tabClassName}
-                          >
-                            Light Novels
-                          </TabsTrigger>
+                        <TabsList className="relative flex h-auto min-h-9 w-full max-w-full flex-wrap items-center justify-center gap-1 bg-transparent p-0 sm:inline-flex sm:h-9 sm:w-auto sm:max-w-none sm:justify-start">
+                          {CHART_TABS.map(({ value, label }) => {
+                            const isActive = chartTab === value;
+
+                            return (
+                              <TabsTrigger
+                                key={value}
+                                value={value}
+                                className={tabClassName}
+                              >
+                                {isActive ? (
+                                  <motion.span
+                                    layoutId="home-year-progress-chart-tab-highlight"
+                                    aria-hidden
+                                    className="pointer-events-none absolute inset-0 z-0 rounded-lg bg-rose-50 shadow-none"
+                                    transition={chartTabHighlightTransition}
+                                  />
+                                ) : null}
+                                <span className="relative z-10">{label}</span>
+                              </TabsTrigger>
+                            );
+                          })}
                         </TabsList>
                       </div>
                     </Tabs>
