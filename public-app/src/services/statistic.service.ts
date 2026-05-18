@@ -1,16 +1,40 @@
-import { AllTimeCount, TopMediaAndYearlyCount } from "@/types/statistic.type";
+import type { ApiResponse } from "@/types/api.type";
+import type {
+  AllTimeCount,
+  MediaConsumptionRow,
+  RecentReviewItem,
+  TasteProfile,
+  TopMediaAndYearlyCount
+} from "@/types/statistic.type";
 
 import { axiosClient, handleAxiosError } from "@/lib/axios";
 
+import type { AxiosResponse } from "axios";
+
 const BASE_STATISTIC_URL = "/api/statistic";
+
+export const HOME_TASTE_PROFILE_LIMIT = 5;
+
+const unwrap = <T>(response: AxiosResponse<unknown>): T => {
+  const body = response.data as ApiResponse<T> | T;
+  if (
+    body &&
+    typeof body === "object" &&
+    "data" in body &&
+    (body as ApiResponse<T>).data !== undefined
+  ) {
+    return (body as ApiResponse<T>).data;
+  }
+  return body as T;
+};
 
 const createStatisticService = () => {
   const fetchAllTime = async () => {
     try {
-      const response = await axiosClient.get<AllTimeCount>(
+      const response = await axiosClient.get(
         `${BASE_STATISTIC_URL}/all-time`
       );
-      return response.data;
+      return unwrap<AllTimeCount>(response);
     } catch (error) {
       throw new Error(handleAxiosError(error));
     }
@@ -18,10 +42,54 @@ const createStatisticService = () => {
 
   const fetchTopMediaAndYearlyCount = async () => {
     try {
-      const response = await axiosClient.get<TopMediaAndYearlyCount>(
+      const response = await axiosClient.get(
         `${BASE_STATISTIC_URL}/top-media-and-yearly-count`
       );
-      return response.data;
+      return unwrap<TopMediaAndYearlyCount>(response);
+    } catch (error) {
+      throw new Error(handleAxiosError(error));
+    }
+  };
+
+  const fetchMediaConsumption = async (
+    view: "monthly" | "yearly",
+    year?: string
+  ) => {
+    try {
+      const response = await axiosClient.get(
+        `${BASE_STATISTIC_URL}/media-consumption`,
+        {
+          params: {
+            view,
+            ...(year !== undefined ? { year } : {})
+          }
+        }
+      );
+      return unwrap<MediaConsumptionRow[]>(response);
+    } catch (error) {
+      throw new Error(handleAxiosError(error));
+    }
+  };
+
+  const fetchTasteProfile = async (limit: number) => {
+    try {
+      const response = await axiosClient.get(
+        `${BASE_STATISTIC_URL}/taste-profile`,
+        { params: { limit } }
+      );
+      return unwrap<TasteProfile>(response);
+    } catch (error) {
+      throw new Error(handleAxiosError(error));
+    }
+  };
+
+  const fetchRecentReviews = async (limit: number) => {
+    try {
+      const response = await axiosClient.get(
+        `${BASE_STATISTIC_URL}/recent-reviews`,
+        { params: { limit } }
+      );
+      return unwrap<RecentReviewItem[]>(response);
     } catch (error) {
       throw new Error(handleAxiosError(error));
     }
@@ -29,7 +97,10 @@ const createStatisticService = () => {
 
   return {
     fetchAllTime,
-    fetchTopMediaAndYearlyCount
+    fetchTopMediaAndYearlyCount,
+    fetchMediaConsumption,
+    fetchTasteProfile,
+    fetchRecentReviews
   };
 };
 
