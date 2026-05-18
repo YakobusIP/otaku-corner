@@ -1,4 +1,3 @@
-import { ApiResponse } from "@/types/api.type";
 import { AllTimeCount, TopMediaAndYearlyCount } from "@/types/statistic.type";
 
 import { axiosClient, handleAxiosError } from "@/lib/axios";
@@ -8,10 +7,10 @@ const BASE_STATISTIC_URL = "/api/statistic";
 const createStatisticService = () => {
   const fetchAllTime = async () => {
     try {
-      const response = await axiosClient.get<ApiResponse<AllTimeCount>>(
+      const response = await axiosClient.get<AllTimeCount>(
         `${BASE_STATISTIC_URL}/all-time`
       );
-      return response.data.data;
+      return response.data;
     } catch (error) {
       throw new Error(handleAxiosError(error));
     }
@@ -19,10 +18,10 @@ const createStatisticService = () => {
 
   const fetchTopMediaAndYearlyCount = async () => {
     try {
-      const response = await axiosClient.get<
-        ApiResponse<TopMediaAndYearlyCount>
-      >(`${BASE_STATISTIC_URL}/top-media-and-yearly-count`);
-      return response.data.data;
+      const response = await axiosClient.get<TopMediaAndYearlyCount>(
+        `${BASE_STATISTIC_URL}/top-media-and-yearly-count`
+      );
+      return response.data;
     } catch (error) {
       throw new Error(handleAxiosError(error));
     }
@@ -34,6 +33,4 @@ const createStatisticService = () => {
   };
 };
 
-const statisticService = createStatisticService();
-
-export { statisticService };
+export const statisticService = createStatisticService();

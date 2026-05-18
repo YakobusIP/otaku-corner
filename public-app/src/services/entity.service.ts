@@ -1,17 +1,26 @@
-import { ApiResponse } from "@/types/api.type";
-
 import { axiosClient, handleAxiosError } from "@/lib/axios";
+import {
+  type NestPaginatedListBody,
+  mapNestListPageToPublic
+} from "@/lib/nest-paginated-list";
 
-const BASE_GENRE_URL = "/api/genre";
-const BASE_STUDIO_URL = "/api/studio";
-const BASE_THEME_URL = "/api/theme";
-const BASE_AUTHOR_URL = "/api/author";
+const BASE_GENRE_URL = "/api/genres";
+const BASE_STUDIO_URL = "/api/studios";
+const BASE_THEME_URL = "/api/themes";
+const BASE_AUTHOR_URL = "/api/authors";
+
+const ENTITY_LIST_LIMIT = 5000;
 
 const createEntityService = (baseUrl: string) => {
   const fetchAll = async <T>() => {
     try {
-      const response = await axiosClient.get<ApiResponse<T>>(baseUrl);
-      return response.data.data;
+      const response = await axiosClient.get<NestPaginatedListBody<T>>(
+        baseUrl,
+        {
+          params: { page: 1, limit: ENTITY_LIST_LIMIT }
+        }
+      );
+      return mapNestListPageToPublic(response.data).data;
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -21,9 +30,7 @@ const createEntityService = (baseUrl: string) => {
   return { fetchAll };
 };
 
-const genreService = createEntityService(BASE_GENRE_URL);
-const studioService = createEntityService(BASE_STUDIO_URL);
-const themeService = createEntityService(BASE_THEME_URL);
-const authorService = createEntityService(BASE_AUTHOR_URL);
-
-export { genreService, studioService, themeService, authorService };
+export const genreService = createEntityService(BASE_GENRE_URL);
+export const studioService = createEntityService(BASE_STUDIO_URL);
+export const themeService = createEntityService(BASE_THEME_URL);
+export const authorService = createEntityService(BASE_AUTHOR_URL);

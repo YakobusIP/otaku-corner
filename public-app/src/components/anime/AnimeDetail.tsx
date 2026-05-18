@@ -1,9 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
-import { animeService } from "@/services/anime.service";
-
 import GeneralFooter from "@/components/GeneralFooter";
 import RatingDetailContent from "@/components/RatingDetailContent";
 import ReviewContent from "@/components/ReviewContent";
@@ -14,11 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { useToast } from "@/hooks/useToast";
+import { useAnimeDetailPage } from "@/hooks/useAnimeDetailPage";
 
-import { ratingDescriptions } from "@/lib/constants";
+import { formatMalScoreWithMax } from "@/lib/utils";
 
-import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangleIcon,
   BookOpenIcon,
@@ -36,94 +31,32 @@ type Props = {
 };
 
 export default function AnimeDetail({ id }: Props) {
-  const [showSpoilerWarning, setShowSpoilerWarning] = useState(false);
-  const [spoilersRevealed, setSpoilersRevealed] = useState(false);
-
-  const toast = useToast();
-
-  const { data: animeDetail, error } = useQuery({
-    queryKey: ["anime", id],
-    queryFn: () => animeService.fetchById(id)
-  });
+  const {
+    animeDetail,
+    embedURL,
+    animePersonalRatings,
+    showSpoilerWarning,
+    setShowSpoilerWarning,
+    spoilersRevealed,
+    setSpoilersRevealed,
+    handleRevealSpoilers
+  } = useAnimeDetailPage(id);
 
   if (!animeDetail) {
     notFound();
   }
 
-  if (error) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: error.message
-    });
-  }
-
   const reviewObject = animeDetail.review;
 
-  const embedURL = animeDetail.trailer?.replace(
-    /(autoplay=)[^&]+/,
-    "autoplay=0"
-  );
-
-  const animePersonalRatings = [
-    {
-      title: "Storyline",
-      weight: "30",
-      rating: reviewObject.storylineRating
-        ? `${reviewObject.storylineRating} - ${
-            ratingDescriptions[reviewObject.storylineRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "Animation Quality",
-      weight: "25",
-      rating: reviewObject.qualityRating
-        ? `${reviewObject.qualityRating} - ${
-            ratingDescriptions[reviewObject.qualityRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "Voice Acting",
-      weight: "20",
-      rating: reviewObject.voiceActingRating
-        ? `${reviewObject.voiceActingRating} - ${
-            ratingDescriptions[reviewObject.voiceActingRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "Soundtrack",
-      weight: "15",
-      rating: reviewObject.soundTrackRating
-        ? `${reviewObject.soundTrackRating} - ${
-            ratingDescriptions[reviewObject.soundTrackRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "Character Development",
-      weight: "10",
-      rating: reviewObject.charDevelopmentRating
-        ? `${reviewObject.charDevelopmentRating} - ${
-            ratingDescriptions[reviewObject.charDevelopmentRating]
-          }`
-        : "N/A"
-    }
-  ];
-
-  const handleRevealSpoilers = () => setShowSpoilerWarning(true);
-
   return (
-    <div className="min-h-screen bg-gradient-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf]">
+    <div className="min-h-screen bg-linear-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf]">
       <div className="container px-4 py-8">
         <header className="grid lg:grid-cols-3 gap-8 mb-8">
           <div className="lg:col-span-2">
             <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl">
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row gap-6">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <Image
                       src={
                         animeDetail.images.large_image_url ||
@@ -132,7 +65,7 @@ export default function AnimeDetail({ id }: Props) {
                       alt={animeDetail.title}
                       width={300}
                       height={400}
-                      className="rounded-lg shadow-xl object-cover border border-slate-200 aspect-[3/4]"
+                      className="rounded-lg shadow-xl object-cover border border-slate-200 aspect-3/4"
                       priority
                     />
                   </div>
@@ -193,7 +126,7 @@ export default function AnimeDetail({ id }: Props) {
                           MAL Score
                         </div>
                         <div className="text-2xl font-bold text-slate-800">
-                          {animeDetail.score.toFixed(2)}/10
+                          {formatMalScoreWithMax(animeDetail.score)}
                         </div>
                       </div>
                       <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
@@ -203,15 +136,14 @@ export default function AnimeDetail({ id }: Props) {
                               My Score
                             </div>
                             <div className="text-2xl font-bold text-slate-800">
-                              {reviewObject.personalScore
-                                ? reviewObject.personalScore.toFixed(2)
-                                : "N/A"}
-                              /10
+                              {formatMalScoreWithMax(
+                                reviewObject?.personalScore
+                              )}
                             </div>
                           </div>
                           <RatingDetailContent
                             details={animePersonalRatings}
-                            finalScore={reviewObject.personalScore}
+                            finalScore={reviewObject?.personalScore}
                           />
                         </div>
                       </div>
@@ -222,10 +154,15 @@ export default function AnimeDetail({ id }: Props) {
                         <div className="text-slate-600 text-sm mb-2">
                           Watch Status
                         </div>
-                        <ProgressStatusBadge
-                          className="text-black border-none"
-                          progressStatus={reviewObject.progressStatus}
-                        />
+                        {reviewObject ? (
+                          <ProgressStatusBadge
+                            progressStatus={reviewObject.progressStatus}
+                          />
+                        ) : (
+                          <span className="text-slate-600 text-sm">
+                            No personal entry
+                          </span>
+                        )}
                       </div>
                       <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
                         <div className="text-slate-600 text-sm mb-2">
@@ -360,7 +297,7 @@ export default function AnimeDetail({ id }: Props) {
                 </div>
               </CardHeader>
               <CardContent>
-                {!reviewObject.reviewText ? (
+                {!reviewObject?.reviewText ? (
                   <div className="flex flex-col items-center justify-center gap-2 xl:gap-4">
                     <Image
                       src="/no-review.gif"

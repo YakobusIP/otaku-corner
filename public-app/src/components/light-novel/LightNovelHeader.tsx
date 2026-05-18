@@ -1,132 +1,34 @@
 "use client";
 
-import { useContext, useState } from "react";
+import { useState } from "react";
 
-import { lightNovelService } from "@/services/lightnovel.service";
-
-import { LightNovelContext } from "@/components/context/LightNovelContext";
 import SortDirection from "@/components/filter-sort-dropdowns/SortDirection";
 import LightNovelAdvancedFilters from "@/components/light-novel/LightNovelAdvancedFilters";
 import LightNovelSearch from "@/components/light-novel/LightNovelSearch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { useToast } from "@/hooks/useToast";
+import { useLightNovelListHeader } from "@/hooks/useLightNovelListHeader";
 
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import { SORT_ORDER } from "@/lib/enums";
 
-import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon, SlidersHorizontalIcon } from "lucide-react";
 import Link from "next/link";
 
-const PAGINATION_SIZE = 15;
-
 export default function LightNovelHeader() {
-  const context = useContext(LightNovelContext);
-  if (!context) {
-    throw new Error(
-      "LightNovelHeader must be used within an LightNovelProvider"
-    );
-  }
-
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-  const { state, setState } = context;
-  const { page, query, status, filters, sort, order } = state;
-
-  const toast = useToast();
-
-  const { data, error } = useQuery({
-    queryKey: [
-      "lightNovels",
-      page,
-      PAGINATION_SIZE,
-      query,
-      sort,
-      order,
-      filters.author,
-      filters.genre,
-      filters.theme,
-      status,
-      filters.malScore,
-      filters.personalScore
-    ],
-    queryFn: () =>
-      lightNovelService.fetchAll(
-        page,
-        PAGINATION_SIZE,
-        query,
-        sort,
-        order as SORT_ORDER,
-        filters.author,
-        filters.genre,
-        filters.theme,
-        status as keyof typeof PROGRESS_STATUS,
-        filters.malScore,
-        filters.personalScore
-      )
-  });
-
-  const lightNovelMetadata = data?.metadata;
-
-  if (error) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: error.message
-    });
-  }
-
-  const { data: statusCount, error: errorStatusCounts } = useQuery({
-    queryKey: ["lightNovelStatusCounts"],
-    queryFn: () => lightNovelService.fetchStatusCounts(),
-    refetchOnWindowFocus: false,
-    staleTime: 24 * 60 * 60 * 1000
-  });
-
-  const statusFilters = statusCount?.map((count) => {
-    if (count.label === "All") {
-      return { ...count, value: undefined };
-    }
-
-    return count;
-  });
-
-  if (errorStatusCounts) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: errorStatusCounts.message
-    });
-  }
-
-  const handleSort = (key: string) => {
-    setState({
-      page: 1,
-      sort: key,
-      order:
-        sort === key
-          ? order === SORT_ORDER.ASCENDING
-            ? SORT_ORDER.DESCENDING
-            : SORT_ORDER.ASCENDING
-          : SORT_ORDER.ASCENDING
-    });
-  };
-
-  const handleStatus = (value?: keyof typeof PROGRESS_STATUS) => {
-    setState({
-      page: 1,
-      status: value
-    });
-  };
-
-  const activeFiltersCount = [
-    filters.author,
-    filters.genre,
-    filters.theme,
-    filters.malScore,
-    filters.personalScore
-  ].filter((f) => f !== undefined).length;
+  const {
+    query,
+    status,
+    sort,
+    order,
+    lightNovelMetadata,
+    statusFilters,
+    activeFiltersCount,
+    handleSort,
+    handleStatus
+  } = useLightNovelListHeader();
 
   return (
     <div className="sticky top-0 z-50 bg-white/20 backdrop-blur-xl border-b border-white/30">
@@ -137,7 +39,7 @@ export default function LightNovelHeader() {
               asChild
               variant="ghost"
               size="sm"
-              className="text-slate0800 hover:bg-white/20"
+              className="text-slate-800 hover:bg-white/20"
             >
               <Link href="/">
                 <ArrowLeftIcon size={16} />
@@ -150,8 +52,8 @@ export default function LightNovelHeader() {
               </h1>
               <p className="text-slate-700 text-sm">
                 {lightNovelMetadata?.itemCount} of{" "}
-                {statusFilters?.find((status) => status.label === "All")?.count}{" "}
-                light novels
+                {statusFilters?.find((row) => row.label === "All")?.count} light
+                novels
               </p>
             </div>
           </div>

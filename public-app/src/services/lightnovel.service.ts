@@ -1,4 +1,3 @@
-import { ApiResponse, ApiResponseList } from "@/types/api.type";
 import {
   LightNovelDetail,
   LightNovelList,
@@ -8,8 +7,12 @@ import { StatusFilter } from "@/types/statistic.type";
 
 import { axiosClient, handleAxiosError } from "@/lib/axios";
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import {
+  type NestPaginatedListBody,
+  mapNestListPageToPublic
+} from "@/lib/nest-paginated-list";
 
-const BASE_LIGHTNOVEL_URL = "/api/light-novel";
+const BASE_LIGHTNOVEL_URL = "/api/light-novels";
 
 const createLightNovelService = () => {
   const fetchAll = async (
@@ -22,29 +25,28 @@ const createLightNovelService = () => {
     genre?: number,
     theme?: number,
     status?: keyof typeof PROGRESS_STATUS,
-    mal_score?: string,
-    personal_score?: string
+    malScore?: string,
+    personalScore?: string
   ) => {
     try {
-      const response = await axiosClient.get<ApiResponseList<LightNovelList[]>>(
-        BASE_LIGHTNOVEL_URL,
-        {
-          params: {
-            page,
-            limit,
-            q: query,
-            sort,
-            order,
-            author,
-            genre,
-            theme,
-            status,
-            mal_score,
-            personal_score
-          }
+      const response = await axiosClient.get<
+        NestPaginatedListBody<LightNovelList>
+      >(BASE_LIGHTNOVEL_URL, {
+        params: {
+          page,
+          limit,
+          query,
+          sort,
+          order,
+          author,
+          genre,
+          theme,
+          status,
+          malScore,
+          personalScore
         }
-      );
-      return response.data.data;
+      });
+      return mapNestListPageToPublic(response.data);
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -53,10 +55,10 @@ const createLightNovelService = () => {
 
   const fetchById = async (id: number) => {
     try {
-      const response = await axiosClient.get<ApiResponse<LightNovelDetail>>(
+      const response = await axiosClient.get<LightNovelDetail>(
         `${BASE_LIGHTNOVEL_URL}/${id}`
       );
-      return response.data.data;
+      return response.data;
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -77,13 +79,13 @@ const createLightNovelService = () => {
 
   const fetchSitemap = async (page: number, limit: number) => {
     try {
-      const response = await axiosClient.get<ApiResponse<LightNovelSitemap[]>>(
+      const response = await axiosClient.get<LightNovelSitemap[]>(
         `${BASE_LIGHTNOVEL_URL}/sitemap`,
         {
           params: { page, limit }
         }
       );
-      return response.data.data;
+      return response.data;
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -92,10 +94,18 @@ const createLightNovelService = () => {
 
   const fetchStatusCounts = async () => {
     try {
-      const response = await axiosClient.get<ApiResponse<StatusFilter[]>>(
-        `${BASE_LIGHTNOVEL_URL}/status-count`
+      const response = await axiosClient.get<
+        { label: string; value: string | null; count: number }[]
+      >(`${BASE_LIGHTNOVEL_URL}/status-count`);
+      return response.data.map(
+        (row): StatusFilter => ({
+          label: row.label,
+          count: row.count,
+          ...(row.value !== null && row.value !== undefined
+            ? { value: row.value as StatusFilter["value"] }
+            : {})
+        })
       );
-      return response.data.data;
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -111,6 +121,4 @@ const createLightNovelService = () => {
   };
 };
 
-const lightNovelService = createLightNovelService();
-
-export { lightNovelService };
+export const lightNovelService = createLightNovelService();

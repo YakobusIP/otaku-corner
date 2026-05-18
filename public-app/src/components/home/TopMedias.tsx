@@ -1,30 +1,15 @@
 "use client";
 
-import { statisticService } from "@/services/statistic.service";
-
 import HomeCard from "@/components/home/HomeCard";
 
-import { useToast } from "@/hooks/useToast";
+import { useHomeStatistics } from "@/hooks/useHomeStatistics";
 
 import { MEDIA_TYPE } from "@/lib/enums";
-
-import { useQuery } from "@tanstack/react-query";
+import { formatScoreFixedOrNa } from "@/lib/utils";
 
 export default function TopMedias() {
-  const toast = useToast();
-
-  const { data, error } = useQuery({
-    queryKey: ["topMedias"],
-    queryFn: () => statisticService.fetchTopMediaAndYearlyCount()
-  });
-
-  if (error) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: error.message
-    });
-  }
+  const { topMediasQuery } = useHomeStatistics();
+  const { data } = topMediasQuery;
 
   const topMedias = [
     {
@@ -33,8 +18,7 @@ export default function TopMedias() {
       amount: data?.anime.count ?? 0,
       type: MEDIA_TYPE.ANIME,
       path: {
-        pathname: "/anime",
-        query: { page: "1" }
+        pathname: "/anime"
       },
       image:
         data?.anime.images?.large_image_url ||
@@ -46,7 +30,7 @@ export default function TopMedias() {
         data?.anime.id && data?.anime.slug
           ? `/anime/${data?.anime.id}/${data?.anime.slug}`
           : "/anime",
-      rating: data?.anime.score ? data?.anime.score.toFixed(2) : 0
+      rating: formatScoreFixedOrNa(data?.anime.score)
     },
     {
       id: 2,
@@ -54,8 +38,7 @@ export default function TopMedias() {
       amount: data?.manga.count ?? 0,
       type: MEDIA_TYPE.MANGA,
       path: {
-        pathname: "/manga",
-        query: { page: "1" }
+        pathname: "/manga"
       },
       image:
         data?.manga.images?.large_image_url ||
@@ -67,7 +50,7 @@ export default function TopMedias() {
         data?.manga.id && data?.manga.slug
           ? `/manga/${data?.manga.id}/${data?.manga.slug}`
           : "/manga",
-      rating: data?.manga.score ? data?.manga.score.toFixed(2) : 0
+      rating: formatScoreFixedOrNa(data?.manga.score)
     },
     {
       id: 3,
@@ -75,8 +58,7 @@ export default function TopMedias() {
       amount: data?.lightNovel.count ?? 0,
       type: MEDIA_TYPE.LIGHT_NOVEL,
       path: {
-        pathname: "/light-novel",
-        query: { page: "1" }
+        pathname: "/light-novel"
       },
       image:
         data?.lightNovel.images?.large_image_url ||
@@ -88,7 +70,7 @@ export default function TopMedias() {
         data?.lightNovel.id && data?.lightNovel.slug
           ? `/light-novel/${data?.lightNovel.id}/${data?.lightNovel.slug}`
           : "/light-novel",
-      rating: data?.lightNovel.score ? data?.lightNovel.score.toFixed(2) : 0
+      rating: formatScoreFixedOrNa(data?.lightNovel.score)
     }
   ];
 
@@ -97,7 +79,7 @@ export default function TopMedias() {
       <div className="container mx-auto px-4 place-items-center">
         <div className="text-center mb-12">
           <h2 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-4">
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               {new Date().getFullYear()}
             </span>{" "}
             Progress

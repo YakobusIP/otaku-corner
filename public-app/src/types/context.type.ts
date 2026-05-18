@@ -9,7 +9,6 @@ const statusKeys = Object.keys(PROGRESS_STATUS).filter((key) =>
 const sortOrders = Object.keys(SORT_ORDER).filter((key) => isNaN(Number(key)));
 
 const _AnimeStateSchema = z.object({
-  page: z.number(),
   query: z.string().optional(),
   status: z.enum(statusKeys as [string, ...string[]]).optional(),
   filters: z.object({
@@ -33,7 +32,6 @@ type AnimeContextProps = {
 };
 
 const _MangaStateSchema = z.object({
-  page: z.number(),
   query: z.string().optional(),
   status: z.enum(statusKeys as [string, ...string[]]).optional(),
   filters: z.object({
@@ -56,7 +54,6 @@ type MangaContextProps = {
 };
 
 const _LightNovelStateSchema = z.object({
-  page: z.number(),
   query: z.string().optional(),
   status: z.enum(statusKeys as [string, ...string[]]).optional(),
   filters: z.object({

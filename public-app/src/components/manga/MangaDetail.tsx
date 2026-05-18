@@ -1,9 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
-import { mangaService } from "@/services/manga.service";
-
 import GeneralFooter from "@/components/GeneralFooter";
 import RatingDetailContent from "@/components/RatingDetailContent";
 import ReviewContent from "@/components/ReviewContent";
@@ -13,11 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
-import { useToast } from "@/hooks/useToast";
+import { useMangaDetailPage } from "@/hooks/useMangaDetailPage";
 
-import { ratingDescriptions } from "@/lib/constants";
+import { formatMalScoreWithMax } from "@/lib/utils";
 
-import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangleIcon,
   BookOpenIcon,
@@ -35,88 +30,30 @@ type Props = {
 };
 
 export default function MangaDetail({ id }: Props) {
-  const [showSpoilerWarning, setShowSpoilerWarning] = useState(false);
-  const [spoilersRevealed, setSpoilersRevealed] = useState(false);
-
-  const toast = useToast();
-
-  const { data: mangaDetail, error } = useQuery({
-    queryKey: ["manga", id],
-    queryFn: () => mangaService.fetchById(id)
-  });
+  const {
+    mangaDetail,
+    mangaPersonalRatings,
+    showSpoilerWarning,
+    setShowSpoilerWarning,
+    spoilersRevealed,
+    setSpoilersRevealed,
+    handleRevealSpoilers
+  } = useMangaDetailPage(id);
 
   if (!mangaDetail) {
     notFound();
   }
 
-  if (error) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: error.message
-    });
-  }
-
   const reviewObject = mangaDetail.review;
 
-  const mangaPersonalRatings = [
-    {
-      title: "Storyline",
-      weight: "30",
-      rating: reviewObject.storylineRating
-        ? `${reviewObject.storylineRating} - ${
-            ratingDescriptions[reviewObject.storylineRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "Art Style",
-      weight: "25",
-      rating: reviewObject.artStyleRating
-        ? `${reviewObject.artStyleRating} - ${
-            ratingDescriptions[reviewObject.artStyleRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "Character Development",
-      weight: "20",
-      rating: reviewObject.charDevelopmentRating
-        ? `${reviewObject.charDevelopmentRating} - ${
-            ratingDescriptions[reviewObject.charDevelopmentRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "World Building",
-      weight: "15",
-      rating: reviewObject.worldBuildingRating
-        ? `${reviewObject.worldBuildingRating} - ${
-            ratingDescriptions[reviewObject.worldBuildingRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "Originality",
-      weight: "10",
-      rating: reviewObject.originalityRating
-        ? `${reviewObject.originalityRating} - ${
-            ratingDescriptions[reviewObject.originalityRating]
-          }`
-        : "N/A"
-    }
-  ];
-
-  const handleRevealSpoilers = () => setShowSpoilerWarning(true);
-
   return (
-    <div className="min-h-screen bg-gradient-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf]">
+    <div className="min-h-screen bg-linear-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf]">
       <div className="container px-4 py-8">
         <header className="grid lg:grid-cols-1 gap-8 mb-8">
           <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl">
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <Image
                     src={
                       mangaDetail.images.large_image_url ||
@@ -125,7 +62,7 @@ export default function MangaDetail({ id }: Props) {
                     alt={mangaDetail.title}
                     width={300}
                     height={400}
-                    className="rounded-lg shadow-xl object-cover border border-slate-200 aspect-[3/4]"
+                    className="rounded-lg shadow-xl object-cover border border-slate-200 aspect-3/4"
                     priority
                   />
                 </div>
@@ -190,7 +127,7 @@ export default function MangaDetail({ id }: Props) {
                         MAL Score
                       </div>
                       <div className="text-2xl font-bold text-slate-800">
-                        {mangaDetail.score.toFixed(2)}/10
+                        {formatMalScoreWithMax(mangaDetail.score)}
                       </div>
                     </div>
                     <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
@@ -200,15 +137,12 @@ export default function MangaDetail({ id }: Props) {
                             My Score
                           </div>
                           <div className="text-2xl font-bold text-slate-800">
-                            {reviewObject.personalScore
-                              ? reviewObject.personalScore.toFixed(2)
-                              : "N/A"}
-                            /10
+                            {formatMalScoreWithMax(reviewObject?.personalScore)}
                           </div>
                         </div>
                         <RatingDetailContent
                           details={mangaPersonalRatings}
-                          finalScore={reviewObject.personalScore}
+                          finalScore={reviewObject?.personalScore}
                         />
                       </div>
                     </div>
@@ -219,10 +153,15 @@ export default function MangaDetail({ id }: Props) {
                       <div className="text-slate-600 text-sm mb-2">
                         Reading Status
                       </div>
-                      <ProgressStatusBadge
-                        className="text-black border-none"
-                        progressStatus={reviewObject.progressStatus}
-                      />
+                      {reviewObject ? (
+                        <ProgressStatusBadge
+                          progressStatus={reviewObject.progressStatus}
+                        />
+                      ) : (
+                        <span className="text-slate-600 text-sm">
+                          No personal entry
+                        </span>
+                      )}
                     </div>
                     <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
                       <div className="text-slate-600 text-sm mb-2">
@@ -284,7 +223,7 @@ export default function MangaDetail({ id }: Props) {
             </div>
           </CardHeader>
           <CardContent>
-            {!reviewObject.reviewText ? (
+            {!reviewObject?.reviewText ? (
               <div className="flex flex-col items-center justify-center gap-2 xl:gap-4">
                 <Image
                   src="/no-review.gif"

@@ -1,9 +1,11 @@
 import { lightNovelService } from "@/services/lightnovel.service";
 
 import { URL_OF_SITEMAPS } from "@/lib/constants";
+import { buildUrlsetXml } from "@/lib/sitemap-xml";
 
-import { MetadataRoute } from "next";
 import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 
 type Params = {
   id: number;
@@ -14,43 +16,23 @@ export async function GET(_: Request, { params }: { params: Promise<Params> }) {
     const id = Number((await params).id) + 1;
     const data = await lightNovelService.fetchSitemap(id, URL_OF_SITEMAPS);
 
-    const sitemapIndexXML = buildSitemapIndex(
+    const urlsetXml = buildUrlsetXml(
       data.map((item) => ({
-        url: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/light-novel/${item.id}/${item.slug}`,
+        loc: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/light-novel/${item.id}/${item.slug}`,
         lastModified: item.updatedAt || item.createdAt,
         changeFrequency: "monthly",
         priority: 0.5
       }))
     );
 
-    return new NextResponse(sitemapIndexXML, {
+    return new NextResponse(urlsetXml, {
       headers: {
         "Content-Type": "application/xml",
-        "Content-Length": Buffer.byteLength(sitemapIndexXML).toString()
+        "Content-Length": Buffer.byteLength(urlsetXml).toString()
       }
     });
   } catch (error) {
     console.error("Error generating light novel sitemap:", error);
     return NextResponse.error();
   }
-}
-
-function buildSitemapIndex(sitemaps: MetadataRoute.Sitemap) {
-  // XML declaration and opening tag for the sitemap index.
-  let xml = '<?xml version="1.0" encoding="UTF-8"?>';
-  xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-
-  // Iterate over each sitemap URL and add it to the sitemap index.
-  for (const item of sitemaps) {
-    xml += "<sitemap>";
-    xml += `<loc>${item.url}</loc>`;
-    xml += `<lastmod>${item.lastModified}</lastmod>`;
-    xml += `<changefreq>${item.changeFrequency}</changefreq>`;
-    xml += `<priority>${item.priority}</priority>`;
-    xml += "</sitemap>";
-  }
-
-  // Closing tag for the sitemap index.
-  xml += "</sitemapindex>";
-  return xml;
 }

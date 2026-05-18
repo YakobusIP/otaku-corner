@@ -1,6 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@config "../../tailwind.config.ts";
+
+@custom-variant dark (&:is(.dark *));
 
 @layer base {
   :root {
@@ -92,6 +96,6 @@
   }
 
   .main-gradient-bg {
-    @apply bg-gradient-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf];
+    @apply bg-linear-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf];
   }
 }

@@ -1,159 +1,32 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
-
-import {
-  authorService,
-  genreService,
-  themeService
-} from "@/services/entity.service";
-import { lightNovelService } from "@/services/lightnovel.service";
-
-import { LightNovelContext } from "@/components/context/LightNovelContext";
 import LightNovelCard from "@/components/light-novel/LightNovelCard";
-import LightNovelPagination from "@/components/light-novel/LightNovelPagination";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { useToast } from "@/hooks/useToast";
+import { useLightNovelListBody } from "@/hooks/useLightNovelListBody";
 
-import { AuthorEntity, GenreEntity, ThemeEntity } from "@/types/entity.type";
-
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
-
-import { useQuery } from "@tanstack/react-query";
 import { XIcon } from "lucide-react";
 import Image from "next/image";
 
-const PAGINATION_SIZE = 15;
-
 export default function LightNovelListSection() {
-  const context = useContext(LightNovelContext);
-  if (!context) {
-    throw new Error("LightNovelList must be used within an LightNovelProvider");
-  }
-
-  const { state, setState, setQuery } = context;
-  const { page, query, status, filters, sort, order } = state;
-
-  const toast = useToast();
-
-  const { isLoading, data, error } = useQuery({
-    queryKey: [
-      "lightNovels",
-      page,
-      PAGINATION_SIZE,
-      query,
-      sort,
-      order,
-      filters.author,
-      filters.genre,
-      filters.theme,
-      status,
-      filters.malScore,
-      filters.personalScore
-    ],
-    queryFn: () =>
-      lightNovelService.fetchAll(
-        page,
-        PAGINATION_SIZE,
-        query,
-        sort,
-        order as SORT_ORDER,
-        filters.author,
-        filters.genre,
-        filters.theme,
-        status as keyof typeof PROGRESS_STATUS,
-        filters.malScore,
-        filters.personalScore
-      )
-  });
-
-  const lightNovelList = data?.data;
-  const lightNovelMetadata = data?.metadata;
-
-  if (error) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: error.message
-    });
-  }
-
-  const { data: genreList, error: genreError } = useQuery({
-    queryKey: ["genres"],
-    queryFn: () => genreService.fetchAll<GenreEntity[]>(),
-    refetchOnWindowFocus: false,
-    staleTime: 24 * 60 * 60 * 1000
-  });
-
-  if (genreError) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: genreError.message
-    });
-  }
-
-  const { data: authorList, error: authorError } = useQuery({
-    queryKey: ["authors"],
-    queryFn: () => authorService.fetchAll<AuthorEntity[]>(),
-    refetchOnWindowFocus: false,
-    staleTime: 24 * 60 * 60 * 1000
-  });
-
-  if (authorError) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: authorError.message
-    });
-  }
-
-  const { data: themeList, error: themeError } = useQuery({
-    queryKey: ["themes"],
-    queryFn: () => themeService.fetchAll<ThemeEntity[]>(),
-    refetchOnWindowFocus: false,
-    staleTime: 24 * 60 * 60 * 1000
-  });
-
-  if (themeError) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: themeError.message
-    });
-  }
-
-  const removeFilter = <K extends keyof typeof filters>(field: K) => {
-    setState({
-      page: 1,
-      filters: {
-        ...filters,
-        [field]: undefined
-      }
-    });
-  };
-
-  const activeFiltersCount = [
-    filters.author,
-    filters.genre,
-    filters.theme,
-    filters.malScore,
-    filters.personalScore
-  ].filter((f) => f !== undefined).length;
-
-  const [dots, setDots] = useState("");
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots((prev) => {
-        if (prev === "...") return "";
-        return prev + ".";
-      });
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
+  const {
+    query,
+    filters,
+    setQuery,
+    lightNovelList,
+    lightNovelMetadata,
+    isPending,
+    hasNextPage,
+    isFetchingNextPage,
+    sentinelRef,
+    genreList,
+    authorList,
+    themeList,
+    removeFilter,
+    activeFiltersCount,
+    loadingDots
+  } = useLightNovelListBody();
 
   return (
     <div className="container mx-auto px-4 py-8 flex flex-col flex-1">
@@ -183,7 +56,8 @@ export default function LightNovelListSection() {
               className="bg-white/60 text-slate-700 border-white/40"
             >
               Author:{" "}
-              {authorList?.find((author) => author.id === filters.author)!.name}
+              {authorList?.find((author) => author.id === filters.author)
+                ?.name ?? "Unknown author"}
               <button
                 className="ml-2 hover:text-slate-900"
                 onClick={() => removeFilter("author")}
@@ -199,7 +73,8 @@ export default function LightNovelListSection() {
               className="bg-white/60 text-slate-700 border-white/40"
             >
               Genre:{" "}
-              {genreList?.find((genre) => genre.id === filters.genre)!.name}
+              {genreList?.find((genre) => genre.id === filters.genre)?.name ??
+                "Unknown genre"}
               <button
                 className="ml-2 hover:text-slate-900"
                 onClick={() => removeFilter("genre")}
@@ -215,7 +90,8 @@ export default function LightNovelListSection() {
               className="bg-white/60 text-slate-700 border-white/40"
             >
               Theme:{" "}
-              {themeList?.find((theme) => theme.id === filters.theme)!.name}
+              {themeList?.find((theme) => theme.id === filters.theme)?.name ??
+                "Unknown theme"}
               <button
                 className="ml-2 hover:text-slate-900"
                 onClick={() => removeFilter("theme")}
@@ -259,8 +135,8 @@ export default function LightNovelListSection() {
         </div>
       )}
 
-      <div className="flex flex-1">
-        {isLoading ? (
+      <div className="flex flex-1 flex-col">
+        {isPending ? (
           <section className="container mx-auto px-4 py-8 mb-8 flex justify-center">
             <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl max-w-md w-full h-fit">
               <CardContent className="p-8 text-center">
@@ -280,7 +156,9 @@ export default function LightNovelListSection() {
                 <div className="space-y-3">
                   <h2 className="text-xl font-bold text-slate-800">
                     Fetching light novels
-                    <span className="inline-block w-8 text-left">{dots}</span>
+                    <span className="inline-block w-8 text-left">
+                      {loadingDots}
+                    </span>
                   </h2>
                   <p className="text-slate-600 text-sm">
                     Pulling the data from another dimension...
@@ -305,7 +183,7 @@ export default function LightNovelListSection() {
               </CardContent>
             </Card>
           </section>
-        ) : lightNovelList?.length === 0 ? (
+        ) : lightNovelList.length === 0 ? (
           <section className="container mx-auto px-4 py-8 mb-8 flex justify-center">
             <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl max-w-md w-full h-fit">
               <CardContent className="p-8 text-center">
@@ -338,18 +216,24 @@ export default function LightNovelListSection() {
           </section>
         ) : (
           <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
-            {lightNovelList?.map((lightNovel) => {
+            {lightNovelList.map((lightNovel) => {
               return (
                 <LightNovelCard key={lightNovel.id} lightNovel={lightNovel} />
               );
             })}
           </section>
         )}
-      </div>
 
-      {lightNovelMetadata ? (
-        <LightNovelPagination lightNovelMetadata={lightNovelMetadata} />
-      ) : null}
+        {hasNextPage ? (
+          <div
+            ref={sentinelRef}
+            className="h-8 w-full shrink-0 flex items-center justify-center text-xs text-slate-500"
+            aria-hidden
+          >
+            {isFetchingNextPage ? "Loading more…" : ""}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

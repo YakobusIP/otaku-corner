@@ -1,9 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
-import { lightNovelService } from "@/services/lightnovel.service";
-
 import GeneralFooter from "@/components/GeneralFooter";
 import RatingDetailContent from "@/components/RatingDetailContent";
 import ReviewContent from "@/components/ReviewContent";
@@ -13,11 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
-import { useToast } from "@/hooks/useToast";
+import { useLightNovelDetailPage } from "@/hooks/useLightNovelDetailPage";
 
-import { ratingDescriptions } from "@/lib/constants";
+import { formatMalScoreWithMax } from "@/lib/utils";
 
-import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangleIcon,
   BookOpenIcon,
@@ -35,79 +30,21 @@ type Props = {
 };
 
 export default function LightNovelDetail({ id }: Props) {
-  const [showSpoilerWarning, setShowSpoilerWarning] = useState(false);
-  const [spoilersRevealed, setSpoilersRevealed] = useState(false);
-
-  const toast = useToast();
-
-  const { data: lightNovelDetail, error } = useQuery({
-    queryKey: ["lightNovel", id],
-    queryFn: () => lightNovelService.fetchById(id)
-  });
+  const {
+    lightNovelDetail,
+    lightNovelPersonalRatings,
+    showSpoilerWarning,
+    setShowSpoilerWarning,
+    spoilersRevealed,
+    setSpoilersRevealed,
+    handleRevealSpoilers
+  } = useLightNovelDetailPage(id);
 
   if (!lightNovelDetail) {
     notFound();
   }
 
-  if (error) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: error.message
-    });
-  }
-
   const reviewObject = lightNovelDetail.review;
-
-  const lightNovelPersonalRatings = [
-    {
-      title: "Storyline",
-      weight: "30",
-      rating: reviewObject.storylineRating
-        ? `${reviewObject.storylineRating} - ${
-            ratingDescriptions[reviewObject.storylineRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "World Building",
-      weight: "25",
-      rating: reviewObject.worldBuildingRating
-        ? `${reviewObject.worldBuildingRating} - ${
-            ratingDescriptions[reviewObject.worldBuildingRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "Writing Style",
-      weight: "20",
-      rating: reviewObject.writingStyleRating
-        ? `${reviewObject.writingStyleRating} - ${
-            ratingDescriptions[reviewObject.writingStyleRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "Character Development",
-      weight: "15",
-      rating: reviewObject.charDevelopmentRating
-        ? `${reviewObject.charDevelopmentRating} - ${
-            ratingDescriptions[reviewObject.charDevelopmentRating]
-          }`
-        : "N/A"
-    },
-    {
-      title: "Originality",
-      weight: "10",
-      rating: reviewObject.originalityRating
-        ? `${reviewObject.originalityRating} - ${
-            ratingDescriptions[reviewObject.originalityRating]
-          }`
-        : "N/A"
-    }
-  ];
-
-  const handleRevealSpoilers = () => setShowSpoilerWarning(true);
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf]">
@@ -190,7 +127,7 @@ export default function LightNovelDetail({ id }: Props) {
                         MAL Score
                       </div>
                       <div className="text-2xl font-bold text-slate-800">
-                        {lightNovelDetail.score.toFixed(2)}/10
+                        {formatMalScoreWithMax(lightNovelDetail.score)}
                       </div>
                     </div>
                     <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
@@ -200,15 +137,12 @@ export default function LightNovelDetail({ id }: Props) {
                             My Score
                           </div>
                           <div className="text-2xl font-bold text-slate-800">
-                            {reviewObject.personalScore
-                              ? reviewObject.personalScore.toFixed(2)
-                              : "N/A"}
-                            /10
+                            {formatMalScoreWithMax(reviewObject?.personalScore)}
                           </div>
                         </div>
                         <RatingDetailContent
                           details={lightNovelPersonalRatings}
-                          finalScore={reviewObject.personalScore}
+                          finalScore={reviewObject?.personalScore}
                         />
                       </div>
                     </div>
@@ -219,10 +153,15 @@ export default function LightNovelDetail({ id }: Props) {
                       <div className="text-slate-600 text-sm mb-2">
                         Reading Status
                       </div>
-                      <ProgressStatusBadge
-                        className="text-black border-none"
-                        progressStatus={reviewObject.progressStatus}
-                      />
+                      {reviewObject ? (
+                        <ProgressStatusBadge
+                          progressStatus={reviewObject.progressStatus}
+                        />
+                      ) : (
+                        <span className="text-slate-600 text-sm">
+                          No personal entry
+                        </span>
+                      )}
                     </div>
                     <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
                       <div className="text-slate-600 text-sm mb-2">
@@ -276,7 +215,7 @@ export default function LightNovelDetail({ id }: Props) {
             </div>
           </CardHeader>
           <CardContent>
-            {!reviewObject.reviewText ? (
+            {!reviewObject?.reviewText ? (
               <div className="flex flex-col items-center justify-center gap-2 xl:gap-4">
                 <Image
                   src="/no-review.gif"

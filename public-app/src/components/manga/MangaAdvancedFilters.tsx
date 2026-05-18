@@ -31,7 +31,6 @@ export default function MangaAdvancedFilters({
     <K extends keyof typeof filters>(field: K) =>
     (value?: number | string) => {
       setState({
-        page: 1,
         filters: {
           ...filters,
           [field]: value
@@ -45,7 +44,6 @@ export default function MangaAdvancedFilters({
 
   const handleClearAllFilter = () => {
     setState({
-      page: 1,
       filters: Object.fromEntries(
         Object.keys(filters).map((k) => [k, undefined])
       ) as typeof filters

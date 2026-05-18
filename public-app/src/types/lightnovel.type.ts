@@ -4,7 +4,7 @@ import {
   ThemeEntityPartial
 } from "@/types/entity.type";
 
-import { PROGRESS_STATUS } from "@/lib/enums";
+import { PROGRESS_STATUS, type ProgressStatusKey } from "@/lib/enums";
 
 type LightNovelEntity = {
   id: number;
@@ -15,7 +15,7 @@ type LightNovelEntity = {
   titleSynonyms: string;
   published: string;
   volumesCount?: number | null;
-  score: number;
+  score: number | null;
   images: {
     image_url: string;
     large_image_url?: string | null;
@@ -26,7 +26,7 @@ type LightNovelEntity = {
   themes: string[];
   synopsis: string;
   malUrl: string;
-  review: LightNovelReview;
+  review: LightNovelReview | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -39,7 +39,7 @@ type LightNovelReview = {
   writingStyleRating?: number | null;
   charDevelopmentRating?: number | null;
   originalityRating?: number | null;
-  progressStatus: PROGRESS_STATUS;
+  progressStatus: ProgressStatusKey | PROGRESS_STATUS;
   personalScore?: number | null;
   consumedAt: Date | null;
   createdAt: Date;
@@ -55,6 +55,13 @@ type LightNovelDetail = Omit<
   themes: ThemeEntityPartial[];
 };
 
+type LightNovelListReviewFields = {
+  progressStatus?: ProgressStatusKey | PROGRESS_STATUS | null;
+  personalScore?: number | null;
+  reviewText?: string | null;
+  consumedAt?: Date | null;
+};
+
 type LightNovelList = Pick<
   LightNovelEntity,
   | "id"
@@ -66,10 +73,7 @@ type LightNovelList = Pick<
   | "score"
   | "volumesCount"
 > &
-  Pick<
-    LightNovelReview,
-    "progressStatus" | "personalScore" | "reviewText" | "consumedAt"
-  >;
+  LightNovelListReviewFields;
 
 type LightNovelSitemap = Pick<LightNovelEntity, "id" | "slug"> & {
   createdAt: Date;

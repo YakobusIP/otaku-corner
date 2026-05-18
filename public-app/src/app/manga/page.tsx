@@ -5,7 +5,11 @@ import { MangaProvider } from "@/components/context/MangaContext";
 import MangaHeader from "@/components/manga/MangaHeader";
 import MangaListSection from "@/components/manga/MangaListSection";
 
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import {
+  buildMangaListFiltersFromSearchParams,
+  getMangaListInfiniteQueryOptions
+} from "@/lib/public-list-infinite-queries";
+import { publicListKeys } from "@/lib/query-keys";
 
 import {
   HydrationBoundary,
@@ -13,8 +17,6 @@ import {
   dehydrate
 } from "@tanstack/react-query";
 import { Metadata } from "next";
-
-const PAGINATION_SIZE = 15;
 
 export const metadata: Metadata = {
   title: "Manga Collection | Otaku Corner",
@@ -26,64 +28,33 @@ export const metadata: Metadata = {
 };
 
 type SearchParams = {
-  searchParams: Promise<{ page?: string; q?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; status?: string }>;
 };
 
 export default async function Page({ searchParams }: SearchParams) {
   const params = await searchParams;
-  const page = parseInt(params.page || "1", 10);
-  const query = params.q ?? "";
-  const status = params.status as keyof typeof PROGRESS_STATUS | undefined;
-
-  const sort = "title";
-  const order = SORT_ORDER.ASCENDING;
+  const listFilters = buildMangaListFiltersFromSearchParams(params);
 
   const queryClient = new QueryClient();
 
   await Promise.all([
-    queryClient.fetchQuery({
-      queryKey: [
-        "mangas",
-        page,
-        PAGINATION_SIZE,
-        query,
-        sort,
-        order,
-        undefined,
-        undefined,
-        undefined,
-        status,
-        undefined,
-        undefined
-      ],
-      queryFn: () =>
-        mangaService.fetchAll(
-          page,
-          PAGINATION_SIZE,
-          query,
-          sort,
-          order,
-          undefined,
-          undefined,
-          undefined,
-          status,
-          undefined,
-          undefined
-        ),
-      retry: false
-    }),
-    queryClient.fetchQuery({
-      queryKey: ["mangaStatusCounts"],
-      queryFn: () => mangaService.fetchStatusCounts(),
-      staleTime: Infinity,
-      retry: false
-    })
+    queryClient.prefetchInfiniteQuery(
+      getMangaListInfiniteQueryOptions(listFilters)
+    ),
+    queryClient
+      .prefetchQuery({
+        queryKey: publicListKeys.mangaStatusCounts(),
+        queryFn: () => mangaService.fetchStatusCounts(),
+        staleTime: Infinity,
+        retry: false
+      })
+      .catch(() => {})
   ]);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <MangaProvider>
-        <div className="flex flex-col min-h-[100dvh] main-gradient-bg">
+        <div className="flex flex-col min-h-dvh main-gradient-bg">
           <MangaHeader />
           <MangaListSection />
           <GeneralFooter />

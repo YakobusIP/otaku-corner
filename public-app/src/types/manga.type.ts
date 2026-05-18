@@ -4,7 +4,7 @@ import {
   ThemeEntityPartial
 } from "@/types/entity.type";
 
-import { PROGRESS_STATUS } from "@/lib/enums";
+import { PROGRESS_STATUS, type ProgressStatusKey } from "@/lib/enums";
 
 type MangaEntity = {
   id: number;
@@ -16,7 +16,7 @@ type MangaEntity = {
   published: string;
   chaptersCount?: number | null;
   volumesCount?: number | null;
-  score: number;
+  score: number | null;
   images: {
     image_url: string;
     large_image_url?: string | null;
@@ -27,7 +27,7 @@ type MangaEntity = {
   themes: string[];
   synopsis: string;
   malUrl: string;
-  review: MangaReview;
+  review: MangaReview | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -40,7 +40,7 @@ type MangaReview = {
   charDevelopmentRating?: number | null;
   worldBuildingRating?: number | null;
   originalityRating?: number | null;
-  progressStatus: PROGRESS_STATUS;
+  progressStatus: ProgressStatusKey | PROGRESS_STATUS;
   personalScore?: number | null;
   consumedAt: Date | null;
   createdAt: Date;
@@ -51,6 +51,13 @@ type MangaDetail = Omit<MangaEntity, "authors" | "genres" | "themes"> & {
   authors: AuthorEntityPartial[];
   genres: GenreEntityPartial[];
   themes: ThemeEntityPartial[];
+};
+
+type MangaListReviewFields = {
+  progressStatus?: ProgressStatusKey | PROGRESS_STATUS | null;
+  personalScore?: number | null;
+  reviewText?: string | null;
+  consumedAt?: Date | null;
 };
 
 type MangaList = Pick<
@@ -65,10 +72,7 @@ type MangaList = Pick<
   | "chaptersCount"
   | "volumesCount"
 > &
-  Pick<
-    MangaReview,
-    "progressStatus" | "personalScore" | "reviewText" | "consumedAt"
-  >;
+  MangaListReviewFields;
 
 type MangaSitemap = Pick<MangaEntity, "id" | "slug"> & {
   createdAt: Date;

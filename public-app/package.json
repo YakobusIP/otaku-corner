@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.1.1+sha512.d1fdf5f73c617b64fa1a56a81c3c8dfe0e966e33a6010aa256b517ae77be21d93e05affc0de1a83b0e4f29d569f68b446ae8f068cd7247c0bb3df0fb4d7bdf9a",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -10,6 +11,13 @@
     "format": "prettier . --write",
     "format-check": "prettier . --check"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "unrs-resolver",
+      "esbuild"
+    ]
+  },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-dropdown-menu": "^2.1.2",
@@ -17,7 +25,6 @@
     "@radix-ui/react-separator": "^1.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.12",
-    "@radix-ui/react-toast": "^1.2.2",
     "@tanstack/react-query": "^5.62.3",
     "@uiw/react-md-editor": "4.0.8",
     "axios": "^1.7.7",
@@ -28,12 +35,15 @@
     "next": "15.0.2",
     "react": "19.0.0-rc-02c0e824-20241028",
     "react-dom": "19.0.0-rc-02c0e824-20241028",
+    "react-intersection-observer": "^10.0.3",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.4",
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
     "@tanstack/react-query-devtools": "^5.62.3",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/node": "^20",
@@ -43,7 +53,7 @@
     "eslint-config-next": "15.0.2",
     "postcss": "^8",
     "prettier": "^3.3.3",
-    "tailwindcss": "^3.4.1",
+    "tailwindcss": "^4.2.4",
     "typescript": "^5"
   }
 }

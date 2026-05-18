@@ -32,7 +32,6 @@ export default function AnimeAdvancedFilters({
     <K extends keyof typeof filters>(field: K) =>
     (value?: number | string) => {
       setState({
-        page: 1,
         filters: {
           ...filters,
           [field]: value
@@ -46,7 +45,6 @@ export default function AnimeAdvancedFilters({
 
   const handleClearAllFilter = () => {
     setState({
-      page: 1,
       filters: Object.fromEntries(
         Object.keys(filters).map((k) => [k, undefined])
       ) as typeof filters
@@ -67,7 +65,7 @@ export default function AnimeAdvancedFilters({
         </Button>
       </div>
 
-      <div className="grid grid=cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <label className="text-sm font-medium text-slate-700 mb-2 block">
             Genre

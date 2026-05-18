@@ -19,7 +19,7 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 
-import { useToast } from "@/hooks/useToast";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { AuthorEntity } from "@/types/entity.type";
 
@@ -37,24 +37,16 @@ export default function FilterAuthor({
   selectedAuthor,
   handleFilterAuthor
 }: Props) {
-  const toast = useToast();
-
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: authorList, error } = useQuery({
     queryKey: ["authors"],
-    queryFn: () => authorService.fetchAll<AuthorEntity[]>(),
+    queryFn: () => authorService.fetchAll<AuthorEntity>(),
     refetchOnWindowFocus: false,
     staleTime: 24 * 60 * 60 * 1000
   });
 
-  if (error) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: error.message
-    });
-  }
+  useQueryErrorToast(error);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen} modal>

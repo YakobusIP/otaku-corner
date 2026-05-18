@@ -1,11 +1,14 @@
-import { ApiResponse, ApiResponseList } from "@/types/api.type";
 import { MangaDetail, MangaList, MangaSitemap } from "@/types/manga.type";
 import { StatusFilter } from "@/types/statistic.type";
 
 import { axiosClient, handleAxiosError } from "@/lib/axios";
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import {
+  type NestPaginatedListBody,
+  mapNestListPageToPublic
+} from "@/lib/nest-paginated-list";
 
-const BASE_MANGA_URL = "/api/manga";
+const BASE_MANGA_URL = "/api/mangas";
 
 const createMangaService = () => {
   const fetchAll = async (
@@ -18,29 +21,29 @@ const createMangaService = () => {
     genre?: number,
     theme?: number,
     status?: keyof typeof PROGRESS_STATUS,
-    mal_score?: string,
-    personal_score?: string
+    malScore?: string,
+    personalScore?: string
   ) => {
     try {
-      const response = await axiosClient.get<ApiResponseList<MangaList[]>>(
+      const response = await axiosClient.get<NestPaginatedListBody<MangaList>>(
         BASE_MANGA_URL,
         {
           params: {
             page,
             limit,
-            q: query,
+            query,
             sort,
             order,
             author,
             genre,
             theme,
             status,
-            mal_score,
-            personal_score
+            malScore,
+            personalScore
           }
         }
       );
-      return response.data.data;
+      return mapNestListPageToPublic(response.data);
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -49,10 +52,10 @@ const createMangaService = () => {
 
   const fetchById = async (id: number) => {
     try {
-      const response = await axiosClient.get<ApiResponse<MangaDetail>>(
+      const response = await axiosClient.get<MangaDetail>(
         `${BASE_MANGA_URL}/${id}`
       );
-      return response.data.data;
+      return response.data;
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -73,13 +76,13 @@ const createMangaService = () => {
 
   const fetchSitemap = async (page: number, limit: number) => {
     try {
-      const response = await axiosClient.get<ApiResponse<MangaSitemap[]>>(
+      const response = await axiosClient.get<MangaSitemap[]>(
         `${BASE_MANGA_URL}/sitemap`,
         {
           params: { page, limit }
         }
       );
-      return response.data.data;
+      return response.data;
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -88,10 +91,18 @@ const createMangaService = () => {
 
   const fetchStatusCounts = async () => {
     try {
-      const response = await axiosClient.get<ApiResponse<StatusFilter[]>>(
-        `${BASE_MANGA_URL}/status-count`
+      const response = await axiosClient.get<
+        { label: string; value: string | null; count: number }[]
+      >(`${BASE_MANGA_URL}/status-count`);
+      return response.data.map(
+        (row): StatusFilter => ({
+          label: row.label,
+          count: row.count,
+          ...(row.value !== null && row.value !== undefined
+            ? { value: row.value as StatusFilter["value"] }
+            : {})
+        })
       );
-      return response.data.data;
     } catch (error) {
       const message = handleAxiosError(error);
       throw new Error(message);
@@ -107,6 +118,4 @@ const createMangaService = () => {
   };
 };
 
-const mangaService = createMangaService();
-
-export { mangaService };
+export const mangaService = createMangaService();

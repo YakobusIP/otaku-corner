@@ -2,35 +2,20 @@
 
 import { useEffect, useState } from "react";
 
-import { statisticService } from "@/services/statistic.service";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { useToast } from "@/hooks/useToast";
+import { useHomeStatistics } from "@/hooks/useHomeStatistics";
 
 import { cn } from "@/lib/utils";
 
-import { useQuery } from "@tanstack/react-query";
 import { BookIcon, LibraryIcon, PlayIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function HeroSection() {
-  const toast = useToast();
-
-  const { data, error } = useQuery({
-    queryKey: ["allTimeStats"],
-    queryFn: () => statisticService.fetchAllTime()
-  });
-
-  if (error) {
-    toast.toast({
-      variant: "destructive",
-      title: "Uh oh! Something went wrong",
-      description: error.message
-    });
-  }
+  const { allTimeStatsQuery } = useHomeStatistics();
+  const { data } = allTimeStatsQuery;
 
   const [animatedCounts, setAnimatedCounts] = useState({
     anime: 0,
@@ -124,11 +109,11 @@ export default function HeroSection() {
               </Badge>
               <h1 className="text-4xl lg:text-6xl font-bold text-slate-800 leading-tight">
                 Track My{" "}
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   Anime, Manga,
                 </span>{" "}
                 and{" "}
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   Light Novels
                 </span>
               </h1>

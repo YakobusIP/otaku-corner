@@ -11,13 +11,17 @@ import { MEDIA_TYPE } from "@/lib/enums";
 import { ArrowRightIcon, HeartIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Url } from "url";
+
+type HomeCardPath = {
+  pathname: string;
+  query?: Record<string, string | string[] | undefined>;
+};
 
 type Props = {
   cardTitle: string;
   amount: number;
   type: MEDIA_TYPE;
-  path: Pick<Url, "pathname" | "query">;
+  path: HomeCardPath;
   image: string;
   mediaEnglishTitle: string;
   mediaJapaneseTitle: string;
@@ -62,10 +66,10 @@ export default function HomeCard({
               alt={`Top ${type}`}
               width={300}
               height={400}
-              className="w-full aspect-[3/4] rounded-lg object-cover shadow-lg transition-transform"
+              className="w-full aspect-3/4 rounded-lg object-cover shadow-lg transition-transform"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="absolute bottom-4 left-4 right-4 text-white">
                 <h3 className="font-bold text-sm mb-1 line-clamp-2">
                   {mediaEnglishTitle}

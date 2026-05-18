@@ -4,6 +4,8 @@ import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
 import { LightNovelList } from "@/types/lightnovel.type";
 
+import { formatScoreFixedOrNa } from "@/lib/utils";
+
 import { HeartIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,7 +24,7 @@ export default function LightNovelCard({ lightNovel }: Props) {
               lightNovel.images.large_image_url ?? lightNovel.images.image_url
             }
             alt={lightNovel.title}
-            className="aspect-[3/4] object-cover w-full h-full rounded-t-lg"
+            className="aspect-3/4 object-cover w-full h-full rounded-t-lg"
             width={300}
             height={400}
           />
@@ -31,14 +33,14 @@ export default function LightNovelCard({ lightNovel }: Props) {
             <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
               <StarIcon size={12} className="text-yellow-400 fill-yellow-400" />
               <span className="text-white text-xs font-medium">
-                {lightNovel.score.toFixed(2)}
+                {formatScoreFixedOrNa(lightNovel.score)}
               </span>
             </div>
-            {lightNovel.personalScore && (
+            {lightNovel.personalScore != null && (
               <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
                 <HeartIcon size={12} className="text-red-400 fill-red-400" />
                 <span className="text-white text-xs font-medium">
-                  {lightNovel.personalScore.toFixed(2)}
+                  {formatScoreFixedOrNa(lightNovel.personalScore)}
                 </span>
               </div>
             )}
@@ -47,7 +49,6 @@ export default function LightNovelCard({ lightNovel }: Props) {
           <div className="absolute top-2 right-2">
             <ProgressStatusBadge
               progressStatus={lightNovel.progressStatus}
-              className="text-white"
             />
           </div>
         </div>

@@ -11,6 +11,8 @@ import {
 } from "@tanstack/react-query";
 import { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title:
     "bearking58 Otaku Corner: Personal Reviews of Anime, Manga, and Light Novels",
@@ -39,7 +41,7 @@ export default async function Page() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="min-h-screen bg-gradient-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf]">
+      <div className="min-h-screen bg-linear-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf]">
         <HeroSection />
         <TopMedias />
         <GeneralFooter />

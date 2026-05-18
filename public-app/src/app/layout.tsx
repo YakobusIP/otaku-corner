@@ -1,6 +1,6 @@
 import Providers from "@/app/providers";
 
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 
 import type { Metadata } from "next";
 

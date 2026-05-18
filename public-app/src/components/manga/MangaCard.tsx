@@ -4,6 +4,8 @@ import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
 import { MangaList } from "@/types/manga.type";
 
+import { formatScoreFixedOrNa } from "@/lib/utils";
+
 import { HeartIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,7 +22,7 @@ export default function MangaCard({ manga }: Props) {
           <Image
             src={manga.images.large_image_url ?? manga.images.image_url}
             alt={manga.title}
-            className="aspect-[3/4] object-cover w-full h-full rounded-t-lg"
+            className="aspect-3/4 object-cover w-full h-full rounded-t-lg"
             width={300}
             height={400}
           />
@@ -29,24 +31,21 @@ export default function MangaCard({ manga }: Props) {
             <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
               <StarIcon size={12} className="text-yellow-400 fill-yellow-400" />
               <span className="text-white text-xs font-medium">
-                {manga.score.toFixed(2)}
+                {formatScoreFixedOrNa(manga.score)}
               </span>
             </div>
-            {manga.personalScore && (
+            {manga.personalScore != null && (
               <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
                 <HeartIcon size={12} className="text-red-400 fill-red-400" />
                 <span className="text-white text-xs font-medium">
-                  {manga.personalScore.toFixed(2)}
+                  {formatScoreFixedOrNa(manga.personalScore)}
                 </span>
               </div>
             )}
           </div>
 
           <div className="absolute top-2 right-2">
-            <ProgressStatusBadge
-              progressStatus={manga.progressStatus}
-              className="text-white"
-            />
+            <ProgressStatusBadge progressStatus={manga.progressStatus} />
           </div>
         </div>
 

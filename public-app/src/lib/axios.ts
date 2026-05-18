@@ -16,8 +16,15 @@ export const handleAxiosError = (error: unknown) => {
       notFound();
     }
 
-    const responseData = error.response.data as ApiResponseError;
-    return responseData.error;
+    const data = error.response.data as
+      | ApiResponseError
+      | { message?: string | string[] };
+    if (typeof (data as ApiResponseError).error === "string") {
+      return (data as ApiResponseError).error;
+    }
+    const msg = (data as { message?: string | string[] }).message;
+    if (typeof msg === "string") return msg;
+    if (Array.isArray(msg) && msg.length) return msg[0];
   }
   return "There was a problem with your request.";
 };
