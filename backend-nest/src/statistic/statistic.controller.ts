@@ -24,6 +24,7 @@ export class StatisticController {
     return this.statisticService.getYearRange();
   }
 
+  @Public()
   @Get("media-consumption")
   @ApiOperation({ summary: "Get media consumption statistics" })
   @ApiResponse({ status: 200, description: "Media consumption data retrieved" })
@@ -76,6 +77,7 @@ export class StatisticController {
     return this.statisticService.getLibraryHealth();
   }
 
+  @Public()
   @Get("recent-reviews")
   @ApiOperation({ summary: "Most recently updated reviews across media types" })
   @ApiResponse({ status: 200, description: "Recent reviews retrieved" })
@@ -83,6 +85,7 @@ export class StatisticController {
     return this.statisticService.getRecentReviews(query.limit ?? 10);
   }
 
+  @Public()
   @Get("taste-profile")
   @ApiOperation({
     summary:

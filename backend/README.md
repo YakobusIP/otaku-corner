@@ -1,3 +1,0 @@
-# Otaku Corner Backend
-
-TBD

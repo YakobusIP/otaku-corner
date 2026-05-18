@@ -1,5 +1,0 @@
-.env
-node_modules
-prisma/seed.ts
-*.json
-uploads
