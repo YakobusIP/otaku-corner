@@ -29,6 +29,17 @@ const unwrap = <T>(response: AxiosResponse<unknown>): T => {
 };
 
 const createStatisticService = () => {
+  const fetchYearRange = async () => {
+    try {
+      const response = await axiosClient.get(
+        `${BASE_STATISTIC_URL}/year-range`
+      );
+      return unwrap<number[]>(response);
+    } catch (error) {
+      throw new Error(handleAxiosError(error));
+    }
+  };
+
   const fetchAllTime = async () => {
     try {
       const response = await axiosClient.get(
@@ -40,10 +51,14 @@ const createStatisticService = () => {
     }
   };
 
-  const fetchTopMediaAndYearlyCount = async () => {
+  const fetchTopMediaAndYearlyCount = async (year?: number) => {
     try {
       const response = await axiosClient.get(
-        `${BASE_STATISTIC_URL}/top-media-and-yearly-count`
+        `${BASE_STATISTIC_URL}/top-media-and-yearly-count`,
+        {
+          params:
+            year !== undefined && year !== null ? { year } : {}
+        }
       );
       return unwrap<TopMediaAndYearlyCount>(response);
     } catch (error) {
@@ -96,6 +111,7 @@ const createStatisticService = () => {
   };
 
   return {
+    fetchYearRange,
     fetchAllTime,
     fetchTopMediaAndYearlyCount,
     fetchMediaConsumption,

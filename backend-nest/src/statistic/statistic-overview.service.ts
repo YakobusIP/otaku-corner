@@ -96,10 +96,14 @@ export class StatisticOverviewService {
     };
   }
 
-  async getTopMediaAndYearlyCount() {
+  async getTopMediaAndYearlyCount(requestedYear?: number) {
     const currentYear = new Date().getFullYear();
-    const startDate = new Date(currentYear, 0, 1);
-    const endDate = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+    const year =
+      requestedYear !== undefined && requestedYear !== null
+        ? requestedYear
+        : currentYear;
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
 
     const [
       consumedAnimeYearlyCount,

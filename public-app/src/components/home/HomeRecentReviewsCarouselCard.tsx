@@ -6,7 +6,7 @@ import { formatRelativeUpdatedAt } from "@/lib/format-relative-updated";
 import { pickMediaImageSrc } from "@/lib/media-images";
 import { formatScoreFixedOrNa } from "@/lib/utils";
 
-import { Flower2Icon, StarIcon } from "lucide-react";
+import { FlowerIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -51,11 +51,11 @@ export default function HomeRecentReviewsCarouselCard(
   const list = items ?? [];
 
   return (
-    <Card className="flex h-full min-h-[320px] flex-col border-white/80 bg-white/85 shadow-[0_18px_60px_rgba(244,114,182,0.16)] backdrop-blur-xl">
+    <Card className="relative z-10 flex h-full min-h-[320px] flex-col border-white/90 bg-white/95 shadow-[0_18px_50px_rgba(15,23,42,0.08),0_1px_0_rgba(255,255,255,0.9)_inset] backdrop-blur-sm">
       <CardHeader className="flex flex-row items-center justify-between gap-2 p-4 pb-2">
         <CardTitle className="flex items-center gap-2 text-base font-bold leading-snug text-[#4a1630]">
           Recent Journey
-          <Flower2Icon className="h-4 w-4 text-rose-300" aria-hidden />
+          <FlowerIcon className="h-4 w-4 text-rose-300" aria-hidden />
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-1.5 p-4 pt-0">

@@ -8,7 +8,8 @@ import {
   DashboardYearQueryDto,
   MediaConsumptionQueryDto,
   RecentReviewsQueryDto,
-  TasteProfileQueryDto
+  TasteProfileQueryDto,
+  TopMediaYearlyQueryDto
 } from "@/statistic/dto";
 import { StatisticsView } from "@/statistic/enums/statistics-view.enum";
 import { StatisticService } from "@/statistic/statistic.service";
@@ -17,6 +18,7 @@ import { StatisticService } from "@/statistic/statistic.service";
 export class StatisticController {
   constructor(private readonly statisticService: StatisticService) {}
 
+  @Public()
   @Get("year-range")
   @ApiOperation({ summary: "Get available year range for statistics" })
   @ApiResponse({ status: 200, description: "Year range retrieved" })
@@ -113,7 +115,7 @@ export class StatisticController {
     status: 200,
     description: "Top media and yearly count retrieved"
   })
-  getTopMediaAndYearlyCount() {
-    return this.statisticService.getTopMediaAndYearlyCount();
+  getTopMediaAndYearlyCount(@Query() query: TopMediaYearlyQueryDto) {
+    return this.statisticService.getTopMediaAndYearlyCount(query.year);
   }
 }

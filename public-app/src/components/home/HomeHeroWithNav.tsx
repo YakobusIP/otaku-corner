@@ -47,7 +47,7 @@ export default function HomeHeroWithNav() {
             ...prev,
             [key]: Math.floor(current)
           }));
-        }, 50);
+        }, 100);
 
         intervalIds.push(interval);
       };
@@ -97,15 +97,20 @@ export default function HomeHeroWithNav() {
         className="object-cover object-[82%_center] sm:object-[86%_center] lg:object-[right_center]"
         sizes="100vw"
       />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.97)_0%,rgba(255,255,255,0.88)_30%,rgba(255,255,255,0.2)_48%,rgba(255,255,255,0)_58%)]" />
+      <div
+        className={cn(
+          "absolute inset-0 max-sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.72)_32%,rgba(255,255,255,0.28)_62%,rgba(255,255,255,0)_100%)]",
+          "sm:bg-[linear-gradient(90deg,rgba(255,255,255,0.8)_0%,rgba(255,255,255,0.5)_30%,rgba(255,255,255,0.2)_48%,rgba(255,255,255,0)_58%)]"
+        )}
+      />
       <div className="absolute inset-x-0 bottom-0 h-56 bg-linear-to-b from-white/0 via-white/80 to-white" />
 
       <div className="relative z-10 flex min-h-[640px] flex-col lg:min-h-[660px]">
         <HomePublicNavbar />
 
         <div className="mx-auto box-border flex w-full max-w-[1400px] flex-1 -translate-y-7 flex-col justify-center px-4 pb-36 pt-4 sm:px-8 sm:pb-40 lg:px-12">
-          <div className="w-full max-w-[calc(100vw-2rem)] space-y-6 sm:max-w-136">
-            <Badge className="inline-flex gap-1.5 border border-rose-200/60 bg-rose-100/60 px-3 py-1.5 text-xs font-semibold text-rose-600 shadow-none backdrop-blur-md">
+          <div className="w-full max-w-[calc(100vw-2rem)] mt-6 space-y-6 sm:max-w-136">
+            <Badge className="motion-safe:animate-pulse inline-flex gap-1.5 border border-rose-200/80 hover:border-rose-200/80 bg-rose-100/80 hover:bg-rose-100/80 px-3 py-1.5 text-xs font-semibold text-rose-600 shadow-none backdrop-blur-md">
               <SparklesIcon className="h-3 w-3" aria-hidden />
               My Personal Tracking Hub
             </Badge>
@@ -123,7 +128,7 @@ export default function HomeHeroWithNav() {
                 Light Novels
               </span>
             </h1>
-            <p className="max-w-lg text-base leading-relaxed text-[#4b3a4c]/90 sm:text-lg">
+            <p className="max-w-lg text-base font-semibold leading-relaxed text-[#4b3a4c]/90 drop-shadow-[0_2px_10px_rgba(255,255,255,0.92)] max-sm:drop-shadow-[0_2px_14px_rgba(255,255,255,0.98)] sm:text-lg sm:font-bold sm:drop-shadow-none">
               A personal space to track, reflect, and celebrate the stories that
               inspire me.
             </p>

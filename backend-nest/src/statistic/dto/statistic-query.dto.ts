@@ -60,6 +60,21 @@ export class DashboardYearQueryDto {
   allTime?: boolean;
 }
 
+export class TopMediaYearlyQueryDto {
+  @ApiPropertyOptional({
+    description:
+      "Calendar year for consumption counts and top media (defaults to current year)",
+    minimum: 1970,
+    maximum: 2100
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1970)
+  @Max(2100)
+  @Type(() => Number)
+  year?: number;
+}
+
 export class RecentReviewsQueryDto {
   @ApiPropertyOptional({
     description: "Maximum number of recent reviews to return",

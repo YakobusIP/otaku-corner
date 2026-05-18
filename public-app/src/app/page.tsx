@@ -42,8 +42,8 @@ export default async function Page() {
       retry: false
     }),
     queryClient.fetchQuery({
-      queryKey: ["topMedias"],
-      queryFn: () => statisticService.fetchTopMediaAndYearlyCount(),
+      queryKey: ["topMedias", year],
+      queryFn: () => statisticService.fetchTopMediaAndYearlyCount(year),
       retry: false
     }),
     queryClient.fetchQuery({
@@ -59,8 +59,13 @@ export default async function Page() {
       retry: false
     }),
     queryClient.fetchQuery({
-      queryKey: ["recentReviews", 5],
-      queryFn: () => statisticService.fetchRecentReviews(5),
+      queryKey: ["recentReviews", 4],
+      queryFn: () => statisticService.fetchRecentReviews(4),
+      retry: false
+    }),
+    queryClient.fetchQuery({
+      queryKey: ["statisticYearRange"],
+      queryFn: () => statisticService.fetchYearRange(),
       retry: false
     })
   ]);
@@ -70,7 +75,7 @@ export default async function Page() {
       <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-white text-slate-900">
         <HomeHeroWithNav />
         <HomeYearProgressSection />
-        <div className="relative overflow-hidden bg-white">
+        <div className="relative overflow-hidden bg-transparent">
           <div className="absolute inset-x-0 bottom-0 top-8 z-0">
             <Image
               src="/hero_lower_image.webp"
@@ -80,8 +85,8 @@ export default async function Page() {
               sizes="100vw"
             />
           </div>
-          <div className="absolute inset-x-0 top-0 z-0 h-[380px] bg-linear-to-b from-white via-white/90 to-white/20" />
-          <div className="absolute inset-x-0 bottom-0 z-0 h-44 bg-linear-to-t from-white via-white/75 to-white/0" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[260px] bg-linear-to-b from-white via-white/85 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-32 bg-linear-to-t from-transparent via-white/45 to-transparent" />
           <HomeInsightsCarousel />
           <HomeQuoteSection />
         </div>

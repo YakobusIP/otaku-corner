@@ -59,7 +59,7 @@ export class StatisticService {
     return this.tasteProfile.getTasteProfile(limit);
   }
 
-  getTopMediaAndYearlyCount() {
-    return this.overview.getTopMediaAndYearlyCount();
+  getTopMediaAndYearlyCount(year?: number) {
+    return this.overview.getTopMediaAndYearlyCount(year);
   }
 }
