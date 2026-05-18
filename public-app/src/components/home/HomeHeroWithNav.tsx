@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import HomePublicNavbar from "@/components/home/HomePublicNavbar";
+import SlideUpInView from "@/components/motion/SlideUpInView";
 import { Badge } from "@/components/ui/badge";
 
 import { useHomeStatistics } from "@/hooks/useHomeStatistics";
@@ -108,8 +109,8 @@ export default function HomeHeroWithNav() {
       <div className="relative z-10 flex min-h-[640px] flex-col lg:min-h-[660px]">
         <HomePublicNavbar />
 
-        <div className="mx-auto box-border flex w-full max-w-[1400px] flex-1 -translate-y-7 flex-col justify-center px-4 pb-36 pt-4 sm:px-8 sm:pb-40 lg:px-12">
-          <div className="w-full max-w-[calc(100vw-2rem)] mt-6 space-y-6 sm:max-w-136">
+        <SlideUpInView className="mx-auto box-border flex w-full max-w-[1400px] flex-1 -translate-y-7 flex-col justify-center px-4 pb-36 pt-4 sm:px-8 sm:pb-40 lg:px-12">
+          <div className="mt-6 w-full max-w-full space-y-6 sm:max-w-136">
             <Badge className="motion-safe:animate-pulse inline-flex gap-1.5 border border-rose-200/80 hover:border-rose-200/80 bg-rose-100/80 hover:bg-rose-100/80 px-3 py-1.5 text-xs font-semibold text-rose-600 shadow-none backdrop-blur-md">
               <SparklesIcon className="h-3 w-3" aria-hidden />
               My Personal Tracking Hub
@@ -134,7 +135,7 @@ export default function HomeHeroWithNav() {
             </p>
           </div>
 
-          <div className="mt-6 grid w-full max-w-[calc(100vw-2rem)] grid-cols-1 gap-4 sm:max-w-2xl sm:grid-cols-3">
+          <div className="mt-6 grid w-full max-w-full grid-cols-1 gap-4 sm:max-w-2xl sm:grid-cols-3">
             {counterItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -162,7 +163,7 @@ export default function HomeHeroWithNav() {
               );
             })}
           </div>
-        </div>
+        </SlideUpInView>
       </div>
     </section>
   );

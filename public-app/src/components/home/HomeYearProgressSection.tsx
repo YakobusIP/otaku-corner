@@ -4,6 +4,7 @@ import { Fragment, useMemo, useState } from "react";
 
 import { statisticService } from "@/services/statistic.service";
 
+import SlideUpInView from "@/components/motion/SlideUpInView";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -116,7 +117,10 @@ export default function HomeYearProgressSection() {
   const showLightNovel = chartTab === "all" || chartTab === "lightNovel";
 
   return (
-    <section className="relative z-20 -mt-40 bg-transparent pb-0 pt-0 lg:-mt-40">
+    <SlideUpInView
+      as="section"
+      className="relative z-20 -mt-40 bg-transparent pb-0 pt-0 lg:-mt-44"
+    >
       <div className="mx-auto box-border w-full max-w-[1540px] px-4 pt-16 pb-8 sm:px-8 sm:pt-20 sm:pb-10 lg:px-12 lg:pt-28 lg:pb-14">
         <Card className="w-full border-white/80 bg-white/85 shadow-[0_24px_80px_rgba(244,114,182,0.22)] backdrop-blur-xl">
           <CardContent className="p-5 lg:p-6">
@@ -166,7 +170,7 @@ export default function HomeYearProgressSection() {
                               paddingAngle={3}
                               strokeWidth={2}
                               stroke="hsl(0 0% 100%)"
-                              isAnimationActive={false}
+                              animationDuration={1050}
                             >
                               {pieData.map((entry) => {
                                 return (
@@ -233,8 +237,8 @@ export default function HomeYearProgressSection() {
                       value={chartTab}
                       onValueChange={(value) => setChartTab(value as ChartTab)}
                     >
-                      <div className="min-w-0 max-sm:-mx-1 max-sm:overflow-x-auto max-sm:px-1 max-sm:pb-1 sm:overflow-visible">
-                        <TabsList className="inline-flex h-9 w-max max-w-none flex-nowrap gap-1 bg-transparent p-0 sm:w-auto sm:flex-wrap sm:justify-start">
+                      <div className="min-w-0">
+                        <TabsList className="flex h-auto min-h-9 w-full max-w-full flex-wrap items-center justify-center gap-1 bg-transparent p-0 sm:inline-flex sm:h-9 sm:w-auto sm:max-w-none sm:justify-start">
                           <TabsTrigger value="all" className={tabClassName}>
                             All
                           </TabsTrigger>
@@ -335,7 +339,7 @@ export default function HomeYearProgressSection() {
                             strokeWidth={2.5}
                             dot={{ r: 4, fill: LINE_COLORS.animeCount }}
                             activeDot={{ r: 6 }}
-                            isAnimationActive={false}
+                            animationDuration={1350}
                           />
                         )}
                         {showManga && (
@@ -347,7 +351,7 @@ export default function HomeYearProgressSection() {
                             strokeWidth={2.5}
                             dot={{ r: 4, fill: LINE_COLORS.mangaCount }}
                             activeDot={{ r: 6 }}
-                            isAnimationActive={false}
+                            animationDuration={1350}
                           />
                         )}
                         {showLightNovel && (
@@ -362,7 +366,7 @@ export default function HomeYearProgressSection() {
                               fill: LINE_COLORS.lightNovelCount
                             }}
                             activeDot={{ r: 6 }}
-                            isAnimationActive={false}
+                            animationDuration={1350}
                           />
                         )}
                       </LineChart>
@@ -374,6 +378,6 @@ export default function HomeYearProgressSection() {
           </CardContent>
         </Card>
       </div>
-    </section>
+    </SlideUpInView>
   );
 }

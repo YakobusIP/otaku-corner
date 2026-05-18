@@ -72,7 +72,7 @@ export default async function Page() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-white text-slate-900">
+      <div className="min-h-screen w-full max-w-full overflow-x-clip bg-white text-slate-900">
         <HomeHeroWithNav />
         <HomeYearProgressSection />
         <div className="relative overflow-hidden bg-transparent">
@@ -85,7 +85,7 @@ export default async function Page() {
               sizes="100vw"
             />
           </div>
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[260px] bg-linear-to-b from-white via-white/85 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[340px] bg-linear-to-b from-white via-white/85 to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-32 bg-linear-to-t from-transparent via-white/45 to-transparent" />
           <HomeInsightsCarousel />
           <HomeQuoteSection />

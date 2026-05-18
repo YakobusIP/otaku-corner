@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import HomeDistributionCarouselCard from "@/components/home/HomeDistributionCarouselCard";
 import HomeRecentReviewsCarouselCard from "@/components/home/HomeRecentReviewsCarouselCard";
+import SlideUpInView from "@/components/motion/SlideUpInView";
 
 import { useHomeStatistics } from "@/hooks/useHomeStatistics";
 
@@ -78,7 +79,11 @@ const HomeInsightsEmblaTrack = (props: HomeInsightsEmblaTrackProps) => {
     emblaApi.reInit();
   }, [emblaApi, slideWidthCss]);
 
-  const gapStyle = { gap: SLIDE_GAP_PX, paddingLeft: SLIDE_GAP_PX, paddingRight: SLIDE_GAP_PX };
+  const gapStyle = {
+    gap: SLIDE_GAP_PX,
+    paddingLeft: SLIDE_GAP_PX,
+    paddingRight: SLIDE_GAP_PX
+  };
 
   return (
     <div className="overflow-hidden pb-1" ref={viewportRef}>
@@ -135,13 +140,7 @@ const HomeInsightsEmblaTrack = (props: HomeInsightsEmblaTrackProps) => {
 };
 
 const HomeInsightsWideGrid = (props: InsightsSlidesProps) => {
-  const {
-    authorRows,
-    genreRows,
-    recentItems,
-    studioRows,
-    themeRows
-  } = props;
+  const { authorRows, genreRows, recentItems, studioRows, themeRows } = props;
 
   const cellClass = "min-w-0 flex-1 basis-0";
 
@@ -265,7 +264,10 @@ export default function HomeInsightsCarousel() {
   };
 
   return (
-    <section className="relative z-20 bg-transparent pb-0 pt-2 lg:pt-3">
+    <SlideUpInView
+      as="section"
+      className="relative z-20 bg-transparent pb-0 mt-8"
+    >
       <div className="mx-auto box-border w-full max-w-[1540px] px-4 sm:px-8 lg:px-12">
         {isLoading ? (
           <div className="flex min-h-[200px] items-center justify-center gap-2 text-[#6b5b6b]">
@@ -275,9 +277,12 @@ export default function HomeInsightsCarousel() {
         ) : isWideGrid ? (
           <HomeInsightsWideGrid {...slideProps} />
         ) : (
-          <HomeInsightsEmblaTrack {...slideProps} slideWidthCss={slideWidthCss} />
+          <HomeInsightsEmblaTrack
+            {...slideProps}
+            slideWidthCss={slideWidthCss}
+          />
         )}
       </div>
-    </section>
+    </SlideUpInView>
   );
 }
