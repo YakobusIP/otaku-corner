@@ -14,7 +14,7 @@ const transition = {
 };
 
 const viewport = {
-  once: true,
+  once: false,
   amount: 0.45
 } as const;
 
