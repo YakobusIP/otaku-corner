@@ -15,7 +15,6 @@ type Props = {
   sort?: string;
   order?: SORT_ORDER;
   handleSort: (key: string) => void;
-  /** Narrow, centered trigger on small screens (e.g. media library toolbar). */
   compactMobile?: boolean;
 };
 

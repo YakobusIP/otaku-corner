@@ -129,8 +129,8 @@ export default function HomeHeroWithNav() {
                 Light Novels
               </span>
             </h1>
-            <p className="max-w-lg text-base font-semibold leading-relaxed text-[#4b3a4c]/90 drop-shadow-[0_2px_10px_rgba(255,255,255,0.92)] max-sm:drop-shadow-[0_2px_14px_rgba(255,255,255,0.98)] sm:text-lg sm:font-bold sm:drop-shadow-none">
-              A personal space to track, reflect, and celebrate the stories that
+            <p className="max-w-lg text-base font-semibold leading-relaxed text-[#4b3a4c]/90 drop-shadow-[0_2px_10px_rgba(255,255,255,0.92)] max-sm:drop-shadow-[0_2px_14px_rgba(255,255,255,0.98)] sm:text-lg sm:drop-shadow-none">
+              A personal space to track, reflect, and celebrate the series that
               inspire me.
             </p>
           </div>
