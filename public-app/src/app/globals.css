@@ -217,4 +217,41 @@
   .main-gradient-bg {
     @apply bg-linear-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf];
   }
+
+  .hero-upper-image-gradient {
+    background-image: linear-gradient(
+      to right,
+      rgb(255 255 255 / 0.5) 0%,
+      rgb(255 255 255 / 0.45) 18%,
+      rgb(255 255 255 / 0.35) 36%,
+      rgb(255 255 255 / 0.22) 54%,
+      rgb(255 255 255 / 0.1) 72%,
+      transparent 88%
+    );
+  }
+
+  .hero-wallpaper {
+    background-color: #ffffff;
+    background-image:
+      linear-gradient(
+        to right,
+        rgb(255 255 255 / 0.75) 0%,
+        rgb(255 255 255 / 0.65) 18%,
+        rgb(255 255 255 / 0.35) 36%,
+        rgb(255 255 255 / 0.22) 54%,
+        rgb(255 255 255 / 0.1) 72%,
+        transparent 88%
+      ),
+      url("/hero_upper_image.webp");
+    background-size: cover;
+    background-position: 70% center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+
+  @media (min-width: 768px) {
+    .hero-wallpaper {
+      background-position: center center;
+    }
+  }
 }

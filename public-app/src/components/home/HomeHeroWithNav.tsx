@@ -10,13 +10,14 @@ import { useHomeStatistics } from "@/hooks/useHomeStatistics";
 
 import { cn } from "@/lib/utils";
 
+import HomeUpperSectionImage from "@/components/layout/HomeUpperSectionImage";
+
 import {
   BookOpenIcon,
   LibraryIcon,
   PlayIcon,
   SparklesIcon
 } from "lucide-react";
-import Image from "next/image";
 
 type CounterKey = "anime" | "manga" | "lightNovel";
 
@@ -90,20 +91,7 @@ export default function HomeHeroWithNav() {
 
   return (
     <section className="relative min-h-[640px] w-full overflow-hidden bg-white lg:min-h-[660px]">
-      <Image
-        src="/hero_upper_image.webp"
-        alt=""
-        fill
-        priority
-        className="object-cover object-[82%_center] sm:object-[86%_center] lg:object-[right_center]"
-        sizes="100vw"
-      />
-      <div
-        className={cn(
-          "absolute inset-0 max-sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.72)_32%,rgba(255,255,255,0.28)_62%,rgba(255,255,255,0)_100%)]",
-          "sm:bg-[linear-gradient(90deg,rgba(255,255,255,0.8)_0%,rgba(255,255,255,0.5)_30%,rgba(255,255,255,0.2)_48%,rgba(255,255,255,0)_58%)]"
-        )}
-      />
+      <HomeUpperSectionImage priority />
       <div className="absolute inset-x-0 bottom-0 h-56 bg-linear-to-b from-white/0 via-white/80 to-white" />
 
       <div className="relative z-10 flex min-h-[640px] flex-col lg:min-h-[660px]">

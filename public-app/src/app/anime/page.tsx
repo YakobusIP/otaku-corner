@@ -4,6 +4,7 @@ import GeneralFooter from "@/components/GeneralFooter";
 import AnimeHeader from "@/components/anime/AnimeHeader";
 import AnimeListSection from "@/components/anime/AnimeListSection";
 import { AnimeProvider } from "@/components/context/AnimeContext";
+import HeroWallpaper from "@/components/layout/HeroWallpaper";
 
 import {
   buildAnimeListFiltersFromSearchParams,
@@ -54,11 +55,11 @@ export default async function Page({ searchParams }: SearchParams) {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <AnimeProvider>
-        <div className="flex flex-col min-h-dvh main-gradient-bg">
+        <HeroWallpaper>
           <AnimeHeader />
           <AnimeListSection />
           <GeneralFooter />
-        </div>
+        </HeroWallpaper>
       </AnimeProvider>
     </HydrationBoundary>
   );
