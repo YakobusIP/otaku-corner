@@ -1,15 +1,27 @@
 "use client";
 
+import { useCallback, useRef } from "react";
+
 import AnimeCard from "@/components/anime/AnimeCard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useAnimeGridColumnCount } from "@/hooks/useAnimeGridColumnCount";
 import { useAnimeListBody } from "@/hooks/useAnimeListBody";
 
+import { getAnimeCardStaggerDelay } from "@/lib/anime-grid-stagger";
+
+import { motion, useReducedMotion } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 import { XIcon } from "lucide-react";
 import Image from "next/image";
 
+const cardEntranceEase = [0.22, 1, 0.36, 1] as const;
+
 export default function AnimeListSection() {
+  const prefersReducedMotion = useReducedMotion();
+  const columnCount = useAnimeGridColumnCount();
+
   const {
     query,
     filters,
@@ -19,7 +31,7 @@ export default function AnimeListSection() {
     isPending,
     hasNextPage,
     isFetchingNextPage,
-    sentinelRef,
+    fetchNextPage,
     genreList,
     studioList,
     themeList,
@@ -28,8 +40,33 @@ export default function AnimeListSection() {
     loadingDots
   } = useAnimeListBody();
 
+  const fetchNextPageRef = useRef(fetchNextPage);
+  fetchNextPageRef.current = fetchNextPage;
+
+  const hasNextPageRef = useRef(hasNextPage);
+  hasNextPageRef.current = hasNextPage;
+
+  const isFetchingNextPageRef = useRef(isFetchingNextPage);
+  isFetchingNextPageRef.current = isFetchingNextPage;
+
+  const fetchNextIfNeeded = useCallback(() => {
+    if (!hasNextPageRef.current || isFetchingNextPageRef.current) return;
+    void fetchNextPageRef.current();
+  }, []);
+
+  const { ref: loadMoreRef } = useInView({
+    skip: !hasNextPage,
+    rootMargin: "0px 0px 72px 0px",
+    threshold: 0,
+    initialInView: false,
+    onChange: (visible) => {
+      if (!visible) return;
+      fetchNextIfNeeded();
+    }
+  });
+
   return (
-    <div className="container mx-auto px-4 py-8 flex flex-col flex-1">
+    <div className="container mx-auto flex flex-1 flex-col py-8">
       {(query || activeFiltersCount > 0) && (
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <span className="text-slate-700">
@@ -152,7 +189,7 @@ export default function AnimeListSection() {
 
       <div className="flex flex-1 flex-col">
         {isPending ? (
-          <section className="container mx-auto px-4 py-8 mb-8 flex justify-center">
+          <section className="container mx-auto mb-8 flex justify-center py-8">
             <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl max-w-md w-full h-fit">
               <CardContent className="p-8 text-center">
                 <div className="mb-6">
@@ -199,7 +236,7 @@ export default function AnimeListSection() {
             </Card>
           </section>
         ) : animeList.length === 0 ? (
-          <section className="container mx-auto px-4 py-8 mb-8 flex justify-center">
+          <section className="container mx-auto mb-8 flex justify-center py-8">
             <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl max-w-md w-full h-fit">
               <CardContent className="p-8 text-center">
                 <div className="mb-6">
@@ -230,21 +267,34 @@ export default function AnimeListSection() {
             </Card>
           </section>
         ) : (
-          <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
-            {animeList.map((anime) => {
-              return <AnimeCard key={anime.id} anime={anime} />;
+          <section className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4 xl:grid-cols-5">
+            {animeList.map((anime, index) => {
+              if (prefersReducedMotion) {
+                return <AnimeCard key={anime.id} anime={anime} />;
+              }
+
+              const delay = getAnimeCardStaggerDelay(index, columnCount);
+
+              return (
+                <motion.div
+                  key={anime.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{
+                    duration: 0.45,
+                    delay,
+                    ease: cardEntranceEase
+                  }}
+                >
+                  <AnimeCard anime={anime} />
+                </motion.div>
+              );
             })}
           </section>
         )}
 
         {hasNextPage ? (
-          <div
-            ref={sentinelRef}
-            className="h-8 w-full shrink-0 flex items-center justify-center text-xs text-slate-500"
-            aria-hidden
-          >
-            {isFetchingNextPage ? "Loading more…" : ""}
-          </div>
+          <div ref={loadMoreRef} className="h-8 w-full shrink-0" aria-hidden />
         ) : null}
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useMemo } from "react";
 
 import {
   genreService,
@@ -22,7 +22,6 @@ import {
 } from "@/lib/public-list-infinite-queries";
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { useInView } from "react-intersection-observer";
 
 export const useAnimeListBody = () => {
   const context = useContext(AnimeContext);
@@ -61,6 +60,10 @@ export const useAnimeListBody = () => {
     ]
   );
 
+  const listQuery = useInfiniteQuery(
+    getAnimeListInfiniteQueryOptions(listFilters)
+  );
+
   const {
     data,
     error,
@@ -68,21 +71,13 @@ export const useAnimeListBody = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
-  } = useInfiniteQuery(getAnimeListInfiniteQueryOptions(listFilters));
+  } = listQuery;
 
   const animeList = useMemo(
     () => data?.pages.flatMap((page) => page.data) ?? [],
     [data]
   );
   const animeMetadata = data?.pages[0]?.metadata;
-
-  const { ref: sentinelRef, inView } = useInView({ rootMargin: "240px" });
-
-  useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
-      void fetchNextPage();
-    }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   useQueryErrorToast(error);
 
@@ -143,7 +138,7 @@ export const useAnimeListBody = () => {
     isPending,
     hasNextPage,
     isFetchingNextPage,
-    sentinelRef,
+    fetchNextPage,
     genreList,
     studioList,
     themeList,
