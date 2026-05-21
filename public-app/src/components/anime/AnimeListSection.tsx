@@ -4,6 +4,7 @@ import { useCallback, useRef } from "react";
 
 import AnimeCard from "@/components/anime/AnimeCard";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { useAnimeGridColumnCount } from "@/hooks/useAnimeGridColumnCount";
@@ -12,9 +13,9 @@ import { useAnimeListBody } from "@/hooks/useAnimeListBody";
 import { getAnimeCardStaggerDelay } from "@/lib/anime-grid-stagger";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { useInView } from "react-intersection-observer";
-import { XIcon } from "lucide-react";
+import { CompassIcon, SearchIcon, XIcon } from "lucide-react";
 import Image from "next/image";
+import { useInView } from "react-intersection-observer";
 
 const cardEntranceEase = [0.22, 1, 0.36, 1] as const;
 
@@ -36,6 +37,8 @@ export default function AnimeListSection() {
     studioList,
     themeList,
     removeFilter,
+    clearAllFilters,
+    browseAllAnime,
     activeFiltersCount,
     loadingDots
   } = useAnimeListBody();
@@ -190,15 +193,15 @@ export default function AnimeListSection() {
       <div className="flex flex-1 flex-col">
         {isPending ? (
           <section className="container mx-auto mb-8 flex justify-center py-8">
-            <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl max-w-md w-full h-fit">
+            <Card className="bg-white backdrop-blur-xl border border-white shadow-2xl max-w-md w-full h-fit">
               <CardContent className="p-8 text-center">
                 <div className="mb-6">
-                  <div className="w-fit mx-auto mb-4 rounded-xl overflow-hidden bg-white/60 backdrop-blur-sm border border-white/40 flex items-center justify-center">
+                  <div className="w-fit mx-auto mb-4 rounded-xl overflow-hidden bg-white backdrop-blur-sm border border-white flex items-center justify-center">
                     <Image
-                      src="/loading.gif"
-                      width={220}
-                      height={124}
-                      className="object-cover"
+                      src="/loading.webp"
+                      width={400}
+                      height={400}
+                      className="w-64"
                       alt="Loading animes"
                       unoptimized
                     />
@@ -220,15 +223,15 @@ export default function AnimeListSection() {
 
                 <div className="mt-8 flex justify-center space-x-2">
                   <div
-                    className="w-2 h-2 bg-orange-400 rounded-full animate-bounce"
+                    className="w-2 h-2 bg-rose-200 rounded-full animate-bounce"
                     style={{ animationDelay: "0ms" }}
                   />
                   <div
-                    className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"
+                    className="w-2 h-2 bg-rose-300 rounded-full animate-bounce"
                     style={{ animationDelay: "150ms" }}
                   />
                   <div
-                    className="w-2 h-2 bg-orange-600 rounded-full animate-bounce"
+                    className="w-2 h-2 bg-rose-400 rounded-full animate-bounce"
                     style={{ animationDelay: "300ms" }}
                   />
                 </div>
@@ -237,15 +240,15 @@ export default function AnimeListSection() {
           </section>
         ) : animeList.length === 0 ? (
           <section className="container mx-auto mb-8 flex justify-center py-8">
-            <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl max-w-md w-full h-fit">
+            <Card className="bg-white backdrop-blur-xl border border-white shadow-2xl max-w-md w-full h-fit">
               <CardContent className="p-8 text-center">
                 <div className="mb-6">
-                  <div className="w-fit mx-auto mb-4 rounded-xl overflow-hidden bg-white/60 backdrop-blur-sm border border-white/40 flex items-center justify-center">
+                  <div className="w-fit mx-auto mb-4 rounded-xl overflow-hidden bg-white backdrop-blur-sm border border-white flex items-center justify-center">
                     <Image
-                      src="/no-result.gif"
-                      width={128}
-                      height={128}
-                      className="w-32 h-32 rounded-xl"
+                      src="/no-result.webp"
+                      width={400}
+                      height={400}
+                      className="w-64"
                       alt="No result"
                       unoptimized
                     />
@@ -262,6 +265,24 @@ export default function AnimeListSection() {
                   <p className="text-xs text-slate-500 mt-2">
                     Perhaps try a different keyword or check for typos
                   </p>
+                </div>
+
+                <div className="mt-8 flex justify-center space-x-2">
+                  <Button
+                    className="bg-rose-400 text-white hover:bg-rose-500"
+                    onClick={clearAllFilters}
+                  >
+                    <SearchIcon />
+                    Clear Filters
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-white"
+                    onClick={browseAllAnime}
+                  >
+                    <CompassIcon />
+                    Browse All Anime
+                  </Button>
                 </div>
               </CardContent>
             </Card>

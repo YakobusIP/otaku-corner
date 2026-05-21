@@ -7,33 +7,67 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { SORT_ORDER } from "@/lib/enums";
+import { cn } from "@/lib/utils";
 
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
 
 type Props = {
   sort?: string;
   order?: SORT_ORDER;
   handleSort: (key: string) => void;
+  compactBelowMd?: boolean;
 };
 
-export default function SortDirection({ sort, order, handleSort }: Props) {
+const sortLabel = (sort?: string) =>
+  sort === "title"
+    ? "Title"
+    : sort === "score"
+      ? "MAL Score"
+      : "Personal Score";
+
+export default function SortDirection({
+  sort,
+  order,
+  handleSort,
+  compactBelowMd = false
+}: Props) {
+  const orderIcon = (
+    <span className="shrink-0">
+      {order === SORT_ORDER.ASCENDING ? (
+        <ArrowUpIcon className="h-4 w-4" />
+      ) : (
+        <ArrowDownIcon className="h-4 w-4" />
+      )}
+    </span>
+  );
+
+  const sortLabelContent = (
+    <span className="inline-flex items-center gap-2 whitespace-nowrap">
+      {orderIcon}
+      <span>Sort by: {sortLabel(sort)}</span>
+    </span>
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="w-full sm:w-fit bg-white/60 backdrop-blur-sm border-white/40 text-left hover:cursor-pointer"
+          aria-label={`Sort by ${sortLabel(sort)}`}
+          className={cn(
+            "bg-white/60 backdrop-blur-sm border-white/40",
+            compactBelowMd
+              ? "max-md:size-10 max-md:shrink-0 max-md:justify-center max-md:px-0 md:h-10 md:w-fit md:px-4"
+              : "w-full sm:w-fit"
+          )}
         >
-          Sort by:{" "}
-          {sort === "title"
-            ? "Title"
-            : sort === "score"
-              ? "MAL Score"
-              : "Personal Score"}
-          {order === SORT_ORDER.ASCENDING ? (
-            <ArrowUpIcon className="ml-2 w-4 h-4" />
+          {compactBelowMd ? (
+            <>
+              <ArrowUpDownIcon className="h-4 w-4 md:hidden" />
+              <span className="hidden md:contents">{sortLabelContent}</span>
+            </>
           ) : (
-            <ArrowDownIcon className="ml-2 w-4 h-4" />
+            sortLabelContent
           )}
         </Button>
       </DropdownMenuTrigger>

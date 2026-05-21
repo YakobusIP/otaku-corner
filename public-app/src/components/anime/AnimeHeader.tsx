@@ -54,7 +54,7 @@ export default function AnimeHeader() {
 
   const headerInner = (
     <div className="container mx-auto py-4">
-      <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+      <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div className="flex items-center gap-3">
           <Button
             asChild
@@ -78,22 +78,26 @@ export default function AnimeHeader() {
           </div>
         </div>
 
-        <div className="flex w-full flex-col items-start gap-3 sm:w-auto sm:flex-row sm:items-center">
-          <AnimeSearch initialQuery={query} />
-          <div className="flex w-full items-center gap-2 sm:w-auto">
+        <div className="flex w-full min-w-0 flex-row items-center gap-2 md:w-auto md:gap-3">
+          <div className="min-w-0 flex-1 md:flex-none md:w-48 2xl:w-64">
+            <AnimeSearch initialQuery={query} />
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
             <SortDirection
               sort={sort}
               order={order as SORT_ORDER}
               handleSort={handleSort}
+              compactBelowMd
             />
 
             <Button
               variant="outline"
+              aria-label="Filters"
               onClick={() => setShowAdvancedFilters((prev) => !prev)}
-              className="relative border-white/40 bg-white/60 text-slate-800 backdrop-blur-sm hover:bg-white/80 hover:cursor-pointer"
+              className="relative size-10 shrink-0 px-0 border-white/40 bg-white/60 text-slate-800 backdrop-blur-sm hover:bg-white/80 md:h-10 md:w-auto md:px-4"
             >
               <SlidersHorizontalIcon size={16} />
-              Filters
+              <span className="hidden md:inline">Filters</span>
               {activeFiltersCount > 0 && (
                 <Badge className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 p-0 text-xs text-white">
                   {activeFiltersCount}
@@ -119,7 +123,7 @@ export default function AnimeHeader() {
                   size="sm"
                   onClick={() => handleStatus(filter.value)}
                   className={cn(
-                    "relative z-10 whitespace-nowrap hover:cursor-pointer",
+                    "relative z-10 whitespace-nowrap",
                     isActive
                       ? activeStatusButtonClass
                       : "text-slate-700 hover:bg-white/30"

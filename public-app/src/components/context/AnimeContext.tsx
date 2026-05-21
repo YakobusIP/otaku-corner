@@ -53,7 +53,13 @@ export const AnimeProvider = ({ children }: AnimeProviderProps) => {
     setState((prev) => ({ ...prev, query }));
   }, 1000);
 
-  const setQuery = (query: string) => debouncedSetQuery(query);
+  const setQuery = (query: string) => {
+    if (query === "") {
+      setState((prev) => ({ ...prev, query: "" }));
+      return;
+    }
+    debouncedSetQuery(query);
+  };
 
   const [_, startTransition] = useTransition();
 

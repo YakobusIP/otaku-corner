@@ -117,6 +117,24 @@ export const useAnimeListBody = () => {
     });
   };
 
+  const clearAllFilters = () => {
+    setQuery("");
+    setState({
+      filters: {
+        genre: undefined,
+        studio: undefined,
+        theme: undefined,
+        malScore: undefined,
+        personalScore: undefined,
+        type: undefined
+      }
+    });
+  };
+
+  const browseAllAnime = () => {
+    setState({ status: undefined });
+  };
+
   const activeFiltersCount = [
     filters.genre,
     filters.studio,
@@ -143,6 +161,8 @@ export const useAnimeListBody = () => {
     studioList,
     themeList,
     removeFilter,
+    clearAllFilters,
+    browseAllAnime,
     activeFiltersCount,
     loadingDots
   };
