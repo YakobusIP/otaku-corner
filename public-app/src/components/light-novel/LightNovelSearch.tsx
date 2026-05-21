@@ -30,7 +30,7 @@ export default function LightNovelSearch({ initialQuery }: Props) {
   };
 
   return (
-    <div className="relative w-full sm:w-auto">
+    <div className="relative min-w-0 w-full">
       <SearchIcon
         className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"
         size={18}
@@ -39,7 +39,7 @@ export default function LightNovelSearch({ initialQuery }: Props) {
         placeholder="Search light novel..."
         value={query}
         onChange={handleChange}
-        className="pl-10 w-full sm:w-64 bg-white/60 backdrop-blur-sm border-white/40 text-slate-800 placeholder:text-slate-600"
+        className="pl-10 w-full bg-white/60 backdrop-blur-sm border-white/40 text-slate-800 placeholder:text-slate-600"
       />
     </div>
   );

@@ -46,7 +46,7 @@ export default function HomePublicNavbar(props: HomePublicNavbarProps) {
         />
         <span>Otaku Corner</span>
       </Link>
-      <nav className="hidden w-full flex-wrap items-center justify-center sm:flex">
+      <nav className="hidden w-full flex-wrap items-center justify-center md:flex">
         <div className="inline-flex max-w-full flex-wrap items-stretch justify-center gap-2 overflow-hidden rounded-xl border border-white/45 bg-white/35 shadow-sm backdrop-blur-md">
           {navLinks.map((item, index) => {
             const isActive = pathname === item.href;
@@ -85,9 +85,7 @@ export default function HomePublicNavbar(props: HomePublicNavbarProps) {
   );
 
   if (prefersReducedMotion) {
-    return (
-      <header className={headerClassName}>{navbarContent}</header>
-    );
+    return <header className={headerClassName}>{navbarContent}</header>;
   }
 
   return (

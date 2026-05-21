@@ -54,7 +54,7 @@ export default function AnimeHeader() {
 
   const headerInner = (
     <div className="container mx-auto py-4">
-      <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center">
+      <div className="mb-4 flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
         <div className="flex items-center gap-3">
           <Button
             asChild
@@ -78,8 +78,8 @@ export default function AnimeHeader() {
           </div>
         </div>
 
-        <div className="flex w-full min-w-0 flex-row items-center gap-2 md:w-auto md:gap-3">
-          <div className="min-w-0 flex-1 md:flex-none md:w-48 2xl:w-64">
+        <div className="flex w-full min-w-0 flex-row items-center gap-2 lg:w-auto lg:gap-3">
+          <div className="min-w-0 flex-1 lg:flex-none lg:w-48 2xl:w-64">
             <AnimeSearch initialQuery={query} />
           </div>
           <div className="flex shrink-0 items-center gap-2">

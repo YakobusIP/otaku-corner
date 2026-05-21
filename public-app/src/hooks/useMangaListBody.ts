@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useMemo } from "react";
 
 import {
   authorService,
@@ -22,7 +22,6 @@ import {
 } from "@/lib/public-list-infinite-queries";
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { useInView } from "react-intersection-observer";
 
 export const useMangaListBody = () => {
   const context = useContext(MangaContext);
@@ -59,6 +58,10 @@ export const useMangaListBody = () => {
     ]
   );
 
+  const listQuery = useInfiniteQuery(
+    getMangaListInfiniteQueryOptions(listFilters)
+  );
+
   const {
     data,
     error,
@@ -66,21 +69,13 @@ export const useMangaListBody = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
-  } = useInfiniteQuery(getMangaListInfiniteQueryOptions(listFilters));
+  } = listQuery;
 
   const mangaList = useMemo(
     () => data?.pages.flatMap((page) => page.data) ?? [],
     [data]
   );
   const mangaMetadata = data?.pages[0]?.metadata;
-
-  const { ref: sentinelRef, inView } = useInView({ rootMargin: "240px" });
-
-  useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
-      void fetchNextPage();
-    }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   useQueryErrorToast(error);
 
@@ -120,6 +115,23 @@ export const useMangaListBody = () => {
     });
   };
 
+  const clearAllFilters = () => {
+    setQuery("");
+    setState({
+      filters: {
+        author: undefined,
+        genre: undefined,
+        theme: undefined,
+        malScore: undefined,
+        personalScore: undefined
+      }
+    });
+  };
+
+  const browseAllManga = () => {
+    setState({ status: undefined });
+  };
+
   const activeFiltersCount = [
     filters.author,
     filters.genre,
@@ -132,6 +144,7 @@ export const useMangaListBody = () => {
 
   return {
     query,
+    status,
     filters,
     setQuery,
     mangaList,
@@ -139,11 +152,13 @@ export const useMangaListBody = () => {
     isPending,
     hasNextPage,
     isFetchingNextPage,
-    sentinelRef,
+    fetchNextPage,
     genreList,
     authorList,
     themeList,
     removeFilter,
+    clearAllFilters,
+    browseAllManga,
     activeFiltersCount,
     loadingDots
   };

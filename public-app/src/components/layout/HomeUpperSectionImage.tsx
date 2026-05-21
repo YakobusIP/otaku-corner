@@ -1,6 +1,6 @@
-import Image from "next/image";
-
 import { cn } from "@/lib/utils";
+
+import Image from "next/image";
 
 type HomeUpperSectionImageProps = {
   priority?: boolean;
@@ -24,7 +24,7 @@ export default function HomeUpperSectionImage({
         alt=""
         fill
         priority={priority}
-        className="object-cover object-[70%_center] md:object-center"
+        className="object-cover object-[80%_center] md:object-center"
         sizes="100vw"
       />
       <div className="hero-upper-image-gradient absolute inset-0" />

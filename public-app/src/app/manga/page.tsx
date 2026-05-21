@@ -2,6 +2,7 @@ import { mangaService } from "@/services/manga.service";
 
 import GeneralFooter from "@/components/GeneralFooter";
 import { MangaProvider } from "@/components/context/MangaContext";
+import HeroWallpaper from "@/components/layout/HeroWallpaper";
 import MangaHeader from "@/components/manga/MangaHeader";
 import MangaListSection from "@/components/manga/MangaListSection";
 
@@ -54,11 +55,11 @@ export default async function Page({ searchParams }: SearchParams) {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <MangaProvider>
-        <div className="flex flex-col min-h-dvh main-gradient-bg">
+        <HeroWallpaper>
           <MangaHeader />
           <MangaListSection />
           <GeneralFooter />
-        </div>
+        </HeroWallpaper>
       </MangaProvider>
     </HydrationBoundary>
   );

@@ -4,6 +4,7 @@ import GeneralFooter from "@/components/GeneralFooter";
 import { LightNovelProvider } from "@/components/context/LightNovelContext";
 import LightNovelHeader from "@/components/light-novel/LightNovelHeader";
 import LightNovelListSection from "@/components/light-novel/LightNovelListSection";
+import HeroWallpaper from "@/components/layout/HeroWallpaper";
 
 import {
   buildLightNovelListFiltersFromSearchParams,
@@ -54,11 +55,11 @@ export default async function Page({ searchParams }: SearchParams) {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <LightNovelProvider>
-        <div className="flex flex-col min-h-dvh main-gradient-bg">
+        <HeroWallpaper>
           <LightNovelHeader />
           <LightNovelListSection />
           <GeneralFooter />
-        </div>
+        </HeroWallpaper>
       </LightNovelProvider>
     </HydrationBoundary>
   );

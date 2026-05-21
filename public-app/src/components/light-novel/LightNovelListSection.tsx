@@ -1,15 +1,28 @@
 "use client";
 
+import { useCallback, useRef } from "react";
+
 import LightNovelCard from "@/components/light-novel/LightNovelCard";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useLightNovelGridColumnCount } from "@/hooks/useLightNovelGridColumnCount";
 import { useLightNovelListBody } from "@/hooks/useLightNovelListBody";
 
-import { XIcon } from "lucide-react";
+import { getLightNovelCardStaggerDelay } from "@/lib/light-novel-grid-stagger";
+
+import { motion, useReducedMotion } from "framer-motion";
+import { CompassIcon, SearchIcon, XIcon } from "lucide-react";
 import Image from "next/image";
+import { useInView } from "react-intersection-observer";
+
+const cardEntranceEase = [0.22, 1, 0.36, 1] as const;
 
 export default function LightNovelListSection() {
+  const prefersReducedMotion = useReducedMotion();
+  const columnCount = useLightNovelGridColumnCount();
+
   const {
     query,
     filters,
@@ -19,17 +32,44 @@ export default function LightNovelListSection() {
     isPending,
     hasNextPage,
     isFetchingNextPage,
-    sentinelRef,
+    fetchNextPage,
     genreList,
     authorList,
     themeList,
     removeFilter,
+    clearAllFilters,
+    browseAllLightNovels,
     activeFiltersCount,
     loadingDots
   } = useLightNovelListBody();
 
+  const fetchNextPageRef = useRef(fetchNextPage);
+  fetchNextPageRef.current = fetchNextPage;
+
+  const hasNextPageRef = useRef(hasNextPage);
+  hasNextPageRef.current = hasNextPage;
+
+  const isFetchingNextPageRef = useRef(isFetchingNextPage);
+  isFetchingNextPageRef.current = isFetchingNextPage;
+
+  const fetchNextIfNeeded = useCallback(() => {
+    if (!hasNextPageRef.current || isFetchingNextPageRef.current) return;
+    void fetchNextPageRef.current();
+  }, []);
+
+  const { ref: loadMoreRef } = useInView({
+    skip: !hasNextPage,
+    rootMargin: "0px 0px 72px 0px",
+    threshold: 0,
+    initialInView: false,
+    onChange: (visible) => {
+      if (!visible) return;
+      fetchNextIfNeeded();
+    }
+  });
+
   return (
-    <div className="container mx-auto px-4 py-8 flex flex-col flex-1">
+    <div className="container mx-auto flex flex-1 flex-col py-8">
       {(query || activeFiltersCount > 0) && (
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <span className="text-slate-700">
@@ -137,16 +177,16 @@ export default function LightNovelListSection() {
 
       <div className="flex flex-1 flex-col">
         {isPending ? (
-          <section className="container mx-auto px-4 py-8 mb-8 flex justify-center">
-            <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl max-w-md w-full h-fit">
+          <section className="container mx-auto mb-8 flex justify-center py-8">
+            <Card className="bg-white backdrop-blur-xl border border-white shadow-2xl max-w-md w-full h-fit">
               <CardContent className="p-8 text-center">
                 <div className="mb-6">
-                  <div className="w-fit mx-auto mb-4 rounded-xl overflow-hidden bg-white/60 backdrop-blur-sm border border-white/40 flex items-center justify-center">
+                  <div className="w-fit mx-auto mb-4 rounded-xl overflow-hidden bg-white backdrop-blur-sm border border-white flex items-center justify-center">
                     <Image
-                      src="/loading.gif"
-                      width={220}
-                      height={124}
-                      className="object-cover"
+                      src="/loading.webp"
+                      width={400}
+                      height={400}
+                      className="w-64"
                       alt="Loading light novels"
                       unoptimized
                     />
@@ -168,15 +208,15 @@ export default function LightNovelListSection() {
 
                 <div className="mt-8 flex justify-center space-x-2">
                   <div
-                    className="w-2 h-2 bg-orange-400 rounded-full animate-bounce"
+                    className="w-2 h-2 bg-rose-200 rounded-full animate-bounce"
                     style={{ animationDelay: "0ms" }}
                   />
                   <div
-                    className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"
+                    className="w-2 h-2 bg-rose-300 rounded-full animate-bounce"
                     style={{ animationDelay: "150ms" }}
                   />
                   <div
-                    className="w-2 h-2 bg-orange-600 rounded-full animate-bounce"
+                    className="w-2 h-2 bg-rose-400 rounded-full animate-bounce"
                     style={{ animationDelay: "300ms" }}
                   />
                 </div>
@@ -184,16 +224,16 @@ export default function LightNovelListSection() {
             </Card>
           </section>
         ) : lightNovelList.length === 0 ? (
-          <section className="container mx-auto px-4 py-8 mb-8 flex justify-center">
-            <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl max-w-md w-full h-fit">
+          <section className="container mx-auto mb-8 flex justify-center py-8">
+            <Card className="bg-white backdrop-blur-xl border border-white shadow-2xl max-w-md w-full h-fit">
               <CardContent className="p-8 text-center">
                 <div className="mb-6">
-                  <div className="w-fit mx-auto mb-4 rounded-xl overflow-hidden bg-white/60 backdrop-blur-sm border border-white/40 flex items-center justify-center">
+                  <div className="w-fit mx-auto mb-4 rounded-xl overflow-hidden bg-white backdrop-blur-sm border border-white flex items-center justify-center">
                     <Image
-                      src="/no-result.gif"
-                      width={128}
-                      height={128}
-                      className="w-32 h-32 rounded-xl"
+                      src="/no-result.webp"
+                      width={400}
+                      height={400}
+                      className="w-64"
                       alt="No result"
                       unoptimized
                     />
@@ -211,27 +251,58 @@ export default function LightNovelListSection() {
                     Perhaps try a different keyword or check for typos
                   </p>
                 </div>
+
+                <div className="mt-8 flex justify-center space-x-2">
+                  <Button
+                    className="bg-rose-400 text-white hover:bg-rose-500"
+                    onClick={clearAllFilters}
+                  >
+                    <SearchIcon />
+                    Clear Filters
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-white"
+                    onClick={browseAllLightNovels}
+                  >
+                    <CompassIcon />
+                    Browse All Light Novels
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </section>
         ) : (
-          <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
-            {lightNovelList.map((lightNovel) => {
+          <section className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4 xl:grid-cols-5">
+            {lightNovelList.map((lightNovel, index) => {
+              if (prefersReducedMotion) {
+                return (
+                  <LightNovelCard key={lightNovel.id} lightNovel={lightNovel} />
+                );
+              }
+
+              const delay = getLightNovelCardStaggerDelay(index, columnCount);
+
               return (
-                <LightNovelCard key={lightNovel.id} lightNovel={lightNovel} />
+                <motion.div
+                  key={lightNovel.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{
+                    duration: 0.45,
+                    delay,
+                    ease: cardEntranceEase
+                  }}
+                >
+                  <LightNovelCard lightNovel={lightNovel} />
+                </motion.div>
               );
             })}
           </section>
         )}
 
         {hasNextPage ? (
-          <div
-            ref={sentinelRef}
-            className="h-8 w-full shrink-0 flex items-center justify-center text-xs text-slate-500"
-            aria-hidden
-          >
-            {isFetchingNextPage ? "Loading more…" : ""}
-          </div>
+          <div ref={loadMoreRef} className="h-8 w-full shrink-0" aria-hidden />
         ) : null}
       </div>
     </div>
