@@ -1,16 +1,12 @@
-import { mangaService } from "@/services/manga.service";
-
 import GeneralFooter from "@/components/GeneralFooter";
-import { MangaProvider } from "@/components/context/MangaContext";
 import HeroWallpaper from "@/components/layout/HeroWallpaper";
-import MangaHeader from "@/components/manga/MangaHeader";
-import MangaListSection from "@/components/manga/MangaListSection";
+import { mangaListConfig } from "@/components/media-list/MangaListConfig";
+import MediaListHeader from "@/components/media-list/MediaListHeader";
+import MediaListProvider from "@/components/media-list/MediaListProvider";
+import MediaListSection from "@/components/media-list/MediaListSection";
 
-import {
-  buildMangaListFiltersFromSearchParams,
-  getMangaListInfiniteQueryOptions
-} from "@/lib/public-list-infinite-queries";
-import { publicListKeys } from "@/lib/query-keys";
+import { mangaListQueryConfig } from "@/lib/manga-list-query";
+import { mangaListServerConfig } from "@/lib/manga-list-server";
 
 import {
   HydrationBoundary,
@@ -34,18 +30,19 @@ type SearchParams = {
 
 export default async function Page({ searchParams }: SearchParams) {
   const params = await searchParams;
-  const listFilters = buildMangaListFiltersFromSearchParams(params);
+  const listFilters =
+    mangaListServerConfig.buildListFiltersFromSearchParams(params);
 
   const queryClient = new QueryClient();
 
   await Promise.all([
     queryClient.prefetchInfiniteQuery(
-      getMangaListInfiniteQueryOptions(listFilters)
+      mangaListQueryConfig.getInfiniteQueryOptions(listFilters)
     ),
     queryClient
       .prefetchQuery({
-        queryKey: publicListKeys.mangaStatusCounts(),
-        queryFn: () => mangaService.fetchStatusCounts(),
+        queryKey: mangaListQueryConfig.statusCounts.queryKey,
+        queryFn: mangaListQueryConfig.statusCounts.queryFn,
         staleTime: Infinity,
         retry: false
       })
@@ -54,13 +51,13 @@ export default async function Page({ searchParams }: SearchParams) {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <MangaProvider>
+      <MediaListProvider config={mangaListConfig}>
         <HeroWallpaper>
-          <MangaHeader />
-          <MangaListSection />
+          <MediaListHeader config={mangaListConfig} />
+          <MediaListSection config={mangaListConfig} />
           <GeneralFooter />
         </HeroWallpaper>
-      </MangaProvider>
+      </MediaListProvider>
     </HydrationBoundary>
   );
 }

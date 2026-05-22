@@ -1,38 +1,40 @@
 "use client";
 
-import { Dispatch, SetStateAction, useContext } from "react";
+import { Dispatch, SetStateAction } from "react";
 
-import { LightNovelContext } from "@/components/context/LightNovelContext";
-import FilterAuthor from "@/components/filter-sort-dropdowns/FilterAuthor";
-import FilterGenre from "@/components/filter-sort-dropdowns/FilterGenre";
-import FilterMALScore from "@/components/filter-sort-dropdowns/FilterMALScore";
-import FilterPersonalScore from "@/components/filter-sort-dropdowns/FilterPersonalScore";
-import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
+import type { MediaListClientConfig } from "@/types/context.type";
 import { Button } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
 
 import { XIcon } from "lucide-react";
 
-type Props = {
+type Props<
+  TItem extends { id: number },
+  TFilters extends Record<string, unknown>,
+  TListFilters extends Record<string, unknown>,
+  TInfiniteQueryKey extends readonly unknown[]
+> = {
+  config: MediaListClientConfig<TItem, TFilters, TListFilters, TInfiniteQueryKey>;
   setShowAdvancedFilters: Dispatch<SetStateAction<boolean>>;
   layout?: "inline" | "dialog";
 };
 
-export default function LightNovelAdvancedFilters({
+export default function MediaListAdvancedFilters<
+  TItem extends { id: number },
+  TFilters extends Record<string, unknown>,
+  TListFilters extends Record<string, unknown>,
+  TInfiniteQueryKey extends readonly unknown[]
+>({
+  config,
   setShowAdvancedFilters,
   layout = "inline"
-}: Props) {
-  const context = useContext(LightNovelContext);
-  if (!context) {
-    throw new Error("Filters must be used within an LightNovelProvider");
-  }
-
-  const { state, setState } = context;
+}: Props<TItem, TFilters, TListFilters, TInfiniteQueryKey>) {
+  const { state, setState } = config.context.useMediaListContext();
   const { filters } = state;
 
   const handleFilter =
-    <K extends keyof typeof filters>(field: K) =>
+    <K extends keyof TFilters & string>(field: K) =>
     (value?: number | string) => {
       setState({
         filters: {
@@ -43,14 +45,14 @@ export default function LightNovelAdvancedFilters({
     };
 
   const enableClearAllFilter = Object.values(filters).every(
-    (v) => v === undefined
+    (value) => value === undefined
   );
 
   const handleClearAllFilter = () => {
     setState({
       filters: Object.fromEntries(
-        Object.keys(filters).map((k) => [k, undefined])
-      ) as typeof filters
+        Object.keys(filters).map((key) => [key, undefined])
+      ) as TFilters
     });
   };
 
@@ -63,55 +65,14 @@ export default function LightNovelAdvancedFilters({
           : "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
       )}
     >
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 block">
-          Genre
-        </label>
-        <FilterGenre
-          selectedGenre={filters.genre}
-          handleFilterGenre={handleFilter("genre")}
-        />
-      </div>
-
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 block">
-          Author
-        </label>
-        <FilterAuthor
-          selectedAuthor={filters.author}
-          handleFilterAuthor={handleFilter("author")}
-        />
-      </div>
-
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 block">
-          Theme
-        </label>
-        <FilterTheme
-          selectedTheme={filters.theme}
-          handleFilterTheme={handleFilter("theme")}
-        />
-      </div>
-
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 block">
-          MAL Score
-        </label>
-        <FilterMALScore
-          selectedMALScore={filters.malScore}
-          handleFilterMALScore={handleFilter("malScore")}
-        />
-      </div>
-
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 block">
-          Personal Score
-        </label>
-        <FilterPersonalScore
-          selectedPersonalScore={filters.personalScore}
-          handleFilterPersonalScore={handleFilter("personalScore")}
-        />
-      </div>
+      {config.filterFields.map((field) => (
+        <div key={field.label}>
+          <label className="text-sm font-medium text-slate-700 mb-2 block">
+            {field.label}
+          </label>
+          {field.render(filters, handleFilter)}
+        </div>
+      ))}
 
       {layout === "inline" ? (
         <div className="flex items-end">

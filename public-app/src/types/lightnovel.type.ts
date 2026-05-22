@@ -80,4 +80,17 @@ type LightNovelSitemap = Pick<LightNovelEntity, "id" | "slug"> & {
   updatedAt: Date;
 };
 
-export type { LightNovelDetail, LightNovelList, LightNovelSitemap };
+type LightNovelFilters = {
+  author?: number;
+  genre?: number;
+  theme?: number;
+  malScore?: string;
+  personalScore?: string;
+};
+
+export type {
+  LightNovelDetail,
+  LightNovelFilters,
+  LightNovelList,
+  LightNovelSitemap
+};

@@ -99,4 +99,13 @@ type AnimeEpisode = {
   titleRomaji: string;
 };
 
-export type { AnimeDetail, AnimeList, AnimeSitemap };
+type AnimeFilters = {
+  genre?: number;
+  studio?: number;
+  theme?: number;
+  malScore?: string;
+  personalScore?: string;
+  type?: string;
+};
+
+export type { AnimeDetail, AnimeFilters, AnimeList, AnimeSitemap };

@@ -1,16 +1,12 @@
-import { animeService } from "@/services/anime.service";
-
 import GeneralFooter from "@/components/GeneralFooter";
-import AnimeHeader from "@/components/anime/AnimeHeader";
-import AnimeListSection from "@/components/anime/AnimeListSection";
-import { AnimeProvider } from "@/components/context/AnimeContext";
 import HeroWallpaper from "@/components/layout/HeroWallpaper";
+import { animeListConfig } from "@/components/media-list/AnimeListConfig";
+import MediaListHeader from "@/components/media-list/MediaListHeader";
+import MediaListProvider from "@/components/media-list/MediaListProvider";
+import MediaListSection from "@/components/media-list/MediaListSection";
 
-import {
-  buildAnimeListFiltersFromSearchParams,
-  getAnimeListInfiniteQueryOptions
-} from "@/lib/public-list-infinite-queries";
-import { publicListKeys } from "@/lib/query-keys";
+import { animeListQueryConfig } from "@/lib/anime-list-query";
+import { animeListServerConfig } from "@/lib/anime-list-server";
 
 import {
   HydrationBoundary,
@@ -34,18 +30,19 @@ type SearchParams = {
 
 export default async function Page({ searchParams }: SearchParams) {
   const params = await searchParams;
-  const listFilters = buildAnimeListFiltersFromSearchParams(params);
+  const listFilters =
+    animeListServerConfig.buildListFiltersFromSearchParams(params);
 
   const queryClient = new QueryClient();
 
   await Promise.all([
     queryClient.prefetchInfiniteQuery(
-      getAnimeListInfiniteQueryOptions(listFilters)
+      animeListQueryConfig.getInfiniteQueryOptions(listFilters)
     ),
     queryClient
       .prefetchQuery({
-        queryKey: publicListKeys.animeStatusCounts(),
-        queryFn: () => animeService.fetchStatusCounts(),
+        queryKey: animeListQueryConfig.statusCounts.queryKey,
+        queryFn: animeListQueryConfig.statusCounts.queryFn,
         staleTime: Infinity,
         retry: false
       })
@@ -54,13 +51,13 @@ export default async function Page({ searchParams }: SearchParams) {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <AnimeProvider>
+      <MediaListProvider config={animeListConfig}>
         <HeroWallpaper>
-          <AnimeHeader />
-          <AnimeListSection />
+          <MediaListHeader config={animeListConfig} />
+          <MediaListSection config={animeListConfig} />
           <GeneralFooter />
         </HeroWallpaper>
-      </AnimeProvider>
+      </MediaListProvider>
     </HydrationBoundary>
   );
 }

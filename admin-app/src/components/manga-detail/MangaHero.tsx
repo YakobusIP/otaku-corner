@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 import { MangaDetail } from "@/types/manga.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
@@ -262,7 +264,7 @@ export default function MangaHero({ mangaDetail }: Props) {
 }
 
 type StatTileProps = {
-  icon: React.ReactNode;
+  icon: ReactNode;
   tint: string;
   label: string;
   value: string;

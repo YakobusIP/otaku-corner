@@ -54,3 +54,15 @@ export const publicListKeys = {
   mangaStatusCounts: () => [...root, "manga", "statusCounts"] as const,
   lightNovelStatusCounts: () => [...root, "lightNovel", "statusCounts"] as const
 };
+
+export type AnimeListInfiniteQueryKey = ReturnType<
+  typeof publicListKeys.animeInfinite
+>;
+
+export type MangaListInfiniteQueryKey = ReturnType<
+  typeof publicListKeys.mangaInfinite
+>;
+
+export type LightNovelListInfiniteQueryKey = ReturnType<
+  typeof publicListKeys.lightNovelInfinite
+>;

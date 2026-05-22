@@ -1,10 +1,12 @@
 "use client";
 
+import { ReactNode } from "react";
+
 import { motion, useReducedMotion } from "framer-motion";
 
 type SlideUpInViewProps = {
   as?: "div" | "section" | "footer";
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 };
 

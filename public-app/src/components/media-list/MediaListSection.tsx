@@ -1,16 +1,18 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { Fragment, ReactNode, useCallback, useRef } from "react";
 
-import AnimeCard from "@/components/anime/AnimeCard";
+import EntityQueryErrorToasts from "@/components/media-list/EntityQueryErrorToasts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { useAnimeGridColumnCount } from "@/hooks/useAnimeGridColumnCount";
-import { useAnimeListBody } from "@/hooks/useAnimeListBody";
+import { useGridColumnCount } from "@/hooks/useGridColumnCount";
+import { useMediaListBody } from "@/hooks/useMediaListBody";
 
-import { getAnimeCardStaggerDelay } from "@/lib/anime-grid-stagger";
+import type { MediaListClientConfig } from "@/types/context.type";
+
+import { getCardStaggerDelay } from "@/lib/grid-stagger";
 
 import { motion, useReducedMotion } from "framer-motion";
 import { CompassIcon, SearchIcon, XIcon } from "lucide-react";
@@ -19,29 +21,50 @@ import { useInView } from "react-intersection-observer";
 
 const cardEntranceEase = [0.22, 1, 0.36, 1] as const;
 
-export default function AnimeListSection() {
+type Props<
+  TItem extends { id: number },
+  TFilters extends Record<string, unknown>,
+  TListFilters extends Record<string, unknown>,
+  TInfiniteQueryKey extends readonly unknown[]
+> = {
+  config: MediaListClientConfig<TItem, TFilters, TListFilters, TInfiniteQueryKey>;
+};
+
+const getChipDisplayValue = (
+  value: unknown,
+  capitalize: boolean | undefined
+) => {
+  const text = String(value);
+  return capitalize ? <span className="ml-1 capitalize">{text}</span> : text;
+};
+
+export default function MediaListSection<
+  TItem extends { id: number },
+  TFilters extends Record<string, unknown>,
+  TListFilters extends Record<string, unknown>,
+  TInfiniteQueryKey extends readonly unknown[]
+>({ config }: Props<TItem, TFilters, TListFilters, TInfiniteQueryKey>) {
   const prefersReducedMotion = useReducedMotion();
-  const columnCount = useAnimeGridColumnCount();
+  const columnCount = useGridColumnCount();
 
   const {
     query,
     filters,
     setQuery,
-    animeList,
-    animeMetadata,
+    itemList,
+    metadata,
     isPending,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-    genreList,
-    studioList,
-    themeList,
+    entityLists,
+    entityQueryErrors,
     removeFilter,
     clearAllFilters,
-    browseAllAnime,
+    browseAll,
     activeFiltersCount,
     loadingDots
-  } = useAnimeListBody();
+  } = useMediaListBody(config);
 
   const fetchNextPageRef = useRef(fetchNextPage);
   fetchNextPageRef.current = fetchNextPage;
@@ -70,10 +93,11 @@ export default function AnimeListSection() {
 
   return (
     <div className="container mx-auto flex flex-1 flex-col py-8">
+      <EntityQueryErrorToasts errors={entityQueryErrors} />
       {(query || activeFiltersCount > 0) && (
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <span className="text-slate-700">
-            Showing {animeMetadata?.itemCount} results
+            Showing {metadata?.itemCount} results
           </span>
           {query && (
             <Badge
@@ -90,103 +114,40 @@ export default function AnimeListSection() {
             </Badge>
           )}
 
-          {filters.genre !== undefined && (
-            <Badge
-              variant="outline"
-              className="bg-white/60 text-slate-700 border-white/40"
-            >
-              Genre:{" "}
-              {genreList?.find((genre) => genre.id === filters.genre)?.name ??
-                "Unknown genre"}
-              <button
-                className="ml-2 hover:text-slate-900"
-                onClick={() => removeFilter("genre")}
-              >
-                <XIcon size={12} />
-              </button>
-            </Badge>
-          )}
+          {config.activeFilterChips.map((chip) => {
+            const filterValue = filters[chip.key];
+            if (filterValue === undefined) return null;
 
-          {filters.studio !== undefined && (
-            <Badge
-              variant="outline"
-              className="bg-white/60 text-slate-700 border-white/40"
-            >
-              Studio:{" "}
-              {studioList?.find((studio) => studio.id === filters.studio)
-                ?.name ?? "Unknown studio"}
-              <button
-                className="ml-2 hover:text-slate-900"
-                onClick={() => removeFilter("studio")}
-              >
-                <XIcon size={12} />
-              </button>
-            </Badge>
-          )}
+            let displayValue: ReactNode = getChipDisplayValue(
+              filterValue,
+              chip.capitalize
+            );
 
-          {filters.theme !== undefined && (
-            <Badge
-              variant="outline"
-              className="bg-white/60 text-slate-700 border-white/40"
-            >
-              Theme:{" "}
-              {themeList?.find((theme) => theme.id === filters.theme)?.name ??
-                "Unknown theme"}
-              <button
-                className="ml-2 hover:text-slate-900"
-                onClick={() => removeFilter("theme")}
-              >
-                <XIcon size={12} />
-              </button>
-            </Badge>
-          )}
+            if (chip.resolveEntityName) {
+              const entityList = entityLists[chip.resolveEntityName.listKey];
+              const resolvedName = entityList?.find(
+                (entity) => entity.id === filterValue
+              )?.name;
+              displayValue =
+                resolvedName ?? chip.resolveEntityName.unknownLabel;
+            }
 
-          {filters.malScore !== undefined && (
-            <Badge
-              variant="outline"
-              className="bg-white/60 text-slate-700 border-white/40"
-            >
-              MAL Score:{" "}
-              <span className="ml-1 capitalize">{filters.malScore}</span>
-              <button
-                className="ml-2 hover:text-slate-900"
-                onClick={() => removeFilter("malScore")}
+            return (
+              <Badge
+                key={chip.key}
+                variant="outline"
+                className="bg-white/60 text-slate-700 border-white/40"
               >
-                <XIcon size={12} />
-              </button>
-            </Badge>
-          )}
-
-          {filters.personalScore !== undefined && (
-            <Badge
-              variant="outline"
-              className="bg-white/60 text-slate-700 border-white/40"
-            >
-              Personal Score:
-              <span className="ml-1 capitalize">{filters.personalScore}</span>
-              <button
-                className="ml-2 hover:text-slate-900"
-                onClick={() => removeFilter("personalScore")}
-              >
-                <XIcon size={12} />
-              </button>
-            </Badge>
-          )}
-
-          {filters.type !== undefined && (
-            <Badge
-              variant="outline"
-              className="bg-white/60 text-slate-700 border-white/40"
-            >
-              Type: {filters.type}
-              <button
-                className="ml-2 hover:text-slate-900"
-                onClick={() => removeFilter("type")}
-              >
-                <XIcon size={12} />
-              </button>
-            </Badge>
-          )}
+                {chip.label}: {displayValue}
+                <button
+                  className="ml-2 hover:text-slate-900"
+                  onClick={() => removeFilter(chip.key)}
+                >
+                  <XIcon size={12} />
+                </button>
+              </Badge>
+            );
+          })}
         </div>
       )}
 
@@ -202,15 +163,15 @@ export default function AnimeListSection() {
                       width={400}
                       height={400}
                       className="w-64"
-                      alt="Loading animes"
-                      unoptimized
+                      alt={config.list.loadingImageAlt}
+                      priority
                     />
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <h2 className="text-xl font-bold text-slate-800">
-                    Fetching animes
+                    {config.list.loadingTitle}
                     <span className="inline-block w-8 text-left">
                       {loadingDots}
                     </span>
@@ -238,7 +199,7 @@ export default function AnimeListSection() {
               </CardContent>
             </Card>
           </section>
-        ) : animeList.length === 0 ? (
+        ) : itemList.length === 0 ? (
           <section className="container mx-auto mb-8 flex justify-center py-8">
             <Card className="bg-white backdrop-blur-xl border border-white shadow-2xl max-w-md w-full h-fit">
               <CardContent className="p-8 text-center">
@@ -250,17 +211,17 @@ export default function AnimeListSection() {
                       height={400}
                       className="w-64"
                       alt="No result"
-                      unoptimized
+                      priority
                     />
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <h2 className="text-2xl md:text-3xl font-bold text-slate-800">
-                    No Anime Found {query && `for "${query}"`}
+                    {config.list.emptyTitle} {query && `for "${query}"`}
                   </h2>
                   <p className="text-slate-700 text-lg font-medium">
-                    We couldn&apos;t find any anime matching your search
+                    {config.list.emptyDescription}
                   </p>
                   <p className="text-xs text-slate-500 mt-2">
                     Perhaps try a different keyword or check for typos
@@ -278,10 +239,10 @@ export default function AnimeListSection() {
                   <Button
                     variant="outline"
                     className="border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-white"
-                    onClick={browseAllAnime}
+                    onClick={browseAll}
                   >
                     <CompassIcon />
-                    Browse All Anime
+                    {config.list.browseAllLabel}
                   </Button>
                 </div>
               </CardContent>
@@ -289,16 +250,20 @@ export default function AnimeListSection() {
           </section>
         ) : (
           <section className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4 xl:grid-cols-5">
-            {animeList.map((anime, index) => {
+            {itemList.map((item, index) => {
               if (prefersReducedMotion) {
-                return <AnimeCard key={anime.id} anime={anime} />;
+                return (
+                  <Fragment key={item.id}>
+                    {config.renderCard(item as TItem)}
+                  </Fragment>
+                );
               }
 
-              const delay = getAnimeCardStaggerDelay(index, columnCount);
+              const delay = getCardStaggerDelay(index, columnCount);
 
               return (
                 <motion.div
-                  key={anime.id}
+                  key={item.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{
@@ -307,7 +272,7 @@ export default function AnimeListSection() {
                     ease: cardEntranceEase
                   }}
                 >
-                  <AnimeCard anime={anime} />
+                  {config.renderCard(item as TItem)}
                 </motion.div>
               );
             })}

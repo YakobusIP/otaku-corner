@@ -79,4 +79,12 @@ type MangaSitemap = Pick<MangaEntity, "id" | "slug"> & {
   updatedAt: Date;
 };
 
-export type { MangaDetail, MangaList, MangaSitemap };
+type MangaFilters = {
+  author?: number;
+  genre?: number;
+  theme?: number;
+  malScore?: string;
+  personalScore?: string;
+};
+
+export type { MangaDetail, MangaFilters, MangaList, MangaSitemap };

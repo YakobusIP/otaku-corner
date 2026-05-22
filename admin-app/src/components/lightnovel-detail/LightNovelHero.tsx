@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 import { LightNovelDetail } from "@/types/light-novel.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
@@ -259,7 +261,7 @@ export default function LightNovelHero({ lightNovelDetail }: Props) {
 }
 
 type StatTileProps = {
-  icon: React.ReactNode;
+  icon: ReactNode;
   tint: string;
   label: string;
   value: string;

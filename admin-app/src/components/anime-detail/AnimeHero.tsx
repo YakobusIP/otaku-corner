@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 import { AnimeDetail } from "@/types/anime.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
@@ -260,7 +262,7 @@ export default function AnimeHero({ animeDetail }: Props) {
 }
 
 type StatTileProps = {
-  icon: React.ReactNode;
+  icon: ReactNode;
   tint: string;
   label: string;
   value: string;

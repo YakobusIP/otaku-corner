@@ -1,16 +1,12 @@
-import { lightNovelService } from "@/services/lightnovel.service";
-
 import GeneralFooter from "@/components/GeneralFooter";
-import { LightNovelProvider } from "@/components/context/LightNovelContext";
-import LightNovelHeader from "@/components/light-novel/LightNovelHeader";
-import LightNovelListSection from "@/components/light-novel/LightNovelListSection";
 import HeroWallpaper from "@/components/layout/HeroWallpaper";
+import { lightNovelListConfig } from "@/components/media-list/LightNovelListConfig";
+import MediaListHeader from "@/components/media-list/MediaListHeader";
+import MediaListProvider from "@/components/media-list/MediaListProvider";
+import MediaListSection from "@/components/media-list/MediaListSection";
 
-import {
-  buildLightNovelListFiltersFromSearchParams,
-  getLightNovelListInfiniteQueryOptions
-} from "@/lib/public-list-infinite-queries";
-import { publicListKeys } from "@/lib/query-keys";
+import { lightNovelListQueryConfig } from "@/lib/light-novel-list-query";
+import { lightNovelListServerConfig } from "@/lib/light-novel-list-server";
 
 import {
   HydrationBoundary,
@@ -34,18 +30,19 @@ type SearchParams = {
 
 export default async function Page({ searchParams }: SearchParams) {
   const params = await searchParams;
-  const listFilters = buildLightNovelListFiltersFromSearchParams(params);
+  const listFilters =
+    lightNovelListServerConfig.buildListFiltersFromSearchParams(params);
 
   const queryClient = new QueryClient();
 
   await Promise.all([
     queryClient.prefetchInfiniteQuery(
-      getLightNovelListInfiniteQueryOptions(listFilters)
+      lightNovelListQueryConfig.getInfiniteQueryOptions(listFilters)
     ),
     queryClient
       .prefetchQuery({
-        queryKey: publicListKeys.lightNovelStatusCounts(),
-        queryFn: () => lightNovelService.fetchStatusCounts(),
+        queryKey: lightNovelListQueryConfig.statusCounts.queryKey,
+        queryFn: lightNovelListQueryConfig.statusCounts.queryFn,
         staleTime: Infinity,
         retry: false
       })
@@ -54,13 +51,13 @@ export default async function Page({ searchParams }: SearchParams) {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <LightNovelProvider>
+      <MediaListProvider config={lightNovelListConfig}>
         <HeroWallpaper>
-          <LightNovelHeader />
-          <LightNovelListSection />
+          <MediaListHeader config={lightNovelListConfig} />
+          <MediaListSection config={lightNovelListConfig} />
           <GeneralFooter />
         </HeroWallpaper>
-      </LightNovelProvider>
+      </MediaListProvider>
     </HydrationBoundary>
   );
 }

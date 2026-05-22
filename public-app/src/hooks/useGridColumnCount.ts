@@ -9,7 +9,7 @@ const getColumnCountForWidth = (width: number) => {
   return 1;
 };
 
-export const useLightNovelGridColumnCount = () => {
+export const useGridColumnCount = () => {
   const [columnCount, setColumnCount] = useState(1);
 
   useEffect(() => {

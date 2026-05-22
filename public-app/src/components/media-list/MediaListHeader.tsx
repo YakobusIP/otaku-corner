@@ -3,14 +3,16 @@
 import { useState } from "react";
 
 import SortDirection from "@/components/filter-sort-dropdowns/SortDirection";
-import LightNovelAdvancedFilters from "@/components/light-novel/LightNovelAdvancedFilters";
-import LightNovelSearch from "@/components/light-novel/LightNovelSearch";
+import MediaListAdvancedFilters from "@/components/media-list/MediaListAdvancedFilters";
+import MediaListSearch from "@/components/media-list/MediaListSearch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
-import { useLightNovelListHeader } from "@/hooks/useLightNovelListHeader";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useMediaListHeader } from "@/hooks/useMediaListHeader";
+
+import type { MediaListClientConfig } from "@/types/context.type";
 
 import { SORT_ORDER } from "@/lib/enums";
 import { cn } from "@/lib/utils";
@@ -35,7 +37,21 @@ const slidingTabHighlightTransition = {
 
 const activeStatusButtonClass = "text-white hover:!text-white";
 
-export default function LightNovelHeader() {
+type Props<
+  TItem extends { id: number },
+  TFilters extends Record<string, unknown>,
+  TListFilters extends Record<string, unknown>,
+  TInfiniteQueryKey extends readonly unknown[]
+> = {
+  config: MediaListClientConfig<TItem, TFilters, TListFilters, TInfiniteQueryKey>;
+};
+
+export default function MediaListHeader<
+  TItem extends { id: number },
+  TFilters extends Record<string, unknown>,
+  TListFilters extends Record<string, unknown>,
+  TInfiniteQueryKey extends readonly unknown[]
+>({ config }: Props<TItem, TFilters, TListFilters, TInfiniteQueryKey>) {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const isMobile = useIsMobile();
   const prefersReducedMotion = useReducedMotion();
@@ -45,12 +61,12 @@ export default function LightNovelHeader() {
     status,
     sort,
     order,
-    lightNovelMetadata,
+    metadata,
     statusFilters,
     activeFiltersCount,
     handleSort,
     handleStatus
-  } = useLightNovelListHeader();
+  } = useMediaListHeader(config);
 
   const headerInner = (
     <div className="container mx-auto py-4">
@@ -69,19 +85,19 @@ export default function LightNovelHeader() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              Light Novel Collection
+              {config.header.title}
             </h1>
             <p className="text-slate-700 text-sm">
-              {lightNovelMetadata?.itemCount} of{" "}
-              {statusFilters?.find((row) => row.label === "All")?.count} light
-              novels
+              {metadata?.itemCount} of{" "}
+              {statusFilters?.find((row) => row.label === "All")?.count}{" "}
+              {config.header.countNoun}
             </p>
           </div>
         </div>
 
-        <div className="flex w-full min-w-0 flex-row items-center gap-2 lg:w-auto lg:gap-3">
+        <div className="flex w-full min-w-0 flex-row items-center gap-2 lg:w-auto">
           <div className="min-w-0 flex-1 lg:flex-none lg:w-48 2xl:w-64">
-            <LightNovelSearch initialQuery={query} />
+            <MediaListSearch config={config} initialQuery={query} />
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <SortDirection
@@ -110,7 +126,7 @@ export default function LightNovelHeader() {
       </div>
 
       <div className="overflow-x-auto pb-2">
-        <LayoutGroup id="light-novel-status-tabs">
+        <LayoutGroup id={config.header.layoutGroupId}>
           <motion.div
             layoutRoot
             className="relative inline-flex min-w-min items-center gap-2"
@@ -132,7 +148,7 @@ export default function LightNovelHeader() {
                 >
                   {isActive ? (
                     <motion.span
-                      layoutId="light-novel-status-highlight"
+                      layoutId={config.header.statusHighlightLayoutId}
                       initial={false}
                       aria-hidden
                       className="pointer-events-none absolute inset-0 z-0 rounded-md bg-slate-800 shadow-xs"
@@ -162,7 +178,8 @@ export default function LightNovelHeader() {
             aria-describedby={undefined}
           >
             <DialogTitle className="sr-only">Advanced Filters</DialogTitle>
-            <LightNovelAdvancedFilters
+            <MediaListAdvancedFilters
+              config={config}
               layout="dialog"
               setShowAdvancedFilters={setShowAdvancedFilters}
             />
@@ -170,7 +187,8 @@ export default function LightNovelHeader() {
         </Dialog>
       ) : (
         showAdvancedFilters && (
-          <LightNovelAdvancedFilters
+          <MediaListAdvancedFilters
+            config={config}
             setShowAdvancedFilters={setShowAdvancedFilters}
           />
         )
