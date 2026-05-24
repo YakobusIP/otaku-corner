@@ -27,7 +27,12 @@ type Props<
   TListFilters extends Record<string, unknown>,
   TInfiniteQueryKey extends readonly unknown[]
 > = {
-  config: MediaListClientConfig<TItem, TFilters, TListFilters, TInfiniteQueryKey>;
+  config: MediaListClientConfig<
+    TItem,
+    TFilters,
+    TListFilters,
+    TInfiniteQueryKey
+  >;
 };
 
 const getChipDisplayValue = (
@@ -228,7 +233,7 @@ export default function MediaListSection<
                   </p>
                 </div>
 
-                <div className="mt-8 flex justify-center space-x-2">
+                <div className="mt-8 flex flex-col sm:flex-row justify-center gap-2">
                   <Button
                     className="bg-rose-400 text-white hover:bg-rose-500"
                     onClick={clearAllFilters}
