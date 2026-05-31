@@ -1,29 +1,17 @@
 "use client";
 
 import GeneralFooter from "@/components/GeneralFooter";
-import RatingDetailContent from "@/components/RatingDetailContent";
-import ReviewContent from "@/components/ReviewContent";
 import SpoilerWarningModal from "@/components/SpoilerWarningModal";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
+import AnimeDetailReviewTab from "@/components/anime/AnimeDetailReviewTab";
+import AnimeDetailTopSection from "@/components/anime/AnimeDetailTopSection";
+import HomePublicNavbar from "@/components/home/HomePublicNavbar";
+import HeroWallpaper from "@/components/layout/HeroWallpaper";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useAnimeDetailPage } from "@/hooks/useAnimeDetailPage";
 
-import { formatMalScoreWithMax } from "@/lib/utils";
-
-import {
-  AlertTriangleIcon,
-  BookOpenIcon,
-  CalendarIcon,
-  ClockIcon,
-  EyeIcon,
-  EyeOffIcon,
-  FilmIcon
-} from "lucide-react";
-import Image from "next/image";
+import { ListIcon, NotepadTextIcon } from "lucide-react";
 import { notFound } from "next/navigation";
 
 type Props = {
@@ -34,7 +22,6 @@ export default function AnimeDetail({ id }: Props) {
   const {
     animeDetail,
     embedURL,
-    animePersonalRatings,
     showSpoilerWarning,
     setShowSpoilerWarning,
     spoilersRevealed,
@@ -49,209 +36,52 @@ export default function AnimeDetail({ id }: Props) {
   const reviewObject = animeDetail.review;
 
   return (
-    <div className="min-h-screen bg-linear-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf]">
-      <div className="container px-4 py-8">
-        <header className="grid lg:grid-cols-3 gap-8 mb-8">
-          <div className="lg:col-span-2">
-            <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="shrink-0">
-                    <Image
-                      src={
-                        animeDetail.images.large_image_url ||
-                        animeDetail.images.image_url
-                      }
-                      alt={animeDetail.title}
-                      width={300}
-                      height={400}
-                      className="rounded-lg shadow-xl object-cover border border-slate-200 aspect-3/4"
-                      priority
-                    />
-                  </div>
-                  <div className="flex-1 space-y-4">
-                    <div>
-                      <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
-                        {animeDetail.title}
-                      </h1>
-                      <p className="text-slate-700 text-lg">
-                        ({animeDetail.titleJapanese})
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {animeDetail.genres.map((genre) => (
-                        <Badge
-                          key={genre.id}
-                          className="bg-slate-800/80 backdrop-blur-sm text-white border border-slate-700/30"
-                        >
-                          {genre.name}
-                        </Badge>
-                      ))}
-                      {animeDetail.themes.map((theme) => (
-                        <Badge
-                          key={theme.id}
-                          className="bg-slate-800/80 backdrop-blur-sm text-white border border-slate-700/30"
-                        >
-                          {theme.name}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div className="flex items-center gap-2 text-slate-700">
-                        <CalendarIcon className="w-5 h-5" />
-                        <div>{animeDetail.aired}</div>
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-700">
-                        <ClockIcon className="w-5 h-5" />
-                        <div>{animeDetail.duration}</div>
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-700">
-                        <BookOpenIcon className="w-5 h-5" />
-                        <span>{animeDetail.episodes.length} Episodes</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-700">
-                        <FilmIcon className="w-5 h-5" />
-                        <span>
-                          {animeDetail.studios
-                            .map((studio) => studio.name)
-                            .join(", ")}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
-                        <div className="text-slate-600 text-sm mb-1">
-                          MAL Score
-                        </div>
-                        <div className="text-2xl font-bold text-slate-800">
-                          {formatMalScoreWithMax(animeDetail.score)}
-                        </div>
-                      </div>
-                      <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-slate-600 text-sm mb-1">
-                              My Score
-                            </div>
-                            <div className="text-2xl font-bold text-slate-800">
-                              {formatMalScoreWithMax(
-                                reviewObject?.personalScore
-                              )}
-                            </div>
-                          </div>
-                          <RatingDetailContent
-                            details={animePersonalRatings}
-                            finalScore={reviewObject?.personalScore}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
-                        <div className="text-slate-600 text-sm mb-2">
-                          Watch Status
-                        </div>
-                        {reviewObject ? (
-                          <ProgressStatusBadge
-                            progressStatus={reviewObject.progressStatus}
-                          />
-                        ) : (
-                          <span className="text-slate-600 text-sm">
-                            No personal entry
-                          </span>
-                        )}
-                      </div>
-                      <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/40">
-                        <div className="text-slate-600 text-sm mb-2">
-                          Season Progress
-                        </div>
-                        <div className="text-slate-800 font-semibold">
-                          {animeDetail.episodes.length} /{" "}
-                          {animeDetail.episodesCount ?? 0} Episodes
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div>
-            <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl h-fit">
-              <CardHeader>
-                <CardTitle className="text-slate-800">Trailer</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="aspect-video bg-slate-800/20 rounded-lg border border-slate-200 flex items-center justify-center group cursor-pointer hover:bg-slate-800/30 transition-colors">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src={embedURL}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title="Anime Trailer"
-                  ></iframe>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </header>
-
-        <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl mb-8">
-          <CardHeader>
-            <CardTitle className="text-slate-800">Synopsis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-slate-800 leading-relaxed whitespace-pre-line">
-              {animeDetail.synopsis}
-            </p>
-          </CardContent>
-        </Card>
+    <HeroWallpaper>
+      <HomePublicNavbar />
+      <div className="container mx-auto pb-24 sm:pb-28 md:pb-32 lg:pb-36">
+        <AnimeDetailTopSection animeDetail={animeDetail} embedUrl={embedURL} />
 
         <Tabs defaultValue="episodes" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-xl border border-white/40">
-            <TabsTrigger
-              value="episodes"
-              className="data-[state=active]:bg-white data-[state=active]:text-slate-800 text-slate-700"
-            >
-              Episodes ({animeDetail.episodesCount})
-            </TabsTrigger>
-            <TabsTrigger
-              value="review"
-              className="data-[state=active]:bg-white data-[state=active]:text-slate-800 text-slate-700"
-            >
-              My Review
-            </TabsTrigger>
-          </TabsList>
+          <Card className="rounded-2xl border border-white/50 bg-white/45 shadow-md shadow-rose-100/30 backdrop-blur-md">
+            <CardHeader className="border-b border-white/50 pb-0">
+              <TabsList className="inline-flex h-auto w-fit gap-8 rounded-none border-0 bg-transparent p-0">
+                <TabsTrigger
+                  value="episodes"
+                  className="inline-flex items-center gap-2 rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pb-3 pt-1 text-sm font-medium text-slate-600 shadow-none data-[state=active]:border-[#ff6b8b] data-[state=active]:bg-transparent data-[state=active]:text-slate-900 data-[state=active]:shadow-none"
+                >
+                  <ListIcon className="size-4 shrink-0" aria-hidden />
+                  Episodes ({animeDetail.episodesCount})
+                </TabsTrigger>
+                <TabsTrigger
+                  value="review"
+                  className="inline-flex items-center gap-2 rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pb-3 pt-1 text-sm font-medium text-slate-600 shadow-none data-[state=active]:border-[#ff6b8b] data-[state=active]:bg-transparent data-[state=active]:text-slate-900 data-[state=active]:shadow-none"
+                >
+                  <NotepadTextIcon className="size-4 shrink-0" aria-hidden />
+                  My Review
+                </TabsTrigger>
+              </TabsList>
+            </CardHeader>
 
-          <TabsContent value="episodes" className="mt-6">
-            <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl">
-              <CardHeader>
-                <CardTitle className="text-slate-800">Episodes</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <TabsContent value="episodes" className="mt-0">
+              <CardContent className="pt-6">
                 <div className="space-y-2">
                   {animeDetail.episodes.map((episode) => {
                     return (
                       <div
                         key={episode.id}
-                        className="p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors"
+                        className="rounded-lg border border-white/40 bg-white/30 p-4 backdrop-blur-sm transition-colors hover:bg-white/40"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <span className="text-slate-700 font-mono text-sm w-8 bg-white/10 rounded px-2 py-1 text-center">
+                            <span className="w-8 rounded bg-white/40 px-2 py-1 text-center font-mono text-sm text-slate-700">
                               {episode.number.toString().padStart(2, "0")}
                             </span>
                             <div>
-                              <h3 className="text-slate-800 font-medium">
+                              <h3 className="font-medium text-slate-800">
                                 {episode.title}
                               </h3>
 
-                              <div className="flex flex-col lg:flex-row gap-2 lg:gap-4 text-sm text-slate-600">
+                              <div className="flex flex-col gap-2 text-sm text-slate-600 lg:flex-row lg:gap-4">
                                 {episode.titleRomaji && (
                                   <span>
                                     {episode.titleRomaji}{" "}
@@ -269,81 +99,16 @@ export default function AnimeDetail({ id }: Props) {
                   })}
                 </div>
               </CardContent>
-            </Card>
-          </TabsContent>
+            </TabsContent>
 
-          <TabsContent value="review" className="mt-6">
-            <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-slate-800">My Review</CardTitle>
-                  {!spoilersRevealed && (
-                    <Button
-                      onClick={handleRevealSpoilers}
-                      variant="outline"
-                      size="sm"
-                      className="border-orange-300 text-orange-700 hover:bg-orange-50"
-                    >
-                      <EyeOffIcon />
-                      Reveal Spoilers
-                    </Button>
-                  )}
-                  {spoilersRevealed && (
-                    <Badge className="bg-orange-100 text-orange-800 border border-orange-300 hover:bg-orange-200">
-                      <EyeIcon className="mr-1" size={12} />
-                      Spoilers Visible
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                {!reviewObject?.reviewText ? (
-                  <div className="flex flex-col items-center justify-center gap-2 xl:gap-4">
-                    <Image
-                      src="/no-review.gif"
-                      width={500}
-                      height={300}
-                      className="w-64 rounded-xl"
-                      alt="No review"
-                      unoptimized
-                    />
-                    <p className="text-center text-muted-foreground">
-                      No review available
-                    </p>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    {!spoilersRevealed && (
-                      <div className="absolute inset-0 z-10 bg-white/95 backdrop-blur-md rounded-lg border-2 border-dashed border-orange-300 flex flex-col items-center text-center p-8">
-                        <AlertTriangleIcon
-                          className="text-orange-500 mb-4"
-                          size={48}
-                        />
-                        <h3 className="text-xl font-bold text-slate-800 mb-2">
-                          Spoiler Warning
-                        </h3>
-                        <p className="text-slate-600 mb-4 max-w-md">
-                          This review contains spoilers that may reveal
-                          important plot points and story outcomes.
-                        </p>
-                        <Button
-                          onClick={handleRevealSpoilers}
-                          className="bg-orange-600 hover:bg-orange-700 text-white"
-                        >
-                          <EyeIcon size={16} />
-                          Click to Reveal Review
-                        </Button>
-                      </div>
-                    )}
-                    <ReviewContent
-                      review={reviewObject.reviewText}
-                      spoilersRevealed={spoilersRevealed}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+            <TabsContent value="review" className="mt-0">
+              <AnimeDetailReviewTab
+                review={reviewObject}
+                spoilersRevealed={spoilersRevealed}
+                onRevealSpoilers={handleRevealSpoilers}
+              />
+            </TabsContent>
+          </Card>
         </Tabs>
       </div>
 
@@ -353,6 +118,6 @@ export default function AnimeDetail({ id }: Props) {
         setShowSpoilerWarning={setShowSpoilerWarning}
         setSpoilersRevealed={setSpoilersRevealed}
       />
-    </div>
+    </HeroWallpaper>
   );
 }

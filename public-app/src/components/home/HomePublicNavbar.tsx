@@ -49,7 +49,11 @@ export default function HomePublicNavbar(props: HomePublicNavbarProps) {
       <nav className="hidden w-full flex-wrap items-center justify-center md:flex">
         <div className="inline-flex max-w-full flex-wrap items-stretch justify-center gap-2 overflow-hidden rounded-xl border border-white/45 bg-white/35 shadow-sm backdrop-blur-md">
           {navLinks.map((item, index) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
             const isFirst = index === 0;
             const isLast = index === navLinks.length - 1;
             const activeRadius = isActive
