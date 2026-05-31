@@ -23,6 +23,12 @@ const navEntranceTransition = {
   ease: [0.22, 1, 0.36, 1] as const
 };
 
+const navViewport = {
+  once: true,
+  amount: 0.05,
+  margin: "0px 0px 12% 0px"
+} as const;
+
 export default function HomePublicNavbar(props: HomePublicNavbarProps) {
   const { className } = props;
   const pathname = usePathname();
@@ -96,7 +102,8 @@ export default function HomePublicNavbar(props: HomePublicNavbarProps) {
     <motion.header
       className={headerClassName}
       initial={{ opacity: 0, y: -22 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={navViewport}
       transition={navEntranceTransition}
     >
       {navbarContent}

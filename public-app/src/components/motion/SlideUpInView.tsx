@@ -2,27 +2,61 @@
 
 import { ReactNode } from "react";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { useIsMobile } from "@/hooks/useIsMobile";
+
+import {
+  type TargetAndTransition,
+  type Transition,
+  motion,
+  useReducedMotion
+} from "framer-motion";
 
 type SlideUpInViewProps = {
   as?: "div" | "section" | "footer";
   children: ReactNode;
   className?: string;
+  eager?: boolean;
 };
 
-const transition = {
+const transition: Transition = {
   duration: 0.96,
-  ease: [0.22, 1, 0.36, 1] as const
+  ease: [0.22, 1, 0.36, 1]
 };
 
-const viewport = {
-  once: false,
-  amount: 0.45
-} as const;
+const getViewport = (isMobile: boolean, eager: boolean) => {
+  if (eager) {
+    return {
+      once: true,
+      amount: 0.05,
+      margin: "0px 0px 20% 0px"
+    } as const;
+  }
+
+  if (isMobile) {
+    return {
+      once: true,
+      amount: 0.12,
+      margin: "0px 0px 12% 0px"
+    } as const;
+  }
+
+  return {
+    once: false,
+    amount: 0.45,
+    margin: "0px 0px 0px 0px"
+  } as const;
+};
+
+const getInitial = (isMobile: boolean): TargetAndTransition => ({
+  opacity: 0,
+  y: isMobile ? 16 : 28
+});
 
 export default function SlideUpInView(props: SlideUpInViewProps) {
-  const { as = "div", children, className } = props;
+  const { as = "div", children, className, eager = false } = props;
   const prefersReducedMotion = useReducedMotion();
+  const isMobile = useIsMobile();
+  const viewport = getViewport(isMobile, eager);
 
   if (prefersReducedMotion) {
     const Tag = as;
@@ -31,7 +65,7 @@ export default function SlideUpInView(props: SlideUpInViewProps) {
 
   const motionProps = {
     className,
-    initial: { opacity: 0, y: 28 },
+    initial: getInitial(isMobile),
     whileInView: { opacity: 1, y: 0 },
     viewport,
     transition

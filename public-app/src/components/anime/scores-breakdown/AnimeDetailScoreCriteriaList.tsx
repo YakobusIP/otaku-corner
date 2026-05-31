@@ -1,21 +1,34 @@
+"use client";
+
 import { Fragment } from "react";
 
 import {
   type AnimeScoreCriterion,
   getScoreBarPercent
 } from "@/components/anime/anime-detail-helpers";
+import { ScoreProgressBar } from "@/components/ui/score-progress-bar";
 
 import { ratingDescriptions } from "@/lib/constants";
 
+import { useInView } from "react-intersection-observer";
+
 type AnimeDetailScoreCriteriaListProps = {
   criteria: AnimeScoreCriterion[];
+  barAnimateIn?: boolean;
 };
 
 export default function AnimeDetailScoreCriteriaList({
-  criteria
+  criteria,
+  barAnimateIn
 }: AnimeDetailScoreCriteriaListProps) {
+  const { ref, inView } = useInView({
+    threshold: 0.2,
+    triggerOnce: true
+  });
+  const shouldAnimateBars = barAnimateIn ?? inView;
+
   return (
-    <div className="space-y-5">
+    <div ref={ref} className="space-y-5">
       {criteria.map((criterion) => {
         const barPercent = getScoreBarPercent(criterion.score);
         const scoreLabel =
@@ -49,19 +62,15 @@ export default function AnimeDetailScoreCriteriaList({
               </span>
             </div>
 
-            <div
-              className="h-2 overflow-hidden rounded-full bg-slate-200/80"
-              role="progressbar"
+            <ScoreProgressBar
+              key={shouldAnimateBars ? `open-${criterion.title}` : `closed-${criterion.title}`}
+              animateIn={shouldAnimateBars}
+              value={barPercent}
               aria-valuenow={criterion.score ?? 0}
               aria-valuemin={1}
               aria-valuemax={10}
               aria-label={`${criterion.title} score`}
-            >
-              <div
-                className="h-full rounded-full bg-[#ff6b8b] transition-all duration-500"
-                style={{ width: `${barPercent}%` }}
-              />
-            </div>
+            />
           </div>
         );
       })}

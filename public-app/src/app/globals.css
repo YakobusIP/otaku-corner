@@ -16,6 +16,34 @@
   }
 }
 
+@utility oc-status-bar-animated {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: -55%;
+    width: 42%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / 0.45),
+      transparent
+    );
+    animation:
+      oc-status-bar-shimmer 2.75s ease-in-out infinite,
+      oc-status-bar-pulse 1.8s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      animation: none;
+    }
+  }
+}
+
 @theme {
   --breakpoint-3xs: 320px;
   --breakpoint-2xs: 400px;
@@ -256,5 +284,24 @@
     .hero-wallpaper {
       background-position: center center;
     }
+  }
+}
+
+@keyframes oc-status-bar-shimmer {
+  from {
+    left: -55%;
+  }
+  to {
+    left: 130%;
+  }
+}
+
+@keyframes oc-status-bar-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
   }
 }

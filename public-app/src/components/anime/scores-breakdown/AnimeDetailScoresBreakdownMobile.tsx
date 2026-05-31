@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import AnimeDetailScoreCriteriaList from "@/components/anime/scores-breakdown/AnimeDetailScoreCriteriaList";
 import AnimeDetailScoresBreakdownHeader from "@/components/anime/scores-breakdown/AnimeDetailScoresBreakdownHeader";
 import { type AnimeScoreCriterion } from "@/components/anime/anime-detail-helpers";
@@ -27,8 +29,14 @@ export default function AnimeDetailScoresBreakdownMobile({
   headingId,
   sectionClassName
 }: AnimeDetailScoresBreakdownMobileProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <Collapsible defaultOpen={false} className="group w-full xl:hidden">
+    <Collapsible
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      className="group w-full xl:hidden"
+    >
       <section
         aria-labelledby={headingId}
         className={cn(sectionClassName, "flex flex-col gap-0")}
@@ -51,7 +59,10 @@ export default function AnimeDetailScoresBreakdownMobile({
         </div>
         <CollapsibleContent className="flex flex-col overflow-hidden">
           <div className="mt-4 border-t border-slate-200/80 pt-4">
-            <AnimeDetailScoreCriteriaList criteria={criteria} />
+            <AnimeDetailScoreCriteriaList
+              criteria={criteria}
+              barAnimateIn={isOpen}
+            />
           </div>
         </CollapsibleContent>
       </section>
