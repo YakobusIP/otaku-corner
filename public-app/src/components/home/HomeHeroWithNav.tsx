@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import HomePublicNavbar from "@/components/home/HomePublicNavbar";
+import HomeUpperSectionImage from "@/components/layout/HomeUpperSectionImage";
 import SlideUpInView from "@/components/motion/SlideUpInView";
 import { Badge } from "@/components/ui/badge";
 
@@ -14,8 +15,6 @@ import {
   type PublicMediaTypeId
 } from "@/lib/public-media-type";
 import { cn } from "@/lib/utils";
-
-import HomeUpperSectionImage from "@/components/layout/HomeUpperSectionImage";
 
 import {
   BookOpenIcon,
@@ -89,7 +88,7 @@ export default function HomeHeroWithNav() {
 
   return (
     <section className="relative min-h-[640px] w-full overflow-hidden bg-white lg:min-h-[660px]">
-      <HomeUpperSectionImage priority />
+      <HomeUpperSectionImage />
       <div className="absolute inset-x-0 bottom-0 h-56 bg-linear-to-b from-white/0 via-white/80 to-white" />
 
       <div className="relative z-10 flex min-h-[640px] flex-col lg:min-h-[660px]">

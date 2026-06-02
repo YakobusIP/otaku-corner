@@ -10,6 +10,8 @@ import HomeInsightsCarousel from "@/components/home/HomeInsightsCarousel";
 import HomeQuoteSection from "@/components/home/HomeQuoteSection";
 import HomeYearProgressSection from "@/components/home/HomeYearProgressSection";
 
+import { HERO_WALLPAPER_IMAGE_SIZES } from "@/lib/hero-wallpaper-image";
+
 import {
   HydrationBoundary,
   QueryClient,
@@ -78,13 +80,13 @@ export default async function Page() {
         <HomeHeroWithNav />
         <HomeYearProgressSection />
         <div className="relative overflow-hidden bg-transparent">
-          <div className="absolute inset-x-0 bottom-0 top-8 z-0">
+          <div className="absolute inset-x-0 bottom-0 top-8 z-0 min-h-[480px]">
             <Image
               src="/hero_lower_image.webp"
               alt=""
               fill
               className="object-cover object-[80%_bottom]"
-              sizes="100vw"
+              sizes={HERO_WALLPAPER_IMAGE_SIZES}
             />
           </div>
           <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[340px] bg-linear-to-b from-white via-white/85 to-transparent" />

@@ -4,6 +4,7 @@ import { Fragment, useMemo, useState } from "react";
 
 import MeasuredRechartsContainer from "@/components/charts/MeasuredRechartsContainer";
 import SlideUpInView from "@/components/motion/SlideUpInView";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -12,16 +13,14 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 import { useHomeYearProgressStatistics } from "@/hooks/useHomeYearProgressStatistics";
 
 import {
   HOME_PROGRESS_CHART_TABS,
-  PUBLIC_MEDIA_TYPE_CONFIG,
+  type HomeProgressChartTab,
   PUBLIC_MEDIA_TYPES,
-  getChartPieColor,
-  type HomeProgressChartTab
+  PUBLIC_MEDIA_TYPE_CONFIG,
+  getChartPieColor
 } from "@/lib/public-media-type";
 
 import { motion } from "framer-motion";
@@ -44,8 +43,8 @@ const chartTabHighlightTransition = {
   damping: 34
 };
 
-const tabClassName =
-  "relative z-10 shrink-0 rounded-lg px-4 py-1.5 text-xs text-[#4b3a4c] data-[state=active]:bg-transparent data-[state=active]:text-rose-600 data-[state=active]:shadow-none hover:cursor-pointer";
+const chartFilterButtonClassName =
+  "relative z-10 h-auto shrink-0 rounded-lg px-4 py-1.5 text-xs font-medium text-[#4b3a4c] shadow-none hover:bg-transparent focus-visible:ring-rose-200 aria-pressed:text-rose-600";
 
 const lineSeries = PUBLIC_MEDIA_TYPES.map((mediaTypeId) => {
   const config = PUBLIC_MEDIA_TYPE_CONFIG[mediaTypeId];
@@ -98,8 +97,7 @@ export default function HomeYearProgressSection() {
     return {
       name: config.chartPieLegendName,
       color: config.chartColor,
-      pct:
-        totalStories > 0 ? ((count / totalStories) * 100).toFixed(1) : "0"
+      pct: totalStories > 0 ? ((count / totalStories) * 100).toFixed(1) : "0"
     };
   });
 
@@ -224,38 +222,39 @@ export default function HomeYearProgressSection() {
 
                 <div className="min-w-0 pl-0 pr-4 sm:pr-5 lg:pr-6">
                   <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <Tabs
-                      value={chartTab}
-                      onValueChange={(value) => {
-                        setChartTab(value as HomeProgressChartTab);
-                      }}
+                    <div
+                      role="group"
+                      aria-label="Line chart series"
+                      className="relative flex h-auto min-h-9 w-full max-w-full flex-wrap items-center justify-center gap-1 sm:inline-flex sm:h-9 sm:w-auto sm:max-w-none sm:justify-start"
                     >
-                      <div className="min-w-0">
-                        <TabsList className="relative flex h-auto min-h-9 w-full max-w-full flex-wrap items-center justify-center gap-1 bg-transparent p-0 sm:inline-flex sm:h-9 sm:w-auto sm:max-w-none sm:justify-start">
-                          {HOME_PROGRESS_CHART_TABS.map(({ value, label }) => {
-                            const isActive = chartTab === value;
+                      {HOME_PROGRESS_CHART_TABS.map(({ value, label }) => {
+                        const isActive = chartTab === value;
 
-                            return (
-                              <TabsTrigger
-                                key={value}
-                                value={value}
-                                className={tabClassName}
-                              >
-                                {isActive ? (
-                                  <motion.span
-                                    layoutId="home-year-progress-chart-tab-highlight"
-                                    aria-hidden
-                                    className="pointer-events-none absolute inset-0 z-0 rounded-lg bg-rose-50 shadow-none"
-                                    transition={chartTabHighlightTransition}
-                                  />
-                                ) : null}
-                                <span className="relative z-10">{label}</span>
-                              </TabsTrigger>
-                            );
-                          })}
-                        </TabsList>
-                      </div>
-                    </Tabs>
+                        return (
+                          <Button
+                            key={value}
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            aria-pressed={isActive}
+                            className={chartFilterButtonClassName}
+                            onClick={() => {
+                              setChartTab(value);
+                            }}
+                          >
+                            {isActive ? (
+                              <motion.span
+                                layoutId="home-year-progress-chart-tab-highlight"
+                                aria-hidden
+                                className="pointer-events-none absolute inset-0 z-0 rounded-lg bg-rose-50 shadow-none"
+                                transition={chartTabHighlightTransition}
+                              />
+                            ) : null}
+                            <span className="relative z-10">{label}</span>
+                          </Button>
+                        );
+                      })}
+                    </div>
                     <div className="flex flex-col gap-1 sm:items-end">
                       <span className="sr-only" id="home-progress-year-label">
                         Year for charts and totals

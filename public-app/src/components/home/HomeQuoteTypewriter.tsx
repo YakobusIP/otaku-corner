@@ -35,8 +35,7 @@ export default function HomeQuoteTypewriter() {
     }
 
     const nextCharacter = FULL_TEXT[visibleLength];
-    const delay =
-      nextCharacter === "\n" ? LINE_BREAK_DELAY_MS : CHAR_DELAY_MS;
+    const delay = nextCharacter === "\n" ? LINE_BREAK_DELAY_MS : CHAR_DELAY_MS;
 
     const timer = window.setTimeout(() => {
       setVisibleLength((current) => current + 1);
@@ -52,7 +51,7 @@ export default function HomeQuoteTypewriter() {
     <blockquote
       ref={blockquoteRef}
       className="text-pretty text-2xl font-medium leading-relaxed text-[#4a2a46] drop-shadow-[0_2px_18px_rgba(255,255,255,0.9)] sm:text-3xl"
-      aria-label={`${QUOTE_LINES[0]} ${QUOTE_LINES[1]}`}
+      aria-live={prefersReducedMotion ? undefined : "polite"}
     >
       {visibleLines.map((line, lineIndex) => {
         return (

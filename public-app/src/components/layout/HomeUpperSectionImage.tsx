@@ -1,14 +1,13 @@
+import { HERO_WALLPAPER_IMAGE_SIZES } from "@/lib/hero-wallpaper-image";
 import { cn } from "@/lib/utils";
 
 import Image from "next/image";
 
 type HomeUpperSectionImageProps = {
-  priority?: boolean;
   className?: string;
 };
 
 export default function HomeUpperSectionImage({
-  priority = false,
   className
 }: HomeUpperSectionImageProps) {
   return (
@@ -23,9 +22,9 @@ export default function HomeUpperSectionImage({
         src="/hero_upper_image.webp"
         alt=""
         fill
-        priority={priority}
+        priority
         className="object-cover object-[80%_center] md:object-center"
-        sizes="100vw"
+        sizes={HERO_WALLPAPER_IMAGE_SIZES}
       />
       <div className="hero-upper-image-gradient absolute inset-0" />
     </div>
