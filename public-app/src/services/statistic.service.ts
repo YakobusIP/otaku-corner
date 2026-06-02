@@ -14,6 +14,7 @@ import type { AxiosResponse } from "axios";
 const BASE_STATISTIC_URL = "/api/statistic";
 
 export const HOME_TASTE_PROFILE_LIMIT = 5;
+export const HOME_RECENT_REVIEWS_LIMIT = 4;
 
 const unwrap = <T>(response: AxiosResponse<unknown>): T => {
   const body = response.data as ApiResponse<T> | T;

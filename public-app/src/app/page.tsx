@@ -1,4 +1,5 @@
 import {
+  HOME_RECENT_REVIEWS_LIMIT,
   HOME_TASTE_PROFILE_LIMIT,
   statisticService
 } from "@/services/statistic.service";
@@ -59,8 +60,9 @@ export default async function Page() {
       retry: false
     }),
     queryClient.fetchQuery({
-      queryKey: ["recentReviews", 4],
-      queryFn: () => statisticService.fetchRecentReviews(4),
+      queryKey: ["recentReviews", HOME_RECENT_REVIEWS_LIMIT],
+      queryFn: () =>
+        statisticService.fetchRecentReviews(HOME_RECENT_REVIEWS_LIMIT),
       retry: false
     }),
     queryClient.fetchQuery({

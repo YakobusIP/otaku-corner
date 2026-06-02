@@ -1,14 +1,9 @@
+import type { DistributionRow } from "@/components/home/home-insight-slides";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { cn } from "@/lib/utils";
 
 import { FlowerIcon } from "lucide-react";
-
-type DistributionRow = {
-  label: string;
-  count: number;
-  percentage: number;
-};
 
 type HomeDistributionCarouselCardProps = {
   title: string;

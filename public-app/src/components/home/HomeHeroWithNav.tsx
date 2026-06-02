@@ -6,7 +6,7 @@ import HomePublicNavbar from "@/components/home/HomePublicNavbar";
 import SlideUpInView from "@/components/motion/SlideUpInView";
 import { Badge } from "@/components/ui/badge";
 
-import { useHomeStatistics } from "@/hooks/useHomeStatistics";
+import { useHomeAllTimeStats } from "@/hooks/useHomeStatistics";
 
 import { cn } from "@/lib/utils";
 
@@ -22,7 +22,7 @@ import {
 type CounterKey = "anime" | "manga" | "lightNovel";
 
 export default function HomeHeroWithNav() {
-  const { allTimeStatsQuery } = useHomeStatistics();
+  const { allTimeStatsQuery } = useHomeAllTimeStats();
   const { data } = allTimeStatsQuery;
 
   const [animatedCounts, setAnimatedCounts] = useState<

@@ -1,36 +1,46 @@
 "use client";
 
-import { statisticService, HOME_TASTE_PROFILE_LIMIT } from "@/services/statistic.service";
+import {
+  HOME_RECENT_REVIEWS_LIMIT,
+  HOME_TASTE_PROFILE_LIMIT,
+  statisticService
+} from "@/services/statistic.service";
 
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 
-export const useHomeStatistics = () => {
-  const [allTimeStats, tasteProfile, recentReviews] = useQueries({
+export const useHomeAllTimeStats = () => {
+  const query = useQuery({
+    queryKey: ["allTimeStats"],
+    queryFn: () => statisticService.fetchAllTime()
+  });
+
+  useQueryErrorToast(query.error);
+
+  return { allTimeStatsQuery: query };
+};
+
+export const useHomeInsightsStatistics = () => {
+  const [tasteProfile, recentReviews] = useQueries({
     queries: [
-      {
-        queryKey: ["allTimeStats"],
-        queryFn: () => statisticService.fetchAllTime()
-      },
       {
         queryKey: ["tasteProfile", HOME_TASTE_PROFILE_LIMIT],
         queryFn: () =>
           statisticService.fetchTasteProfile(HOME_TASTE_PROFILE_LIMIT)
       },
       {
-        queryKey: ["recentReviews", 4],
-        queryFn: () => statisticService.fetchRecentReviews(4)
+        queryKey: ["recentReviews", HOME_RECENT_REVIEWS_LIMIT],
+        queryFn: () =>
+          statisticService.fetchRecentReviews(HOME_RECENT_REVIEWS_LIMIT)
       }
     ]
   });
 
-  useQueryErrorToast(allTimeStats.error);
   useQueryErrorToast(tasteProfile.error);
   useQueryErrorToast(recentReviews.error);
 
   return {
-    allTimeStatsQuery: allTimeStats,
     tasteProfileQuery: tasteProfile,
     recentReviewsQuery: recentReviews
   };

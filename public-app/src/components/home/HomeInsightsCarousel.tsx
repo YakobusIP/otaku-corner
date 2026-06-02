@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 
 import HomeDistributionCarouselCard from "@/components/home/HomeDistributionCarouselCard";
 import HomeRecentReviewsCarouselCard from "@/components/home/HomeRecentReviewsCarouselCard";
+import {
+  DISTRIBUTION_INSIGHT_CARDS,
+  type DistributionRow,
+  mapTasteProfileRows
+} from "@/components/home/home-insight-slides";
 import SlideUpInView from "@/components/motion/SlideUpInView";
 
-import { useHomeStatistics } from "@/hooks/useHomeStatistics";
+import { useHomeInsightsStatistics } from "@/hooks/useHomeStatistics";
 
 import type { RecentReviewItem } from "@/types/statistic.type";
 
@@ -17,18 +22,56 @@ import { Loader2Icon } from "lucide-react";
 const SLIDE_GAP_PX = 16;
 const WIDE_GRID_MEDIA = "(min-width: 1536px)";
 
-type DistributionRow = {
-  label: string;
-  count: number;
-  percentage: number;
-};
-
-type InsightsSlidesProps = {
+type InsightSlideDeckProps = {
   authorRows: DistributionRow[];
   genreRows: DistributionRow[];
-  recentItems: RecentReviewItem[] | undefined;
+  recentItems: RecentReviewItem[];
   studioRows: DistributionRow[];
   themeRows: DistributionRow[];
+  cellClassName?: string;
+  slideWidthCss?: string;
+};
+
+const InsightSlideDeck = (props: InsightSlideDeckProps) => {
+  const {
+    authorRows,
+    genreRows,
+    recentItems,
+    slideWidthCss,
+    studioRows,
+    themeRows,
+    cellClassName = "min-w-0 shrink-0 grow-0"
+  } = props;
+
+  const distributionRowsByKey = {
+    genres: genreRows,
+    authors: authorRows,
+    studios: studioRows,
+    themes: themeRows
+  };
+
+  const slideStyle = slideWidthCss
+    ? { flex: `0 0 ${slideWidthCss}` as const }
+    : undefined;
+
+  return (
+    <Fragment>
+      {DISTRIBUTION_INSIGHT_CARDS.map((card) => {
+        return (
+          <div key={card.title} className={cellClassName} style={slideStyle}>
+            <HomeDistributionCarouselCard
+              title={card.title}
+              rows={distributionRowsByKey[card.tasteKey]}
+              barClass={card.barClass}
+            />
+          </div>
+        );
+      })}
+      <div className={cellClassName} style={slideStyle}>
+        <HomeRecentReviewsCarouselCard items={recentItems} />
+      </div>
+    </Fragment>
+  );
 };
 
 const readSlidesVisible = () => {
@@ -44,19 +87,12 @@ const readSlidesVisible = () => {
   return 1;
 };
 
-type HomeInsightsEmblaTrackProps = InsightsSlidesProps & {
+type HomeInsightsEmblaTrackProps = InsightSlideDeckProps & {
   slideWidthCss: string;
 };
 
 const HomeInsightsEmblaTrack = (props: HomeInsightsEmblaTrackProps) => {
-  const {
-    authorRows,
-    genreRows,
-    recentItems,
-    slideWidthCss,
-    studioRows,
-    themeRows
-  } = props;
+  const { slideWidthCss, ...deckProps } = props;
 
   const autoplayPlugin = useMemo(() => {
     return Autoplay({ delay: 5000, stopOnInteraction: false });
@@ -88,103 +124,14 @@ const HomeInsightsEmblaTrack = (props: HomeInsightsEmblaTrackProps) => {
   return (
     <div className="overflow-hidden pb-1" ref={viewportRef}>
       <div className="flex touch-pan-y" style={gapStyle}>
-        <div
-          className="min-w-0 shrink-0 grow-0"
-          style={{ flex: `0 0 ${slideWidthCss}` }}
-        >
-          <HomeDistributionCarouselCard
-            title="Genre Distribution"
-            rows={genreRows}
-            barClass="from-pink-400 to-rose-500"
-          />
-        </div>
-        <div
-          className="min-w-0 shrink-0 grow-0"
-          style={{ flex: `0 0 ${slideWidthCss}` }}
-        >
-          <HomeDistributionCarouselCard
-            title="Author Distribution"
-            rows={authorRows}
-            barClass="from-violet-400 to-fuchsia-500"
-          />
-        </div>
-        <div
-          className="min-w-0 shrink-0 grow-0"
-          style={{ flex: `0 0 ${slideWidthCss}` }}
-        >
-          <HomeDistributionCarouselCard
-            title="Studio Distribution"
-            rows={studioRows}
-            barClass="from-sky-400 to-indigo-500"
-          />
-        </div>
-        <div
-          className="min-w-0 shrink-0 grow-0"
-          style={{ flex: `0 0 ${slideWidthCss}` }}
-        >
-          <HomeDistributionCarouselCard
-            title="Theme Distribution"
-            rows={themeRows}
-            barClass="from-amber-400 to-orange-500"
-          />
-        </div>
-        <div
-          className="min-w-0 shrink-0 grow-0"
-          style={{ flex: `0 0 ${slideWidthCss}` }}
-        >
-          <HomeRecentReviewsCarouselCard items={recentItems} />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const HomeInsightsWideGrid = (props: InsightsSlidesProps) => {
-  const { authorRows, genreRows, recentItems, studioRows, themeRows } = props;
-
-  const cellClass = "min-w-0 flex-1 basis-0";
-
-  const gapStyle = { gap: SLIDE_GAP_PX };
-
-  return (
-    <div className="flex w-full" style={gapStyle}>
-      <div className={cellClass}>
-        <HomeDistributionCarouselCard
-          title="Genre Distribution"
-          rows={genreRows}
-          barClass="from-pink-400 to-rose-500"
-        />
-      </div>
-      <div className={cellClass}>
-        <HomeDistributionCarouselCard
-          title="Author Distribution"
-          rows={authorRows}
-          barClass="from-violet-400 to-fuchsia-500"
-        />
-      </div>
-      <div className={cellClass}>
-        <HomeDistributionCarouselCard
-          title="Studio Distribution"
-          rows={studioRows}
-          barClass="from-sky-400 to-indigo-500"
-        />
-      </div>
-      <div className={cellClass}>
-        <HomeDistributionCarouselCard
-          title="Theme Distribution"
-          rows={themeRows}
-          barClass="from-amber-400 to-orange-500"
-        />
-      </div>
-      <div className={cellClass}>
-        <HomeRecentReviewsCarouselCard items={recentItems} />
+        <InsightSlideDeck {...deckProps} slideWidthCss={slideWidthCss} />
       </div>
     </div>
   );
 };
 
 export default function HomeInsightsCarousel() {
-  const { tasteProfileQuery, recentReviewsQuery } = useHomeStatistics();
+  const { tasteProfileQuery, recentReviewsQuery } = useHomeInsightsStatistics();
 
   const [isWideGrid, setIsWideGrid] = useState(false);
 
@@ -201,47 +148,28 @@ export default function HomeInsightsCarousel() {
   const [slidesVisible, setSlidesVisible] = useState(3);
 
   useEffect(() => {
+    if (isWideGrid) {
+      return;
+    }
     const update = () => {
       setSlidesVisible(readSlidesVisible());
     };
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
-  }, []);
+  }, [isWideGrid]);
 
   const taste = tasteProfileQuery.data;
 
-  const authorRows = (taste?.authors ?? []).map((row) => {
+  const deckProps = useMemo(() => {
     return {
-      label: row.name,
-      count: row.totalCount,
-      percentage: row.percentage
+      authorRows: mapTasteProfileRows(taste?.authors),
+      genreRows: mapTasteProfileRows(taste?.genres),
+      studioRows: mapTasteProfileRows(taste?.studios),
+      themeRows: mapTasteProfileRows(taste?.themes),
+      recentItems: recentReviewsQuery.data ?? []
     };
-  });
-
-  const genreRows = (taste?.genres ?? []).map((row) => {
-    return {
-      label: row.name,
-      count: row.totalCount,
-      percentage: row.percentage
-    };
-  });
-
-  const studioRows = (taste?.studios ?? []).map((row) => {
-    return {
-      label: row.name,
-      count: row.totalCount,
-      percentage: row.percentage
-    };
-  });
-
-  const themeRows = (taste?.themes ?? []).map((row) => {
-    return {
-      label: row.name,
-      count: row.totalCount,
-      percentage: row.percentage
-    };
-  });
+  }, [taste, recentReviewsQuery.data]);
 
   const slideWidthCss = useMemo(() => {
     if (slidesVisible >= 3) {
@@ -255,14 +183,6 @@ export default function HomeInsightsCarousel() {
 
   const isLoading = tasteProfileQuery.isLoading || recentReviewsQuery.isLoading;
 
-  const slideProps: InsightsSlidesProps = {
-    authorRows,
-    genreRows,
-    recentItems: recentReviewsQuery.data,
-    studioRows,
-    themeRows
-  };
-
   return (
     <SlideUpInView
       as="section"
@@ -275,10 +195,15 @@ export default function HomeInsightsCarousel() {
             Loading insights...
           </div>
         ) : isWideGrid ? (
-          <HomeInsightsWideGrid {...slideProps} />
+          <div className="flex w-full" style={{ gap: SLIDE_GAP_PX }}>
+            <InsightSlideDeck
+              {...deckProps}
+              cellClassName="min-w-0 flex-1 basis-0"
+            />
+          </div>
         ) : (
           <HomeInsightsEmblaTrack
-            {...slideProps}
+            {...deckProps}
             slideWidthCss={slideWidthCss}
           />
         )}

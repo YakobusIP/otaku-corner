@@ -11,44 +11,34 @@ import Image from "next/image";
 import Link from "next/link";
 
 type HomeRecentReviewsCarouselCardProps = {
-  items: RecentReviewItem[] | undefined;
+  items: RecentReviewItem[];
 };
 
-const mediaHref = (item: RecentReviewItem) => {
-  if (item.mediaType === "anime") {
-    return `/anime/${item.mediaId}/${item.slug}`;
+const MEDIA_TYPE_DISPLAY: Record<
+  RecentReviewItem["mediaType"],
+  { pathSegment: string; label: string; badgeClass: string }
+> = {
+  anime: {
+    pathSegment: "anime",
+    label: "Anime",
+    badgeClass: "bg-rose-100 text-rose-700 ring-rose-200/60"
+  },
+  manga: {
+    pathSegment: "manga",
+    label: "Manga",
+    badgeClass: "bg-violet-100 text-violet-700 ring-violet-200/60"
+  },
+  lightNovel: {
+    pathSegment: "light-novel",
+    label: "Light Novel",
+    badgeClass: "bg-orange-100 text-orange-700 ring-orange-200/60"
   }
-  if (item.mediaType === "manga") {
-    return `/manga/${item.mediaId}/${item.slug}`;
-  }
-  return `/light-novel/${item.mediaId}/${item.slug}`;
-};
-
-const mediaLabel = (item: RecentReviewItem) => {
-  if (item.mediaType === "anime") {
-    return "Anime";
-  }
-  if (item.mediaType === "manga") {
-    return "Manga";
-  }
-  return "Light Novel";
-};
-
-const mediaBadgeClass = (item: RecentReviewItem) => {
-  if (item.mediaType === "anime") {
-    return "bg-rose-100 text-rose-700 ring-rose-200/60";
-  }
-  if (item.mediaType === "manga") {
-    return "bg-violet-100 text-violet-700 ring-violet-200/60";
-  }
-  return "bg-orange-100 text-orange-700 ring-orange-200/60";
 };
 
 export default function HomeRecentReviewsCarouselCard(
   props: HomeRecentReviewsCarouselCardProps
 ) {
   const { items } = props;
-  const list = items ?? [];
 
   return (
     <Card className="relative z-10 flex h-full min-h-[320px] flex-col border-white/90 bg-white/95 shadow-[0_18px_50px_rgba(15,23,42,0.08),0_1px_0_rgba(255,255,255,0.9)_inset] backdrop-blur-sm">
@@ -59,11 +49,12 @@ export default function HomeRecentReviewsCarouselCard(
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-1.5 p-4 pt-0">
-        {list.length === 0 ? (
+        {items.length === 0 ? (
           <p className="text-sm text-[#6b5b6b]">No reviews yet.</p>
         ) : (
-          list.map((item) => {
-            const href = mediaHref(item);
+          items.map((item) => {
+            const display = MEDIA_TYPE_DISPLAY[item.mediaType];
+            const href = `/${display.pathSegment}/${item.mediaId}/${item.slug}`;
             return (
               <Link
                 key={`${item.mediaType}-${item.mediaId}-${item.updatedAt}`}
@@ -85,9 +76,9 @@ export default function HomeRecentReviewsCarouselCard(
                   </p>
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${mediaBadgeClass(item)}`}
+                      className={`inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${display.badgeClass}`}
                     >
-                      {mediaLabel(item)}
+                      {display.label}
                     </span>
                     <span className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums text-[#4b3a4c]">
                       <StarIcon

@@ -2,8 +2,6 @@
 
 import { Fragment, useMemo, useState } from "react";
 
-import { statisticService } from "@/services/statistic.service";
-
 import SlideUpInView from "@/components/motion/SlideUpInView";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -16,9 +14,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useHomeYearProgressStatistics } from "@/hooks/useHomeYearProgressStatistics";
-import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
-import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { FlowerIcon, Loader2Icon } from "lucide-react";
 import {
@@ -61,22 +57,25 @@ const CHART_TABS: { value: ChartTab; label: string }[] = [
   { value: "lightNovel", label: "Light Novels" }
 ];
 
+const LINE_SERIES: {
+  dataKey: keyof typeof LINE_COLORS;
+  name: string;
+  tab: ChartTab;
+}[] = [
+  { dataKey: "animeCount", name: "Anime", tab: "anime" },
+  { dataKey: "mangaCount", name: "Manga", tab: "manga" },
+  { dataKey: "lightNovelCount", name: "Light Novels", tab: "lightNovel" }
+];
+
 const tabClassName =
   "relative z-10 shrink-0 rounded-lg px-4 py-1.5 text-xs text-[#4b3a4c] data-[state=active]:bg-transparent data-[state=active]:text-rose-600 data-[state=active]:shadow-none hover:cursor-pointer";
 
 export default function HomeYearProgressSection() {
   const thisCalendarYear = new Date().getFullYear();
   const [progressYear, setProgressYear] = useState(thisCalendarYear);
-  const { topMediasQuery, mediaConsumptionQuery } =
+  const { topMediasQuery, mediaConsumptionQuery, yearRangeQuery } =
     useHomeYearProgressStatistics(progressYear);
   const [chartTab, setChartTab] = useState<ChartTab>("all");
-
-  const yearRangeQuery = useQuery({
-    queryKey: ["statisticYearRange"],
-    queryFn: () => statisticService.fetchYearRange()
-  });
-
-  useQueryErrorToast(yearRangeQuery.error);
 
   const years = useMemo(() => {
     const range = yearRangeQuery.data ?? [];
@@ -125,10 +124,6 @@ export default function HomeYearProgressSection() {
           : "0"
     }
   ];
-
-  const showAnime = chartTab === "all" || chartTab === "anime";
-  const showManga = chartTab === "all" || chartTab === "manga";
-  const showLightNovel = chartTab === "all" || chartTab === "lightNovel";
 
   return (
     <SlideUpInView
@@ -350,45 +345,25 @@ export default function HomeYearProgressSection() {
                             fontSize: 13
                           }}
                         />
-                        {showAnime && (
-                          <Line
-                            type="monotone"
-                            dataKey="animeCount"
-                            name="Anime"
-                            stroke={LINE_COLORS.animeCount}
-                            strokeWidth={2.5}
-                            dot={{ r: 4, fill: LINE_COLORS.animeCount }}
-                            activeDot={{ r: 6 }}
-                            animationDuration={1350}
-                          />
-                        )}
-                        {showManga && (
-                          <Line
-                            type="monotone"
-                            dataKey="mangaCount"
-                            name="Manga"
-                            stroke={LINE_COLORS.mangaCount}
-                            strokeWidth={2.5}
-                            dot={{ r: 4, fill: LINE_COLORS.mangaCount }}
-                            activeDot={{ r: 6 }}
-                            animationDuration={1350}
-                          />
-                        )}
-                        {showLightNovel && (
-                          <Line
-                            type="monotone"
-                            dataKey="lightNovelCount"
-                            name="Light Novels"
-                            stroke={LINE_COLORS.lightNovelCount}
-                            strokeWidth={2.5}
-                            dot={{
-                              r: 4,
-                              fill: LINE_COLORS.lightNovelCount
-                            }}
-                            activeDot={{ r: 6 }}
-                            animationDuration={1350}
-                          />
-                        )}
+                        {LINE_SERIES.map((series) => {
+                          if (chartTab !== "all" && chartTab !== series.tab) {
+                            return null;
+                          }
+                          const stroke = LINE_COLORS[series.dataKey];
+                          return (
+                            <Line
+                              key={series.dataKey}
+                              type="monotone"
+                              dataKey={series.dataKey}
+                              name={series.name}
+                              stroke={stroke}
+                              strokeWidth={2.5}
+                              dot={{ r: 4, fill: stroke }}
+                              activeDot={{ r: 6 }}
+                              animationDuration={1350}
+                            />
+                          );
+                        })}
                       </LineChart>
                     </ResponsiveContainer>
                   </div>

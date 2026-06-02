@@ -63,13 +63,11 @@ export default function HomePublicNavbar(props: HomePublicNavbarProps) {
             const isFirst = index === 0;
             const isLast = index === navLinks.length - 1;
             const activeRadius = isActive
-              ? isFirst && isLast
-                ? "rounded-xl"
-                : isFirst
-                  ? "rounded-r-xl"
-                  : isLast
-                    ? "rounded-l-xl"
-                    : "rounded-xl"
+              ? isFirst
+                ? "rounded-r-xl"
+                : isLast
+                  ? "rounded-l-xl"
+                  : "rounded-xl"
               : "rounded-xl";
 
             return (

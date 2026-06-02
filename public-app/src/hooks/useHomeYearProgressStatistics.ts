@@ -7,7 +7,7 @@ import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useQueries } from "@tanstack/react-query";
 
 export const useHomeYearProgressStatistics = (year: number) => {
-  const [topMediasQuery, mediaConsumptionQuery] = useQueries({
+  const [topMediasQuery, mediaConsumptionQuery, yearRangeQuery] = useQueries({
     queries: [
       {
         queryKey: ["topMedias", year],
@@ -17,12 +17,17 @@ export const useHomeYearProgressStatistics = (year: number) => {
         queryKey: ["mediaConsumption", "monthly", year],
         queryFn: () =>
           statisticService.fetchMediaConsumption("monthly", String(year))
+      },
+      {
+        queryKey: ["statisticYearRange"],
+        queryFn: () => statisticService.fetchYearRange()
       }
     ]
   });
 
   useQueryErrorToast(topMediasQuery.error);
   useQueryErrorToast(mediaConsumptionQuery.error);
+  useQueryErrorToast(yearRangeQuery.error);
 
-  return { topMediasQuery, mediaConsumptionQuery };
+  return { topMediasQuery, mediaConsumptionQuery, yearRangeQuery };
 };
