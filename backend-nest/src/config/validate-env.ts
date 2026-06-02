@@ -84,7 +84,18 @@ export const envSchema = z.object({
       return false;
     }
     return v;
-  }, z.boolean())
+  }, z.boolean()),
+
+  DB_SLOW_QUERY_THRESHOLD_MS: z.preprocess((v) => {
+    if (typeof v !== "string" || v.trim() === "") {
+      return 250;
+    }
+    const trimmed = v.trim();
+    if (!/^\d+$/.test(trimmed)) {
+      return Number.NaN;
+    }
+    return Number(trimmed);
+  }, z.number().int().positive())
 });
 
 export type Env = z.infer<typeof envSchema>;
