@@ -57,7 +57,12 @@ export const envSchema = z.object({
   CANONICAL_PUBLIC_APP_URL: z.url().trim(),
   PUBLIC_APP_URL: z.url().trim(),
 
-  LOG_SERVICE_NAME: z.string().trim().min(1).optional(),
+  LOG_SERVICE_NAME: z.preprocess((v) => {
+    if (typeof v !== "string" || v.trim() === "") {
+      return "backend-nest";
+    }
+    return v.trim();
+  }, z.string().trim().min(1)),
   LOG_LEVEL: z.preprocess(
     (v) => {
       if (typeof v !== "string" || v.trim() === "") {
@@ -67,9 +72,9 @@ export const envSchema = z.object({
     },
     z.enum(["error", "warn", "info", "debug"])
   ),
-  LOG_TO_STDOUT: z.preprocess((v) => {
+  LOG_TO_FILE: z.preprocess((v) => {
     if (typeof v !== "string" || v.trim() === "") {
-      return true;
+      return false;
     }
     const normalized = v.trim().toLowerCase();
     if (normalized === "true") {

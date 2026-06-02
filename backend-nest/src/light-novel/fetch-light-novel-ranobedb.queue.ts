@@ -7,6 +7,14 @@ import {
   logMetadataSyncNoConfidentMatch
 } from "@/common/bull/external-metadata-queue";
 import {
+  logQueueJobEnqueueFailed,
+  logQueueJobEnqueued
+} from "@/common/bull/queue-infrastructure-logging";
+import {
+  type HttpClientLogContext,
+  loggedAxiosRequest
+} from "@/common/logging/http-client-logging";
+import {
   type RequestLogContextStore,
   getRequestLogContext
 } from "@/common/logging/request-log-context";
@@ -14,7 +22,6 @@ import { StructuredLogger } from "@/common/logging/structured-logger.service";
 
 import { PrismaService } from "@/prisma/prisma.service";
 
-import axios, { isAxiosError } from "axios";
 import type Bull from "bull";
 import { stringSimilarity } from "string-similarity-js";
 import { v4 as uuidv4 } from "uuid";
@@ -139,33 +146,26 @@ const pickRanobeDbSeries = (
 };
 
 const getSeriesSearch = async (
+  logger: StructuredLogger,
+  httpContext: HttpClientLogContext,
   query: string
 ): Promise<RanobeDbSeriesListRow[]> => {
-  try {
-    const response = await axios.get<RanobeDbSeriesSearchResponse>(
-      `${RANOBEDB_API_BASE}/series`,
-      {
-        params: {
-          q: query,
-          page: 1,
-          limit: SERIES_SEARCH_LIMIT
-        },
-        headers: { Accept: "application/json" }
-      }
-    );
-
-    return response.data.series ?? [];
-  } catch (error: unknown) {
-    if (isAxiosError(error) && error.response?.status === 429) {
-      const retryAfterRaw: unknown = error.response.headers["retry-after"];
-      const retryAfter =
-        typeof retryAfterRaw === "string" ? retryAfterRaw : undefined;
-      throw new Error(
-        `RanobeDB HTTP 429${retryAfter !== undefined ? `; Retry-After: ${retryAfter}` : ""}`
-      );
+  const response = await loggedAxiosRequest<RanobeDbSeriesSearchResponse>(
+    logger,
+    httpContext,
+    {
+      method: "GET",
+      url: `${RANOBEDB_API_BASE}/series`,
+      params: {
+        q: query,
+        page: 1,
+        limit: SERIES_SEARCH_LIMIT
+      },
+      headers: { Accept: "application/json" }
     }
-    throw error;
-  }
+  );
+
+  return response.data.series ?? [];
 };
 
 const normalizeVolumeCount = (raw: unknown): number | null => {
@@ -229,8 +229,8 @@ export class FetchLightNovelRanobeDbQueueService
   ): void {
     const als = getRequestLogContext();
     const correlation_id =
-      requestLog?.correlation_id ?? als?.correlation_id ?? undefined;
-    const request_id = requestLog?.request_id ?? als?.request_id ?? undefined;
+      requestLog?.correlation_id ?? als?.correlation_id ?? uuidv4();
+    const request_id = requestLog?.request_id ?? als?.request_id ?? null;
 
     void this.queue
       .add({
@@ -240,18 +240,29 @@ export class FetchLightNovelRanobeDbQueueService
         correlation_id,
         request_id: request_id ?? null
       })
-      .catch((error: unknown) => {
-        this.logger.logApplication({
-          level: "warn",
-          event: "queue.fetch_light_novel_ranobedb.enqueue_failed",
-          message: "Failed to enqueue RanobeDB fetch job",
-          error: jobErrorFromUnknown(error),
+      .then((job) => {
+        logQueueJobEnqueued(this.logger, {
+          queue_name: "fetchLightNovelRanobeDbQueue",
+          job_id: String(job.id),
+          job_name: "fetch-light-novel-ranobedb",
+          correlation_id,
+          request_id,
           meta: {
-            queue_name: "fetchLightNovelRanobeDbQueue",
-            operation: "enqueue",
             light_novel_id: lightNovelId,
-            ...(correlation_id !== undefined ? { correlation_id } : {}),
-            ...(request_id !== undefined ? { request_id } : {})
+            provider: "ranobedb"
+          }
+        });
+      })
+      .catch((error: unknown) => {
+        logQueueJobEnqueueFailed(this.logger, {
+          queue_name: "fetchLightNovelRanobeDbQueue",
+          job_name: "fetch-light-novel-ranobedb",
+          correlation_id,
+          request_id,
+          error,
+          meta: {
+            light_novel_id: lightNovelId,
+            provider: "ranobedb"
           }
         });
       });
@@ -276,7 +287,8 @@ export class FetchLightNovelRanobeDbQueueService
       attempt: job.attemptsMade + 1,
       max_attempts: maxAttempts,
       duration_ms: null as number | null,
-      light_novel_id: job.data.id
+      light_novel_id: job.data.id,
+      provider: "ranobedb" as const
     };
 
     this.logger.logQueue({
@@ -296,7 +308,20 @@ export class FetchLightNovelRanobeDbQueueService
           ? job.data.titleJapanese
           : job.data.title;
 
-      const seriesList = await getSeriesSearch(search);
+      const seriesList = await getSeriesSearch(
+        this.logger,
+        {
+          provider: "ranobedb",
+          method: "GET",
+          endpoint: "ranobedb.series.search",
+          correlation_id,
+          request_id,
+          queue_name: queueMetaBase.queue_name,
+          job_id: queueMetaBase.job_id,
+          job_name: queueMetaBase.job_name
+        },
+        search
+      );
       const chosen = pickRanobeDbSeries(
         seriesList,
         job.data.title,
@@ -319,15 +344,23 @@ export class FetchLightNovelRanobeDbQueueService
           candidate_count: seriesList.length
         });
       } else if (newCount === null) {
-        this.logger.logApplication({
+        this.logger.logQueue({
           level: "warn",
           event: "queue.metadata_sync.invalid_provider_count",
           message:
             "RanobeDB series matched but volume counts were invalid; skipping update",
+          correlation_id,
+          request_id,
+          user_id: null,
           error: null,
           meta: {
             queue_name: "fetchLightNovelRanobeDbQueue",
             job_id: String(job.id),
+            job_name: queueMetaBase.job_name,
+            attempt: queueMetaBase.attempt,
+            max_attempts: queueMetaBase.max_attempts,
+            duration_ms: null,
+            provider: "ranobedb",
             light_novel_id: job.data.id,
             ranobedb_series_id: chosen.id,
             c_num_books: chosen.c_num_books,

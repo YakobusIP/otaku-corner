@@ -5,6 +5,7 @@ export type RequestLogContextStore = {
   correlation_id: string;
   request_id: string;
   user_id: string | number | null;
+  route_template?: string;
 };
 
 type RequestWithLogStore = Request & {

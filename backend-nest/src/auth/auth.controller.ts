@@ -24,6 +24,7 @@ import {
 import { CurrentUser } from "@/common/decorators/current-user.decorator";
 import type { CurrentUserPayload } from "@/common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { StructuredLogger } from "@/common/logging/structured-logger.service";
 
 import { REFRESH_TOKEN_COOKIE_NAME } from "@/auth/auth.constants";
 import { AuthService } from "@/auth/auth.service";
@@ -43,7 +44,8 @@ import { decode } from "jsonwebtoken";
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly logger: StructuredLogger
   ) {}
 
   private refreshCookieSecurity(): Pick<CookieOptions, "secure" | "sameSite"> {
@@ -95,14 +97,33 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response
   ): Promise<AuthResponseDto> {
-    const { accessToken, refreshToken } =
-      await this.authService.login(loginDto);
-    res.cookie(
-      REFRESH_TOKEN_COOKIE_NAME,
-      refreshToken,
-      this.refreshCookieOptions(refreshToken)
-    );
-    return { accessToken };
+    try {
+      const { accessToken, refreshToken, userId } =
+        await this.authService.login(loginDto);
+      res.cookie(
+        REFRESH_TOKEN_COOKIE_NAME,
+        refreshToken,
+        this.refreshCookieOptions(refreshToken)
+      );
+      this.logger.logAuth({
+        level: "info",
+        event: "auth.login.succeeded",
+        message: "Login succeeded",
+        user_id: userId,
+        meta: { reason_code: "login_ok" }
+      });
+      return { accessToken };
+    } catch (error: unknown) {
+      if (error instanceof UnauthorizedException) {
+        this.logger.logAuth({
+          level: "warn",
+          event: "auth.login.failed",
+          message: "Login failed",
+          meta: { reason_code: "invalid_credentials" }
+        });
+      }
+      throw error;
+    }
   }
 
   @Post("logout")
@@ -114,6 +135,12 @@ export class AuthController {
   })
   logout(@Res({ passthrough: true }) res: Response): { message: string } {
     this.clearRefreshCookie(res);
+    this.logger.logAuth({
+      level: "info",
+      event: "auth.logout.succeeded",
+      message: "Logout succeeded",
+      meta: { reason_code: "logout_ok" }
+    });
     return { message: "Logged out successfully" };
   }
 
@@ -145,8 +172,35 @@ export class AuthController {
   async refresh(@Req() req: Request): Promise<RefreshResponseDto> {
     const rawRefresh = req.cookies[REFRESH_TOKEN_COOKIE_NAME] as unknown;
     if (typeof rawRefresh !== "string" || !rawRefresh) {
+      this.logger.logAuth({
+        level: "warn",
+        event: "auth.refresh.failed",
+        message: "Refresh failed",
+        meta: { reason_code: "missing_refresh_token" }
+      });
       throw new UnauthorizedException("Missing refresh token");
     }
-    return this.authService.refresh(rawRefresh);
+
+    try {
+      const result = await this.authService.refresh(rawRefresh);
+      this.logger.logAuth({
+        level: "info",
+        event: "auth.refresh.succeeded",
+        message: "Refresh succeeded",
+        user_id: result.userId,
+        meta: { reason_code: "refresh_ok" }
+      });
+      return { accessToken: result.accessToken };
+    } catch (error: unknown) {
+      if (error instanceof UnauthorizedException) {
+        this.logger.logAuth({
+          level: "warn",
+          event: "auth.refresh.failed",
+          message: "Refresh failed",
+          meta: { reason_code: "invalid_refresh_token" }
+        });
+      }
+      throw error;
+    }
   }
 }

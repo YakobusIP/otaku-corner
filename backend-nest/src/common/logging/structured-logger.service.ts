@@ -4,15 +4,17 @@ import { ConfigService } from "@nestjs/config";
 import { getRequestLogContext } from "@/common/logging/request-log-context";
 import type {
   HttpLogMeta,
+  LogContext,
   LogEnvironment,
   LogLevel,
   QueueLogMeta,
   StructuredLogError,
   StructuredLogLine
 } from "@/common/logging/structured-log.types";
-import { STRUCTURED_WINSTON } from "@/common/logging/structured-winston.factory";
-
-import type { Logger as WinstonLoggerType } from "winston";
+import {
+  STRUCTURED_LOGGER_BACKEND,
+  type StructuredLoggerBackend
+} from "@/common/logging/structured-pino.factory";
 
 function normalizeLogEnvironment(nodeEnv: string | undefined): LogEnvironment {
   if (
@@ -49,11 +51,12 @@ export class StructuredLogger {
   private readonly environment: LogEnvironment;
 
   constructor(
-    @Inject(STRUCTURED_WINSTON)
-    private readonly winston: WinstonLoggerType,
+    @Inject(STRUCTURED_LOGGER_BACKEND)
+    private readonly backend: StructuredLoggerBackend,
     private readonly config: ConfigService
   ) {
-    this.serviceName = this.config.get<string>("LOG_SERVICE_NAME") ?? "backend";
+    this.serviceName =
+      this.config.get<string>("LOG_SERVICE_NAME") ?? "backend-nest";
     this.environment = normalizeLogEnvironment(
       this.config.get<string>("NODE_ENV")
     );
@@ -75,10 +78,7 @@ export class StructuredLogger {
       error: line.error ?? null,
       meta: line.meta
     };
-    this.winston.log({
-      level: full.level,
-      message: JSON.stringify(full)
-    });
+    this.backend.write(full);
   }
 
   logHttpAccess(params: {
@@ -108,7 +108,7 @@ export class StructuredLogger {
     level: LogLevel;
     event: string;
     message: string;
-    correlation_id: string;
+    correlation_id: string | null;
     request_id: string | null;
     user_id: string | number | null;
     error: StructuredLogError | null;
@@ -151,5 +151,128 @@ export class StructuredLogger {
       error: params.error,
       meta
     });
+  }
+
+  logAuth(params: {
+    level: LogLevel;
+    event: string;
+    message: string;
+    user_id?: string | number | null;
+    error?: StructuredLogError | null;
+    meta?: Record<string, unknown>;
+  }): void {
+    this.emit({
+      level: params.level,
+      context: "auth",
+      event: params.event,
+      message: params.message,
+      user_id: params.user_id ?? null,
+      error: params.error ?? null,
+      meta: params.meta ?? {}
+    });
+  }
+
+  logDb(params: {
+    level: LogLevel;
+    event: string;
+    message: string;
+    error?: StructuredLogError | null;
+    meta?: Record<string, unknown>;
+  }): void {
+    this.emit({
+      level: params.level,
+      context: "db",
+      event: params.event,
+      message: params.message,
+      error: params.error ?? null,
+      meta: params.meta ?? {}
+    });
+  }
+
+  logStorage(params: {
+    level: LogLevel;
+    event: string;
+    message: string;
+    error?: StructuredLogError | null;
+    meta?: Record<string, unknown>;
+  }): void {
+    this.emit({
+      level: params.level,
+      context: "storage",
+      event: params.event,
+      message: params.message,
+      error: params.error ?? null,
+      meta: params.meta ?? {}
+    });
+  }
+
+  logHttpClient(params: {
+    level: LogLevel;
+    event: string;
+    message: string;
+    correlation_id?: string;
+    request_id?: string | null;
+    error?: StructuredLogError | null;
+    meta?: Record<string, unknown>;
+  }): void {
+    this.emit({
+      level: params.level,
+      context: "http_client",
+      event: params.event,
+      message: params.message,
+      correlation_id: params.correlation_id,
+      request_id: params.request_id,
+      error: params.error ?? null,
+      meta: params.meta ?? {}
+    });
+  }
+
+  logProcess(params: {
+    level: LogLevel;
+    event: string;
+    message: string;
+    error?: StructuredLogError | null;
+    meta?: Record<string, unknown>;
+  }): void {
+    this.emit({
+      level: params.level,
+      context: "process",
+      event: params.event,
+      message: params.message,
+      error: params.error ?? null,
+      meta: params.meta ?? {}
+    });
+  }
+
+  logWithContext(
+    context: LogContext,
+    params: {
+      level: LogLevel;
+      event: string;
+      message: string;
+      error?: StructuredLogError | null;
+      meta?: Record<string, unknown>;
+    }
+  ): void {
+    this.emit({
+      level: params.level,
+      context,
+      event: params.event,
+      message: params.message,
+      error: params.error ?? null,
+      meta: params.meta ?? {}
+    });
+  }
+
+  flush(callback?: () => void): void {
+    this.backend.flush(callback);
+  }
+
+  flushSync(): void {
+    this.backend.flushSync();
+  }
+
+  final(callback: (error?: Error) => void): void {
+    this.backend.final(callback);
   }
 }

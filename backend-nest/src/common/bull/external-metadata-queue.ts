@@ -39,18 +39,22 @@ export const logMetadataSyncNoConfidentMatch = (
     candidate_count: number;
   }
 ): void => {
-  logger.logApplication({
+  logger.logQueue({
     level: "info",
     event: "queue.metadata_sync.no_confident_match",
     message: "No confident provider match; skipping metadata update",
+    correlation_id: params.correlation_id,
+    request_id: params.request_id,
+    user_id: null,
     error: null,
     meta: {
       queue_name: params.queue_name,
       job_id: params.job_id,
       job_name: params.job_name,
+      attempt: 0,
+      max_attempts: 0,
+      duration_ms: null,
       provider: params.provider,
-      correlation_id: params.correlation_id,
-      request_id: params.request_id,
       ...(params.manga_id !== undefined ? { manga_id: params.manga_id } : {}),
       ...(params.light_novel_id !== undefined
         ? { light_novel_id: params.light_novel_id }

@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+import { StructuredLogger } from "@/common/logging/structured-logger.service";
+
 import {
   DeleteObjectCommand,
   HeadObjectCommand,
@@ -24,11 +26,27 @@ export type R2HeadObjectResult = {
 
 export const R2_ASSET_CACHE_CONTROL = "public, max-age=31536000, immutable";
 
+const errorFromUnknown = (error: unknown) =>
+  error instanceof Error
+    ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack ?? ""
+      }
+    : {
+        name: "Error",
+        message: String(error),
+        stack: ""
+      };
+
 @Injectable()
 export class R2FileStorageService {
   private runtime: R2Runtime | undefined;
 
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly logger: StructuredLogger
+  ) {}
 
   private getRuntime(): R2Runtime {
     if (this.runtime) {
@@ -57,18 +75,38 @@ export class R2FileStorageService {
     return this.runtime;
   }
 
-  async deleteObject(key: string): Promise<void> {
+  async deleteObject(
+    key: string,
+    meta?: Record<string, unknown>
+  ): Promise<void> {
     assertSafeObjectStorageKey(key);
     const { client, bucketName } = this.getRuntime();
-    await client.send(
-      new DeleteObjectCommand({
-        Bucket: bucketName,
-        Key: key
-      })
-    );
+    try {
+      await client.send(
+        new DeleteObjectCommand({
+          Bucket: bucketName,
+          Key: key
+        })
+      );
+    } catch (error: unknown) {
+      this.logger.logStorage({
+        level: "error",
+        event: "storage.r2.delete.failed",
+        message: "R2 delete object failed",
+        error: errorFromUnknown(error),
+        meta: {
+          storage_key: key,
+          ...(meta ?? {})
+        }
+      });
+      throw error;
+    }
   }
 
-  async headObject(key: string): Promise<R2HeadObjectResult | null> {
+  async headObject(
+    key: string,
+    meta?: Record<string, unknown>
+  ): Promise<R2HeadObjectResult | null> {
     assertSafeObjectStorageKey(key);
     const { client, bucketName } = this.getRuntime();
     try {
@@ -103,6 +141,16 @@ export class R2FileStorageService {
       if (httpStatus === 404 || name === "NotFound") {
         return null;
       }
+      this.logger.logStorage({
+        level: "error",
+        event: "storage.r2.head.failed",
+        message: "R2 head object failed",
+        error: errorFromUnknown(error),
+        meta: {
+          storage_key: key,
+          ...(meta ?? {})
+        }
+      });
       throw error;
     }
   }
@@ -111,6 +159,7 @@ export class R2FileStorageService {
     key: string;
     contentType: string;
     expiresInSeconds?: number;
+    meta?: Record<string, unknown>;
   }): Promise<string> {
     assertSafeObjectStorageKey(params.key);
     const { client, bucketName } = this.getRuntime();
@@ -120,9 +169,24 @@ export class R2FileStorageService {
       ContentType: params.contentType,
       CacheControl: R2_ASSET_CACHE_CONTROL
     });
-    return getSignedUrl(client, cmd, {
-      expiresIn: params.expiresInSeconds ?? 900
-    });
+    try {
+      return await getSignedUrl(client, cmd, {
+        expiresIn: params.expiresInSeconds ?? 900
+      });
+    } catch (error: unknown) {
+      this.logger.logStorage({
+        level: "error",
+        event: "storage.r2.presign.failed",
+        message: "R2 presigned URL generation failed",
+        error: errorFromUnknown(error),
+        meta: {
+          storage_key: params.key,
+          mime_type: params.contentType,
+          ...(params.meta ?? {})
+        }
+      });
+      throw error;
+    }
   }
 
   publicUrlForFile(key: string): string {

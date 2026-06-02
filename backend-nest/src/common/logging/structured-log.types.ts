@@ -1,18 +1,22 @@
-export type LogLevel = "debug" | "info" | "warn" | "error";
+export type LogLevel = "debug" | "info" | "warn" | "error" | "fatal";
 
 export type LogEnvironment = "development" | "test" | "production";
 
 export type LogContext =
   | "http"
   | "queue"
-  | "cron"
+  | "application"
+  | "db"
+  | "storage"
   | "http_client"
-  | "application";
+  | "process"
+  | "auth";
 
 export type StructuredLogError = {
   name: string;
   message: string;
   stack: string;
+  code?: string;
 };
 
 export type HttpLogMeta = {
@@ -23,11 +27,13 @@ export type HttpLogMeta = {
   duration_ms: number;
   client_ip: string;
   user_agent: string;
+  content_length?: number | null;
+  outcome?: string;
 };
 
 export type QueueLogMeta = {
   queue_name: string;
-  job_id: string;
+  job_id: string | null;
   job_name: string;
   attempt: number;
   max_attempts: number;

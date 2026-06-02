@@ -2,6 +2,11 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 
 import { BullQueueService } from "@/common/bull/bull-queue.service";
 import {
+  logQueueJobEnqueueFailed,
+  logQueueJobEnqueued
+} from "@/common/bull/queue-infrastructure-logging";
+import { loggedAxiosRequest } from "@/common/logging/http-client-logging";
+import {
   type RequestLogContextStore,
   getRequestLogContext
 } from "@/common/logging/request-log-context";
@@ -10,7 +15,6 @@ import { StructuredLogger } from "@/common/logging/structured-logger.service";
 import { PrismaService } from "@/prisma/prisma.service";
 
 import { Prisma } from "@prisma/client";
-import axios from "axios";
 import type Bull from "bull";
 import { v4 as uuidv4 } from "uuid";
 
@@ -90,8 +94,8 @@ export class FetchEpisodesQueueService
 
     const als = getRequestLogContext();
     const correlation_id =
-      requestLog?.correlation_id ?? als?.correlation_id ?? undefined;
-    const request_id = requestLog?.request_id ?? als?.request_id ?? undefined;
+      requestLog?.correlation_id ?? als?.correlation_id ?? uuidv4();
+    const request_id = requestLog?.request_id ?? als?.request_id ?? null;
 
     void this.queue
       .add({
@@ -99,26 +103,31 @@ export class FetchEpisodesQueueService
         correlation_id,
         request_id: request_id ?? null
       })
-      .catch((error: unknown) => {
-        this.logger.logApplication({
-          level: "warn",
-          event: "queue.fetch_episodes.enqueue_failed",
-          message: "Failed to enqueue episode fetch job",
-          error:
-            error instanceof Error
-              ? {
-                  name: error.name,
-                  message: error.message,
-                  stack: error.stack ?? ""
-                }
-              : null,
+      .then((job) => {
+        logQueueJobEnqueued(this.logger, {
+          queue_name: "fetchEpisodesQueue",
+          job_id: String(job.id),
+          job_name: "fetch-episodes",
+          correlation_id,
+          request_id,
           meta: {
-            queue_name: "fetchEpisodesQueue",
-            operation: "enqueue",
             anime_id: animeId,
             anime_type: type,
-            ...(correlation_id !== undefined ? { correlation_id } : {}),
-            ...(request_id !== undefined ? { request_id } : {})
+            provider: "jikan"
+          }
+        });
+      })
+      .catch((error: unknown) => {
+        logQueueJobEnqueueFailed(this.logger, {
+          queue_name: "fetchEpisodesQueue",
+          job_name: "fetch-episodes",
+          correlation_id,
+          request_id,
+          error,
+          meta: {
+            anime_id: animeId,
+            anime_type: type,
+            provider: "jikan"
           }
         });
       });
@@ -141,7 +150,8 @@ export class FetchEpisodesQueueService
       attempt: job.attemptsMade + 1,
       max_attempts: maxAttempts,
       duration_ms: null as number | null,
-      anime_id: job.data.id
+      anime_id: job.data.id,
+      provider: "jikan" as const
     };
 
     this.logger.logQueue({
@@ -156,8 +166,22 @@ export class FetchEpisodesQueueService
     });
 
     try {
-      const response = await axios.get<JikanResponse>(
-        `https://api.jikan.moe/v4/anime/${job.data.id}/episodes`
+      const response = await loggedAxiosRequest<JikanResponse>(
+        this.logger,
+        {
+          provider: "jikan",
+          method: "GET",
+          endpoint: "jikan.anime.episodes",
+          correlation_id,
+          request_id,
+          queue_name: queueMetaBase.queue_name,
+          job_id: queueMetaBase.job_id,
+          job_name: queueMetaBase.job_name
+        },
+        {
+          method: "GET",
+          url: `https://api.jikan.moe/v4/anime/${job.data.id}/episodes`
+        }
       );
 
       const episodesData: Prisma.AnimeEpisodeCreateManyInput[] =

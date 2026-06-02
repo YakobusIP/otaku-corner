@@ -7,6 +7,14 @@ import {
   logMetadataSyncNoConfidentMatch
 } from "@/common/bull/external-metadata-queue";
 import {
+  logQueueJobEnqueueFailed,
+  logQueueJobEnqueued
+} from "@/common/bull/queue-infrastructure-logging";
+import {
+  type HttpClientLogContext,
+  loggedAxiosRequest
+} from "@/common/logging/http-client-logging";
+import {
   type RequestLogContextStore,
   getRequestLogContext
 } from "@/common/logging/request-log-context";
@@ -15,7 +23,6 @@ import { StructuredLogger } from "@/common/logging/structured-logger.service";
 import { PrismaService } from "@/prisma/prisma.service";
 
 import { Prisma } from "@prisma/client";
-import axios, { isAxiosError } from "axios";
 import type Bull from "bull";
 import { stringSimilarity } from "string-similarity-js";
 import { v4 as uuidv4 } from "uuid";
@@ -201,48 +208,56 @@ const pickAnilistMedia = (
 };
 
 const postAnilistGraphql = async <T>(
+  logger: StructuredLogger,
+  httpContext: HttpClientLogContext,
   query: string,
   variables: Record<string, unknown>
 ): Promise<T> => {
-  try {
-    const response = await axios.post<AnilistGraphqlEnvelope<T>>(
-      ANILIST_GRAPHQL_URL,
-      { query, variables },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json"
-        }
+  const response = await loggedAxiosRequest<AnilistGraphqlEnvelope<T>>(
+    logger,
+    httpContext,
+    {
+      method: "POST",
+      url: ANILIST_GRAPHQL_URL,
+      data: { query, variables },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
       }
+    }
+  );
+
+  if (response.data.errors?.length) {
+    const rateLimited = response.data.errors.some(
+      (entry) => entry.status === 429
     );
-
-    if (response.data.errors?.length) {
-      const rateLimited = response.data.errors.some((e) => e.status === 429);
-      if (rateLimited) {
-        throw new Error("AniList GraphQL rate limited (429)");
-      }
-      throw new Error(
-        response.data.errors.map((e) => e.message).join("; ") ||
-          "AniList GraphQL error"
-      );
+    if (rateLimited) {
+      logger.logHttpClient({
+        level: "warn",
+        event: "http_client.request.rate_limited",
+        message: "AniList GraphQL rate limited",
+        correlation_id: httpContext.correlation_id,
+        request_id: httpContext.request_id,
+        meta: {
+          provider: httpContext.provider,
+          method: httpContext.method,
+          endpoint: httpContext.endpoint,
+          status_code: 429
+        }
+      });
+      throw new Error("AniList GraphQL rate limited (429)");
     }
-
-    if (response.data.data === undefined || response.data.data === null) {
-      throw new Error("AniList response missing data");
-    }
-
-    return response.data.data as T;
-  } catch (error: unknown) {
-    if (isAxiosError(error) && error.response?.status === 429) {
-      const retryAfterRaw: unknown = error.response.headers["retry-after"];
-      const retryAfter =
-        typeof retryAfterRaw === "string" ? retryAfterRaw : undefined;
-      throw new Error(
-        `AniList HTTP 429${retryAfter !== undefined ? `; Retry-After: ${retryAfter}` : ""}`
-      );
-    }
-    throw error;
+    throw new Error(
+      response.data.errors.map((entry) => entry.message).join("; ") ||
+        "AniList GraphQL error"
+    );
   }
+
+  if (response.data.data === undefined || response.data.data === null) {
+    throw new Error("AniList response missing data");
+  }
+
+  return response.data.data as T;
 };
 
 const floorCount = (value: number | null): number | null => {
@@ -315,8 +330,8 @@ export class FetchMangaDataQueueService
   ): void {
     const als = getRequestLogContext();
     const correlation_id =
-      requestLog?.correlation_id ?? als?.correlation_id ?? undefined;
-    const request_id = requestLog?.request_id ?? als?.request_id ?? undefined;
+      requestLog?.correlation_id ?? als?.correlation_id ?? uuidv4();
+    const request_id = requestLog?.request_id ?? als?.request_id ?? null;
 
     void this.dataQueue
       .add({
@@ -326,18 +341,29 @@ export class FetchMangaDataQueueService
         correlation_id,
         request_id: request_id ?? null
       })
-      .catch((error: unknown) => {
-        this.logger.logApplication({
-          level: "warn",
-          event: "queue.fetch_manga.enqueue_failed",
-          message: "Failed to enqueue AniList fetch job",
-          error: jobErrorFromUnknown(error),
+      .then((job) => {
+        logQueueJobEnqueued(this.logger, {
+          queue_name: "fetchMangaDataQueue",
+          job_id: String(job.id),
+          job_name: "fetch-manga-data",
+          correlation_id,
+          request_id,
           meta: {
-            queue_name: "fetchMangaDataQueue",
-            operation: "enqueue",
             manga_id: mangaId,
-            ...(correlation_id !== undefined ? { correlation_id } : {}),
-            ...(request_id !== undefined ? { request_id } : {})
+            provider: "anilist"
+          }
+        });
+      })
+      .catch((error: unknown) => {
+        logQueueJobEnqueueFailed(this.logger, {
+          queue_name: "fetchMangaDataQueue",
+          job_name: "fetch-manga-data",
+          correlation_id,
+          request_id,
+          error,
+          meta: {
+            manga_id: mangaId,
+            provider: "anilist"
           }
         });
       });
@@ -385,7 +411,8 @@ export class FetchMangaDataQueueService
       attempt: job.attemptsMade + 1,
       max_attempts: maxAttempts,
       duration_ms: null as number | null,
-      manga_id: job.data.id
+      manga_id: job.data.id,
+      provider: "anilist" as const
     };
 
     this.logger.logQueue({
@@ -406,6 +433,17 @@ export class FetchMangaDataQueueService
           : job.data.title;
 
       const data = await postAnilistGraphql<AnilistMangaSearchData>(
+        this.logger,
+        {
+          provider: "anilist",
+          method: "POST",
+          endpoint: "anilist.graphql",
+          correlation_id,
+          request_id,
+          queue_name: queueMetaBase.queue_name,
+          job_id: queueMetaBase.job_id,
+          job_name: queueMetaBase.job_name
+        },
         MANGA_SEARCH_QUERY,
         {
           search,
