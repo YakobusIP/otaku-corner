@@ -1,28 +1,34 @@
 "use client";
 
 import ReviewContent from "@/components/ReviewContent";
-import AnimeDetailScoresBreakdown from "@/components/anime/scores-breakdown/AnimeDetailScoresBreakdown";
-import { buildLightNovelScoreCriteria } from "@/components/light-novel/light-novel-detail-helpers";
+import MediaDetailScoresBreakdown from "@/components/media-detail/scores-breakdown/MediaDetailScoresBreakdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 
-import { LightNovelDetail } from "@/types/lightnovel.type";
+import {
+  type MediaDetailReviewFields,
+  type MediaScoreCriterion
+} from "@/lib/media-detail-helpers";
 
 import { AlertTriangleIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import Image from "next/image";
 
-type LightNovelDetailReviewTabProps = {
-  review: LightNovelDetail["review"];
+type MediaDetailReviewTabProps<TReview extends MediaDetailReviewFields> = {
+  review: TReview | null | undefined;
+  buildScoreCriteria: (review: TReview) => MediaScoreCriterion[];
   spoilersRevealed: boolean;
   onRevealSpoilers: () => void;
 };
 
-export default function LightNovelDetailReviewTab({
+export default function MediaDetailReviewTab<
+  TReview extends MediaDetailReviewFields
+>({
   review,
+  buildScoreCriteria,
   spoilersRevealed,
   onRevealSpoilers
-}: LightNovelDetailReviewTabProps) {
+}: MediaDetailReviewTabProps<TReview>) {
   const hasReviewText = Boolean(review?.reviewText);
 
   if (!review || !hasReviewText) {
@@ -45,13 +51,14 @@ export default function LightNovelDetailReviewTab({
     );
   }
 
-  const scoreCriteria = buildLightNovelScoreCriteria(review);
+  const scoreCriteria = buildScoreCriteria(review);
+  const reviewText = review.reviewText;
 
   return (
     <CardContent className="pt-6">
       <div className="flex flex-col gap-6 xl:max-h-[min(70vh,42rem)] xl:flex-row xl:items-stretch">
         <aside className="order-1 w-full shrink-0 xl:order-3 xl:flex xl:flex-3 xl:basis-0 xl:items-center xl:self-stretch">
-          <AnimeDetailScoresBreakdown
+          <MediaDetailScoresBreakdown
             criteria={scoreCriteria}
             personalScore={review.personalScore}
           />
@@ -90,10 +97,7 @@ export default function LightNovelDetailReviewTab({
           </div>
 
           {spoilersRevealed ? (
-            <ReviewContent
-              review={review.reviewText ?? undefined}
-              spoilersRevealed
-            />
+            <ReviewContent review={reviewText ?? undefined} spoilersRevealed />
           ) : (
             <div className="flex min-h-[min(20rem,50vh)] flex-1 flex-col items-center justify-center rounded-lg border-2 border-dashed border-orange-300 bg-white/95 p-8 text-center backdrop-blur-md xl:min-h-0">
               <AlertTriangleIcon className="mb-4 text-orange-500" size={48} />

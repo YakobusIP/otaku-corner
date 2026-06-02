@@ -1,12 +1,12 @@
 import { FlowerIcon } from "lucide-react";
 
-type AnimeDetailSynopsisCardProps = {
+type MediaDetailSynopsisCardProps = {
   synopsis: string;
 };
 
-export default function AnimeDetailSynopsisCard({
+export default function MediaDetailSynopsisCard({
   synopsis
-}: AnimeDetailSynopsisCardProps) {
+}: MediaDetailSynopsisCardProps) {
   return (
     <section className="rounded-2xl border border-white/50 bg-white/45 p-6 shadow-md shadow-rose-100/30 backdrop-blur-md">
       <header className="mb-4 flex items-center gap-2">

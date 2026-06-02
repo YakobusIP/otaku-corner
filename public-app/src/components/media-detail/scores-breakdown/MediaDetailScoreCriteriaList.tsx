@@ -2,25 +2,25 @@
 
 import { Fragment } from "react";
 
-import {
-  type AnimeScoreCriterion,
-  getScoreBarPercent
-} from "@/components/anime/anime-detail-helpers";
 import { ScoreProgressBar } from "@/components/ui/score-progress-bar";
 
 import { ratingDescriptions } from "@/lib/constants";
+import {
+  type MediaScoreCriterion,
+  getScoreBarPercent
+} from "@/lib/media-detail-helpers";
 
 import { useInView } from "react-intersection-observer";
 
-type AnimeDetailScoreCriteriaListProps = {
-  criteria: AnimeScoreCriterion[];
+type MediaDetailScoreCriteriaListProps = {
+  criteria: MediaScoreCriterion[];
   barAnimateIn?: boolean;
 };
 
-export default function AnimeDetailScoreCriteriaList({
+export default function MediaDetailScoreCriteriaList({
   criteria,
   barAnimateIn
-}: AnimeDetailScoreCriteriaListProps) {
+}: MediaDetailScoreCriteriaListProps) {
   const { ref, inView } = useInView({
     threshold: 0.2,
     triggerOnce: true
@@ -63,7 +63,11 @@ export default function AnimeDetailScoreCriteriaList({
             </div>
 
             <ScoreProgressBar
-              key={shouldAnimateBars ? `open-${criterion.title}` : `closed-${criterion.title}`}
+              key={
+                shouldAnimateBars
+                  ? `open-${criterion.title}`
+                  : `closed-${criterion.title}`
+              }
               animateIn={shouldAnimateBars}
               value={barPercent}
               aria-valuenow={criterion.score ?? 0}

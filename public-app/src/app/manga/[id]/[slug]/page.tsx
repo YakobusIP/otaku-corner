@@ -2,7 +2,7 @@ import { cache } from "react";
 
 import { mangaService } from "@/services/manga.service";
 
-import MangaDetail from "@/components/manga/MangaDetail";
+import MangaDetail from "@/components/manga/MangaDetailConfig";
 
 import { MangaDetail as MangaDetailType } from "@/types/manga.type";
 

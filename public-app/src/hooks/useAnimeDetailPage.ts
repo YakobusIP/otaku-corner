@@ -1,16 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { animeService } from "@/services/anime.service";
 
+import { useMediaDetailSpoilerState } from "@/hooks/useMediaDetailSpoilerState";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { useQuery } from "@tanstack/react-query";
 
 export const useAnimeDetailPage = (id: number) => {
-  const [showSpoilerWarning, setShowSpoilerWarning] = useState(false);
-  const [spoilersRevealed, setSpoilersRevealed] = useState(false);
+  const spoilerState = useMediaDetailSpoilerState();
 
   const {
     data: animeDetail,
@@ -28,17 +28,11 @@ export const useAnimeDetailPage = (id: number) => {
     [animeDetail]
   );
 
-  const handleRevealSpoilers = () => setShowSpoilerWarning(true);
-
   return {
     animeDetail,
     error,
     ...queryRest,
     embedURL,
-    showSpoilerWarning,
-    setShowSpoilerWarning,
-    spoilersRevealed,
-    setSpoilersRevealed,
-    handleRevealSpoilers
+    ...spoilerState
   };
 };

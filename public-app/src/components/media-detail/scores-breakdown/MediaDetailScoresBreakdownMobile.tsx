@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 
-import AnimeDetailScoreCriteriaList from "@/components/anime/scores-breakdown/AnimeDetailScoreCriteriaList";
-import AnimeDetailScoresBreakdownHeader from "@/components/anime/scores-breakdown/AnimeDetailScoresBreakdownHeader";
-import { type AnimeScoreCriterion } from "@/components/anime/anime-detail-helpers";
+import MediaDetailScoreCriteriaList from "@/components/media-detail/scores-breakdown/MediaDetailScoreCriteriaList";
+import MediaDetailScoresBreakdownHeader from "@/components/media-detail/scores-breakdown/MediaDetailScoresBreakdownHeader";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -12,23 +11,24 @@ import {
   CollapsibleTrigger
 } from "@/components/ui/collapsible";
 
+import { type MediaScoreCriterion } from "@/lib/media-detail-helpers";
 import { cn } from "@/lib/utils";
 
 import { ChevronDownIcon } from "lucide-react";
 
-type AnimeDetailScoresBreakdownMobileProps = {
-  criteria: AnimeScoreCriterion[];
+type MediaDetailScoresBreakdownMobileProps = {
+  criteria: MediaScoreCriterion[];
   personalScore?: number | null;
   headingId: string;
   sectionClassName: string;
 };
 
-export default function AnimeDetailScoresBreakdownMobile({
+export default function MediaDetailScoresBreakdownMobile({
   criteria,
   personalScore,
   headingId,
   sectionClassName
-}: AnimeDetailScoresBreakdownMobileProps) {
+}: MediaDetailScoresBreakdownMobileProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -42,7 +42,7 @@ export default function AnimeDetailScoresBreakdownMobile({
         className={cn(sectionClassName, "flex flex-col gap-0")}
       >
         <div className="flex items-center justify-between gap-3">
-          <AnimeDetailScoresBreakdownHeader
+          <MediaDetailScoresBreakdownHeader
             personalScore={personalScore}
             headingId={headingId}
           />
@@ -59,7 +59,7 @@ export default function AnimeDetailScoresBreakdownMobile({
         </div>
         <CollapsibleContent className="flex flex-col overflow-hidden">
           <div className="mt-4 border-t border-slate-200/80 pt-4">
-            <AnimeDetailScoreCriteriaList
+            <MediaDetailScoreCriteriaList
               criteria={criteria}
               barAnimateIn={isOpen}
             />

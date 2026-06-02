@@ -2,7 +2,7 @@ import { cache } from "react";
 
 import { animeService } from "@/services/anime.service";
 
-import AnimeDetail from "@/components/anime/AnimeDetail";
+import AnimeDetail from "@/components/anime/AnimeDetailConfig";
 
 import { AnimeDetail as AnimeDetailType } from "@/types/anime.type";
 

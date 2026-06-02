@@ -1,14 +1,14 @@
 import { formatMalScoreWithMax } from "@/lib/utils";
 
-type AnimeDetailScoresBreakdownHeaderProps = {
+type MediaDetailScoresBreakdownHeaderProps = {
   personalScore?: number | null;
   headingId: string;
 };
 
-export default function AnimeDetailScoresBreakdownHeader({
+export default function MediaDetailScoresBreakdownHeader({
   personalScore,
   headingId
-}: AnimeDetailScoresBreakdownHeaderProps) {
+}: MediaDetailScoresBreakdownHeaderProps) {
   return (
     <div className="space-y-1">
       <h3 id={headingId} className="text-base font-semibold text-slate-900">

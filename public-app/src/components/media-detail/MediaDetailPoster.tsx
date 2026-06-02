@@ -1,17 +1,17 @@
 import { ClapperboardIcon } from "lucide-react";
 import Image from "next/image";
 
-type AnimeDetailPosterTrailerProps = {
+type MediaDetailPosterProps = {
   posterUrl: string;
   title: string;
-  embedUrl?: string;
+  trailerEmbedUrl?: string;
 };
 
-export default function AnimeDetailPosterTrailer({
+export default function MediaDetailPoster({
   posterUrl,
   title,
-  embedUrl
-}: AnimeDetailPosterTrailerProps) {
+  trailerEmbedUrl
+}: MediaDetailPosterProps) {
   return (
     <div className="rounded-2xl border border-white/50 bg-white/45 p-4 shadow-md shadow-rose-100/30 backdrop-blur-md">
       <Image
@@ -23,7 +23,7 @@ export default function AnimeDetailPosterTrailer({
         priority
       />
 
-      {embedUrl ? (
+      {trailerEmbedUrl ? (
         <div className="mt-4">
           <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
             <ClapperboardIcon className="size-4 text-rose-400" aria-hidden />
@@ -33,7 +33,7 @@ export default function AnimeDetailPosterTrailer({
             <div className="aspect-video">
               <iframe
                 className="size-full"
-                src={embedUrl}
+                src={trailerEmbedUrl}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 title={`${title} trailer`}

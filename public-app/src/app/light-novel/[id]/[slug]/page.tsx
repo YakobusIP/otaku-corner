@@ -2,7 +2,7 @@ import { cache } from "react";
 
 import { lightNovelService } from "@/services/lightnovel.service";
 
-import LightNovelDetail from "@/components/light-novel/LightNovelDetail";
+import LightNovelDetail from "@/components/light-novel/LightNovelDetailConfig";
 
 import { LightNovelDetail as LightNovelDetailType } from "@/types/lightnovel.type";
 
