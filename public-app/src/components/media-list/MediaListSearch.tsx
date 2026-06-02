@@ -14,7 +14,6 @@ type Props<
   TInfiniteQueryKey extends readonly unknown[]
 > = {
   config: MediaListClientConfig<TItem, TFilters, TListFilters, TInfiniteQueryKey>;
-  initialQuery?: string;
 };
 
 export default function MediaListSearch<
@@ -22,9 +21,9 @@ export default function MediaListSearch<
   TFilters extends Record<string, unknown>,
   TListFilters extends Record<string, unknown>,
   TInfiniteQueryKey extends readonly unknown[]
->({ config, initialQuery }: Props<TItem, TFilters, TListFilters, TInfiniteQueryKey>) {
+>({ config }: Props<TItem, TFilters, TListFilters, TInfiniteQueryKey>) {
   const { state, setQuery } = config.context.useMediaListContext();
-  const [query, setLocalQuery] = useState(initialQuery);
+  const [query, setLocalQuery] = useState(state.query);
 
   useEffect(() => {
     setLocalQuery(state.query);

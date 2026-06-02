@@ -1,12 +1,14 @@
 import GeneralFooter from "@/components/GeneralFooter";
 import HeroWallpaper from "@/components/layout/HeroWallpaper";
-import { mangaListConfig } from "@/components/media-list/MangaListConfig";
+import { mangaListConfig } from "@/components/manga/MangaListConfig";
 import MediaListHeader from "@/components/media-list/MediaListHeader";
 import MediaListProvider from "@/components/media-list/MediaListProvider";
 import MediaListSection from "@/components/media-list/MediaListSection";
 
 import { mangaListQueryConfig } from "@/lib/manga-list-query";
 import { mangaListServerConfig } from "@/lib/manga-list-server";
+import { printedMediaListEntityLookups } from "@/lib/media-list-entity-lookups";
+import { prefetchMediaListPage } from "@/lib/prefetch-media-list-page";
 
 import {
   HydrationBoundary,
@@ -35,19 +37,11 @@ export default async function Page({ searchParams }: SearchParams) {
 
   const queryClient = new QueryClient();
 
-  await Promise.all([
-    queryClient.prefetchInfiniteQuery(
-      mangaListQueryConfig.getInfiniteQueryOptions(listFilters)
-    ),
-    queryClient
-      .prefetchQuery({
-        queryKey: mangaListQueryConfig.statusCounts.queryKey,
-        queryFn: mangaListQueryConfig.statusCounts.queryFn,
-        staleTime: Infinity,
-        retry: false
-      })
-      .catch(() => {})
-  ]);
+  await prefetchMediaListPage(queryClient, {
+    listFilters,
+    queryConfig: mangaListQueryConfig,
+    entityLookups: printedMediaListEntityLookups
+  });
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

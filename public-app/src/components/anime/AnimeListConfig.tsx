@@ -9,17 +9,11 @@ import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
 import FilterType from "@/components/filter-sort-dropdowns/FilterType";
 import { createMediaListContext } from "@/components/media-list/CreateMediaListContext";
 
-import {
-  genreService,
-  studioService,
-  themeService
-} from "@/services/entity.service";
-
 import type { AnimeFilters, AnimeList } from "@/types/anime.type";
 import type { MediaListClientConfig } from "@/types/context.type";
-import type { GenreEntity, StudioEntity, ThemeEntity } from "@/types/entity.type";
 
 import { animeListQueryConfig } from "@/lib/anime-list-query";
+import { animeListEntityLookups } from "@/lib/media-list-entity-lookups";
 import type {
   AnimeListInfiniteQueryKey,
   PublicAnimeListInfiniteFilters
@@ -64,23 +58,7 @@ export const animeListConfig: MediaListClientConfig<
     browseAllLabel: "Browse All Anime"
   },
   context: animeContext,
-  entityLookups: [
-    {
-      resultKey: "genreList",
-      queryKey: ["genres"],
-      queryFn: () => genreService.fetchAll<GenreEntity>()
-    },
-    {
-      resultKey: "studioList",
-      queryKey: ["studios"],
-      queryFn: () => studioService.fetchAll<StudioEntity>()
-    },
-    {
-      resultKey: "themeList",
-      queryKey: ["themes"],
-      queryFn: () => themeService.fetchAll<ThemeEntity>()
-    }
-  ],
+  entityLookups: animeListEntityLookups,
   filterFields: [
     {
       label: "Genre",

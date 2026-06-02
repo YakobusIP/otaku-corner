@@ -5,22 +5,20 @@ import FilterGenre from "@/components/filter-sort-dropdowns/FilterGenre";
 import FilterMALScore from "@/components/filter-sort-dropdowns/FilterMALScore";
 import FilterPersonalScore from "@/components/filter-sort-dropdowns/FilterPersonalScore";
 import FilterTheme from "@/components/filter-sort-dropdowns/FilterTheme";
-import LightNovelCard from "@/components/light-novel/LightNovelCard";
 import { createMediaListContext } from "@/components/media-list/CreateMediaListContext";
-
-import { authorService, genreService, themeService } from "@/services/entity.service";
+import MangaCard from "@/components/manga/MangaCard";
 
 import type { MediaListClientConfig } from "@/types/context.type";
-import type { AuthorEntity, GenreEntity, ThemeEntity } from "@/types/entity.type";
-import type { LightNovelFilters, LightNovelList } from "@/types/lightnovel.type";
+import type { MangaFilters, MangaList } from "@/types/manga.type";
 
-import { lightNovelListQueryConfig } from "@/lib/light-novel-list-query";
+import { mangaListQueryConfig } from "@/lib/manga-list-query";
+import { printedMediaListEntityLookups } from "@/lib/media-list-entity-lookups";
 import type {
-  LightNovelListInfiniteQueryKey,
-  PublicLightNovelListInfiniteFilters
+  MangaListInfiniteQueryKey,
+  PublicMangaListInfiniteFilters
 } from "@/lib/query-keys";
 
-const initialLightNovelFilters: LightNovelFilters = {
+const initialMangaFilters: MangaFilters = {
   author: undefined,
   genre: undefined,
   theme: undefined,
@@ -28,53 +26,37 @@ const initialLightNovelFilters: LightNovelFilters = {
   personalScore: undefined
 };
 
-const lightNovelContext = createMediaListContext<LightNovelFilters>(
-  "LightNovelProvider",
-  initialLightNovelFilters
+const mangaContext = createMediaListContext<MangaFilters>(
+  "MangaProvider",
+  initialMangaFilters
 );
 
-export const lightNovelListConfig: MediaListClientConfig<
-  LightNovelList,
-  LightNovelFilters,
-  PublicLightNovelListInfiniteFilters,
-  LightNovelListInfiniteQueryKey
+export const mangaListConfig: MediaListClientConfig<
+  MangaList,
+  MangaFilters,
+  PublicMangaListInfiniteFilters,
+  MangaListInfiniteQueryKey
 > = {
-  id: lightNovelListQueryConfig.id,
-  buildListFiltersFromState: lightNovelListQueryConfig.buildListFiltersFromState,
-  getInfiniteQueryOptions: lightNovelListQueryConfig.getInfiniteQueryOptions,
-  statusCounts: lightNovelListQueryConfig.statusCounts,
-  searchPlaceholder: "Search light novel...",
+  id: mangaListQueryConfig.id,
+  buildListFiltersFromState: mangaListQueryConfig.buildListFiltersFromState,
+  getInfiniteQueryOptions: mangaListQueryConfig.getInfiniteQueryOptions,
+  statusCounts: mangaListQueryConfig.statusCounts,
+  searchPlaceholder: "Search manga...",
   header: {
-    title: "Light Novel Collection",
-    countNoun: "light novels",
-    layoutGroupId: "light-novel-status-tabs",
-    statusHighlightLayoutId: "light-novel-status-highlight"
+    title: "Manga Collection",
+    countNoun: "mangas",
+    layoutGroupId: "manga-status-tabs",
+    statusHighlightLayoutId: "manga-status-highlight"
   },
   list: {
-    loadingImageAlt: "Loading light novels",
-    loadingTitle: "Fetching light novels",
-    emptyTitle: "No Light Novel Found",
-    emptyDescription: "We couldn't find any light novel matching your search",
-    browseAllLabel: "Browse All Light Novels"
+    loadingImageAlt: "Loading mangas",
+    loadingTitle: "Fetching mangas",
+    emptyTitle: "No Manga Found",
+    emptyDescription: "We couldn't find any manga matching your search",
+    browseAllLabel: "Browse All Manga"
   },
-  context: lightNovelContext,
-  entityLookups: [
-    {
-      resultKey: "genreList",
-      queryKey: ["genres"],
-      queryFn: () => genreService.fetchAll<GenreEntity>()
-    },
-    {
-      resultKey: "authorList",
-      queryKey: ["authors"],
-      queryFn: () => authorService.fetchAll<AuthorEntity>()
-    },
-    {
-      resultKey: "themeList",
-      queryKey: ["themes"],
-      queryFn: () => themeService.fetchAll<ThemeEntity>()
-    }
-  ],
+  context: mangaContext,
+  entityLookups: printedMediaListEntityLookups,
   filterFields: [
     {
       label: "Genre",
@@ -146,11 +128,11 @@ export const lightNovelListConfig: MediaListClientConfig<
   ],
   clearAllFilters: (setQuery, setState) => {
     setQuery("");
-    setState({ filters: { ...initialLightNovelFilters } });
+    setState({ filters: { ...initialMangaFilters } });
   },
   browseAll: (setQuery, setState) => {
     setQuery("");
-    setState({ status: undefined, filters: { ...initialLightNovelFilters } });
+    setState({ status: undefined, filters: { ...initialMangaFilters } });
   },
-  renderCard: (lightNovel) => <LightNovelCard lightNovel={lightNovel} />
+  renderCard: (manga) => <MangaCard manga={manga} />
 };

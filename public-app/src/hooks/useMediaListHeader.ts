@@ -4,8 +4,13 @@ import { useMemo } from "react";
 
 import type { MediaListClientConfig } from "@/types/context.type";
 
-import { mapStatusCountsToTabFilters } from "@/hooks/map-status-tab-filters";
+import {
+  getAllTabCount,
+  mapStatusCountsToTabFilters
+} from "@/hooks/map-status-tab-filters";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
+
+import { countActiveFilterChips } from "@/lib/media-list-helpers";
 
 import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
 
@@ -27,9 +32,10 @@ export const useMediaListHeader = <
     [config, state]
   );
 
-  const { data } = useInfiniteQuery(config.getInfiniteQueryOptions(listFilters));
-
-  const metadata = data?.pages[0]?.metadata;
+  const { data: metadata } = useInfiniteQuery({
+    ...config.getInfiniteQueryOptions(listFilters),
+    select: (data) => data.pages[0]?.metadata
+  });
 
   const { data: statusCount, error: statusCountsError } = useQuery({
     queryKey: config.statusCounts.queryKey,
@@ -41,6 +47,7 @@ export const useMediaListHeader = <
   useQueryErrorToast(statusCountsError);
 
   const statusFilters = mapStatusCountsToTabFilters(statusCount);
+  const allTabCount = getAllTabCount(statusFilters);
 
   const handleSort = (key: string) => {
     setState({
@@ -60,18 +67,19 @@ export const useMediaListHeader = <
     });
   };
 
-  const activeFiltersCount = config.activeFilterChips.filter(
-    (chip) => filters[chip.key] !== undefined
-  ).length;
+  const activeFiltersCount = countActiveFilterChips(
+    config.activeFilterChips,
+    filters
+  );
 
   return {
     query,
     status,
-    filters,
     sort,
     order,
     metadata,
     statusFilters,
+    allTabCount,
     activeFiltersCount,
     handleSort,
     handleStatus

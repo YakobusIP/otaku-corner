@@ -57,12 +57,12 @@ export default function MediaListHeader<
   const prefersReducedMotion = useReducedMotion();
 
   const {
-    query,
     status,
     sort,
     order,
     metadata,
     statusFilters,
+    allTabCount,
     activeFiltersCount,
     handleSort,
     handleStatus
@@ -88,16 +88,14 @@ export default function MediaListHeader<
               {config.header.title}
             </h1>
             <p className="text-slate-700 text-sm">
-              {metadata?.itemCount} of{" "}
-              {statusFilters?.find((row) => row.label === "All")?.count}{" "}
-              {config.header.countNoun}
+              {metadata?.itemCount} of {allTabCount} {config.header.countNoun}
             </p>
           </div>
         </div>
 
         <div className="flex w-full min-w-0 flex-row items-center gap-2 lg:w-auto">
           <div className="min-w-0 flex-1 lg:flex-none lg:w-48 2xl:w-64">
-            <MediaListSearch config={config} initialQuery={query} />
+            <MediaListSearch config={config} />
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <SortDirection

@@ -15,12 +15,12 @@ const EntityQueryErrorToast = ({ error }: { error: unknown }) => {
 
 export default function EntityQueryErrorToasts({ errors }: Props) {
   return (
-    <>
+    <Fragment>
       {errors.map((error, index) => (
         <Fragment key={index}>
           <EntityQueryErrorToast error={error} />
         </Fragment>
       ))}
-    </>
+    </Fragment>
   );
 }

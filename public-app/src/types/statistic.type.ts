@@ -88,6 +88,7 @@ type StatusFilter = {
   label: string;
   value?: ProgressStatusKey;
   count: number;
+  isAllTab?: boolean;
 };
 
 export type {

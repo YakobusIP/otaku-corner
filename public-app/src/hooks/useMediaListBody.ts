@@ -10,6 +10,8 @@ import type {
 import { useLoadingDots } from "@/hooks/useLoadingDots";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
+import { countActiveFilterChips } from "@/lib/media-list-helpers";
+
 import { useInfiniteQuery, useQueries } from "@tanstack/react-query";
 
 export const useMediaListBody = <
@@ -81,9 +83,10 @@ export const useMediaListBody = <
     config.browseAll(setQuery, setState);
   };
 
-  const activeFiltersCount = config.activeFilterChips.filter(
-    (chip) => filters[chip.key] !== undefined
-  ).length;
+  const activeFiltersCount = countActiveFilterChips(
+    config.activeFilterChips,
+    filters
+  );
 
   const loadingDots = useLoadingDots();
 
@@ -98,7 +101,9 @@ export const useMediaListBody = <
     isFetchingNextPage,
     fetchNextPage,
     entityLists,
-    entityQueryErrors: entityQueries.map((entityQuery) => entityQuery.error),
+    entityQueryErrors: entityQueries
+      .map((entityQuery) => entityQuery.error)
+      .filter((error) => error != null),
     removeFilter,
     clearAllFilters,
     browseAll,

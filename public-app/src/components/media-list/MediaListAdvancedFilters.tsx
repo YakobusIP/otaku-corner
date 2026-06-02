@@ -44,7 +44,7 @@ export default function MediaListAdvancedFilters<
       });
     };
 
-  const enableClearAllFilter = Object.values(filters).every(
+  const hasNoActiveFilters = Object.values(filters).every(
     (value) => value === undefined
   );
 
@@ -55,6 +55,17 @@ export default function MediaListAdvancedFilters<
       ) as TFilters
     });
   };
+
+  const clearAllButton = (
+    <Button
+      variant="outline"
+      className="w-full border-slate-300 text-slate-700 hover:bg-slate-100"
+      disabled={hasNoActiveFilters}
+      onClick={handleClearAllFilter}
+    >
+      Clear All
+    </Button>
+  );
 
   const filterFields = (
     <div
@@ -75,29 +86,9 @@ export default function MediaListAdvancedFilters<
       ))}
 
       {layout === "inline" ? (
-        <div className="flex items-end">
-          <Button
-            variant="outline"
-            className="w-full border-slate-300 text-slate-700 hover:bg-slate-100"
-            disabled={enableClearAllFilter}
-            onClick={handleClearAllFilter}
-          >
-            Clear All
-          </Button>
-        </div>
+        <div className="flex items-end">{clearAllButton}</div>
       ) : null}
     </div>
-  );
-
-  const clearAllButton = (
-    <Button
-      variant="outline"
-      className="w-full border-slate-300 text-slate-700 hover:bg-slate-100"
-      disabled={enableClearAllFilter}
-      onClick={handleClearAllFilter}
-    >
-      Clear All
-    </Button>
   );
 
   if (layout === "dialog") {

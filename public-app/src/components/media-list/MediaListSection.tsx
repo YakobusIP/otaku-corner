@@ -15,7 +15,7 @@ import type { MediaListClientConfig } from "@/types/context.type";
 import { getCardStaggerDelay } from "@/lib/grid-stagger";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { CompassIcon, SearchIcon, XIcon } from "lucide-react";
+import { CompassIcon, FilterXIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useInView } from "react-intersection-observer";
 
@@ -33,14 +33,6 @@ type Props<
     TListFilters,
     TInfiniteQueryKey
   >;
-};
-
-const getChipDisplayValue = (
-  value: unknown,
-  capitalize: boolean | undefined
-) => {
-  const text = String(value);
-  return capitalize ? <span className="ml-1 capitalize">{text}</span> : text;
 };
 
 export default function MediaListSection<
@@ -71,18 +63,21 @@ export default function MediaListSection<
     loadingDots
   } = useMediaListBody(config);
 
-  const fetchNextPageRef = useRef(fetchNextPage);
-  fetchNextPageRef.current = fetchNextPage;
-
-  const hasNextPageRef = useRef(hasNextPage);
-  hasNextPageRef.current = hasNextPage;
-
-  const isFetchingNextPageRef = useRef(isFetchingNextPage);
-  isFetchingNextPageRef.current = isFetchingNextPage;
+  const loadMoreSnapshotRef = useRef({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage
+  });
+  loadMoreSnapshotRef.current = {
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage
+  };
 
   const fetchNextIfNeeded = useCallback(() => {
-    if (!hasNextPageRef.current || isFetchingNextPageRef.current) return;
-    void fetchNextPageRef.current();
+    const snapshot = loadMoreSnapshotRef.current;
+    if (!snapshot.hasNextPage || snapshot.isFetchingNextPage) return;
+    void snapshot.fetchNextPage();
   }, []);
 
   const { ref: loadMoreRef } = useInView({
@@ -123,9 +118,11 @@ export default function MediaListSection<
             const filterValue = filters[chip.key];
             if (filterValue === undefined) return null;
 
-            let displayValue: ReactNode = getChipDisplayValue(
-              filterValue,
-              chip.capitalize
+            const chipText = String(filterValue);
+            let displayValue: ReactNode = chip.capitalize ? (
+              <span className="ml-1 capitalize">{chipText}</span>
+            ) : (
+              chipText
             );
 
             if (chip.resolveEntityName) {
@@ -238,7 +235,7 @@ export default function MediaListSection<
                     className="bg-rose-400 text-white hover:bg-rose-500"
                     onClick={clearAllFilters}
                   >
-                    <SearchIcon />
+                    <FilterXIcon />
                     Clear Filters
                   </Button>
                   <Button

@@ -3,8 +3,10 @@
 import {
   ReactNode,
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   useTransition
 } from "react";
@@ -40,7 +42,7 @@ export const createMediaListContext = <TFilters extends Record<string, unknown>>
     );
 
     const [state, setState] = useState<MediaListState<TFilters>>({
-      query: initialQuery || "",
+      query: initialQuery,
       status: initialStatusRaw === "" ? undefined : initialStatusRaw,
       filters: { ...initialFilters },
       sort: "title",
@@ -51,16 +53,35 @@ export const createMediaListContext = <TFilters extends Record<string, unknown>>
       setState((prev) => ({ ...prev, query }));
     }, 1000);
 
-    const setQuery = (query: string) => {
-      if (query === "") {
-        debouncedSetQuery.cancel();
-        setState((prev) => ({ ...prev, query: "" }));
-        return;
-      }
-      debouncedSetQuery(query);
-    };
+    const setQuery = useCallback(
+      (query: string) => {
+        if (query === "") {
+          debouncedSetQuery.cancel();
+          setState((prev) => ({ ...prev, query: "" }));
+          return;
+        }
+        debouncedSetQuery(query);
+      },
+      [debouncedSetQuery]
+    );
 
-    const [_, startTransition] = useTransition();
+    const setListState = useCallback(
+      (update: Partial<Omit<MediaListState<TFilters>, "query">>) => {
+        setState((current) => ({ ...current, ...update }));
+      },
+      []
+    );
+
+    const contextValue = useMemo(
+      () => ({
+        state,
+        setQuery,
+        setState: setListState
+      }),
+      [state, setQuery, setListState]
+    );
+
+    const [, startTransition] = useTransition();
 
     useEffect(() => {
       startTransition(() => {
@@ -76,16 +97,7 @@ export const createMediaListContext = <TFilters extends Record<string, unknown>>
     }, [state.query, state.status, pathname, router]);
 
     return (
-      <Context.Provider
-        value={{
-          state,
-          setQuery,
-          setState: (update: Partial<Omit<MediaListState<TFilters>, "query">>) =>
-            setState((current) => ({ ...current, ...update }))
-        }}
-      >
-        {children}
-      </Context.Provider>
+      <Context.Provider value={contextValue}>{children}</Context.Provider>
     );
   };
 

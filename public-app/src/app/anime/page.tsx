@@ -1,12 +1,14 @@
+import { animeListConfig } from "@/components/anime/AnimeListConfig";
 import GeneralFooter from "@/components/GeneralFooter";
 import HeroWallpaper from "@/components/layout/HeroWallpaper";
-import { animeListConfig } from "@/components/media-list/AnimeListConfig";
 import MediaListHeader from "@/components/media-list/MediaListHeader";
 import MediaListProvider from "@/components/media-list/MediaListProvider";
 import MediaListSection from "@/components/media-list/MediaListSection";
 
 import { animeListQueryConfig } from "@/lib/anime-list-query";
 import { animeListServerConfig } from "@/lib/anime-list-server";
+import { animeListEntityLookups } from "@/lib/media-list-entity-lookups";
+import { prefetchMediaListPage } from "@/lib/prefetch-media-list-page";
 
 import {
   HydrationBoundary,
@@ -35,19 +37,11 @@ export default async function Page({ searchParams }: SearchParams) {
 
   const queryClient = new QueryClient();
 
-  await Promise.all([
-    queryClient.prefetchInfiniteQuery(
-      animeListQueryConfig.getInfiniteQueryOptions(listFilters)
-    ),
-    queryClient
-      .prefetchQuery({
-        queryKey: animeListQueryConfig.statusCounts.queryKey,
-        queryFn: animeListQueryConfig.statusCounts.queryFn,
-        staleTime: Infinity,
-        retry: false
-      })
-      .catch(() => {})
-  ]);
+  await prefetchMediaListPage(queryClient, {
+    listFilters,
+    queryConfig: animeListQueryConfig,
+    entityLookups: animeListEntityLookups
+  });
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
