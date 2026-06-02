@@ -2,6 +2,7 @@
 
 import { Fragment, useMemo, useState } from "react";
 
+import MeasuredRechartsContainer from "@/components/charts/MeasuredRechartsContainer";
 import SlideUpInView from "@/components/motion/SlideUpInView";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -15,6 +16,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useHomeYearProgressStatistics } from "@/hooks/useHomeYearProgressStatistics";
 
+import {
+  HOME_PROGRESS_CHART_TABS,
+  PUBLIC_MEDIA_TYPE_CONFIG,
+  PUBLIC_MEDIA_TYPES,
+  getChartPieColor,
+  type HomeProgressChartTab
+} from "@/lib/public-media-type";
+
 import { motion } from "framer-motion";
 import { FlowerIcon, Loader2Icon } from "lucide-react";
 import {
@@ -24,25 +33,10 @@ import {
   LineChart,
   Pie,
   PieChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis
 } from "recharts";
-
-const PIE_COLORS = {
-  Anime: "hsl(340 78% 58%)",
-  Manga: "hsl(268 78% 66%)",
-  "Light Novels": "hsl(24 92% 62%)"
-} as const;
-
-const LINE_COLORS = {
-  animeCount: "hsl(340 78% 58%)",
-  mangaCount: "hsl(268 78% 66%)",
-  lightNovelCount: "hsl(24 92% 62%)"
-} as const;
-
-type ChartTab = "all" | "anime" | "manga" | "lightNovel";
 
 const chartTabHighlightTransition = {
   type: "spring" as const,
@@ -50,32 +44,25 @@ const chartTabHighlightTransition = {
   damping: 34
 };
 
-const CHART_TABS: { value: ChartTab; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "anime", label: "Anime" },
-  { value: "manga", label: "Manga" },
-  { value: "lightNovel", label: "Light Novels" }
-];
-
-const LINE_SERIES: {
-  dataKey: keyof typeof LINE_COLORS;
-  name: string;
-  tab: ChartTab;
-}[] = [
-  { dataKey: "animeCount", name: "Anime", tab: "anime" },
-  { dataKey: "mangaCount", name: "Manga", tab: "manga" },
-  { dataKey: "lightNovelCount", name: "Light Novels", tab: "lightNovel" }
-];
-
 const tabClassName =
   "relative z-10 shrink-0 rounded-lg px-4 py-1.5 text-xs text-[#4b3a4c] data-[state=active]:bg-transparent data-[state=active]:text-rose-600 data-[state=active]:shadow-none hover:cursor-pointer";
+
+const lineSeries = PUBLIC_MEDIA_TYPES.map((mediaTypeId) => {
+  const config = PUBLIC_MEDIA_TYPE_CONFIG[mediaTypeId];
+  return {
+    dataKey: config.chartLineDataKey,
+    name: config.chartLineName,
+    tab: mediaTypeId,
+    stroke: config.chartColor
+  };
+});
 
 export default function HomeYearProgressSection() {
   const thisCalendarYear = new Date().getFullYear();
   const [progressYear, setProgressYear] = useState(thisCalendarYear);
   const { topMediasQuery, mediaConsumptionQuery, yearRangeQuery } =
     useHomeYearProgressStatistics(progressYear);
-  const [chartTab, setChartTab] = useState<ChartTab>("all");
+  const [chartTab, setChartTab] = useState<HomeProgressChartTab>("all");
 
   const years = useMemo(() => {
     const range = yearRangeQuery.data ?? [];
@@ -89,41 +76,32 @@ export default function HomeYearProgressSection() {
   const isLoading = topMediasQuery.isLoading || mediaConsumptionQuery.isLoading;
   const isError = topMediasQuery.isError || mediaConsumptionQuery.isError;
 
-  const animeCount = topMediasQuery.data?.anime.count ?? 0;
-  const mangaCount = topMediasQuery.data?.manga.count ?? 0;
-  const lightNovelCount = topMediasQuery.data?.lightNovel.count ?? 0;
-  const totalStories = animeCount + mangaCount + lightNovelCount;
+  const mediaCounts = PUBLIC_MEDIA_TYPES.map((mediaTypeId) => {
+    return topMediasQuery.data?.[mediaTypeId].count ?? 0;
+  });
 
-  const pieData = [
-    { name: "Anime" as const, value: animeCount },
-    { name: "Manga" as const, value: mangaCount },
-    { name: "Light Novels" as const, value: lightNovelCount }
-  ].filter((row) => row.value > 0);
+  const totalStories = mediaCounts.reduce((sum, count) => sum + count, 0);
+
+  const pieData = PUBLIC_MEDIA_TYPES.map((mediaTypeId, index) => {
+    const config = PUBLIC_MEDIA_TYPE_CONFIG[mediaTypeId];
+    return {
+      name: config.chartPieLegendName,
+      value: mediaCounts[index]
+    };
+  }).filter((row) => row.value > 0);
 
   const chartData = mediaConsumptionQuery.data ?? [];
 
-  const legendItems = [
-    {
-      name: "Anime",
-      color: PIE_COLORS["Anime"],
+  const legendItems = PUBLIC_MEDIA_TYPES.map((mediaTypeId, index) => {
+    const config = PUBLIC_MEDIA_TYPE_CONFIG[mediaTypeId];
+    const count = mediaCounts[index];
+    return {
+      name: config.chartPieLegendName,
+      color: config.chartColor,
       pct:
-        totalStories > 0 ? ((animeCount / totalStories) * 100).toFixed(1) : "0"
-    },
-    {
-      name: "Manga",
-      color: PIE_COLORS["Manga"],
-      pct:
-        totalStories > 0 ? ((mangaCount / totalStories) * 100).toFixed(1) : "0"
-    },
-    {
-      name: "Light Novels",
-      color: PIE_COLORS["Light Novels"],
-      pct:
-        totalStories > 0
-          ? ((lightNovelCount / totalStories) * 100).toFixed(1)
-          : "0"
-    }
-  ];
+        totalStories > 0 ? ((count / totalStories) * 100).toFixed(1) : "0"
+    };
+  });
 
   return (
     <SlideUpInView
@@ -154,7 +132,7 @@ export default function HomeYearProgressSection() {
                 Loading charts...
               </div>
             ) : (
-              <div className="grid gap-6 lg:grid-cols-[40%_60%]">
+              <div className="grid min-w-0 gap-6 lg:grid-cols-[40%_60%]">
                 <div className="flex min-w-0 flex-col items-center justify-center gap-4 sm:flex-row">
                   {pieData.length === 0 ? (
                     <div className="flex h-[280px] w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-rose-100 bg-white/60 text-center text-sm text-[#6b5b6b]">
@@ -165,41 +143,45 @@ export default function HomeYearProgressSection() {
                     </div>
                   ) : (
                     <Fragment>
-                      <div className="relative h-[220px] w-full max-w-[240px] shrink-0">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={pieData}
-                              dataKey="value"
-                              nameKey="name"
-                              cx="50%"
-                              cy="50%"
-                              innerRadius="72%"
-                              outerRadius="92%"
-                              paddingAngle={3}
-                              strokeWidth={2}
-                              stroke="hsl(0 0% 100%)"
-                              animationDuration={1050}
-                            >
-                              {pieData.map((entry) => {
-                                return (
-                                  <Cell
-                                    key={entry.name}
-                                    fill={PIE_COLORS[entry.name]}
-                                  />
-                                );
-                              })}
-                            </Pie>
-                            <Tooltip
-                              formatter={(value, name) => {
-                                return [
-                                  `${value ?? 0}`,
-                                  typeof name === "string" ? name : ""
-                                ];
-                              }}
-                            />
-                          </PieChart>
-                        </ResponsiveContainer>
+                      <div className="relative w-full min-w-0 max-w-[240px] shrink-0">
+                        <MeasuredRechartsContainer className="h-[220px] w-full min-w-0">
+                          {({ width, height }) => {
+                            return (
+                              <PieChart width={width} height={height}>
+                                <Pie
+                                  data={pieData}
+                                  dataKey="value"
+                                  nameKey="name"
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius="72%"
+                                  outerRadius="92%"
+                                  paddingAngle={3}
+                                  strokeWidth={2}
+                                  stroke="hsl(0 0% 100%)"
+                                  animationDuration={1050}
+                                >
+                                  {pieData.map((entry) => {
+                                    return (
+                                      <Cell
+                                        key={entry.name}
+                                        fill={getChartPieColor(entry.name)}
+                                      />
+                                    );
+                                  })}
+                                </Pie>
+                                <Tooltip
+                                  formatter={(value, name) => {
+                                    return [
+                                      `${value ?? 0}`,
+                                      typeof name === "string" ? name : ""
+                                    ];
+                                  }}
+                                />
+                              </PieChart>
+                            );
+                          }}
+                        </MeasuredRechartsContainer>
                         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                           <div className="text-center">
                             <div className="text-4xl font-bold tabular-nums text-[#4a1630]">
@@ -244,11 +226,13 @@ export default function HomeYearProgressSection() {
                   <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Tabs
                       value={chartTab}
-                      onValueChange={(value) => setChartTab(value as ChartTab)}
+                      onValueChange={(value) => {
+                        setChartTab(value as HomeProgressChartTab);
+                      }}
                     >
                       <div className="min-w-0">
                         <TabsList className="relative flex h-auto min-h-9 w-full max-w-full flex-wrap items-center justify-center gap-1 bg-transparent p-0 sm:inline-flex sm:h-9 sm:w-auto sm:max-w-none sm:justify-start">
-                          {CHART_TABS.map(({ value, label }) => {
+                          {HOME_PROGRESS_CHART_TABS.map(({ value, label }) => {
                             const isActive = chartTab === value;
 
                             return (
@@ -306,67 +290,70 @@ export default function HomeYearProgressSection() {
                       </Select>
                     </div>
                   </div>
-                  <div className="h-[180px] w-full min-w-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={chartData}
-                        margin={{ top: 8, right: 20, left: 4, bottom: 4 }}
-                      >
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          vertical
-                          stroke="hsl(340 74% 92%)"
-                        />
-                        <XAxis
-                          dataKey="period"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{
-                            fill: "hsl(312 17% 35%)",
-                            fontSize: 11
-                          }}
-                          tickFormatter={(value: string) => value.slice(0, 3)}
-                          interval="preserveStartEnd"
-                        />
-                        <YAxis
-                          allowDecimals={false}
-                          width={32}
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{
-                            fill: "hsl(312 17% 35%)",
-                            fontSize: 11
-                          }}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            borderRadius: 12,
-                            border: "1px solid hsl(340 74% 92%)",
-                            fontSize: 13
-                          }}
-                        />
-                        {LINE_SERIES.map((series) => {
-                          if (chartTab !== "all" && chartTab !== series.tab) {
-                            return null;
-                          }
-                          const stroke = LINE_COLORS[series.dataKey];
-                          return (
-                            <Line
-                              key={series.dataKey}
-                              type="monotone"
-                              dataKey={series.dataKey}
-                              name={series.name}
-                              stroke={stroke}
-                              strokeWidth={2.5}
-                              dot={{ r: 4, fill: stroke }}
-                              activeDot={{ r: 6 }}
-                              animationDuration={1350}
-                            />
-                          );
-                        })}
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <MeasuredRechartsContainer className="h-[180px] w-full min-w-0">
+                    {({ width, height }) => {
+                      return (
+                        <LineChart
+                          width={width}
+                          height={height}
+                          data={chartData}
+                          margin={{ top: 8, right: 20, left: 4, bottom: 4 }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            vertical
+                            stroke="hsl(340 74% 92%)"
+                          />
+                          <XAxis
+                            dataKey="period"
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{
+                              fill: "hsl(312 17% 35%)",
+                              fontSize: 11
+                            }}
+                            tickFormatter={(value: string) => value.slice(0, 3)}
+                            interval="preserveStartEnd"
+                          />
+                          <YAxis
+                            allowDecimals={false}
+                            width={32}
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{
+                              fill: "hsl(312 17% 35%)",
+                              fontSize: 11
+                            }}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              borderRadius: 12,
+                              border: "1px solid hsl(340 74% 92%)",
+                              fontSize: 13
+                            }}
+                          />
+                          {lineSeries.map((series) => {
+                            if (chartTab !== "all" && chartTab !== series.tab) {
+                              return null;
+                            }
+                            return (
+                              <Line
+                                key={series.dataKey}
+                                type="monotone"
+                                dataKey={series.dataKey}
+                                name={series.name}
+                                stroke={series.stroke}
+                                strokeWidth={2.5}
+                                dot={{ r: 4, fill: series.stroke }}
+                                activeDot={{ r: 6 }}
+                                animationDuration={1350}
+                              />
+                            );
+                          })}
+                        </LineChart>
+                      );
+                    }}
+                  </MeasuredRechartsContainer>
                 </div>
               </div>
             )}

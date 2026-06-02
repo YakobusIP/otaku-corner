@@ -4,6 +4,10 @@ import type { RecentReviewItem } from "@/types/statistic.type";
 
 import { formatRelativeUpdatedAt } from "@/lib/format-relative-updated";
 import { pickMediaImageSrc } from "@/lib/media-images";
+import {
+  PUBLIC_MEDIA_TYPE_CONFIG,
+  buildPublicMediaDetailHref
+} from "@/lib/public-media-type";
 import { formatScoreFixedOrNa } from "@/lib/utils";
 
 import { FlowerIcon, StarIcon } from "lucide-react";
@@ -12,27 +16,6 @@ import Link from "next/link";
 
 type HomeRecentReviewsCarouselCardProps = {
   items: RecentReviewItem[];
-};
-
-const MEDIA_TYPE_DISPLAY: Record<
-  RecentReviewItem["mediaType"],
-  { pathSegment: string; label: string; badgeClass: string }
-> = {
-  anime: {
-    pathSegment: "anime",
-    label: "Anime",
-    badgeClass: "bg-rose-100 text-rose-700 ring-rose-200/60"
-  },
-  manga: {
-    pathSegment: "manga",
-    label: "Manga",
-    badgeClass: "bg-violet-100 text-violet-700 ring-violet-200/60"
-  },
-  lightNovel: {
-    pathSegment: "light-novel",
-    label: "Light Novel",
-    badgeClass: "bg-orange-100 text-orange-700 ring-orange-200/60"
-  }
 };
 
 export default function HomeRecentReviewsCarouselCard(
@@ -53,8 +36,12 @@ export default function HomeRecentReviewsCarouselCard(
           <p className="text-sm text-[#6b5b6b]">No reviews yet.</p>
         ) : (
           items.map((item) => {
-            const display = MEDIA_TYPE_DISPLAY[item.mediaType];
-            const href = `/${display.pathSegment}/${item.mediaId}/${item.slug}`;
+            const display = PUBLIC_MEDIA_TYPE_CONFIG[item.mediaType];
+            const href = buildPublicMediaDetailHref(
+              item.mediaType,
+              item.mediaId,
+              item.slug
+            );
             return (
               <Link
                 key={`${item.mediaType}-${item.mediaId}-${item.updatedAt}`}
@@ -76,9 +63,9 @@ export default function HomeRecentReviewsCarouselCard(
                   </p>
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${display.badgeClass}`}
+                      className={`inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${display.reviewBadgeClass}`}
                     >
-                      {display.label}
+                      {display.reviewBadgeLabel}
                     </span>
                     <span className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums text-[#4b3a4c]">
                       <StarIcon

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { MOBILE_MEDIA_QUERY, useMediaQuery } from "@/hooks/useMediaQuery";
 import { useMediaListHeader } from "@/hooks/useMediaListHeader";
 
 import type { MediaListClientConfig } from "@/types/context.type";
@@ -53,7 +53,7 @@ export default function MediaListHeader<
   TInfiniteQueryKey extends readonly unknown[]
 >({ config }: Props<TItem, TFilters, TListFilters, TInfiniteQueryKey>) {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const isMobile = useIsMobile();
+  const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
   const prefersReducedMotion = useReducedMotion();
 
   const {

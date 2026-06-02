@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { MOBILE_MEDIA_QUERY, useMediaQuery } from "@/hooks/useMediaQuery";
 
 import {
   type TargetAndTransition,
@@ -55,7 +55,7 @@ const getInitial = (isMobile: boolean): TargetAndTransition => ({
 export default function SlideUpInView(props: SlideUpInViewProps) {
   const { as = "div", children, className, eager = false } = props;
   const prefersReducedMotion = useReducedMotion();
-  const isMobile = useIsMobile();
+  const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
   const viewport = getViewport(isMobile, eager);
 
   if (prefersReducedMotion) {

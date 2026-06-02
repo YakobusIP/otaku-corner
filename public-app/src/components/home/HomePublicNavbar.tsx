@@ -1,5 +1,6 @@
 "use client";
 
+import { PUBLIC_MEDIA_NAV_LINKS } from "@/lib/public-media-type";
 import { cn } from "@/lib/utils";
 
 import { motion, useReducedMotion } from "framer-motion";
@@ -9,9 +10,7 @@ import { usePathname } from "next/navigation";
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/anime", label: "Anime" },
-  { href: "/manga", label: "Manga" },
-  { href: "/light-novel", label: "Light Novels" }
+  ...PUBLIC_MEDIA_NAV_LINKS
 ] as const;
 
 type HomePublicNavbarProps = {

@@ -8,6 +8,11 @@ import { Badge } from "@/components/ui/badge";
 
 import { useHomeAllTimeStats } from "@/hooks/useHomeStatistics";
 
+import {
+  PUBLIC_MEDIA_TYPES,
+  PUBLIC_MEDIA_TYPE_CONFIG,
+  type PublicMediaTypeId
+} from "@/lib/public-media-type";
 import { cn } from "@/lib/utils";
 
 import HomeUpperSectionImage from "@/components/layout/HomeUpperSectionImage";
@@ -19,24 +24,29 @@ import {
   SparklesIcon
 } from "lucide-react";
 
-type CounterKey = "anime" | "manga" | "lightNovel";
+const HERO_COUNTER_ICONS = {
+  anime: PlayIcon,
+  manga: BookOpenIcon,
+  lightNovel: LibraryIcon
+} as const;
 
 export default function HomeHeroWithNav() {
   const { allTimeStatsQuery } = useHomeAllTimeStats();
   const { data } = allTimeStatsQuery;
 
   const [animatedCounts, setAnimatedCounts] = useState<
-    Record<CounterKey, number>
+    Record<PublicMediaTypeId, number>
   >({
     anime: 0,
     manga: 0,
     lightNovel: 0
   });
+
   useEffect(() => {
     const intervalIds: ReturnType<typeof setInterval>[] = [];
 
     const timer = setTimeout(() => {
-      const animateCount = (target: number, key: CounterKey) => {
+      const animateCount = (target: number, key: PublicMediaTypeId) => {
         let current = 0;
         const increment = Math.max(target / 20, 1);
         const interval = setInterval(() => {
@@ -54,40 +64,28 @@ export default function HomeHeroWithNav() {
         intervalIds.push(interval);
       };
 
-      animateCount(data?.animeCount ?? 0, "anime");
-      animateCount(data?.mangaCount ?? 0, "manga");
-      animateCount(data?.lightNovelCount ?? 0, "lightNovel");
+      PUBLIC_MEDIA_TYPES.forEach((mediaTypeId) => {
+        const countKey = PUBLIC_MEDIA_TYPE_CONFIG[mediaTypeId].allTimeCountKey;
+        animateCount(data?.[countKey] ?? 0, mediaTypeId);
+      });
     }, 500);
 
     return () => {
       clearTimeout(timer);
       intervalIds.forEach((interval) => clearInterval(interval));
     };
-  }, [data?.animeCount, data?.mangaCount, data?.lightNovelCount]);
+  }, [data]);
 
-  const counterItems = [
-    {
-      key: "anime" as const,
-      label: "Anime Watched",
-      value: animatedCounts.anime,
-      icon: PlayIcon,
-      iconBg: "bg-rose-100 text-rose-500"
-    },
-    {
-      key: "manga" as const,
-      label: "Manga Read",
-      value: animatedCounts.manga,
-      icon: BookOpenIcon,
-      iconBg: "bg-teal-100 text-teal-600"
-    },
-    {
-      key: "lightNovel" as const,
-      label: "Light Novels Read",
-      value: animatedCounts.lightNovel,
-      icon: LibraryIcon,
-      iconBg: "bg-orange-100 text-orange-600"
-    }
-  ];
+  const counterItems = PUBLIC_MEDIA_TYPES.map((mediaTypeId) => {
+    const config = PUBLIC_MEDIA_TYPE_CONFIG[mediaTypeId];
+    return {
+      key: mediaTypeId,
+      label: config.heroCounterLabel,
+      value: animatedCounts[mediaTypeId],
+      icon: HERO_COUNTER_ICONS[mediaTypeId],
+      iconBg: config.heroCounterIconBg
+    };
+  });
 
   return (
     <section className="relative min-h-[640px] w-full overflow-hidden bg-white lg:min-h-[660px]">

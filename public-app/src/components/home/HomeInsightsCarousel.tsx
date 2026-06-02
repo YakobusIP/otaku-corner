@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo } from "react";
 
 import HomeDistributionCarouselCard from "@/components/home/HomeDistributionCarouselCard";
 import HomeRecentReviewsCarouselCard from "@/components/home/HomeRecentReviewsCarouselCard";
@@ -12,6 +12,7 @@ import {
 import SlideUpInView from "@/components/motion/SlideUpInView";
 
 import { useHomeInsightsStatistics } from "@/hooks/useHomeStatistics";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 import type { RecentReviewItem } from "@/types/statistic.type";
 
@@ -21,6 +22,8 @@ import { Loader2Icon } from "lucide-react";
 
 const SLIDE_GAP_PX = 16;
 const WIDE_GRID_MEDIA = "(min-width: 1536px)";
+const TABLET_SLIDES_MEDIA = "(min-width: 640px)";
+const DESKTOP_SLIDES_MEDIA = "(min-width: 1024px)";
 
 type InsightSlideDeckProps = {
   authorRows: DistributionRow[];
@@ -74,19 +77,6 @@ const InsightSlideDeck = (props: InsightSlideDeckProps) => {
   );
 };
 
-const readSlidesVisible = () => {
-  if (typeof window === "undefined") {
-    return 3;
-  }
-  if (window.matchMedia("(min-width: 1024px)").matches) {
-    return 4;
-  }
-  if (window.matchMedia("(min-width: 640px)").matches) {
-    return 2;
-  }
-  return 1;
-};
-
 type HomeInsightsEmblaTrackProps = InsightSlideDeckProps & {
   slideWidthCss: string;
 };
@@ -133,31 +123,19 @@ const HomeInsightsEmblaTrack = (props: HomeInsightsEmblaTrackProps) => {
 export default function HomeInsightsCarousel() {
   const { tasteProfileQuery, recentReviewsQuery } = useHomeInsightsStatistics();
 
-  const [isWideGrid, setIsWideGrid] = useState(false);
+  const isWideGrid = useMediaQuery(WIDE_GRID_MEDIA);
+  const isDesktopSlides = useMediaQuery(DESKTOP_SLIDES_MEDIA);
+  const isTabletSlides = useMediaQuery(TABLET_SLIDES_MEDIA);
 
-  useEffect(() => {
-    const mediaQueryList = window.matchMedia(WIDE_GRID_MEDIA);
-    const updateWide = () => {
-      setIsWideGrid(mediaQueryList.matches);
-    };
-    updateWide();
-    mediaQueryList.addEventListener("change", updateWide);
-    return () => mediaQueryList.removeEventListener("change", updateWide);
-  }, []);
-
-  const [slidesVisible, setSlidesVisible] = useState(3);
-
-  useEffect(() => {
-    if (isWideGrid) {
-      return;
+  const slidesVisible = useMemo(() => {
+    if (isDesktopSlides) {
+      return 4;
     }
-    const update = () => {
-      setSlidesVisible(readSlidesVisible());
-    };
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, [isWideGrid]);
+    if (isTabletSlides) {
+      return 2;
+    }
+    return 1;
+  }, [isDesktopSlides, isTabletSlides]);
 
   const taste = tasteProfileQuery.data;
 
@@ -202,10 +180,7 @@ export default function HomeInsightsCarousel() {
             />
           </div>
         ) : (
-          <HomeInsightsEmblaTrack
-            {...deckProps}
-            slideWidthCss={slideWidthCss}
-          />
+          <HomeInsightsEmblaTrack {...deckProps} slideWidthCss={slideWidthCss} />
         )}
       </div>
     </SlideUpInView>

@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 import {
+  PUBLIC_MEDIA_TYPE_CONFIG,
+  PUBLIC_MEDIA_TYPES
+} from "@/lib/public-media-type";
+
+import {
   ArrowLeftIcon,
   BookIcon,
   HomeIcon,
@@ -15,6 +20,12 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+const NOT_FOUND_MEDIA_ICONS = {
+  anime: PlayIcon,
+  manga: BookIcon,
+  lightNovel: LibraryIcon
+} as const;
 
 export default function NotFoundPage() {
   const router = useRouter();
@@ -84,33 +95,22 @@ export default function NotFoundPage() {
                 Maybe you&apos;re looking for:
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                <Link href="/anime">
-                  <Button
-                    variant="ghost"
-                    className="text-slate-700 hover:bg-rose-100 hover:text-rose-600"
-                  >
-                    <PlayIcon size={20} />
-                    Anime List
-                  </Button>
-                </Link>
-                <Link href="/manga">
-                  <Button
-                    variant="ghost"
-                    className="text-slate-700 hover:bg-rose-100 hover:text-rose-600"
-                  >
-                    <BookIcon size={20} />
-                    Manga List
-                  </Button>
-                </Link>
-                <Link href="/light-novel">
-                  <Button
-                    variant="ghost"
-                    className="text-slate-700 hover:bg-rose-100 hover:text-rose-600"
-                  >
-                    <LibraryIcon size={20} />
-                    Light Novel List
-                  </Button>
-                </Link>
+                {PUBLIC_MEDIA_TYPES.map((mediaTypeId) => {
+                  const config = PUBLIC_MEDIA_TYPE_CONFIG[mediaTypeId];
+                  const Icon = NOT_FOUND_MEDIA_ICONS[mediaTypeId];
+
+                  return (
+                    <Link key={mediaTypeId} href={config.listHref}>
+                      <Button
+                        variant="ghost"
+                        className="text-slate-700 hover:bg-rose-100 hover:text-rose-600"
+                      >
+                        <Icon size={20} />
+                        {config.listPageLabel}
+                      </Button>
+                    </Link>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
