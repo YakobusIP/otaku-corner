@@ -1,28 +1,28 @@
 "use client";
 
 import ReviewContent from "@/components/ReviewContent";
-import { buildAnimeScoreCriteria } from "@/components/anime/anime-detail-helpers";
 import AnimeDetailScoresBreakdown from "@/components/anime/scores-breakdown/AnimeDetailScoresBreakdown";
+import { buildMangaScoreCriteria } from "@/components/manga/manga-detail-helpers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 
-import { AnimeDetail } from "@/types/anime.type";
+import { MangaDetail } from "@/types/manga.type";
 
 import { AlertTriangleIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import Image from "next/image";
 
-type AnimeDetailReviewTabProps = {
-  review: AnimeDetail["review"];
+type MangaDetailReviewTabProps = {
+  review: MangaDetail["review"];
   spoilersRevealed: boolean;
   onRevealSpoilers: () => void;
 };
 
-export default function AnimeDetailReviewTab({
+export default function MangaDetailReviewTab({
   review,
   spoilersRevealed,
   onRevealSpoilers
-}: AnimeDetailReviewTabProps) {
+}: MangaDetailReviewTabProps) {
   const hasReviewText = Boolean(review?.reviewText);
 
   if (!review || !hasReviewText) {
@@ -45,7 +45,7 @@ export default function AnimeDetailReviewTab({
     );
   }
 
-  const scoreCriteria = buildAnimeScoreCriteria(review);
+  const scoreCriteria = buildMangaScoreCriteria(review);
 
   return (
     <CardContent className="pt-6">

@@ -1,26 +1,22 @@
-import { getSeasonProgressPercent } from "@/components/anime/anime-detail-helpers";
+import { formatLightNovelVolumesLabel } from "@/components/light-novel/light-novel-detail-helpers";
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
-import { AnimeDetail } from "@/types/anime.type";
+import { LightNovelDetail } from "@/types/lightnovel.type";
 
 import { formatMalScoreWithMax } from "@/lib/utils";
 
-import { HeartIcon, StarIcon } from "lucide-react";
+import { BookOpenIcon, HeartIcon, StarIcon } from "lucide-react";
 
-type AnimeDetailScoresCardProps = {
-  animeDetail: AnimeDetail;
+type LightNovelDetailScoresCardProps = {
+  lightNovelDetail: LightNovelDetail;
 };
 
-export default function AnimeDetailScoresCard({
-  animeDetail
-}: AnimeDetailScoresCardProps) {
-  const reviewObject = animeDetail.review;
-  const watchedEpisodeCount = animeDetail.episodes.length;
-  const totalEpisodeCount =
-    animeDetail.episodesCount ?? animeDetail.episodes.length;
-  const seasonProgressPercent = getSeasonProgressPercent(
-    watchedEpisodeCount,
-    totalEpisodeCount
+export default function LightNovelDetailScoresCard({
+  lightNovelDetail
+}: LightNovelDetailScoresCardProps) {
+  const reviewObject = lightNovelDetail.review;
+  const volumesLabel = formatLightNovelVolumesLabel(
+    lightNovelDetail.volumesCount
   );
 
   return (
@@ -33,7 +29,7 @@ export default function AnimeDetailScoresCard({
               className="size-[1em] shrink-0 fill-amber-400 text-amber-400"
               aria-hidden
             />
-            {formatMalScoreWithMax(animeDetail.score)}
+            {formatMalScoreWithMax(lightNovelDetail.score)}
           </p>
         </div>
 
@@ -49,7 +45,7 @@ export default function AnimeDetailScoresCard({
         </div>
 
         <div className="col-span-2 space-y-2 sm:max-lg:col-span-1 sm:max-lg:pl-1 lg:col-span-1 lg:pl-1">
-          <p className="text-sm text-slate-500">Watch Status</p>
+          <p className="text-sm text-slate-500">Reading Status</p>
           {reviewObject ? (
             <ProgressStatusBadge
               progressStatus={reviewObject.progressStatus}
@@ -62,23 +58,11 @@ export default function AnimeDetailScoresCard({
       </div>
 
       <div className="mt-4 space-y-2 border-t border-slate-200/80 pt-4">
-        <p className="text-sm text-slate-500">Season Progress</p>
-        <div
-          className="h-2 overflow-hidden rounded-full bg-slate-200/80"
-          role="progressbar"
-          aria-valuenow={seasonProgressPercent}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label="Season progress"
-        >
-          <div
-            className="h-full rounded-full bg-[#ff6b8b] transition-all duration-500"
-            style={{ width: `${seasonProgressPercent}%` }}
-          />
+        <p className="text-sm text-slate-500">Series Progress</p>
+        <div className="flex items-center gap-2 rounded-lg border border-white/40 bg-white/30 px-3 py-2.5 backdrop-blur-sm">
+          <BookOpenIcon className="size-4 shrink-0 text-[#ff6b8b]" aria-hidden />
+          <p className="text-sm font-medium text-slate-800">{volumesLabel}</p>
         </div>
-        <p className="text-right text-sm font-medium text-slate-600">
-          {watchedEpisodeCount} / {totalEpisodeCount} Episodes
-        </p>
       </div>
     </div>
   );

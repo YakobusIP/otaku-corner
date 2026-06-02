@@ -1,28 +1,28 @@
 "use client";
 
 import ReviewContent from "@/components/ReviewContent";
-import { buildAnimeScoreCriteria } from "@/components/anime/anime-detail-helpers";
 import AnimeDetailScoresBreakdown from "@/components/anime/scores-breakdown/AnimeDetailScoresBreakdown";
+import { buildLightNovelScoreCriteria } from "@/components/light-novel/light-novel-detail-helpers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 
-import { AnimeDetail } from "@/types/anime.type";
+import { LightNovelDetail } from "@/types/lightnovel.type";
 
 import { AlertTriangleIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import Image from "next/image";
 
-type AnimeDetailReviewTabProps = {
-  review: AnimeDetail["review"];
+type LightNovelDetailReviewTabProps = {
+  review: LightNovelDetail["review"];
   spoilersRevealed: boolean;
   onRevealSpoilers: () => void;
 };
 
-export default function AnimeDetailReviewTab({
+export default function LightNovelDetailReviewTab({
   review,
   spoilersRevealed,
   onRevealSpoilers
-}: AnimeDetailReviewTabProps) {
+}: LightNovelDetailReviewTabProps) {
   const hasReviewText = Boolean(review?.reviewText);
 
   if (!review || !hasReviewText) {
@@ -45,7 +45,7 @@ export default function AnimeDetailReviewTab({
     );
   }
 
-  const scoreCriteria = buildAnimeScoreCriteria(review);
+  const scoreCriteria = buildLightNovelScoreCriteria(review);
 
   return (
     <CardContent className="pt-6">

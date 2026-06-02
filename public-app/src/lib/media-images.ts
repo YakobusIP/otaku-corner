@@ -5,7 +5,7 @@ type MalImages = {
 
 export const pickMediaImageSrc = (
   images: unknown,
-  fallback = "/placeholder.svg"
+  fallback = "/no-poster.webp"
 ): string => {
   if (!images || typeof images !== "object") {
     return fallback;
