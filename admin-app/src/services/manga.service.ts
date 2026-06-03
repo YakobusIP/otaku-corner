@@ -96,11 +96,8 @@ const createMangaService = () => {
     data: MangaReviewRequest
   ): Promise<ServiceResult<MessageResponse>> => {
     try {
-      const response = await interceptedAxios.put<{ message?: string }>(
-        `${BASE_MANGA_URL}/${id}/review`,
-        data
-      );
-      return ok({ message: response.data.message ?? "" });
+      await interceptedAxios.put(`${BASE_MANGA_URL}/${id}/review`, data);
+      return ok({ message: "Review saved successfully" });
     } catch (error) {
       return err(error);
     }
@@ -111,11 +108,10 @@ const createMangaService = () => {
     data: PROGRESS_STATUS
   ): Promise<ServiceResult<MessageResponse>> => {
     try {
-      const response = await interceptedAxios.put<{ message?: string }>(
-        `${BASE_MANGA_URL}/${id}/review`,
-        { progressStatus: data }
-      );
-      return ok({ message: response.data.message ?? "" });
+      await interceptedAxios.put(`${BASE_MANGA_URL}/${id}/review`, {
+        progressStatus: data
+      });
+      return ok({ message: "Progress status updated successfully" });
     } catch (error) {
       return err(error);
     }
@@ -127,14 +123,11 @@ const createMangaService = () => {
     volumesCount: number
   ): Promise<ServiceResult<MessageResponse>> => {
     try {
-      const response = await interceptedAxios.put<{ message?: string }>(
-        `${BASE_MANGA_URL}/${id}`,
-        {
-          chaptersCount,
-          volumesCount
-        }
-      );
-      return ok({ message: response.data.message ?? "" });
+      await interceptedAxios.put(`${BASE_MANGA_URL}/${id}`, {
+        chaptersCount,
+        volumesCount
+      });
+      return ok({ message: "Chapters and volumes updated successfully" });
     } catch (error) {
       return err(error);
     }

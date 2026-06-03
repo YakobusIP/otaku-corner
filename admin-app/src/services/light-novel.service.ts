@@ -95,11 +95,8 @@ const createLightNovelService = () => {
     data: LightNovelReviewRequest
   ): Promise<ServiceResult<MessageResponse>> => {
     try {
-      const response = await interceptedAxios.put<{ message?: string }>(
-        `${BASE_LIGHTNOVEL_URL}/${id}/review`,
-        data
-      );
-      return ok({ message: response.data.message ?? "" });
+      await interceptedAxios.put(`${BASE_LIGHTNOVEL_URL}/${id}/review`, data);
+      return ok({ message: "Review saved successfully" });
     } catch (error) {
       return err(error);
     }
@@ -110,11 +107,10 @@ const createLightNovelService = () => {
     data: PROGRESS_STATUS
   ): Promise<ServiceResult<MessageResponse>> => {
     try {
-      const response = await interceptedAxios.put<{ message?: string }>(
-        `${BASE_LIGHTNOVEL_URL}/${id}/review`,
-        { progressStatus: data }
-      );
-      return ok({ message: response.data.message ?? "" });
+      await interceptedAxios.put(`${BASE_LIGHTNOVEL_URL}/${id}/review`, {
+        progressStatus: data
+      });
+      return ok({ message: "Progress status updated successfully" });
     } catch (error) {
       return err(error);
     }
@@ -125,11 +121,10 @@ const createLightNovelService = () => {
     volumesCount: number
   ): Promise<ServiceResult<MessageResponse>> => {
     try {
-      const response = await interceptedAxios.put<{ message?: string }>(
-        `${BASE_LIGHTNOVEL_URL}/${id}`,
-        { volumesCount }
-      );
-      return ok({ message: response.data.message ?? "" });
+      await interceptedAxios.put(`${BASE_LIGHTNOVEL_URL}/${id}`, {
+        volumesCount
+      });
+      return ok({ message: "Volumes updated successfully" });
     } catch (error) {
       return err(error);
     }
@@ -139,11 +134,10 @@ const createLightNovelService = () => {
     data: { id: number; consumedAt?: Date | null }[]
   ): Promise<ServiceResult<MessageResponse>> => {
     try {
-      const response = await interceptedAxios.put<{ message?: string }>(
-        `${BASE_LIGHTNOVEL_URL}/volume-progress`,
-        { data }
-      );
-      return ok({ message: response.data.message ?? "" });
+      await interceptedAxios.put(`${BASE_LIGHTNOVEL_URL}/volume-progress`, {
+        data
+      });
+      return ok({ message: "Volume progress updated successfully" });
     } catch (error) {
       return err(error);
     }
