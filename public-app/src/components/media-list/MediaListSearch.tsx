@@ -1,9 +1,10 @@
 "use client";
 
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent } from "react";
+
+import { Input } from "@/components/ui/input";
 
 import type { MediaListClientConfig } from "@/types/context.type";
-import { Input } from "@/components/ui/input";
 
 import { SearchIcon } from "lucide-react";
 
@@ -13,7 +14,12 @@ type Props<
   TListFilters extends Record<string, unknown>,
   TInfiniteQueryKey extends readonly unknown[]
 > = {
-  config: MediaListClientConfig<TItem, TFilters, TListFilters, TInfiniteQueryKey>;
+  config: MediaListClientConfig<
+    TItem,
+    TFilters,
+    TListFilters,
+    TInfiniteQueryKey
+  >;
 };
 
 export default function MediaListSearch<
@@ -23,14 +29,8 @@ export default function MediaListSearch<
   TInfiniteQueryKey extends readonly unknown[]
 >({ config }: Props<TItem, TFilters, TListFilters, TInfiniteQueryKey>) {
   const { state, setQuery } = config.context.useMediaListContext();
-  const [query, setLocalQuery] = useState(state.query);
-
-  useEffect(() => {
-    setLocalQuery(state.query);
-  }, [state.query]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setLocalQuery(event.target.value);
     setQuery(event.target.value);
   };
 
@@ -42,7 +42,7 @@ export default function MediaListSearch<
       />
       <Input
         placeholder={config.searchPlaceholder}
-        value={query}
+        value={state.queryInput}
         onChange={handleChange}
         className="pl-10 w-full bg-white/60 backdrop-blur-sm border-white/40 text-slate-800 placeholder:text-slate-600"
       />

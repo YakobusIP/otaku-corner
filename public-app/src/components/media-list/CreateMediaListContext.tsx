@@ -43,6 +43,7 @@ export const createMediaListContext = <TFilters extends Record<string, unknown>>
 
     const [state, setState] = useState<MediaListState<TFilters>>({
       query: initialQuery,
+      queryInput: initialQuery,
       status: initialStatusRaw === "" ? undefined : initialStatusRaw,
       filters: { ...initialFilters },
       sort: "title",
@@ -54,19 +55,20 @@ export const createMediaListContext = <TFilters extends Record<string, unknown>>
     }, 1000);
 
     const setQuery = useCallback(
-      (query: string) => {
-        if (query === "") {
+      (input: string) => {
+        if (input === "") {
           debouncedSetQuery.cancel();
-          setState((prev) => ({ ...prev, query: "" }));
+          setState((prev) => ({ ...prev, query: "", queryInput: "" }));
           return;
         }
-        debouncedSetQuery(query);
+        setState((prev) => ({ ...prev, queryInput: input }));
+        debouncedSetQuery(input);
       },
       [debouncedSetQuery]
     );
 
     const setListState = useCallback(
-      (update: Partial<Omit<MediaListState<TFilters>, "query">>) => {
+      (update: Partial<Omit<MediaListState<TFilters>, "query" | "queryInput">>) => {
         setState((current) => ({ ...current, ...update }));
       },
       []

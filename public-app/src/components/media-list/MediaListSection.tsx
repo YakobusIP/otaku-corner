@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, ReactNode, useCallback, useRef } from "react";
+import { Fragment, ReactNode, useCallback } from "react";
 
 import EntityQueryErrorToasts from "@/components/media-list/EntityQueryErrorToasts";
 import { Badge } from "@/components/ui/badge";
@@ -63,22 +63,10 @@ export default function MediaListSection<
     loadingDots
   } = useMediaListBody(config);
 
-  const loadMoreSnapshotRef = useRef({
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage
-  });
-  loadMoreSnapshotRef.current = {
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage
-  };
-
   const fetchNextIfNeeded = useCallback(() => {
-    const snapshot = loadMoreSnapshotRef.current;
-    if (!snapshot.hasNextPage || snapshot.isFetchingNextPage) return;
-    void snapshot.fetchNextPage();
-  }, []);
+    if (!hasNextPage || isFetchingNextPage) return;
+    void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const { ref: loadMoreRef } = useInView({
     skip: !hasNextPage,

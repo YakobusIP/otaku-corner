@@ -9,6 +9,7 @@ export type MediaListId = "anime" | "manga" | "lightNovel";
 
 export type MediaListState<TFilters extends Record<string, unknown>> = {
   query: string;
+  queryInput: string;
   status?: keyof typeof PROGRESS_STATUS;
   filters: TFilters;
   sort: string;
@@ -18,7 +19,7 @@ export type MediaListState<TFilters extends Record<string, unknown>> = {
 export type MediaListContextValue<TFilters extends Record<string, unknown>> = {
   state: MediaListState<TFilters>;
   setQuery: (query: string) => void;
-  setState: (update: Partial<Omit<MediaListState<TFilters>, "query">>) => void;
+  setState: (update: Partial<Omit<MediaListState<TFilters>, "query" | "queryInput">>) => void;
 };
 
 export type MediaListContextBundle<TFilters extends Record<string, unknown>> = {

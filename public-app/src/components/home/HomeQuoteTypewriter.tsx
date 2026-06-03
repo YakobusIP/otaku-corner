@@ -21,12 +21,10 @@ export default function HomeQuoteTypewriter() {
 
   useEffect(() => {
     if (prefersReducedMotion) {
-      setVisibleLength(FULL_TEXT.length);
       return;
     }
 
     if (!inView) {
-      setVisibleLength(0);
       return;
     }
 
@@ -44,7 +42,8 @@ export default function HomeQuoteTypewriter() {
     return () => window.clearTimeout(timer);
   }, [inView, prefersReducedMotion, visibleLength]);
 
-  const visibleText = FULL_TEXT.slice(0, visibleLength);
+  const displayedLength = prefersReducedMotion ? FULL_TEXT.length : visibleLength;
+  const visibleText = FULL_TEXT.slice(0, displayedLength);
   const visibleLines = visibleText.split("\n");
 
   return (
