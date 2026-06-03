@@ -1,8 +1,23 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 
+import { MAX_PAGE_LIMIT } from "@/common/dto/pagination-query.dto";
+
 import { ProgressStatus } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, IsString, Min } from "class-validator";
+import {
+  IsEnum,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min
+} from "class-validator";
+
+const MEDIA_LIBRARY_SORT_FIELDS = ["title", "score", "personal_score"] as const;
+const SORT_ORDER_VALUES = ["asc", "desc"] as const;
+const SCORE_RANGE_KEYS = ["poor", "average", "good", "excellent"] as const;
+const STATUS_CHECK_VALUES = ["complete", "incomplete"] as const;
 
 export class MediaLibraryQueryDto {
   @ApiPropertyOptional({ description: "Page number", example: 1, minimum: 1 })
@@ -15,12 +30,14 @@ export class MediaLibraryQueryDto {
   @ApiPropertyOptional({
     description: "Items per page (global across all media types)",
     example: 10,
-    minimum: 1
+    minimum: 1,
+    maximum: MAX_PAGE_LIMIT
   })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  @Max(MAX_PAGE_LIMIT)
   limit?: number;
 
   @ApiPropertyOptional({
@@ -31,15 +48,21 @@ export class MediaLibraryQueryDto {
   query?: string;
 
   @ApiPropertyOptional({
-    description: "Sort field: title, score, personal_score"
+    description: "Sort field: title, score, personal_score",
+    enum: MEDIA_LIBRARY_SORT_FIELDS
   })
   @IsOptional()
   @IsString()
+  @IsIn(MEDIA_LIBRARY_SORT_FIELDS)
   sort?: string;
 
-  @ApiPropertyOptional({ description: "Sort order (asc or desc)" })
+  @ApiPropertyOptional({
+    description: "Sort order (asc or desc)",
+    enum: SORT_ORDER_VALUES
+  })
   @IsOptional()
   @IsString()
+  @IsIn(SORT_ORDER_VALUES)
   order?: string;
 
   @ApiPropertyOptional({ description: "Filter by genre ID" })
@@ -79,14 +102,22 @@ export class MediaLibraryQueryDto {
   @IsEnum(ProgressStatus)
   status?: ProgressStatus;
 
-  @ApiPropertyOptional({ description: "Filter by MAL score range" })
+  @ApiPropertyOptional({
+    description: "Filter by MAL score range",
+    enum: SCORE_RANGE_KEYS
+  })
   @IsOptional()
   @IsString()
+  @IsIn(SCORE_RANGE_KEYS)
   malScore?: string;
 
-  @ApiPropertyOptional({ description: "Filter by personal score range" })
+  @ApiPropertyOptional({
+    description: "Filter by personal score range",
+    enum: SCORE_RANGE_KEYS
+  })
   @IsOptional()
   @IsString()
+  @IsIn(SCORE_RANGE_KEYS)
   personalScore?: string;
 
   @ApiPropertyOptional({
@@ -98,9 +129,11 @@ export class MediaLibraryQueryDto {
   type?: string;
 
   @ApiPropertyOptional({
-    description: "Filter by completion status (complete or incomplete)"
+    description: "Filter by completion status (complete or incomplete)",
+    enum: STATUS_CHECK_VALUES
   })
   @IsOptional()
   @IsString()
+  @IsIn(STATUS_CHECK_VALUES)
   statusCheck?: string;
 }

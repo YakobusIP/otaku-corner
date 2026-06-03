@@ -2,7 +2,16 @@ import { BadRequestException } from "@nestjs/common";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsInt, IsOptional, IsString, Min } from "class-validator";
+import {
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min
+} from "class-validator";
+
+export const MAX_PAGE_LIMIT = 100;
 
 export class PaginationQueryDto {
   @ApiPropertyOptional({
@@ -21,12 +30,14 @@ export class PaginationQueryDto {
     description: "Number of items per page",
     example: 10,
     minimum: 1,
+    maximum: MAX_PAGE_LIMIT,
     default: 10
   })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  @Max(MAX_PAGE_LIMIT)
   limit?: number;
 
   @ApiPropertyOptional({
@@ -52,12 +63,20 @@ export class PaginationQueryDto {
         "include_ids must be a comma-separated string in a single query parameter (e.g. include_ids=3,7,12)"
       );
     }
-    const numbers = value
+    const parts = value
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean)
-      .map((s) => Number(s))
-      .filter((n) => Number.isInteger(n) && n >= 1);
+      .filter(Boolean);
+    const numbers: number[] = [];
+    for (const part of parts) {
+      const n = Number(part);
+      if (!Number.isInteger(n) || n < 1) {
+        throw new BadRequestException(
+          `include_ids contains invalid ID "${part}": each ID must be a positive integer`
+        );
+      }
+      numbers.push(n);
+    }
     if (numbers.length === 0) {
       return undefined;
     }
