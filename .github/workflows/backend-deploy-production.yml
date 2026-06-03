@@ -1,0 +1,18 @@
+name: Deploy Backend (production)
+
+on:
+  push:
+    branches: [production]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-deploy-production.yml"
+      - ".github/workflows/_deploy-backend.yml"
+
+jobs:
+  call:
+    uses: ./.github/workflows/_deploy-backend.yml
+    secrets: inherit
+    with:
+      environment: production
+      deploy_path: /srv/production/backend
+      service_name: otaku-corner-backend-production.service

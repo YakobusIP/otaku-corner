@@ -1,0 +1,17 @@
+name: Deploy Admin App (staging)
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - "admin-app/**"
+      - ".github/workflows/admin-app-deploy-staging.yml"
+      - ".github/workflows/_deploy-admin-app.yml"
+
+jobs:
+  call:
+    uses: ./.github/workflows/_deploy-admin-app.yml
+    secrets: inherit
+    with:
+      environment: staging
+      deploy_path: /srv/staging/admin

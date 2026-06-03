@@ -14,7 +14,7 @@ import { safeSerializeForLog } from "@/common/logging/safe-serialize";
 import { StructuredLogger } from "@/common/logging/structured-logger.service";
 
 import { AppModule } from "@/app.module";
-import { CORS_ALLOWED_ORIGINS } from "@/config/cors-origins";
+import { getCorsOrigins } from "@/config/cors-origins";
 
 import cookieParser from "cookie-parser";
 
@@ -64,7 +64,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  const allowed = new Set<string>(CORS_ALLOWED_ORIGINS);
+  const allowed = new Set<string>(getCorsOrigins(configService));
 
   app.enableCors({
     credentials: true,

@@ -1,0 +1,122 @@
+name: _Deploy Backend (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      deploy_path:
+        required: true
+        type: string
+      service_name:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    concurrency:
+      group: deploy-backend-${{ inputs.environment }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+
+      - name: Build backend
+        working-directory: backend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      - name: Upload backend via SCP (env-scoped tmp dir)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port:     ${{ secrets.SSH_PORT }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "backend/dist/,backend/package.json,backend/pnpm-lock.yaml,backend/prisma/"
+          target: /tmp/deploy/${{ inputs.environment }}/backend
+          strip_components: 1
+
+      - name: Remote backend deploy & restart
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port:     ${{ secrets.SSH_PORT }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+
+            SRC="/tmp/deploy/${{ inputs.environment }}/backend"
+            DST="${{ inputs.deploy_path }}"
+
+            sudo systemctl stop "${{ inputs.service_name }}" || true
+
+            sudo mkdir -p "$DST"
+            sudo rsync -rt --delete "$SRC/" "$DST/"
+
+            cd "$DST"
+
+            NODE_BIN="/usr/bin/node"
+            if [ ! -x "$NODE_BIN" ]; then
+              echo "Node binary not found at $NODE_BIN (systemd ExecStart uses this path)"
+              exit 1
+            fi
+            NODE_MAJOR="$("$NODE_BIN" -p "Number(process.version.slice(1).split('.')[0])")"
+            if [ "$NODE_MAJOR" -lt 20 ]; then
+              echo "Node 20+ required at $NODE_BIN before pnpm install --prod; found $("$NODE_BIN" -v)"
+              exit 1
+            fi
+
+            # Setup .env
+            cat > "$DST/.env" <<EOF
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DIRECT_URL=${{ secrets.DIRECT_URL }}
+            ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
+            REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}
+            ACCESS_TOKEN_DURATION=${{ vars.ACCESS_TOKEN_DURATION }}
+            REFRESH_TOKEN_DURATION=${{ vars.REFRESH_TOKEN_DURATION }}
+            MAX_FILE_SIZE=${{ vars.MAX_FILE_SIZE }}
+            R2_ACCOUNT_ID=${{ secrets.R2_ACCOUNT_ID }}
+            R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}
+            R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}
+            R2_BUCKET_NAME=${{ secrets.R2_BUCKET_NAME }}
+            R2_PUBLIC_BASE_URL=${{ secrets.R2_PUBLIC_BASE_URL }}
+            BULL_REDIS_IP=${{ secrets.BULL_REDIS_IP }}
+            BULL_REDIS_PORT=${{ secrets.BULL_REDIS_PORT }}
+            ADMIN_APP_URL=${{ vars.ADMIN_APP_URL }}
+            CANONICAL_PUBLIC_APP_URL=${{ vars.CANONICAL_PUBLIC_APP_URL }}
+            PUBLIC_APP_URL=${{ vars.PUBLIC_APP_URL }}
+            NODE_ENV=${{ vars.BACKEND_NODE_ENV }}
+            PORT=${{ vars.BACKEND_PORT }}
+            LOG_SERVICE_NAME=${{ vars.LOG_SERVICE_NAME }}
+            LOG_LEVEL=${{ vars.LOG_LEVEL }}
+            LOG_TO_FILE=${{ vars.LOG_TO_FILE }}
+            DB_SLOW_QUERY_THRESHOLD_MS=${{ vars.DB_SLOW_QUERY_THRESHOLD_MS }}
+            EOF
+            sudo chown deploy:deploy "$DST/.env"
+            sudo chmod 600 "$DST/.env"
+
+            export PATH="$(dirname "$NODE_BIN"):$PATH"
+
+            pnpm install --prod --frozen-lockfile
+            npx prisma generate
+            npx prisma migrate deploy
+
+            sudo systemctl start "${{ inputs.service_name }}"
