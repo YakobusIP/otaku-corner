@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -62,10 +64,10 @@ export default function SortDirection({
           )}
         >
           {compactBelowMd ? (
-            <>
+            <Fragment>
               <ArrowUpDownIcon className="h-4 w-4 md:hidden" />
               <span className="hidden md:contents">{sortLabelContent}</span>
-            </>
+            </Fragment>
           ) : (
             sortLabelContent
           )}
