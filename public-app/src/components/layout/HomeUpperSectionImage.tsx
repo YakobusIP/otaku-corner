@@ -1,5 +1,5 @@
-import { HERO_WALLPAPER_IMAGE_SIZES } from "@/lib/hero-wallpaper-image";
-import { cn } from "@/lib/utils";
+import { HERO_WALLPAPER_IMAGE_SIZES } from "@/lib/shared/hero-wallpaper-image";
+import { cn } from "@/lib/shared/utils";
 
 import Image from "next/image";
 

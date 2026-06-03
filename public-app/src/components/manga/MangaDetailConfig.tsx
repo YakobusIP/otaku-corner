@@ -9,13 +9,13 @@ import { useMangaDetailPage } from "@/hooks/useMangaDetailPage";
 import { type MangaDetail as MangaDetailData } from "@/types/manga.type";
 import { type MediaDetailClientConfig } from "@/types/media-detail.type";
 
-import { pickMediaImageSrc } from "@/lib/media-images";
+import { pickMediaImageSrc } from "@/lib/media-detail/media-images";
 import {
   buildMangaScoreCriteria,
   buildMediaGenreTags,
   formatMangaChaptersLabel,
   formatNamedEntityLabels
-} from "@/lib/media-detail-helpers";
+} from "@/lib/media-detail/media-detail-helpers";
 
 import {
   BookOpenIcon,

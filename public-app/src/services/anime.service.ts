@@ -1,12 +1,12 @@
 import { AnimeDetail, AnimeList, AnimeSitemap } from "@/types/anime.type";
 import { StatusFilter } from "@/types/statistic.type";
 
-import { axiosClient, handleAxiosError } from "@/lib/axios";
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import { axiosClient, handleAxiosError } from "@/lib/api/axios";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/shared/enums";
 import {
   type NestPaginatedListBody,
   mapNestListPageToPublic
-} from "@/lib/nest-paginated-list";
+} from "@/lib/shared/nest-paginated-list";
 
 const BASE_ANIME_URL = "/api/animes";
 

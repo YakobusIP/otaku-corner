@@ -7,16 +7,16 @@ import type {
 } from "@/types/context.type";
 import type { MangaFilters, MangaList } from "@/types/manga.type";
 
-import { type ProgressStatusKey, SORT_ORDER } from "@/lib/enums";
+import { type ProgressStatusKey, SORT_ORDER } from "@/lib/shared/enums";
 import {
   MANGA_LIST_PAGE_LIMIT,
   getMangaListInfiniteQueryOptions
-} from "@/lib/public-list-infinite-queries";
+} from "@/lib/media-list/public-list-infinite-queries";
 import {
   publicListKeys,
   type MangaListInfiniteQueryKey,
   type PublicMangaListInfiniteFilters
-} from "@/lib/query-keys";
+} from "@/lib/media-list/query-keys";
 
 export const mangaListQueryConfig: MediaListQueryConfig<
   MangaList,

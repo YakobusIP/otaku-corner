@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   PUBLIC_MEDIA_TYPE_CONFIG,
   PUBLIC_MEDIA_TYPES
-} from "@/lib/public-media-type";
+} from "@/lib/media/public-media-type";
 
 import {
   ArrowLeftIcon,

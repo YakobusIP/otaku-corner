@@ -3,8 +3,8 @@ import type { MediaListServerConfig } from "@/types/context.type";
 import {
   LIGHT_NOVEL_LIST_PAGE_LIMIT,
   buildLightNovelListFiltersFromSearchParams
-} from "@/lib/public-list-infinite-queries";
-import type { PublicLightNovelListInfiniteFilters } from "@/lib/query-keys";
+} from "@/lib/media-list/public-list-infinite-queries";
+import type { PublicLightNovelListInfiniteFilters } from "@/lib/media-list/query-keys";
 
 export const lightNovelListServerConfig: MediaListServerConfig<PublicLightNovelListInfiniteFilters> =
   {

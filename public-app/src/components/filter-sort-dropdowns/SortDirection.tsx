@@ -6,8 +6,8 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
-import { SORT_ORDER } from "@/lib/enums";
-import { cn } from "@/lib/utils";
+import { SORT_ORDER } from "@/lib/shared/enums";
+import { cn } from "@/lib/shared/utils";
 
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
 

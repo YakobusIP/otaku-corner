@@ -21,7 +21,7 @@ import {
   PUBLIC_MEDIA_TYPES,
   PUBLIC_MEDIA_TYPE_CONFIG,
   getChartPieColor
-} from "@/lib/public-media-type";
+} from "@/lib/media/public-media-type";
 
 import { motion } from "framer-motion";
 import { FlowerIcon, Loader2Icon } from "lucide-react";

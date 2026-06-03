@@ -4,7 +4,7 @@ import {
   ThemeEntityPartial
 } from "@/types/entity.type";
 
-import { PROGRESS_STATUS, type ProgressStatusKey } from "@/lib/enums";
+import { PROGRESS_STATUS, type ProgressStatusKey } from "@/lib/shared/enums";
 
 type LightNovelEntity = {
   id: number;

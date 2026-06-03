@@ -9,7 +9,7 @@ import {
 
 import { AnimeList } from "@/types/anime.type";
 
-import { cn, formatScoreFixedOrNa } from "@/lib/utils";
+import { cn, formatScoreFixedOrNa } from "@/lib/shared/utils";
 
 import { HeartIcon, StarIcon } from "lucide-react";
 import Image from "next/image";

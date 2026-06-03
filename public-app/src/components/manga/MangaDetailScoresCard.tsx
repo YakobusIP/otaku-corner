@@ -5,7 +5,7 @@ import { MangaDetail } from "@/types/manga.type";
 import {
   formatMangaChaptersLabel,
   formatMangaVolumesLabel
-} from "@/lib/media-detail-helpers";
+} from "@/lib/media-detail/media-detail-helpers";
 
 import { BookOpenIcon, LibraryIcon } from "lucide-react";
 

@@ -12,7 +12,7 @@ import { useMediaListBody } from "@/hooks/useMediaListBody";
 
 import type { MediaListClientConfig } from "@/types/context.type";
 
-import { getCardStaggerDelay } from "@/lib/grid-stagger";
+import { getCardStaggerDelay } from "@/lib/shared/grid-stagger";
 
 import { motion, useReducedMotion } from "framer-motion";
 import { CompassIcon, FilterXIcon, XIcon } from "lucide-react";

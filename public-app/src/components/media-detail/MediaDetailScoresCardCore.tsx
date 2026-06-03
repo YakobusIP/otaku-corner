@@ -2,8 +2,8 @@ import { type ReactNode } from "react";
 
 import { ProgressStatusBadge } from "@/components/ui/progress-status-badge";
 
-import { PROGRESS_STATUS, type ProgressStatusKey } from "@/lib/enums";
-import { formatMalScoreWithMax } from "@/lib/utils";
+import { PROGRESS_STATUS, type ProgressStatusKey } from "@/lib/shared/enums";
+import { formatMalScoreWithMax } from "@/lib/shared/utils";
 
 import { HeartIcon, StarIcon } from "lucide-react";
 

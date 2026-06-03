@@ -14,8 +14,8 @@ import { useMediaListHeader } from "@/hooks/useMediaListHeader";
 
 import type { MediaListClientConfig } from "@/types/context.type";
 
-import { SORT_ORDER } from "@/lib/enums";
-import { cn } from "@/lib/utils";
+import { SORT_ORDER } from "@/lib/shared/enums";
+import { cn } from "@/lib/shared/utils";
 
 import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeftIcon, SlidersHorizontalIcon } from "lucide-react";

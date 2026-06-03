@@ -1,7 +1,7 @@
 import * as React from "react";
 
-import { PROGRESS_STATUS, type ProgressStatusKey } from "@/lib/enums";
-import { cn } from "@/lib/utils";
+import { PROGRESS_STATUS, type ProgressStatusKey } from "@/lib/shared/enums";
+import { cn } from "@/lib/shared/utils";
 
 import {
   CheckCircleIcon,

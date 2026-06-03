@@ -1,8 +1,8 @@
-import { axiosClient, handleAxiosError } from "@/lib/axios";
+import { axiosClient, handleAxiosError } from "@/lib/api/axios";
 import {
   type NestPaginatedListBody,
   mapNestListPageToPublic
-} from "@/lib/nest-paginated-list";
+} from "@/lib/shared/nest-paginated-list";
 
 const BASE_GENRE_URL = "/api/genres";
 const BASE_STUDIO_URL = "/api/studios";

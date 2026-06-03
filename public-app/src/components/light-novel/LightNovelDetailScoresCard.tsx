@@ -2,7 +2,7 @@ import MediaDetailScoresCardCore from "@/components/media-detail/MediaDetailScor
 
 import { LightNovelDetail } from "@/types/lightnovel.type";
 
-import { formatLightNovelVolumesLabel } from "@/lib/media-detail-helpers";
+import { formatLightNovelVolumesLabel } from "@/lib/media-detail/media-detail-helpers";
 
 import { BookOpenIcon } from "lucide-react";
 

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import type { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
-import type { PublicListPage } from "@/lib/public-list-infinite-queries";
+import type { PROGRESS_STATUS, SORT_ORDER } from "@/lib/shared/enums";
+import type { PublicListPage } from "@/lib/media-list/public-list-infinite-queries";
 
 import type { QueryFunction } from "@tanstack/react-query";
 

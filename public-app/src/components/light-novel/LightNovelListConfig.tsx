@@ -11,12 +11,12 @@ import { createMediaListContext } from "@/components/media-list/CreateMediaListC
 import type { MediaListClientConfig } from "@/types/context.type";
 import type { LightNovelFilters, LightNovelList } from "@/types/lightnovel.type";
 
-import { lightNovelListQueryConfig } from "@/lib/light-novel-list-query";
-import { printedMediaListEntityLookups } from "@/lib/media-list-entity-lookups";
+import { lightNovelListQueryConfig } from "@/lib/media-list/light-novel-list-query";
+import { printedMediaListEntityLookups } from "@/lib/media-list/media-list-entity-lookups";
 import type {
   LightNovelListInfiniteQueryKey,
   PublicLightNovelListInfiniteFilters
-} from "@/lib/query-keys";
+} from "@/lib/media-list/query-keys";
 
 const initialLightNovelFilters: LightNovelFilters = {
   author: undefined,

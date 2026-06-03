@@ -1,4 +1,4 @@
-import { ProgressStatusKey } from "@/lib/enums";
+import { ProgressStatusKey } from "@/lib/shared/enums";
 
 type MediaConsumptionRow = {
   period: string;

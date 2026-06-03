@@ -11,12 +11,12 @@ import MangaCard from "@/components/manga/MangaCard";
 import type { MediaListClientConfig } from "@/types/context.type";
 import type { MangaFilters, MangaList } from "@/types/manga.type";
 
-import { mangaListQueryConfig } from "@/lib/manga-list-query";
-import { printedMediaListEntityLookups } from "@/lib/media-list-entity-lookups";
+import { mangaListQueryConfig } from "@/lib/media-list/manga-list-query";
+import { printedMediaListEntityLookups } from "@/lib/media-list/media-list-entity-lookups";
 import type {
   MangaListInfiniteQueryKey,
   PublicMangaListInfiniteFilters
-} from "@/lib/query-keys";
+} from "@/lib/media-list/query-keys";
 
 const initialMangaFilters: MangaFilters = {
   author: undefined,

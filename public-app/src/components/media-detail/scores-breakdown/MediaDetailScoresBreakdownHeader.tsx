@@ -1,4 +1,4 @@
-import { formatMalScoreWithMax } from "@/lib/utils";
+import { formatMalScoreWithMax } from "@/lib/shared/utils";
 
 type MediaDetailScoresBreakdownHeaderProps = {
   personalScore?: number | null;

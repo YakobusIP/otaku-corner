@@ -5,10 +5,10 @@ import MediaListHeader from "@/components/media-list/MediaListHeader";
 import MediaListProvider from "@/components/media-list/MediaListProvider";
 import MediaListSection from "@/components/media-list/MediaListSection";
 
-import { mangaListQueryConfig } from "@/lib/manga-list-query";
-import { mangaListServerConfig } from "@/lib/manga-list-server";
-import { printedMediaListEntityLookups } from "@/lib/media-list-entity-lookups";
-import { prefetchMediaListPage } from "@/lib/prefetch-media-list-page";
+import { mangaListQueryConfig } from "@/lib/media-list/manga-list-query";
+import { mangaListServerConfig } from "@/lib/media-list/manga-list-server";
+import { printedMediaListEntityLookups } from "@/lib/media-list/media-list-entity-lookups";
+import { prefetchMediaListPage } from "@/lib/media-list/prefetch-media-list-page";
 
 import {
   HydrationBoundary,

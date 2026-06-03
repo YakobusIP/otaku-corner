@@ -3,8 +3,8 @@ import type { MediaListServerConfig } from "@/types/context.type";
 import {
   MANGA_LIST_PAGE_LIMIT,
   buildMangaListFiltersFromSearchParams
-} from "@/lib/public-list-infinite-queries";
-import type { PublicMangaListInfiniteFilters } from "@/lib/query-keys";
+} from "@/lib/media-list/public-list-infinite-queries";
+import type { PublicMangaListInfiniteFilters } from "@/lib/media-list/query-keys";
 
 export const mangaListServerConfig: MediaListServerConfig<PublicMangaListInfiniteFilters> =
   {

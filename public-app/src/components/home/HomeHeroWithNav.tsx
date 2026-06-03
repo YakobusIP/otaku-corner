@@ -13,8 +13,8 @@ import {
   PUBLIC_MEDIA_TYPES,
   PUBLIC_MEDIA_TYPE_CONFIG,
   type PublicMediaTypeId
-} from "@/lib/public-media-type";
-import { cn } from "@/lib/utils";
+} from "@/lib/media/public-media-type";
+import { cn } from "@/lib/shared/utils";
 
 import {
   BookOpenIcon,

@@ -1,19 +1,25 @@
 import { ApiResponseError } from "@/types/api.type";
 
 import axios, { AxiosError } from "axios";
-import { notFound } from "next/navigation";
+
+export class NotFoundError extends Error {
+  constructor(message?: string) {
+    super(message ?? "Not found");
+    this.name = "NotFoundError";
+  }
+}
 
 export const axiosClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_AXIOS_BASE_URL
 });
 
-export const handleAxiosError = (error: unknown) => {
+export const handleAxiosError = (error: unknown): never | string => {
   if (process.env.NODE_ENV === "development") {
     console.error(error);
   }
   if (error instanceof AxiosError && error.response?.data) {
     if (error.response.status === 404) {
-      notFound();
+      throw new NotFoundError();
     }
 
     const data = error.response.data as

@@ -40,7 +40,9 @@ export const prefetchMediaListPage = async <
         staleTime: Infinity,
         retry: false
       })
-      .catch(() => {}),
+      .catch((error) => {
+        console.error("Failed to prefetch status counts:", error);
+      }),
     ...(entityLookups ?? []).map((lookup) =>
       queryClient
         .prefetchQuery({
@@ -48,7 +50,9 @@ export const prefetchMediaListPage = async <
           queryFn: lookup.queryFn,
           staleTime: ENTITY_LOOKUP_STALE_TIME
         })
-        .catch(() => {})
+        .catch((error) => {
+          console.error(`Failed to prefetch entity lookup [${lookup.queryKey.join("/")}]:`, error);
+        })
     )
   ]);
 };

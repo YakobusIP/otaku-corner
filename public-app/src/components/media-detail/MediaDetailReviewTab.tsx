@@ -9,7 +9,7 @@ import { CardContent } from "@/components/ui/card";
 import {
   type MediaDetailReviewFields,
   type MediaScoreCriterion
-} from "@/lib/media-detail-helpers";
+} from "@/lib/media-detail/media-detail-helpers";
 
 import { AlertTriangleIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import Image from "next/image";

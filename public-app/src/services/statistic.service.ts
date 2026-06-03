@@ -7,7 +7,7 @@ import type {
   TopMediaAndYearlyCount
 } from "@/types/statistic.type";
 
-import { axiosClient, handleAxiosError } from "@/lib/axios";
+import { axiosClient, handleAxiosError } from "@/lib/api/axios";
 
 import type { AxiosResponse } from "axios";
 

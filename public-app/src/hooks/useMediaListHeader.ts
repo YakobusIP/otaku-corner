@@ -10,9 +10,9 @@ import {
 } from "@/hooks/map-status-tab-filters";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
-import { countActiveFilterChips } from "@/lib/media-list-helpers";
+import { countActiveFilterChips } from "@/lib/media-list/media-list-helpers";
 
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/shared/enums";
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 

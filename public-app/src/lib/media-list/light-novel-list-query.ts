@@ -7,16 +7,16 @@ import type {
 } from "@/types/context.type";
 import type { LightNovelFilters, LightNovelList } from "@/types/lightnovel.type";
 
-import { type ProgressStatusKey, SORT_ORDER } from "@/lib/enums";
+import { type ProgressStatusKey, SORT_ORDER } from "@/lib/shared/enums";
 import {
   LIGHT_NOVEL_LIST_PAGE_LIMIT,
   getLightNovelListInfiniteQueryOptions
-} from "@/lib/public-list-infinite-queries";
+} from "@/lib/media-list/public-list-infinite-queries";
 import {
   publicListKeys,
   type LightNovelListInfiniteQueryKey,
   type PublicLightNovelListInfiniteFilters
-} from "@/lib/query-keys";
+} from "@/lib/media-list/query-keys";
 
 export const lightNovelListQueryConfig: MediaListQueryConfig<
   LightNovelList,

@@ -10,7 +10,7 @@ import type {
 import { useLoadingDots } from "@/hooks/useLoadingDots";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
-import { countActiveFilterChips } from "@/lib/media-list-helpers";
+import { countActiveFilterChips } from "@/lib/media-list/media-list-helpers";
 
 import { useInfiniteQuery, useQueries } from "@tanstack/react-query";
 

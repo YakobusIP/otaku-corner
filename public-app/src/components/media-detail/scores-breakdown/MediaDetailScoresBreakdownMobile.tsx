@@ -11,8 +11,8 @@ import {
   CollapsibleTrigger
 } from "@/components/ui/collapsible";
 
-import { type MediaScoreCriterion } from "@/lib/media-detail-helpers";
-import { cn } from "@/lib/utils";
+import { type MediaScoreCriterion } from "@/lib/media-detail/media-detail-helpers";
+import { cn } from "@/lib/shared/utils";
 
 import { ChevronDownIcon } from "lucide-react";
 

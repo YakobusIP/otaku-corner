@@ -7,16 +7,16 @@ import type {
   MediaListState
 } from "@/types/context.type";
 
-import { type ProgressStatusKey, SORT_ORDER } from "@/lib/enums";
+import { type ProgressStatusKey, SORT_ORDER } from "@/lib/shared/enums";
 import {
   ANIME_LIST_PAGE_LIMIT,
   getAnimeListInfiniteQueryOptions
-} from "@/lib/public-list-infinite-queries";
+} from "@/lib/media-list/public-list-infinite-queries";
 import {
   publicListKeys,
   type AnimeListInfiniteQueryKey,
   type PublicAnimeListInfiniteFilters
-} from "@/lib/query-keys";
+} from "@/lib/media-list/query-keys";
 
 export const animeListQueryConfig: MediaListQueryConfig<
   AnimeList,

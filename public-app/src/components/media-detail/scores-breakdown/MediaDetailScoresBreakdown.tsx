@@ -4,8 +4,8 @@ import MediaDetailScoreCriteriaList from "@/components/media-detail/scores-break
 import MediaDetailScoresBreakdownHeader from "@/components/media-detail/scores-breakdown/MediaDetailScoresBreakdownHeader";
 import MediaDetailScoresBreakdownMobile from "@/components/media-detail/scores-breakdown/MediaDetailScoresBreakdownMobile";
 
-import { type MediaScoreCriterion } from "@/lib/media-detail-helpers";
-import { cn } from "@/lib/utils";
+import { type MediaScoreCriterion } from "@/lib/media-detail/media-detail-helpers";
+import { cn } from "@/lib/shared/utils";
 
 type MediaDetailScoresBreakdownProps = {
   criteria: MediaScoreCriterion[];

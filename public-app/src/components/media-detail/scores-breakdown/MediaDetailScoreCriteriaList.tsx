@@ -4,11 +4,11 @@ import { Fragment } from "react";
 
 import { ScoreProgressBar } from "@/components/ui/score-progress-bar";
 
-import { ratingDescriptions } from "@/lib/constants";
+import { ratingDescriptions } from "@/lib/shared/constants";
 import {
   type MediaScoreCriterion,
   getScoreBarPercent
-} from "@/lib/media-detail-helpers";
+} from "@/lib/media-detail/media-detail-helpers";
 
 import { useInView } from "react-intersection-observer";
 

@@ -12,12 +12,12 @@ import { createMediaListContext } from "@/components/media-list/CreateMediaListC
 import type { AnimeFilters, AnimeList } from "@/types/anime.type";
 import type { MediaListClientConfig } from "@/types/context.type";
 
-import { animeListQueryConfig } from "@/lib/anime-list-query";
-import { animeListEntityLookups } from "@/lib/media-list-entity-lookups";
+import { animeListQueryConfig } from "@/lib/media-list/anime-list-query";
+import { animeListEntityLookups } from "@/lib/media-list/media-list-entity-lookups";
 import type {
   AnimeListInfiniteQueryKey,
   PublicAnimeListInfiniteFilters
-} from "@/lib/query-keys";
+} from "@/lib/media-list/query-keys";
 
 const initialAnimeFilters: AnimeFilters = {
   genre: undefined,

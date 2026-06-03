@@ -1,4 +1,4 @@
-import type { ProgressStatusKey } from "@/lib/enums";
+import type { ProgressStatusKey } from "@/lib/shared/enums";
 
 const root = ["publicMediaLists"] as const;
 

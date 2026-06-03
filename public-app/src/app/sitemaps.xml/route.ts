@@ -2,8 +2,8 @@ import { animeService } from "@/services/anime.service";
 import { lightNovelService } from "@/services/lightnovel.service";
 import { mangaService } from "@/services/manga.service";
 
-import { URL_OF_SITEMAPS } from "@/lib/constants";
-import { buildSitemapIndexXml } from "@/lib/sitemap-xml";
+import { URL_OF_SITEMAPS } from "@/lib/shared/constants";
+import { buildSitemapIndexXml } from "@/lib/sitemap/sitemap-xml";
 
 import { NextResponse } from "next/server";
 

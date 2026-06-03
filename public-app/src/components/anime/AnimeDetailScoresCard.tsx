@@ -5,7 +5,7 @@ import { AnimeDetail } from "@/types/anime.type";
 import {
   getAnimeEpisodeCount,
   getSeasonProgressPercent
-} from "@/lib/media-detail-helpers";
+} from "@/lib/media-detail/media-detail-helpers";
 
 type AnimeDetailScoresCardProps = {
   animeDetail: AnimeDetail;

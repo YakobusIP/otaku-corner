@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 
 import { type MediaDetailTopContent } from "@/types/media-detail.type";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 
 const metaItemClassName =
   "inline-flex items-center gap-1.5 lg:[text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_8px_rgba(255,255,255,0.65)]";

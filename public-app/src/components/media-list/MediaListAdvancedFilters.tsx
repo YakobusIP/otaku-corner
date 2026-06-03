@@ -5,7 +5,7 @@ import { Dispatch, SetStateAction } from "react";
 import type { MediaListClientConfig } from "@/types/context.type";
 import { Button } from "@/components/ui/button";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 
 import { XIcon } from "lucide-react";
 

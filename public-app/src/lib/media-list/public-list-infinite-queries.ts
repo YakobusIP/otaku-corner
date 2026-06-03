@@ -8,13 +8,13 @@ import {
   PROGRESS_STATUS,
   type ProgressStatusKey,
   SORT_ORDER
-} from "@/lib/enums";
+} from "@/lib/shared/enums";
 import {
   type PublicAnimeListInfiniteFilters,
   type PublicLightNovelListInfiniteFilters,
   type PublicMangaListInfiniteFilters,
   publicListKeys
-} from "@/lib/query-keys";
+} from "@/lib/media-list/query-keys";
 
 import type { QueryFunctionContext } from "@tanstack/react-query";
 

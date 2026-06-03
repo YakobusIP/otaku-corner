@@ -9,13 +9,13 @@ import { useLightNovelDetailPage } from "@/hooks/useLightNovelDetailPage";
 import { type LightNovelDetail as LightNovelDetailData } from "@/types/lightnovel.type";
 import { type MediaDetailClientConfig } from "@/types/media-detail.type";
 
-import { pickMediaImageSrc } from "@/lib/media-images";
+import { pickMediaImageSrc } from "@/lib/media-detail/media-images";
 import {
   buildLightNovelScoreCriteria,
   buildMediaGenreTags,
   formatLightNovelVolumesLabel,
   formatNamedEntityLabels
-} from "@/lib/media-detail-helpers";
+} from "@/lib/media-detail/media-detail-helpers";
 
 import {
   BookOpenIcon,

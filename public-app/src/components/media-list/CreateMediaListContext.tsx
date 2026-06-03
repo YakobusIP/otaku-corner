@@ -17,8 +17,8 @@ import type {
   MediaListState
 } from "@/types/context.type";
 
-import { SORT_ORDER } from "@/lib/enums";
-import { coerceProgressStatusSearchParam } from "@/lib/public-list-infinite-queries";
+import { SORT_ORDER } from "@/lib/shared/enums";
+import { coerceProgressStatusSearchParam } from "@/lib/media-list/public-list-infinite-queries";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";

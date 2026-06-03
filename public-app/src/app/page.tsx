@@ -10,7 +10,7 @@ import HomeInsightsCarousel from "@/components/home/HomeInsightsCarousel";
 import HomeQuoteSection from "@/components/home/HomeQuoteSection";
 import HomeYearProgressSection from "@/components/home/HomeYearProgressSection";
 
-import { HERO_WALLPAPER_IMAGE_SIZES } from "@/lib/hero-wallpaper-image";
+import { HERO_WALLPAPER_IMAGE_SIZES } from "@/lib/shared/hero-wallpaper-image";
 
 import {
   HydrationBoundary,

@@ -2,13 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import type { RecentReviewItem } from "@/types/statistic.type";
 
-import { formatRelativeUpdatedAt } from "@/lib/format-relative-updated";
-import { pickMediaImageSrc } from "@/lib/media-images";
+import { formatRelativeUpdatedAt } from "@/lib/shared/format-relative-updated";
+import { pickMediaImageSrc } from "@/lib/media-detail/media-images";
 import {
   PUBLIC_MEDIA_TYPE_CONFIG,
   buildPublicMediaDetailHref
-} from "@/lib/public-media-type";
-import { formatScoreFixedOrNa } from "@/lib/utils";
+} from "@/lib/media/public-media-type";
+import { formatScoreFixedOrNa } from "@/lib/shared/utils";
 
 import { FlowerIcon, StarIcon } from "lucide-react";
 import Image from "next/image";

@@ -16,8 +16,8 @@ import { MOBILE_MEDIA_QUERY, useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   PUBLIC_MEDIA_NAV_LINKS,
   PUBLIC_MEDIA_TYPE_CONFIG
-} from "@/lib/public-media-type";
-import { cn } from "@/lib/utils";
+} from "@/lib/media/public-media-type";
+import { cn } from "@/lib/shared/utils";
 
 import { motion, useReducedMotion } from "framer-motion";
 import {

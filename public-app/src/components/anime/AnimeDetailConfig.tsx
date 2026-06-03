@@ -10,13 +10,13 @@ import { useAnimeDetailPage } from "@/hooks/useAnimeDetailPage";
 import { type AnimeDetail as AnimeDetailData } from "@/types/anime.type";
 import { type MediaDetailClientConfig } from "@/types/media-detail.type";
 
-import { pickMediaImageSrc } from "@/lib/media-images";
+import { pickMediaImageSrc } from "@/lib/media-detail/media-images";
 import {
   buildAnimeScoreCriteria,
   buildMediaGenreTags,
   formatNamedEntityLabels,
   getAnimeEpisodeCount
-} from "@/lib/media-detail-helpers";
+} from "@/lib/media-detail/media-detail-helpers";
 
 import {
   Building2Icon,

@@ -23,7 +23,7 @@ import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { AuthorEntity } from "@/types/entity.type";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 
 import { useQuery } from "@tanstack/react-query";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";

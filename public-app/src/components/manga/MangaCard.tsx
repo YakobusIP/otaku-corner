@@ -9,7 +9,7 @@ import {
 
 import { MangaList } from "@/types/manga.type";
 
-import { cn, formatScoreFixedOrNa } from "@/lib/utils";
+import { cn, formatScoreFixedOrNa } from "@/lib/shared/utils";
 
 import { HeartIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
