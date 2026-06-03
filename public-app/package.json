@@ -16,7 +16,10 @@
       "sharp",
       "unrs-resolver",
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "postcss": "^8.5.10"
+    }
   },
   "dependencies": {
     "@radix-ui/react-collapsible": "^1.1.12",
@@ -38,9 +41,9 @@
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.456.0",
-    "next": "15.0.2",
-    "react": "19.0.0-rc-02c0e824-20241028",
-    "react-dom": "19.0.0-rc-02c0e824-20241028",
+    "next": "16.2.7",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "react-intersection-observer": "^10.0.3",
     "recharts": "^3.8.1",
     "sonner": "^2.0.7",
@@ -54,10 +57,10 @@
     "@tanstack/react-query-devtools": "^5.62.3",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "15.0.2",
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "16.2.7",
     "postcss": "^8",
     "prettier": "^3.3.3",
     "tailwindcss": "^4.2.4",

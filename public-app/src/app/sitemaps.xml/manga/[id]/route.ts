@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 type Params = {
-  id: number;
+  id: string;
 };
 
 export async function GET(_: Request, { params }: { params: Promise<Params> }) {
