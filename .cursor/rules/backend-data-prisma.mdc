@@ -1,0 +1,94 @@
+---
+description: Backend Prisma, database access, query builders, migrations, raw SQL, transactions, and data integrity rules
+globs: backend/src/**/*.{ts},backend/prisma/**/*.{prisma,sql,ts}
+alwaysApply: true
+---
+
+# Backend data and Prisma
+
+Prisma is the backend's database access layer. Database work should be explicit, typed, validated before execution, and kept inside services or query builders rather than controllers.
+
+## Prisma ownership
+
+- Use `PrismaService` from `src/prisma/prisma.service.ts` for database access.
+- Do not instantiate `PrismaClient` directly in feature services.
+- Do not bypass `PrismaService` to create ad hoc database clients.
+- Keep Prisma-specific infrastructure in `src/prisma`.
+- Preserve the slow-query logging extension unless there is a deliberate observability change.
+- Use the existing `PrismaExceptionFilter` path for known Prisma error translation.
+
+## Query location
+
+- Controllers should not build Prisma queries.
+- Services may build queries directly when the query is simple and domain-specific.
+- Use query builder files when query construction is reused, branching, or complex.
+- Keep media query builders such as `anime-query-builder.ts`, `manga-query-builder.ts`, and `light-novel-query-builder.ts` domain-specific unless a shared pattern is stable and low-branch.
+- Keep shared query helpers in `src/common/crud` or `src/common/utils` only when the behavior is genuinely shared.
+
+## Prisma schema and migrations
+
+- Treat `backend/prisma/schema.prisma` as the source of truth for database shape.
+- Do not hand-edit old migration files after they have been applied/shared unless the user explicitly asks and understands the migration consequence.
+- Create new migrations for schema changes.
+- Keep model names, relation names, indexes, unique constraints, and enum values intentional.
+- When changing relation behavior, review all services that create, update, connect, disconnect, or delete related records.
+- Keep seed changes in `backend/prisma/seed.ts` scoped and deterministic.
+
+## Raw SQL
+
+- Prefer Prisma Client queries over raw SQL when Prisma can express the query cleanly.
+- Raw SQL belongs in `backend/prisma/sql` or a clearly isolated service/query helper.
+- Raw SQL must be parameterized. Never concatenate untrusted input into SQL strings.
+- Keep raw SQL files readable and reviewable. Add comments only when a query is non-obvious.
+- Any raw SQL query must have validation in the DTO/service layer for all user-controlled filters, sort fields, IDs, and pagination inputs.
+- If a raw SQL file returns a custom shape, keep the TypeScript mapping explicit and close to the service that calls it.
+
+## Transactions
+
+- Use Prisma transactions for multi-step writes that must succeed or fail together.
+- Keep transaction scopes as small as practical.
+- Do not perform long network calls inside a database transaction.
+- When creating or updating media with relations, make relation lookup and write semantics explicit.
+- Prefer helper utilities such as relation lookup maps and get-or-create helpers when they match the existing relation flow.
+
+## IDs and relation handling
+
+- Validate IDs before they reach Prisma.
+- Route IDs should be parsed with Nest pipes.
+- Query/body IDs should be validated in DTOs.
+- Do not allow `NaN`, decimals, negative numbers, blank strings, or arbitrary strings to reach Prisma as IDs.
+- When preserving ordered IDs such as `include_ids`, keep order and deduplication behavior explicit.
+- For relation arrays, handle missing referenced records intentionally. Do not silently connect partial relation sets unless the API contract says partial success is allowed.
+
+## Pagination and totals
+
+- Paginated queries should use validated `page` and `limit` inputs.
+- Enforce maximum page size before running a query.
+- Keep total counts accurate for the filtered dataset when the endpoint returns pagination metadata.
+- Avoid expensive count patterns without considering indexes and expected dataset size.
+- For review list queries, keep sort/filter behavior synchronized between DTO validation, query builders, and response shape.
+
+## Performance and indexes
+
+- Review Prisma schema indexes when adding new filters, sorts, uniqueness checks, or lookup-heavy endpoints.
+- Avoid N+1 query patterns in list endpoints.
+- Use `select` or `include` intentionally; do not fetch large relation graphs by default.
+- Prefer selecting only the fields needed for list responses.
+- Keep slow query logging meaningful. Do not hide or downgrade database errors that should be investigated.
+
+## Data integrity
+
+- Use database constraints for invariants that must hold regardless of caller.
+- Use service-level validation for business rules that depend on request context or domain semantics.
+- Keep duplicate-check endpoints and uniqueness rules aligned with Prisma constraints.
+- Do not rely only on frontend validation for backend invariants.
+- Be explicit about delete behavior. Bulk deletes must validate input and should not accept empty or malformed ID lists.
+
+## What not to do
+
+- Do not instantiate raw Prisma clients in feature code.
+- Do not concatenate SQL from request input.
+- Do not put database calls in controllers.
+- Do not allow invalid IDs or unvalidated sort fields into query builders.
+- Do not add large generic data abstractions that obscure which model is being queried.
+- Do not edit migrations casually to make a local state look cleaner.
