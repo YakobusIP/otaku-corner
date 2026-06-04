@@ -14,12 +14,16 @@ import "./index.css";
 
 document.documentElement.classList.add("dark");
 
+const DevtoolsWithBoundary = import.meta.env.DEV ? (
+  <ReactQueryDevtools initialIsOpen={false} />
+) : null;
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
       <Toaster />
-      <ReactQueryDevtools initialIsOpen={false} />
+      {DevtoolsWithBoundary}
     </QueryClientProvider>
   </React.StrictMode>
 );

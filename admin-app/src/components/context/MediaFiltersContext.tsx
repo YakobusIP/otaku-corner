@@ -13,6 +13,19 @@ import { MediaTypeFilter } from "@/lib/query-keys";
 
 import { useSearchParams } from "react-router-dom";
 
+const VALID_MEDIA_TYPES: ReadonlySet<string> = new Set(["all", "anime", "manga", "lightNovel"]);
+const VALID_SORT_ORDERS: ReadonlySet<string> = new Set([SORT_ORDER.ASCENDING, SORT_ORDER.DESCENDING]);
+
+const validateMediaType = (value: string | null): MediaTypeFilter => {
+  if (value && VALID_MEDIA_TYPES.has(value)) return value as MediaTypeFilter;
+  return defaultState.mediaType;
+};
+
+const validateSortOrder = (value: string | null): SORT_ORDER => {
+  if (value && VALID_SORT_ORDERS.has(value)) return value as SORT_ORDER;
+  return defaultState.sortOrder;
+};
+
 type MediaFiltersState = {
   mediaType: MediaTypeFilter;
   page: number;
@@ -74,15 +87,11 @@ export const MediaFiltersProvider = ({ children }: { children: ReactNode }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [state, setInternalState] = useState<MediaFiltersState>(() => ({
     ...defaultState,
-    mediaType:
-      (searchParams.get("mediaType") as MediaTypeFilter | null) ??
-      defaultState.mediaType,
+    mediaType: validateMediaType(searchParams.get("mediaType")),
     page: Number(searchParams.get("page")) || defaultState.page,
     query: searchParams.get("q") ?? defaultState.query,
     sortBy: searchParams.get("sortBy") ?? defaultState.sortBy,
-    sortOrder:
-      (searchParams.get("sortOrder") as SORT_ORDER | null) ??
-      defaultState.sortOrder,
+    sortOrder: validateSortOrder(searchParams.get("sortOrder")),
     progressStatus: searchParams.get("status") ?? undefined
   }));
 

@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { useMangaDetail } from "@/hooks/useMangaDetail";
 
+import { parsePositiveIntParam } from "@/lib/parse-route-param";
+
 import {
   AlertTriangleIcon,
   ArrowLeftIcon,
@@ -21,8 +23,7 @@ import { toast } from "sonner";
 
 export default function AdminMangaDetail() {
   const { mangaId } = useParams();
-  const parsedId = mangaId ? parseInt(mangaId, 10) : undefined;
-  const hasValidId = typeof parsedId === "number" && Number.isFinite(parsedId);
+  const parsedId = parsePositiveIntParam(mangaId);
 
   const {
     data: mangaDetail,
@@ -30,7 +31,7 @@ export default function AdminMangaDetail() {
     isError,
     error,
     syncMetadataMutation
-  } = useMangaDetail(hasValidId ? parsedId : undefined);
+  } = useMangaDetail(parsedId ?? undefined);
 
   useEffect(() => {
     if (mangaDetail) {

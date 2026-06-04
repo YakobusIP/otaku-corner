@@ -11,21 +11,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { useAnimeDetail } from "@/hooks/useAnimeDetail";
 
+import { parsePositiveIntParam } from "@/lib/parse-route-param";
+
 import { AlertTriangleIcon, ArrowLeftIcon, Loader2Icon } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 export default function AdminAnimeDetail() {
   const { animeId } = useParams();
-  const parsedId = animeId ? parseInt(animeId, 10) : undefined;
-  const hasValidId = typeof parsedId === "number" && Number.isFinite(parsedId);
+  const parsedId = parsePositiveIntParam(animeId);
 
   const {
     data: animeDetail,
     isLoading,
     isError,
     error
-  } = useAnimeDetail(hasValidId ? parsedId : undefined);
+  } = useAnimeDetail(parsedId ?? undefined);
 
   useEffect(() => {
     if (animeDetail) {

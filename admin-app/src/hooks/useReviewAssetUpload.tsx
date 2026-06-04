@@ -35,7 +35,7 @@ export const useReviewAssetUpload = (
       if (toastId === undefined) {
         return;
       }
-      toast.loading("Uploading image…", {
+      toast.loading("Uploading image...", {
         id: toastId,
         description: (
           <div className="flex w-full min-w-[300px] flex-col gap-2 pt-2">
@@ -54,7 +54,7 @@ export const useReviewAssetUpload = (
       uploadToastIdRef.current = toastId;
       lastReportedPercentRef.current = -1;
       percentRef.current = 0;
-      toast.loading("Uploading image…", {
+      toast.loading("Uploading image...", {
         id: toastId,
         description: (
           <div className="flex w-full min-w-[300px] flex-col gap-2 pt-2">

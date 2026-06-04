@@ -319,7 +319,7 @@ export default function FilterPopover<T, K extends string | number>({
               ) : null}
               {isInfinite && isFetchingNextPage ? (
                 <div className="text-muted-foreground py-2 text-center text-xs">
-                  Loading more…
+                  Loading more...
                 </div>
               ) : null}
             </CommandGroup>

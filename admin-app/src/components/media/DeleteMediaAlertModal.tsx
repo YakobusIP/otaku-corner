@@ -46,7 +46,7 @@ const DeleteMediaAlertModal = ({
             onClick={onConfirm}
             disabled={isDeleting}
           >
-            {isDeleting ? "Deleting…" : "Delete"}
+            {isDeleting ? "Deleting..." : "Delete"}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

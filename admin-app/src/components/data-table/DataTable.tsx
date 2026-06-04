@@ -150,7 +150,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
                   {isLoadingDeleteData ? (
                     <>
                       <Loader2Icon className="mr-2 inline h-4 w-4 animate-spin" />
-                      Deleting…
+                      Deleting...
                     </>
                   ) : (
                     "Delete"
@@ -269,7 +269,7 @@ export default function DataTable<TData extends Identifiable, TValue>({
                 key={`e-${i}`}
                 className="px-1 text-sm text-muted-foreground"
               >
-                …
+                ...
               </span>
             ) : (
               <Button

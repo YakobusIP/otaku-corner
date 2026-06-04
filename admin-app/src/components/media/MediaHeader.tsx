@@ -125,7 +125,7 @@ export default function MediaHeader({ totalCount }: Props) {
 
         <div className="flex w-full min-w-0 flex-col gap-2 @tablet:flex-row @tablet:flex-wrap @tablet:items-center @tablet:gap-2 @desktop:flex-row @desktop:flex-wrap @desktop:items-center @desktop:gap-2">
           <Input
-            placeholder="Search title or synonyms…"
+            placeholder="Search title or synonyms..."
             value={localQuery}
             onChange={handleSearch}
             parentClassName="h-10 w-full min-w-0 flex-1 basis-full @tablet:basis-0 @tablet:min-w-48 @tablet:flex-1 @desktop:min-w-56"

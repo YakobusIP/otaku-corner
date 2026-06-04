@@ -70,18 +70,18 @@ export default function AddMangaDialog({
     activeDetail,
     activeDetailId,
     setActiveDetailId,
-    selectedManga,
+    selectedItems,
     handleDuplicateStatus,
     removeSelected,
     clearSelection,
     hasSelection,
     handleOpenChange,
     submitAdds,
-    addMangaMutation,
+    addMutation,
     selectionHasDuplicate
   } = useAddMangaDialog({ openDialog, setOpenDialog, resetParent });
 
-  const selectedRows = selectedManga.map((manga) => (
+  const selectedRows = selectedItems.map((manga) => (
     <SelectedRow
       key={manga.mal_id}
       mediaType="manga"
@@ -136,7 +136,7 @@ export default function AddMangaDialog({
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search manga by title…"
+                placeholder="Search manga by title..."
                 className="h-10 border-primary/50 bg-background/50 pl-9"
               />
             </div>
@@ -150,7 +150,7 @@ export default function AddMangaDialog({
               {searchLoadingInitial ? (
                 <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
                   <Loader2Icon className="h-4 w-4 animate-spin" />
-                  Loading…
+                  Loading...
                 </div>
               ) : searchTrimmed.length < 2 ? (
                 <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-10">
@@ -238,7 +238,7 @@ export default function AddMangaDialog({
                   {isFetchingNextPage ? (
                     <div className="flex justify-center py-3 text-xs text-muted-foreground">
                       <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                      Loading more…
+                      Loading more...
                     </div>
                   ) : null}
                 </>
@@ -258,7 +258,7 @@ export default function AddMangaDialog({
             <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-border/50 bg-background/40 backdrop-blur-md md:h-full md:max-h-full md:min-h-0">
               <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border/40 px-3 py-1.5">
                 <p className="text-sm font-medium">
-                  Selected Manga ({selectedManga.length})
+                  Selected Manga ({selectedItems.length})
                 </p>
                 <Button
                   type="button"
@@ -361,18 +361,18 @@ export default function AddMangaDialog({
             type="button"
             onClick={() => submitAdds()}
             disabled={
-              addMangaMutation.isPending ||
-              selectedManga.length === 0 ||
+              addMutation.isPending ||
+              selectedItems.length === 0 ||
               selectionHasDuplicate
             }
             className="gap-2 bg-primary"
           >
-            {addMangaMutation.isPending ? (
+            {addMutation.isPending ? (
               <Loader2Icon className="h-4 w-4 animate-spin" />
             ) : (
               <PlusIcon className="h-4 w-4" />
             )}
-            Add Selected ({selectedManga.length})
+            Add Selected ({selectedItems.length})
           </Button>
         </div>
       </DialogContent>

@@ -70,18 +70,18 @@ export default function AddLightNovelDialog({
     activeDetail,
     activeDetailId,
     setActiveDetailId,
-    selectedLightNovel,
+    selectedItems,
     handleDuplicateStatus,
     removeSelected,
     clearSelection,
     hasSelection,
     handleOpenChange,
     submitAdds,
-    addLightNovelMutation,
+    addMutation,
     selectionHasDuplicate
   } = useAddLightNovelDialog({ openDialog, setOpenDialog, resetParent });
 
-  const selectedRows = selectedLightNovel.map((lightNovel) => (
+  const selectedRows = selectedItems.map((lightNovel) => (
     <SelectedRow
       key={lightNovel.mal_id}
       mediaType="lightNovel"
@@ -136,7 +136,7 @@ export default function AddLightNovelDialog({
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search light novels by title…"
+                placeholder="Search light novels by title..."
                 className="h-10 border-primary/50 bg-background/50 pl-9"
               />
             </div>
@@ -150,7 +150,7 @@ export default function AddLightNovelDialog({
               {searchLoadingInitial ? (
                 <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
                   <Loader2Icon className="h-4 w-4 animate-spin" />
-                  Loading…
+                  Loading...
                 </div>
               ) : searchTrimmed.length < 2 ? (
                 <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-10">
@@ -240,7 +240,7 @@ export default function AddLightNovelDialog({
                   {isFetchingNextPage ? (
                     <div className="flex justify-center py-3 text-xs text-muted-foreground">
                       <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                      Loading more…
+                      Loading more...
                     </div>
                   ) : null}
                 </>
@@ -260,7 +260,7 @@ export default function AddLightNovelDialog({
             <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-border/50 bg-background/40 backdrop-blur-md md:h-full md:max-h-full md:min-h-0">
               <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border/40 px-3 py-1.5">
                 <p className="text-sm font-medium">
-                  Selected Light Novels ({selectedLightNovel.length})
+                  Selected Light Novels ({selectedItems.length})
                 </p>
                 <Button
                   type="button"
@@ -363,18 +363,18 @@ export default function AddLightNovelDialog({
             type="button"
             onClick={() => submitAdds()}
             disabled={
-              addLightNovelMutation.isPending ||
-              selectedLightNovel.length === 0 ||
+              addMutation.isPending ||
+              selectedItems.length === 0 ||
               selectionHasDuplicate
             }
             className="gap-2 bg-primary"
           >
-            {addLightNovelMutation.isPending ? (
+            {addMutation.isPending ? (
               <Loader2Icon className="h-4 w-4 animate-spin" />
             ) : (
               <PlusIcon className="h-4 w-4" />
             )}
-            Add Selected ({selectedLightNovel.length})
+            Add Selected ({selectedItems.length})
           </Button>
         </div>
       </DialogContent>

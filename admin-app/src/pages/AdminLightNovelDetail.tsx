@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { useLightNovelDetail } from "@/hooks/useLightNovelDetail";
 
+import { parsePositiveIntParam } from "@/lib/parse-route-param";
+
 import {
   AlertTriangleIcon,
   ArrowLeftIcon,
@@ -21,8 +23,7 @@ import { toast } from "sonner";
 
 export default function AdminLightNovelDetail() {
   const { lightNovelId } = useParams();
-  const parsedId = lightNovelId ? parseInt(lightNovelId, 10) : undefined;
-  const hasValidId = typeof parsedId === "number" && Number.isFinite(parsedId);
+  const parsedId = parsePositiveIntParam(lightNovelId);
 
   const {
     data: lightNovelDetail,
@@ -31,7 +32,7 @@ export default function AdminLightNovelDetail() {
     error,
     refetch,
     syncMetadataMutation
-  } = useLightNovelDetail(hasValidId ? parsedId : undefined);
+  } = useLightNovelDetail(parsedId ?? undefined);
 
   useEffect(() => {
     if (lightNovelDetail) {
