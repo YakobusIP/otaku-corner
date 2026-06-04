@@ -9,7 +9,7 @@ const BASE_STUDIO_URL = "/api/studios";
 const BASE_THEME_URL = "/api/themes";
 const BASE_AUTHOR_URL = "/api/authors";
 
-const ENTITY_LIST_LIMIT = 5000;
+const ENTITY_LIST_LIMIT = 100;
 
 const createEntityService = (baseUrl: string) => {
   const fetchAll = async <T>() => {
