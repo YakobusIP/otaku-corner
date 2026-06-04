@@ -53,7 +53,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           port:     ${{ secrets.SSH_PORT }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "public-app/.next/,public-app/public/,public-app/package.json,public-app/pnpm-lock.yaml,public-app/next.config.ts"
+          source: "public-app/.next/,public-app/public/,public-app/package.json,public-app/pnpm-lock.yaml,public-app/.pnpmfile.cjs,public-app/next.config.ts"
           target: /tmp/deploy/${{ inputs.environment }}/public-app
           strip_components: 1
 
