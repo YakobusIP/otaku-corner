@@ -1,0 +1,91 @@
+name: _Deploy Public App (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      deploy_path:
+        required: true
+        type: string
+      service_name:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    concurrency:
+      group: deploy-public-${{ inputs.environment }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: public-app/pnpm-lock.yaml
+
+      - name: Build public app
+        working-directory: public-app
+        env:
+          NEXT_PUBLIC_AXIOS_BASE_URL: ${{ secrets.BACKEND_BASE_URL }}
+          NEXT_PUBLIC_WEBSITE_URL: ${{ vars.PUBLIC_APP_URL }}
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      - name: Upload public via SCP (env-scoped tmp dir)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port:     ${{ secrets.SSH_PORT }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "public-app/.next/,public-app/public/,public-app/package.json,public-app/pnpm-lock.yaml,public-app/next.config.ts"
+          target: /tmp/deploy/${{ inputs.environment }}/public-app
+          strip_components: 1
+
+      - name: Remote public deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port:     ${{ secrets.SSH_PORT }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+
+            SRC="/tmp/deploy/${{ inputs.environment }}/public-app"
+            DST="${{ inputs.deploy_path }}"
+
+            sudo systemctl stop "${{ inputs.service_name }}" || true
+
+            sudo mkdir -p "$DST"
+            sudo rsync -rt --delete "$SRC/" "$DST/"
+            sudo chown -R "${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }}" "$DST"
+
+            cd "$DST"
+
+            # Setup .env
+            cat > "$DST/.env" <<EOF
+            NEXT_PUBLIC_AXIOS_BASE_URL=${{ secrets.BACKEND_BASE_URL }}
+            NEXT_PUBLIC_WEBSITE_URL=${{ vars.PUBLIC_APP_URL }}
+            NODE_ENV=production
+            EOF
+            sudo chown "${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }}" "$DST/.env"
+            sudo chmod 600 "$DST/.env"
+
+            pnpm install --prod --frozen-lockfile
+
+            sudo systemctl start "${{ inputs.service_name }}"

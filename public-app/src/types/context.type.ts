@@ -1,88 +1,138 @@
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import type { ReactNode } from "react";
 
-import { z } from "zod";
+import type { PROGRESS_STATUS, SORT_ORDER } from "@/lib/shared/enums";
+import type { PublicListPage } from "@/lib/media-list/public-list-infinite-queries";
 
-const statusKeys = Object.keys(PROGRESS_STATUS).filter((key) =>
-  isNaN(Number(key))
-);
+import type { QueryFunction } from "@tanstack/react-query";
 
-const sortOrders = Object.keys(SORT_ORDER).filter((key) => isNaN(Number(key)));
+export type MediaListId = "anime" | "manga" | "lightNovel";
 
-const _AnimeStateSchema = z.object({
-  page: z.number(),
-  query: z.string().optional(),
-  status: z.enum(statusKeys as [string, ...string[]]).optional(),
-  filters: z.object({
-    genre: z.number().optional(),
-    studio: z.number().optional(),
-    theme: z.number().optional(),
-    malScore: z.string().optional(),
-    personalScore: z.string().optional(),
-    type: z.string().optional()
-  }),
-  sort: z.string().optional(),
-  order: z.enum(sortOrders as [string, ...string[]]).optional()
-});
-
-type AnimeState = z.infer<typeof _AnimeStateSchema>;
-
-type AnimeContextProps = {
-  state: AnimeState;
-  setQuery: (query: string) => void;
-  setState: (newState: Partial<Omit<AnimeState, "query">>) => void;
+export type MediaListState<TFilters extends Record<string, unknown>> = {
+  query: string;
+  queryInput: string;
+  status?: keyof typeof PROGRESS_STATUS;
+  filters: TFilters;
+  sort: string;
+  order: SORT_ORDER;
 };
 
-const _MangaStateSchema = z.object({
-  page: z.number(),
-  query: z.string().optional(),
-  status: z.enum(statusKeys as [string, ...string[]]).optional(),
-  filters: z.object({
-    author: z.number().optional(),
-    genre: z.number().optional(),
-    theme: z.number().optional(),
-    malScore: z.string().optional(),
-    personalScore: z.string().optional()
-  }),
-  sort: z.string().optional(),
-  order: z.enum(sortOrders as [string, ...string[]]).optional()
-});
-
-type MangaState = z.infer<typeof _MangaStateSchema>;
-
-type MangaContextProps = {
-  state: MangaState;
+export type MediaListContextValue<TFilters extends Record<string, unknown>> = {
+  state: MediaListState<TFilters>;
   setQuery: (query: string) => void;
-  setState: (newState: Partial<Omit<MangaState, "query">>) => void;
+  setState: (update: Partial<Omit<MediaListState<TFilters>, "query" | "queryInput">>) => void;
 };
 
-const _LightNovelStateSchema = z.object({
-  page: z.number(),
-  query: z.string().optional(),
-  status: z.enum(statusKeys as [string, ...string[]]).optional(),
-  filters: z.object({
-    author: z.number().optional(),
-    genre: z.number().optional(),
-    theme: z.number().optional(),
-    malScore: z.string().optional(),
-    personalScore: z.string().optional()
-  }),
-  sort: z.string().optional(),
-  order: z.enum(sortOrders as [string, ...string[]]).optional()
-});
-
-type LightNovelState = z.infer<typeof _LightNovelStateSchema>;
-
-type LightNovelContextProps = {
-  state: LightNovelState;
-  setQuery: (query: string) => void;
-  setState: (newState: Partial<Omit<LightNovelState, "query">>) => void;
+export type MediaListContextBundle<TFilters extends Record<string, unknown>> = {
+  useMediaListContext: () => MediaListContextValue<TFilters>;
+  Provider: ({ children }: { children: ReactNode }) => ReactNode;
 };
 
-export type {
-  AnimeState,
-  AnimeContextProps,
-  MangaState,
-  MangaContextProps,
-  LightNovelState,
-  LightNovelContextProps
+export type EntityLookupResult = Record<
+  string,
+  { id: number; name: string }[] | undefined
+>;
+
+export type EntityLookupConfig = {
+  resultKey: string;
+  queryKey: readonly unknown[];
+  queryFn: () => Promise<{ id: number; name: string }[]>;
+};
+
+export type FilterFieldConfig<TFilters extends Record<string, unknown>> = {
+  label: string;
+  render: (
+    filters: TFilters,
+    handleFilter: <K extends keyof TFilters & string>(
+      field: K
+    ) => (value?: number | string) => void
+  ) => ReactNode;
+};
+
+export type ActiveFilterChipConfig<TFilters extends Record<string, unknown>> = {
+  key: keyof TFilters & string;
+  label: string;
+  capitalize?: boolean;
+  resolveEntityName?: {
+    listKey: string;
+    unknownLabel: string;
+  };
+};
+
+export type MediaListInfiniteQueryOptionsFactory<
+  TItem extends { id: number },
+  TListFilters extends Record<string, unknown>,
+  TQueryKey extends readonly unknown[]
+> = (filters: TListFilters) => {
+  queryKey: TQueryKey;
+  initialPageParam: number;
+  queryFn: QueryFunction<PublicListPage<TItem>, TQueryKey, number>;
+  getNextPageParam: (lastPage: PublicListPage<TItem>) => number | undefined;
+};
+
+export type MediaListQueryConfig<
+  TItem extends { id: number },
+  TFilters extends Record<string, unknown>,
+  TListFilters extends Record<string, unknown>,
+  TInfiniteQueryKey extends readonly unknown[] = readonly unknown[]
+> = {
+  id: MediaListId;
+  buildListFiltersFromState: (state: MediaListState<TFilters>) => TListFilters;
+  getInfiniteQueryOptions: MediaListInfiniteQueryOptionsFactory<
+    TItem,
+    TListFilters,
+    TInfiniteQueryKey
+  >;
+  statusCounts: {
+    queryKey: readonly unknown[];
+    queryFn: () => Promise<{ label: string; count: number }[]>;
+  };
+};
+
+export type MediaListServerConfig<TListFilters extends Record<string, unknown>> = {
+  id: MediaListId;
+  pageLimit: number;
+  buildListFiltersFromSearchParams: (params: {
+    q?: string;
+    status?: string;
+  }) => TListFilters;
+};
+
+export type MediaListClientConfig<
+  TItem extends { id: number },
+  TFilters extends Record<string, unknown>,
+  TListFilters extends Record<string, unknown>,
+  TInfiniteQueryKey extends readonly unknown[] = readonly unknown[]
+> = MediaListQueryConfig<
+  TItem,
+  TFilters,
+  TListFilters,
+  TInfiniteQueryKey
+> & {
+  searchPlaceholder: string;
+  header: {
+    title: string;
+    countNoun: string;
+    layoutGroupId: string;
+    statusHighlightLayoutId: string;
+  };
+  list: {
+    loadingImageAlt: string;
+    loadingTitle: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    browseAllLabel: string;
+  };
+  context: MediaListContextBundle<TFilters>;
+  entityLookups: EntityLookupConfig[];
+  filterFields: FilterFieldConfig<TFilters>[];
+  activeFilterChips: ActiveFilterChipConfig<TFilters>[];
+  clearAllFilters: (
+    setQuery: (query: string) => void,
+    setState: MediaListContextValue<TFilters>["setState"]
+  ) => void;
+  browseAll: (
+    setQuery: MediaListContextValue<TFilters>["setQuery"],
+    setState: MediaListContextValue<TFilters>["setState"]
+  ) => void;
+  renderCard: (item: TItem) => ReactNode;
 };

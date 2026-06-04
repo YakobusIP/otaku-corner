@@ -1,0 +1,92 @@
+---
+description: Public app lib organization, allowed TSX placement, imports, utilities, and shared modules
+globs: public-app/src/lib/**/*.{ts,tsx},public-app/src/components/media-detail/createMediaDetailPage.tsx,public-app/src/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+# Public app lib organization
+
+The `public-app/src/lib` directory is deliberately organized by responsibility. Keep this structure intact. The goal is to make it obvious whether code is API infrastructure, media-list logic, media-detail helpers, sitemap code, cross-media metadata, or low-level shared utilities.
+
+## No TSX files inside `src/lib`
+
+- Do not create `.tsx` files under `public-app/src/lib`.
+- `src/lib` is for non-JSX TypeScript only.
+- If a helper returns JSX, renders `HydrationBoundary`, imports React component types for JSX output, or otherwise requires `.tsx`, place it under an appropriate `src/components` folder.
+- The existing detail route factory intentionally lives at `src/components/media-detail/createMediaDetailPage.tsx` because it returns JSX and should not live in `src/lib`.
+- Do not "clean up" this placement by moving `createMediaDetailPage.tsx` into `src/lib`.
+
+## Current `src/lib` subdirectory responsibilities
+
+- `src/lib/api`
+  - API transport infrastructure and query-client setup.
+  - Examples: `axios.ts`, `query-client.ts`.
+  - Do not put media-list query keys here. Query keys that are only for media lists belong in `src/lib/media-list`.
+
+- `src/lib/media`
+  - Cross-media metadata and helpers that apply to anime, manga, and light novels beyond the list page.
+  - Examples: `public-media-type.ts`.
+  - Use this for route path segments, public navigation labels, chart labels, review badge labels, and detail href construction.
+
+- `src/lib/media-list`
+  - Media list query configs, server list configs, list filter helpers, list query keys, entity lookups, infinite-query helpers, and list prefetch helpers.
+  - Examples: `anime-list-query.ts`, `manga-list-server.ts`, `public-list-infinite-queries.ts`, `query-keys.ts`.
+  - Code in this folder may depend on services, TanStack Query types, list context types, and shared enums.
+
+- `src/lib/media-detail`
+  - Pure media detail helpers and data formatting helpers that do not render JSX.
+  - Examples: `media-detail-helpers.ts`, `media-images.ts`.
+  - Score criteria builders, poster image selection, score percent helpers, and entity label formatters belong here.
+
+- `src/lib/shared`
+  - Low-level utilities and constants that are not specific to one feature area.
+  - Examples: `utils.ts`, `constants.ts`, `enums.ts`, `nest-paginated-list.ts`, `format-relative-updated.ts`, `grid-stagger.ts`, `hero-wallpaper-image.ts`.
+  - Be cautious when adding to `shared`. If a helper is clearly media-list, media-detail, media, sitemap, or API specific, put it in that narrower folder.
+
+- `src/lib/sitemap`
+  - Sitemap route helpers and XML builders.
+  - Examples: `media-sitemap-route.ts`, `sitemap-xml.ts`.
+  - Keep XML string building and sitemap route response generation here instead of repeating it in route files.
+
+## Import path conventions
+
+- Use `@/` absolute imports for public app source imports.
+- Import from the narrowest correct folder.
+- Do not import from deleted root-level lib paths such as:
+  - `@/lib/axios`
+  - `@/lib/query-keys`
+  - `@/lib/public-media-type`
+  - `@/lib/media-detail-helpers`
+  - `@/lib/utils`
+- Use the organized paths instead:
+  - `@/lib/api/axios`
+  - `@/lib/api/query-client`
+  - `@/lib/media/public-media-type`
+  - `@/lib/media-list/query-keys`
+  - `@/lib/media-detail/media-detail-helpers`
+  - `@/lib/shared/utils`
+
+## Adding new helpers
+
+- Before adding a helper, search for an existing one in the appropriate `src/lib` subdirectory.
+- Keep helper modules cohesive. Do not create large catch-all files unless they already exist for that exact responsibility.
+- Prefer small, named exports over default exports in `src/lib`.
+- Keep helper functions pure where practical, especially in `media-detail`, `media`, `shared`, and `sitemap`.
+- Do not put React hooks in `src/lib`. Hooks belong in `src/hooks`.
+- Do not put UI components in `src/lib`. Components belong in `src/components`.
+- Do not put API endpoint services in `src/lib`. Service wrappers belong in `src/services`.
+
+## Shared constants and enums
+
+- Use `src/lib/shared/enums.ts` for stable public app enums such as progress status and sort order.
+- Use `src/lib/shared/constants.ts` for stable non-UI constants such as `URL_OF_SITEMAPS` and score options.
+- Avoid creating duplicate constants in component files when the value represents a shared domain rule.
+- Keep purely presentational class strings near the component that owns the presentation unless the class is reused across multiple feature areas.
+
+## Query key placement
+
+- Query keys that are specific to public media lists belong in `src/lib/media-list/query-keys.ts`.
+- Query-client construction belongs in `src/lib/api/query-client.ts`.
+- Do not mix these concerns.
+- If a future feature introduces non-media-list query keys, create a feature-specific query key module rather than expanding media-list query keys into a general dumping ground.
+

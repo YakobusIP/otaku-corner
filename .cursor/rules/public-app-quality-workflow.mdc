@@ -1,0 +1,129 @@
+---
+description: Public app TypeScript, validation, lint/build checks, formatting, Cursor workflow, and safety practices
+globs: public-app/**/*.{ts,tsx,json,css,md,mdc},.cursor/rules/*.mdc
+alwaysApply: true
+---
+
+# Public app quality workflow
+
+Use these rules when changing `public-app` or public-app Cursor rules. The goal is to keep the app type-safe, route-safe, buildable, and consistent with the current codebase.
+
+## TypeScript expectations
+
+- Keep `strict` TypeScript expectations.
+- Do not use `any` unless there is no practical alternative and the reason is documented locally.
+- Prefer `unknown` plus narrowing for untrusted data.
+- Keep shared API/domain shapes in `src/types` only when more than one module needs them.
+- Keep module-local prop types, helper types, and config types private unless imported elsewhere.
+- Use explicit type aliases for complex config objects and helper inputs.
+- Avoid exporting types just because they exist.
+
+## Runtime validation
+
+- TypeScript types do not validate route params or API payloads at runtime.
+- Validate route params before converting them to numbers.
+- Detail IDs must be digit-only positive integer strings before service calls.
+- Sitemap page params must be digit-only and converted safely before service calls.
+- Use controlled route responses (`notFound()` or a specific HTTP error response) for invalid route params.
+- Do not allow `NaN`, decimal numbers, negative numbers, blank values, whitespace-only values, or arbitrary strings to reach backend services as numeric params.
+
+## Error handling
+
+- Preserve the `NotFoundError` boundary:
+  - Services may throw it through `handleAxiosError`.
+  - Route helpers convert it to `notFound()`.
+  - Client hooks should surface query errors through the existing toast pattern.
+- Do not catch errors with empty `.catch(() => {})`.
+- If a prefetch is optional and may degrade gracefully, log the error with enough context to identify the failing query.
+- Avoid turning all server errors into 404s.
+- Avoid hiding server errors that should fail a route or build.
+
+## Linting, typechecking, and build
+
+- After changing public app TypeScript, TSX, route helpers, service code, or lib organization, run:
+
+```bash
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm build
+```
+
+- Run these commands from `public-app`.
+- If only `.cursor/rules` files changed, at minimum inspect the generated `.mdc` files for valid frontmatter and run a quick file listing/status check.
+- Use `git diff --check -- public-app .cursorignore .cursor/rules` when whitespace or line-ending concerns may matter.
+- Treat `pnpm build` as the source of truth for Next route/config integration.
+- Treat `pnpm exec tsc --noEmit` as the source of truth for TypeScript correctness.
+- Treat `pnpm lint` as the source of truth for code style and lint-enforced conventions.
+
+## Formatting
+
+- Follow the existing Prettier formatting.
+- Do not manually churn formatting across unrelated files.
+- Keep imports sorted according to the repository's configured formatting behavior.
+- When editing `.mdc` files, use plain Markdown with YAML frontmatter:
+
+```md
+---
+description: Short rule description
+globs: public-app/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+# Rule Title
+
+Rule content...
+```
+
+- Keep all public app Cursor rule files as `.mdc`, not `.md`.
+- Every public app rule file should include `alwaysApply: true`.
+
+## Cursor rule authoring
+
+- Write rules as clear internal documentation for agents.
+- Make rules concrete and tied to file paths that exist in the current codebase.
+- Prefer "do this because this app already does it" over generic framework advice.
+- Avoid contradictory rules across files.
+- If a rule is a deliberate business decision, say so explicitly. Example: media list URLs intentionally include only `q` and `status`.
+- If a rule exists to preserve code organization, name the exact directory owner. Example: no `.tsx` files under `src/lib`.
+- Keep rules verbose enough to guide an agent through unfamiliar code, but not so broad that every rule becomes meaningless.
+
+## Git and review hygiene
+
+- Use `git status --short` to understand the changed file set before reviewing or editing.
+- Do not revert user changes unless explicitly asked.
+- Be careful with large import-path migrations. Check for stale imports after moving files.
+- Prefer `rg` for stale import scans.
+- After moving files under `src/lib`, scan for deleted root-level imports such as `@/lib/utils`, `@/lib/axios`, and `@/lib/query-keys`.
+- Keep `.cursorignore` protective of secrets. `.env` should stay ignored.
+
+## Environment variables
+
+- `NEXT_PUBLIC_AXIOS_BASE_URL` is the API base URL.
+- `NEXT_PUBLIC_WEBSITE_URL` is the public site origin used for metadata and sitemaps.
+- `NEXT_PUBLIC_R2_HOSTNAME` is a hostname-only value for R2/Cloudflare image loading.
+- Do not assume a variable named `*_HOSTNAME` contains a protocol.
+- Do not assume a variable named `*_BASE_URL` is safe to use as a hostname.
+- Do not print or inspect full `.env` values unless the user explicitly asks and understands the risk.
+
+## Public app dependency choices
+
+- Use existing dependencies already present in `public-app/package.json`.
+- Use TanStack Query for data fetching state.
+- Use Axios service wrappers for backend HTTP calls.
+- Use `next/image` for images.
+- Use `framer-motion` only where animation is already part of the UI pattern or clearly improves the experience.
+- Use `react-intersection-observer` for load-more sentinels.
+- Use `lucide-react` for icons.
+- Use existing shadcn-style UI primitives before adding new ones.
+
+## What not to do
+
+- Do not add `.tsx` files under `public-app/src/lib`.
+- Do not call services directly from rendered component bodies outside TanStack Query or route prefetching.
+- Do not put route parsing or `notFound()` calls in services.
+- Do not add advanced filter and sort state to media list URLs unless the business decision changes.
+- Do not duplicate sitemap XML generation in each route.
+- Do not duplicate detail route metadata/prefetch boilerplate in each media detail route.
+- Do not introduce a new styling system or broad visual redesign during ordinary feature work.
+- Do not move public app patterns into admin app rules or vice versa without reviewing both surfaces.
+

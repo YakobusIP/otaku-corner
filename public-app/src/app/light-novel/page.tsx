@@ -1,11 +1,14 @@
-import { lightNovelService } from "@/services/lightnovel.service";
-
 import GeneralFooter from "@/components/GeneralFooter";
-import { LightNovelProvider } from "@/components/context/LightNovelContext";
-import LightNovelHeader from "@/components/light-novel/LightNovelHeader";
-import LightNovelListSection from "@/components/light-novel/LightNovelListSection";
+import HeroWallpaper from "@/components/layout/HeroWallpaper";
+import { lightNovelListConfig } from "@/components/light-novel/LightNovelListConfig";
+import MediaListHeader from "@/components/media-list/MediaListHeader";
+import MediaListProvider from "@/components/media-list/MediaListProvider";
+import MediaListSection from "@/components/media-list/MediaListSection";
 
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import { lightNovelListQueryConfig } from "@/lib/media-list/light-novel-list-query";
+import { lightNovelListServerConfig } from "@/lib/media-list/light-novel-list-server";
+import { printedMediaListEntityLookups } from "@/lib/media-list/media-list-entity-lookups";
+import { prefetchMediaListPage } from "@/lib/media-list/prefetch-media-list-page";
 
 import {
   HydrationBoundary,
@@ -13,8 +16,6 @@ import {
   dehydrate
 } from "@tanstack/react-query";
 import { Metadata } from "next";
-
-const PAGINATION_SIZE = 15;
 
 export const metadata: Metadata = {
   title: "Light Novel Collection | Otaku Corner",
@@ -26,69 +27,31 @@ export const metadata: Metadata = {
 };
 
 type SearchParams = {
-  searchParams: Promise<{ page?: string; q?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; status?: string }>;
 };
 
 export default async function Page({ searchParams }: SearchParams) {
   const params = await searchParams;
-  const page = parseInt(params.page || "1", 10);
-  const query = params.q ?? "";
-  const status = params.status as keyof typeof PROGRESS_STATUS | undefined;
-
-  const sort = "title";
-  const order = SORT_ORDER.ASCENDING;
+  const listFilters =
+    lightNovelListServerConfig.buildListFiltersFromSearchParams(params);
 
   const queryClient = new QueryClient();
 
-  await Promise.all([
-    queryClient.fetchQuery({
-      queryKey: [
-        "lightNovels",
-        page,
-        PAGINATION_SIZE,
-        query,
-        sort,
-        order,
-        undefined,
-        undefined,
-        undefined,
-        status,
-        undefined,
-        undefined
-      ],
-      queryFn: () =>
-        lightNovelService.fetchAll(
-          page,
-          PAGINATION_SIZE,
-          query,
-          sort,
-          order,
-          undefined,
-          undefined,
-          undefined,
-          status,
-          undefined,
-          undefined
-        ),
-      retry: false
-    }),
-    queryClient.fetchQuery({
-      queryKey: ["lightNovelStatusCounts"],
-      queryFn: () => lightNovelService.fetchStatusCounts(),
-      staleTime: Infinity,
-      retry: false
-    })
-  ]);
+  await prefetchMediaListPage(queryClient, {
+    listFilters,
+    queryConfig: lightNovelListQueryConfig,
+    entityLookups: printedMediaListEntityLookups
+  });
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <LightNovelProvider>
-        <div className="flex flex-col min-h-[100dvh] main-gradient-bg">
-          <LightNovelHeader />
-          <LightNovelListSection />
+      <MediaListProvider config={lightNovelListConfig}>
+        <HeroWallpaper>
+          <MediaListHeader config={lightNovelListConfig} />
+          <MediaListSection config={lightNovelListConfig} />
           <GeneralFooter />
-        </div>
-      </LightNovelProvider>
+        </HeroWallpaper>
+      </MediaListProvider>
     </HydrationBoundary>
   );
 }

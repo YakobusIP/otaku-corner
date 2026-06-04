@@ -1,46 +1,32 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 
-import { fetchAnimeByIdService } from "@/services/anime.service";
-
-import AboutTab from "@/components/anime-detail/AboutTab";
-import EpisodeTab from "@/components/anime-detail/EpisodeTab";
-import ReviewTab from "@/components/anime-detail/ReviewTab";
+import AnimeEpisodesSection from "@/components/anime-detail/AnimeEpisodesSection";
+import AnimeHero from "@/components/anime-detail/AnimeHero";
+import AnimeInfoSection from "@/components/anime-detail/AnimeInfoSection";
+import AnimeReviewSection from "@/components/anime-detail/AnimeReviewSection";
+import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 
-import { useToast } from "@/hooks/useToast";
+import { useAnimeDetail } from "@/hooks/useAnimeDetail";
 
-import { type AnimeDetail } from "@/types/anime.type";
+import { parsePositiveIntParam } from "@/lib/parse-route-param";
 
-import { ArrowLeftIcon, Loader2Icon } from "lucide-react";
+import { AlertTriangleIcon, ArrowLeftIcon, Loader2Icon } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function AdminAnimeDetail() {
-  const [animeDetail, setAnimeDetail] = useState<AnimeDetail>();
-  const [isLoadingAnimeDetail, setIsLoadingAnimeDetail] = useState(false);
   const { animeId } = useParams();
+  const parsedId = parsePositiveIntParam(animeId);
 
-  const toast = useToast();
-  const toastRef = useRef(toast.toast);
-
-  const fetchAnimeById = useCallback(async () => {
-    setIsLoadingAnimeDetail(true);
-    const response = await fetchAnimeByIdService(parseInt(animeId as string));
-    if (response.success) {
-      setAnimeDetail(response.data);
-    } else {
-      toastRef.current({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingAnimeDetail(false);
-  }, [animeId]);
-
-  useEffect(() => {
-    fetchAnimeById();
-  }, [fetchAnimeById]);
+  const {
+    data: animeDetail,
+    isLoading,
+    isError,
+    error
+  } = useAnimeDetail(parsedId ?? undefined);
 
   useEffect(() => {
     if (animeDetail) {
@@ -50,55 +36,116 @@ export default function AdminAnimeDetail() {
     }
   }, [animeDetail]);
 
-  return !isLoadingAnimeDetail && animeDetail ? (
-    <div className="flex flex-col min-h-[100dvh]">
-      <Link to="/media-list">
-        <Button variant="outline" className="absolute top-4 left-4">
-          <ArrowLeftIcon className="w-4 h-4" /> Back to list
-        </Button>
-      </Link>
-      <header className="w-full bg-gradient-to-b xl:bg-gradient-to-r from-primary to-muted-foreground pt-20 pb-12 xl:py-12 px-4">
-        <div className="container mx-auto flex flex-col xl:flex-row gap-6 items-center">
-          <img
-            src={
-              animeDetail.images.large_image_url ?? animeDetail.images.image_url
-            }
-            width={300}
-            height={400}
-            alt="Anime Cover"
-            className="rounded-xl"
-          />
-          <div className="flex flex-col gap-4">
-            <h1 className="text-white">{animeDetail.title}</h1>
-            <p className="text-lg text-white/80 whitespace-pre-line">
-              {animeDetail.synopsis}
-            </p>
+  useEffect(() => {
+    if (isError && error instanceof Error) {
+      toast.error("Uh oh! Something went wrong", {
+        description: error.message
+      });
+    }
+  }, [error, isError]);
+
+  const backAction = (
+    <Link to="/media-list">
+      <Button variant="outline" size="sm" className="gap-2">
+        <ArrowLeftIcon className="h-4 w-4" />
+        <span className="hidden sm:inline">Back to library</span>
+      </Button>
+    </Link>
+  );
+
+  if (isLoading || (!animeDetail && !isError)) {
+    return (
+      <AdminLayout
+        title="Loading anime..."
+        description="Fetching details from the library"
+        actions={backAction}
+      >
+        <AnimeDetailSkeleton />
+      </AdminLayout>
+    );
+  }
+
+  if (isError || !animeDetail) {
+    return (
+      <AdminLayout
+        title="Anime not found"
+        description="We couldn't load this anime entry"
+        actions={backAction}
+      >
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border/40 bg-background/35 p-10 text-center shadow-xs backdrop-blur-xs">
+          <AlertTriangleIcon className="h-8 w-8 text-rose-400" />
+          <p className="text-sm text-muted-foreground">
+            {error instanceof Error
+              ? error.message
+              : "Unknown error while loading the anime."}
+          </p>
+          <Link to="/media-list">
+            <Button variant="default" size="sm" className="gap-2">
+              <ArrowLeftIcon className="h-4 w-4" />
+              Return to media library
+            </Button>
+          </Link>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout
+      title={animeDetail.title}
+      description={animeDetail.titleJapanese || "Anime entry"}
+      hideHeader
+    >
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="@tablet:hidden" />
+          <Link to="/media-list">
+            <Button variant="ghost" size="sm" className="gap-2">
+              <ArrowLeftIcon className="h-4 w-4" />
+              <span>Back to library</span>
+            </Button>
+          </Link>
+        </div>
+        <AnimeHero animeDetail={animeDetail} />
+        <AnimeInfoSection animeDetail={animeDetail} />
+        {animeDetail.type !== "Movie" ? (
+          <AnimeEpisodesSection animeDetail={animeDetail} />
+        ) : null}
+        <AnimeReviewSection key={animeDetail.id} animeDetail={animeDetail} />
+      </div>
+    </AdminLayout>
+  );
+}
+
+function AnimeDetailSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="rounded-2xl border border-border/40 bg-background/35 p-6 shadow-xs backdrop-blur-xs">
+        <div className="flex flex-col gap-6 @7xl:flex-row">
+          <Skeleton className="h-[340px] w-[240px] rounded-xl @7xl:h-[400px] @7xl:w-[280px]" />
+          <div className="flex flex-1 flex-col gap-4">
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-20" />
+            </div>
+            <div className="grid grid-cols-2 gap-2 @tablet:grid-cols-4 @desktop:grid-cols-4">
+              <Skeleton className="h-14 rounded-lg" />
+              <Skeleton className="h-14 rounded-lg" />
+              <Skeleton className="h-14 rounded-lg" />
+              <Skeleton className="h-14 rounded-lg" />
+            </div>
+            <Skeleton className="h-24 w-full rounded-lg" />
           </div>
         </div>
-      </header>
-      <main className="container mx-auto py-8 xl:py-12 px-8 xl:px-6">
-        <Tabs defaultValue="about">
-          <TabsList>
-            <TabsTrigger value="about">About</TabsTrigger>
-            {animeDetail.type !== "Movie" && (
-              <TabsTrigger value="episodes">Episodes</TabsTrigger>
-            )}
-            <TabsTrigger value="reviews">Reviews</TabsTrigger>
-          </TabsList>
-          <AboutTab animeDetail={animeDetail} />
-          {animeDetail.type !== "Movie" && (
-            <EpisodeTab animeDetail={animeDetail} />
-          )}
-          <ReviewTab animeDetail={animeDetail} resetParent={fetchAnimeById} />
-        </Tabs>
-      </main>
-    </div>
-  ) : (
-    <div className="flex flex-col min-h-[100dvh] items-center justify-center gap-4">
-      <img src="/loading.gif" className="w-32 h-32 rounded-xl" />
-      <div className="flex items-center justify-center gap-2 xl:gap-4">
-        <Loader2Icon className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
-        <h2>Fetching anime details...</h2>
+      </div>
+      <div className="flex items-center gap-2 rounded-2xl border border-border/40 bg-background/35 p-6 shadow-xs backdrop-blur-xs">
+        <Loader2Icon className="h-4 w-4 animate-spin" />
+        <span className="text-sm text-muted-foreground">
+          Loading anime details...
+        </span>
       </div>
     </div>
   );

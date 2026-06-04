@@ -9,8 +9,8 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
-import { scoreOptions } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { scoreOptions } from "@/lib/shared/constants";
+import { cn } from "@/lib/shared/utils";
 
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 

@@ -1,0 +1,17 @@
+name: Deploy Admin App (production)
+
+on:
+  push:
+    branches: [production]
+    paths:
+      - "admin-app/**"
+      - ".github/workflows/admin-app-deploy-production.yml"
+      - ".github/workflows/_deploy-admin-app.yml"
+
+jobs:
+  call:
+    uses: ./.github/workflows/_deploy-admin-app.yml
+    secrets: inherit
+    with:
+      environment: production
+      deploy_path: /srv/production/admin

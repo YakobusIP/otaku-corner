@@ -1,57 +1,61 @@
-import { useState } from "react";
-
-import { logout } from "@/services/auth.service";
+import { authService } from "@/services/auth.service";
 
 import { Button } from "@/components/ui/button";
 
-import { useToast } from "@/hooks/useToast";
+import { clearClientAuth } from "@/lib/axios";
+import { cn } from "@/lib/utils";
 
-import { setAccessToken } from "@/lib/axios";
-
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, LogOutIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 type Props = {
   fullWidth?: boolean;
+  className?: string;
 };
 
-export default function LogoutButton({ fullWidth = false }: Props) {
-  const [isLoadingLogout, setIsLoadingLogout] = useState(false);
-
-  const toast = useToast();
+export default function LogoutButton({ fullWidth = false, className }: Props) {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    setIsLoadingLogout(true);
-    const response = await logout();
-    if (response.success) {
-      setAccessToken(null);
-      navigate("/");
-      toast.toast({
-        title: "All set!",
-        description: response.data.message
-      });
-    } else {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
+  const mutation = useMutation({
+    mutationFn: () => authService.logout(),
+    onSettled: (result) => {
+      clearClientAuth();
+      queryClient.clear();
+      navigate("/", { replace: true });
+      if (result?.success) {
+        toast.success("Signed out", {
+          description: result.data.message || "Logged out successfully"
+        });
+      } else {
+        toast.success("Signed out", {
+          description:
+            "Your session was cleared on this device. The server could not be reached to clear the remote session."
+        });
+      }
     }
-    setIsLoadingLogout(false);
+  });
+
+  const handleLogout = () => {
+    mutation.mutate();
   };
+
   return (
     <Button
       variant="outline"
-      className={fullWidth ? "w-full" : ""}
+      aria-label="Logout"
+      className={cn(fullWidth && "w-full", className)}
       onClick={handleLogout}
+      disabled={mutation.isPending}
     >
-      {isLoadingLogout ? (
-        <Loader2Icon className="w-4 h-4 animate-spin" />
+      {mutation.isPending ? (
+        <Loader2Icon className="h-4 w-4 shrink-0 animate-spin" />
       ) : (
-        <LogOutIcon className="w-4 h-4" />
+        <LogOutIcon className="h-4 w-4 shrink-0" />
       )}
-      Logout
+      <span className="group-data-[collapsible=icon]:hidden">Logout</span>
     </Button>
   );
 }

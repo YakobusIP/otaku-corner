@@ -1,0 +1,109 @@
+---
+description: Backend authentication, authorization, structured logging, environment configuration, queues, and R2 storage conventions
+globs: backend/src/**/*.{ts},backend/prisma/**/*.ts,backend/*.json
+alwaysApply: true
+---
+
+# Backend auth, logging, storage, and operations
+
+The backend already has dedicated infrastructure for auth, structured logging, process lifecycle events, queues, and R2-compatible storage. Use that infrastructure instead of adding one-off behavior.
+
+## Authentication
+
+- Keep auth code in `src/auth` unless a feature-specific authorization check truly belongs in a domain service.
+- Use `JwtAuthGuard` through `AuthenticatedApiController` for normal authenticated controllers.
+- Use `@Public()` for intentionally unauthenticated endpoints.
+- Do not make an endpoint public by forgetting the guard or decorator.
+- Keep JWT strategy behavior centralized in `src/auth/strategies/jwt.strategy.ts`.
+- Do not manually parse JWTs in feature controllers or services.
+- Use `CurrentUser` for authenticated user context rather than reading request objects directly where the decorator fits.
+- Keep password handling inside auth service boundaries.
+- Never log passwords, JWTs, auth cookies, refresh tokens, authorization headers, or raw credentials.
+
+## Authorization posture
+
+- Authentication answers "who is calling"; authorization answers "may they do this".
+- Do not assume all authenticated users may perform all future actions if a feature introduces roles, ownership, or permissions.
+- For current endpoints that are admin/internal by deployment context, keep the authenticated API posture consistent.
+- If user-scoped data is introduced, service methods must include user context explicitly rather than relying on global state.
+
+## Structured logging
+
+- Use `StructuredLogger` and the existing logging helpers.
+- Do not use `console.log`, `console.warn`, or `console.error` in backend application code.
+- Log meaningful events with stable event names, levels, messages, and metadata.
+- Prefer domain-specific logging methods such as process, db, storage, queue, and HTTP logging when available.
+- Include useful context in logs:
+  - IDs that are safe to log
+  - media type
+  - operation name
+  - storage key when safe
+  - upstream service name
+  - retry or queue information
+- Do not log secrets, full signed URLs, raw request bodies that may include credentials, or full environment values.
+- Use existing safe serialization and redaction helpers for unknown errors and request data.
+
+## Error logging
+
+- When logging unknown errors, narrow `unknown` to an `Error` shape or use existing helpers that produce `{ name, message, stack }`.
+- Do not assume caught values are `Error` instances.
+- Log failures before graceful fallback if the fallback hides an operational problem.
+- Avoid duplicate logs for the same failure at multiple layers unless each layer adds useful context.
+- Keep client-facing error messages simpler than internal logs.
+
+## Environment configuration
+
+- Environment variables must be declared and validated in `src/config/validate-env.ts`.
+- Use `ConfigService` for reading runtime configuration inside providers.
+- Use `getOrThrow` when a value is required for a provider to operate.
+- Do not read from `.env` files directly.
+- Do not print or inspect secret environment values.
+- Do not introduce unvalidated `process.env.X` reads throughout feature code.
+- Keep CORS origin parsing in `src/config/cors-origins.ts` and bootstrap wiring in `src/main.ts`.
+- If a variable name says `BASE_URL`, treat it as a URL and validate it as a URL.
+- If a variable name says `HOSTNAME`, treat it as a hostname, not a full URL.
+
+## R2 and asset storage
+
+- Use `R2FileStorageService` for Cloudflare R2/S3-compatible object storage operations.
+- Do not create new `S3Client` instances in feature modules.
+- Validate object keys with `assertSafeObjectStorageKey` before using them.
+- Keep public URL construction centralized in storage infrastructure.
+- Do not expose signed upload URLs beyond their intended short lifetime.
+- Do not log full presigned URLs.
+- Preserve immutable cache-control behavior for uploaded assets unless the asset lifecycle changes.
+- Keep asset upload policy in `src/assets/asset-upload-policy.ts` and storage mechanics in `src/storage`.
+- Keep content type, target media type, and review asset target validation in DTOs or asset-domain helpers.
+
+## Queues and external metadata
+
+- Use the existing Bull queue infrastructure under `src/common/bull`.
+- Keep queue names, logging, and external metadata queue behavior centralized.
+- Do not start background jobs from controllers without going through the established queue service/provider pattern.
+- Queue processors and producers should log failures with enough context to retry or diagnose.
+- Do not put long-running external metadata fetches inside request-response paths when the queue pattern is appropriate.
+
+## HTTP clients and upstream services
+
+- Use existing HTTP logging helpers for outbound HTTP behavior where available.
+- Do not add silent external calls with no timeout, no logging, and no error path.
+- Validate and normalize upstream payloads before trusting them as internal data.
+- Keep upstream-specific logic close to the domain or queue that owns it.
+
+## Bootstrap and process behavior
+
+- Keep global app setup in `src/main.ts`.
+- Preserve the global prefix `api` unless the API contract intentionally changes.
+- Preserve strict global validation.
+- Preserve global Prisma exception filtering.
+- Preserve process lifecycle logging and graceful shutdown behavior.
+- Swagger setup currently lives in bootstrap. If Swagger exposure changes by environment, do it deliberately in `src/main.ts` and keep docs accurate.
+
+## What not to do
+
+- Do not log secrets or signed URLs.
+- Do not manually parse JWTs in feature modules.
+- Do not create one-off S3/R2 clients outside storage infrastructure.
+- Do not read `.env` files or dump environment values.
+- Do not use console logging in backend application code.
+- Do not put queue or external network work in controllers.

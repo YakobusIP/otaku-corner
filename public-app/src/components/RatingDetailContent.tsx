@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
-import { scoreOptions } from "@/lib/constants";
-import { fixFloatingError } from "@/lib/utils";
+import { scoreOptions } from "@/lib/shared/constants";
+import { fixFloatingError } from "@/lib/shared/utils";
 
 import { InfoIcon } from "lucide-react";
 

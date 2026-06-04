@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { updateMangaVolumeAndChaptersService } from "@/services/manga.service";
+import { mangaService } from "@/services/manga.service";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,61 +15,74 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { useToast } from "@/hooks/useToast";
-
 import { MangaDetail } from "@/types/manga.type";
 
+import { detailKeys } from "@/lib/query-keys";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, PencilIcon } from "lucide-react";
+import { toast } from "sonner";
 
 type Props = {
   mangaDetail: MangaDetail;
-  resetParent: () => Promise<void>;
+  resetParent?: () => Promise<void>;
 };
 
 export default function EditChapterVolumesModal({
   mangaDetail,
   resetParent
 }: Props) {
-  const toast = useToast();
+  const queryClient = useQueryClient();
   const [chaptersCount, setChaptersCount] = useState(
     mangaDetail.chaptersCount ?? 0
   );
   const [volumesCount, setVolumesCount] = useState(
     mangaDetail.volumesCount ?? 0
   );
-  const [isLoadingUpdateMangaStats, setIsLoadingUpdateMangaStats] =
-    useState(false);
 
-  const updateMangaStats = async () => {
-    setIsLoadingUpdateMangaStats(true);
-    const response = await updateMangaVolumeAndChaptersService(
-      mangaDetail.id,
-      chaptersCount,
-      volumesCount
-    );
-
-    if (response.success) {
-      resetParent();
-      toast.toast({
-        title: "All set!",
-        description: response.data.message
+  const updateMangaStatsMutation = useMutation({
+    mutationFn: async (payload: {
+      chaptersCount: number;
+      volumesCount: number;
+    }) => {
+      const response = await mangaService.updateVolumeAndChapters(
+        mangaDetail.id,
+        payload.chaptersCount,
+        payload.volumesCount
+      );
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({
+        queryKey: detailKeys.manga(mangaDetail.id)
       });
-    } else {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
+      await resetParent?.();
+      toast.success("All set!", {
+        description:
+          data?.message ?? "Chapters and volumes updated successfully"
+      });
+    },
+    onError: (error: Error) => {
+      toast.error("Uh oh! Something went wrong", {
+        description: error.message
       });
     }
+  });
 
-    setIsLoadingUpdateMangaStats(false);
+  const updateMangaStats = () => {
+    updateMangaStatsMutation.mutate({ chaptersCount, volumesCount });
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="destructive">
-          <PencilIcon className="w-4 h-4 mr-2" />
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 border-border/60 bg-background/30 text-foreground hover:bg-background/50"
+        >
+          <PencilIcon className="h-4 w-4" />
           Override Chapter and Volumes
         </Button>
       </DialogTrigger>
@@ -101,8 +114,12 @@ export default function EditChapterVolumesModal({
           />
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={updateMangaStats}>
-            {isLoadingUpdateMangaStats && (
+          <Button
+            type="submit"
+            onClick={updateMangaStats}
+            disabled={updateMangaStatsMutation.isPending}
+          >
+            {updateMangaStatsMutation.isPending && (
               <Loader2Icon className="w-4 h-4 animate-spin mr-2" />
             )}
             Save changes

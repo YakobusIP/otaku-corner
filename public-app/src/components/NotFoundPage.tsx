@@ -1,8 +1,14 @@
 "use client";
 
 import GeneralFooter from "@/components/GeneralFooter";
+import HeroWallpaper from "@/components/layout/HeroWallpaper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+
+import {
+  PUBLIC_MEDIA_TYPE_CONFIG,
+  PUBLIC_MEDIA_TYPES
+} from "@/lib/media/public-media-type";
 
 import {
   ArrowLeftIcon,
@@ -14,6 +20,12 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+const NOT_FOUND_MEDIA_ICONS = {
+  anime: PlayIcon,
+  manga: BookIcon,
+  lightNovel: LibraryIcon
+} as const;
 
 export default function NotFoundPage() {
   const router = useRouter();
@@ -27,100 +39,84 @@ export default function NotFoundPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-[#ffafbd] via-[#ffc3a0] to-[#ffeecf] overflow-hidden">
-      <div className="flex items-center justify-center min-h-screen p-8">
-        <div className="text-center space-y-8 max-w-2xl mx-auto">
-          <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl">
-            <CardContent className="p-12">
-              <h1 className="text-8xl md:text-9xl font-bold text-slate-800/20 leading-none mb-8">
-                404
-              </h1>
-
-              <div className="mb-8">
-                <div className="w-40 h-40 mx-auto mb-6 rounded-xl overflow-hidden bg-white/60 backdrop-blur-sm border border-white/40 flex items-center justify-center">
+    <HeroWallpaper>
+      <div className="container mx-auto flex flex-1 flex-col py-8">
+        <section className="mb-8 flex flex-1 flex-col items-center justify-center gap-8 py-8">
+          <Card className="bg-white backdrop-blur-xl border border-white shadow-2xl max-w-md w-full h-fit">
+            <CardContent className="p-8 text-center">
+              <div className="mb-6">
+                <div className="w-fit mx-auto mb-4 rounded-xl overflow-hidden bg-white backdrop-blur-sm border border-white flex items-center justify-center">
                   <Image
-                    src="/not-found.gif"
-                    width={256}
-                    height={256}
-                    className="w-full h-full object-cover"
-                    alt="Not found error"
-                    unoptimized
+                    src="/no-result.webp"
+                    width={400}
+                    height={400}
+                    className="w-64"
+                    alt="Page not found"
+                    priority
                   />
                 </div>
               </div>
 
-              <div className="space-y-4 mb-8">
-                <h2 className="text-slate-800 text-2xl md:text-3xl font-bold">
-                  Page Not Found
+              <div className="space-y-3">
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-800">
+                  Not Found
                 </h2>
-                <p className="text-lg text-slate-700 font-medium">
+                <p className="text-slate-700 text-lg font-medium">
                   Looks like this page went on a quest
                 </p>
-                <p className="text-slate-600 leading-relaxed max-w-lg mx-auto">
+                <p className="text-xs text-slate-500 mt-2">
                   Don&apos;t worry, even the best adventurers sometimes take
                   wrong turns!
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="mt-8 flex gap-4 justify-center">
                 <Link href="/">
-                  <Button className="bg-slate-800 hover:bg-slate-700 text-white">
-                    <HomeIcon size={16} />
+                  <Button className="bg-rose-400 text-white hover:bg-rose-500">
+                    <HomeIcon />
                     Go home
                   </Button>
                 </Link>
                 <Button
                   variant="outline"
-                  className="border-slate-300 text-slate-700 hover:bg-slate-100 bg-transparent"
+                  className="border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-white"
                   onClick={handleBack}
                 >
-                  <ArrowLeftIcon size={16} />
+                  <ArrowLeftIcon />
                   Go back
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl">
-            <CardContent className="p-6">
+          <Card className="bg-white backdrop-blur-xl border border-white shadow-2xl max-w-2xl w-full h-fit">
+            <CardContent className="p-6 text-center">
               <h3 className="text-lg font-semibold text-slate-800 mb-4">
                 Maybe you&apos;re looking for:
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                <Link href="/anime">
-                  <Button
-                    variant="ghost"
-                    className="hover:bg-white/60 hover:text-slate-900 text-slate-700"
-                  >
-                    <PlayIcon size={20} />
-                    Anime List
-                  </Button>
-                </Link>
-                <Link href="/manga">
-                  <Button
-                    variant="ghost"
-                    className="hover:bg-white/60 hover:text-slate-900 text-slate-700"
-                  >
-                    <BookIcon size={20} />
-                    Manga List
-                  </Button>
-                </Link>
-                <Link href="/light-novel">
-                  <Button
-                    variant="ghost"
-                    className="hover:bg-white/60 hover:text-slate-900 text-slate-700"
-                  >
-                    <LibraryIcon size={20} />
-                    Light Novel List
-                  </Button>
-                </Link>
+                {PUBLIC_MEDIA_TYPES.map((mediaTypeId) => {
+                  const config = PUBLIC_MEDIA_TYPE_CONFIG[mediaTypeId];
+                  const Icon = NOT_FOUND_MEDIA_ICONS[mediaTypeId];
+
+                  return (
+                    <Link key={mediaTypeId} href={config.listHref}>
+                      <Button
+                        variant="ghost"
+                        className="text-slate-700 hover:bg-rose-100 hover:text-rose-600"
+                      >
+                        <Icon size={20} />
+                        {config.listPageLabel}
+                      </Button>
+                    </Link>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
-
-          <GeneralFooter />
-        </div>
+        </section>
       </div>
-    </div>
+      <GeneralFooter />
+    </HeroWallpaper>
   );
 }

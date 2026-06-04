@@ -1,0 +1,127 @@
+---
+description: Admin app components, shadcn UI, layout, dialogs, tables, forms, visual style, and interaction design
+globs: admin-app/src/**/*.{tsx,ts,css},admin-app/components.json
+alwaysApply: true
+---
+
+# Admin app components and UI
+
+The admin app should feel like a focused operational tool: dense enough for repeated work, polished enough to trust, and consistent across media domains. Use existing shadcn-style primitives and admin components before inventing new UI.
+
+## UI primitive policy
+
+- Always prefer existing shadcn-style primitives from `src/components/ui`.
+- Installing new shadcn components is allowed when existing primitives are insufficient.
+- Before adding a new primitive, search `src/components/ui` and nearby feature components.
+- Do not create custom one-off controls when a shadcn primitive already fits.
+- Use Radix/shadcn patterns for dialogs, dropdowns, popovers, selects, checkboxes, tables, tabs, sheets, accordions, tooltips, alerts, and scroll areas.
+- Use `lucide-react` icons for buttons and visual affordances.
+- Keep icons from lucide unless a feature has a specific reason for another icon source.
+
+## Admin visual style
+
+- Admin UI should be quiet, structured, and work-focused.
+- Prioritize scanning, repeated actions, comparison, and predictable layout.
+- Avoid public-site landing page patterns, hero marketing sections, decorative illustrations, and oversized copy.
+- Do not add a broad visual redesign while implementing a feature.
+- Preserve the dark-mode admin shell unless the design system is deliberately changed.
+- Keep colors and gradients consistent with the existing admin app. Avoid one-off decorative palettes.
+- Use cards/panels for actual grouped tools, repeated items, dialogs, dashboard summaries, and tables.
+- Do not nest cards inside cards unless the inner element is a real repeated item or control surface.
+
+## Component structure
+
+- Keep one primary React component per component/page file.
+- Split very large or hard-to-scan components into focused subcomponents.
+- It is acceptable for a file to contain tiny local skeletons or private helper components when they are tightly tied to the page.
+- Move repeated, meaningful subviews into separate files.
+- Keep components focused on layout, wiring, and user interaction.
+- Move multi-step state orchestration into hooks.
+- Use config arrays plus `.map()` for repeated sibling controls when the repeated shape is stable.
+- Avoid long stacks of nearly identical JSX.
+
+## Forms and controls
+
+- Use appropriate controls for the job:
+  - select menus for finite option sets
+  - checkbox/toggle controls for binary state
+  - inputs for free text or numeric values
+  - month picker for month selection
+  - buttons only for commands
+  - dialogs/sheets for modal workflows
+- Validate and normalize input before sending it to services.
+- Keep labels short and clear.
+- Make destructive actions explicit with confirmation dialogs.
+- Disable submit/action buttons while mutations are pending.
+- Show loading states for long-running actions.
+- Do not let text overflow buttons, badges, table cells, or dialog headers.
+
+## Dialogs and modals
+
+- Use shadcn dialog/alert-dialog primitives.
+- Keep dialog trigger controls eager and lightweight.
+- Lazy-load heavy dialog bodies when the user chooses that workflow.
+- Render interaction-loaded lazy dialogs only when active.
+- A `Suspense fallback={null}` is acceptable for a modal body that appears immediately after a click, but consider a small spinner if loading is noticeable.
+- Closing a dialog should clean up dialog-local state when appropriate.
+- Do not keep stale selected items, duplicate maps, search terms, or active detail state after closing add-media dialogs.
+
+## Tables and lists
+
+- Use TanStack Table for structured entity tables.
+- Keep row IDs stable and based on backend IDs.
+- Keep table pagination controlled by backend metadata.
+- Show empty states and loading states.
+- Keep bulk delete behavior explicit and confirmed.
+- Media library list rows should remain optimized for scanning:
+  - poster/title
+  - media type
+  - status/progress
+  - score/review metadata
+  - primary row actions
+- Infinite media lists should have a sentinel and a manual "Load more" escape hatch where the current pattern does that.
+
+## Review editor
+
+- Keep the public API of `ReviewEditor` stable:
+  - `review`
+  - `setReview`
+  - `mediaType`
+  - `reviewId`
+  - `setUploadedImages`
+- The heavy markdown editor package should remain lazy-loaded internally.
+- Preserve the stable 400px loading placeholder so layout does not jump while the editor chunk loads.
+- Preserve paste/upload integration.
+- Preserve review editor dark styling.
+- Do not import `@uiw/react-md-editor` statically in route or review section files.
+
+## Dashboard
+
+- Dashboard widgets should stay modular:
+  - KPI cards
+  - library health
+  - media consumption
+  - taste profile
+  - recent activity
+  - top rated sections
+- Recharts should remain isolated behind the lazy-loaded dashboard route unless the chart architecture changes.
+- Dashboard query hooks should live in `src/hooks/useDashboardQueries.ts`.
+- Keep dashboard loading/error states clear and compact.
+
+## Accessibility and behavior
+
+- Use semantic buttons for actions.
+- Use links for navigation.
+- Keep `aria-label` on icon-only buttons.
+- Do not remove focus-visible styles.
+- Dialogs should remain keyboard accessible through shadcn/Radix primitives.
+- Keep images with useful alt text when the image conveys content; use empty alt only for decorative thumbnails where nearby text already labels the item.
+
+## What not to do
+
+- Do not create a custom UI primitive when a shadcn primitive exists.
+- Do not eagerly load heavy dialog bodies.
+- Do not import markdown editor or chart-heavy modules into the root bundle unless unavoidable.
+- Do not hide mutation progress from the user.
+- Do not use service calls directly in components instead of mutations.
+- Do not add visible instructional text about how the UI works unless the workflow genuinely needs it.

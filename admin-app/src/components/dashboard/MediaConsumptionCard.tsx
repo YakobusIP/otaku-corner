@@ -1,17 +1,5 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-
-import {
-  fetchMediaConsumptionService,
-  fetchYearRangeService
-} from "@/services/statistic.service";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
+import QueryErrorState from "@/components/dashboard/QueryErrorState";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -20,19 +8,10 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from "@/components/ui/chart";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
 
-import { useToast } from "@/hooks/useToast";
 import useWideScreen from "@/hooks/useWideScreen";
 
-import { MediaConsumption } from "@/types/statistic.type";
+import type { MediaConsumption } from "@/types/statistic.type";
 
 import { STATISTICS_VIEW } from "@/lib/enums";
 
@@ -54,133 +33,49 @@ const chartConfig = {
   }
 } satisfies ChartConfig;
 
-export default function MediaConsumptionCard() {
+type MediaConsumptionCardProps = {
+  year: string;
+  data: MediaConsumption[] | undefined;
+  isLoading: boolean;
+  error: unknown | null;
+};
+
+export default function MediaConsumptionCard(props: MediaConsumptionCardProps) {
+  const { year, data, isLoading, error } = props;
   const isWideScreen = useWideScreen();
-  const toast = useToast();
-  const toastRef = useRef(toast.toast);
+  const isAllTime = year === "all";
+  const effectiveView = isAllTime
+    ? STATISTICS_VIEW.YEARLY
+    : STATISTICS_VIEW.MONTHLY;
 
-  const [view, setView] = useState(STATISTICS_VIEW.MONTHLY);
-  const [year, setYear] = useState(new Date().getFullYear().toString());
-  const [yearRange, setYearRange] = useState<number[]>([]);
-  const [mediaConsumption, setMediaConsumption] = useState<MediaConsumption[]>(
-    []
-  );
-  const [isLoadingYearRange, setIsLoadingYearRange] = useState(false);
-  const [isLoadingMediaConsumption, setIsLoadingMediaConsumption] =
-    useState(false);
-
-  const fetchYearRange = useCallback(async () => {
-    setIsLoadingYearRange(true);
-    const response = await fetchYearRangeService();
-    if (response.success) {
-      setYearRange(response.data);
-    } else {
-      toastRef.current({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingYearRange(false);
-  }, []);
-
-  const fetchMediaConsumptionData = useCallback(async () => {
-    setIsLoadingMediaConsumption(true);
-    const response = await fetchMediaConsumptionService(view, year);
-    if (response.success) {
-      setMediaConsumption(response.data);
-    } else {
-      toastRef.current({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingMediaConsumption(false);
-  }, [view, year]);
-
-  useEffect(() => {
-    fetchYearRange();
-  }, [fetchYearRange]);
-
-  useEffect(() => {
-    fetchMediaConsumptionData();
-  }, [fetchMediaConsumptionData]);
+  const chartHeightClass = "h-[250px] w-full xl:h-[350px]";
+  const series = data ?? [];
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-col items-stretch justify-between space-y-0 p-0 2xl:flex-row">
-        <div className="flex flex-col justify-center gap-1 px-6 py-5 2xl:py-6">
-          <CardTitle>Media Consumption</CardTitle>
-          <CardDescription>Medias consumed over the year</CardDescription>
-        </div>
-        <div className="flex flex-col xl:flex-row items-center justify-center gap-4 px-6 py-2 2xl:py-6">
-          <div className="flex items-center justify-center gap-4">
-            <Label>View</Label>
-            <Select
-              value={view}
-              onValueChange={(value) => setView(value as STATISTICS_VIEW)}
-            >
-              <SelectTrigger className="w-[150px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(STATISTICS_VIEW).map((rating) => {
-                  return (
-                    <SelectItem key={rating} value={rating.toString()}>
-                      {rating}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
-          {view === STATISTICS_VIEW.MONTHLY && (
-            <div className="flex items-center justify-center gap-4">
-              <Label>Year</Label>
-              <Select
-                defaultValue={new Date().getFullYear().toString()}
-                value={year}
-                onValueChange={(value) => setYear(value)}
-              >
-                <SelectTrigger className="w-[150px]">
-                  {isLoadingYearRange ? (
-                    <Fragment>
-                      <div className="flex items-center justify-center gap-2">
-                        <Loader2Icon className="w-4 h-4 animate-spin" />
-                        Loading...
-                      </div>
-                    </Fragment>
-                  ) : (
-                    <SelectValue />
-                  )}
-                </SelectTrigger>
-                <SelectContent>
-                  {yearRange.map((year) => {
-                    return (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+    <Card className="flex h-full min-h-0 w-full flex-col border-border/60 bg-card/80 backdrop-blur-xl">
+      <CardHeader className="flex flex-col items-stretch justify-between gap-4 space-y-0 p-6 pb-4 xl:flex-row xl:items-center">
+        <div className="flex flex-col justify-center">
+          <CardTitle className="text-lg font-semibold leading-none tracking-tight">
+            Media Consumption
+          </CardTitle>
         </div>
       </CardHeader>
-      <CardContent>
-        {isLoadingMediaConsumption ? (
-          <div className="flex items-center justify-center h-[250px] xl:h-[350px] gap-2">
+      <CardContent className="flex flex-1 flex-col justify-center px-6 pb-6 pt-0">
+        {error ? (
+          <QueryErrorState error={error} />
+        ) : isLoading ? (
+          <div
+            className={`flex ${chartHeightClass} items-center justify-center gap-2`}
+          >
             <Loader2Icon className="h-4 w-4 animate-spin" />
             Loading chart...
           </div>
         ) : (
           <ChartContainer
             config={chartConfig}
-            className="aspect-auto h-[250px] xl:h-[350px] w-full"
+            className={`aspect-auto ${chartHeightClass}`}
           >
-            <LineChart accessibilityLayer data={mediaConsumption}>
+            <LineChart accessibilityLayer data={series}>
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="period"
@@ -190,9 +85,11 @@ export default function MediaConsumptionCard() {
                 angle={isWideScreen ? undefined : 45}
                 interval="preserveStartEnd"
                 tickFormatter={
-                  isWideScreen && view === STATISTICS_VIEW.YEARLY
+                  effectiveView === STATISTICS_VIEW.YEARLY
                     ? undefined
-                    : (value) => value.slice(0, 3)
+                    : isWideScreen
+                      ? undefined
+                      : (value) => value.slice(0, 3)
                 }
               />
               <ChartTooltip content={<ChartTooltipContent />} />

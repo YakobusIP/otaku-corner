@@ -1,4 +1,37 @@
-import { ProgressStatusKey } from "@/lib/enums";
+import { ProgressStatusKey } from "@/lib/shared/enums";
+
+type MediaConsumptionRow = {
+  period: string;
+  animeCount: number;
+  mangaCount: number;
+  lightNovelCount: number;
+};
+
+type TasteProfileRow = {
+  name: string;
+  percentage: number;
+  totalCount: number;
+  animeCount?: number;
+  mangaCount?: number;
+  lightNovelCount?: number;
+};
+
+type TasteProfile = {
+  genres: TasteProfileRow[];
+  themes: TasteProfileRow[];
+  studios: TasteProfileRow[];
+  authors: TasteProfileRow[];
+};
+
+type RecentReviewItem = {
+  mediaType: "anime" | "manga" | "lightNovel";
+  mediaId: number;
+  slug: string;
+  title: string;
+  images: unknown;
+  personalScore: number | null;
+  updatedAt: string;
+};
 
 type AllTimeCount = {
   allMediaCount: number;
@@ -11,8 +44,8 @@ type AllTimeCount = {
 
 type TopMediaAndYearlyCount = {
   anime: {
-    id: number;
-    slug: string;
+    id: number | null;
+    slug: string | null;
     count: number;
     images: {
       image_url: string;
@@ -24,8 +57,8 @@ type TopMediaAndYearlyCount = {
     score: number | null;
   };
   manga: {
-    id: number;
-    slug: string;
+    id: number | null;
+    slug: string | null;
     count: number;
     images: {
       image_url: string;
@@ -37,8 +70,8 @@ type TopMediaAndYearlyCount = {
     score: number | null;
   };
   lightNovel: {
-    id: number;
-    slug: string;
+    id: number | null;
+    slug: string | null;
     count: number;
     images: {
       image_url: string;
@@ -55,6 +88,15 @@ type StatusFilter = {
   label: string;
   value?: ProgressStatusKey;
   count: number;
+  isAllTab?: boolean;
 };
 
-export type { AllTimeCount, TopMediaAndYearlyCount, StatusFilter };
+export type {
+  AllTimeCount,
+  TopMediaAndYearlyCount,
+  StatusFilter,
+  MediaConsumptionRow,
+  TasteProfile,
+  TasteProfileRow,
+  RecentReviewItem
+};

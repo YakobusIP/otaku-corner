@@ -2,22 +2,20 @@ import { animeService } from "@/services/anime.service";
 import { lightNovelService } from "@/services/lightnovel.service";
 import { mangaService } from "@/services/manga.service";
 
-import { URL_OF_SITEMAPS } from "@/lib/constants";
+import { URL_OF_SITEMAPS } from "@/lib/shared/constants";
+import { buildSitemapIndexXml } from "@/lib/sitemap/sitemap-xml";
 
 import { NextResponse } from "next/server";
 
-async function generateSitemaps() {
-  let totalAnimeData: { count: number };
-  let totalMangaData: { count: number };
-  let totalLightNovelData: { count: number };
+export const dynamic = "force-dynamic";
 
-  try {
-    totalAnimeData = await animeService.fetchTotalCount();
-    totalMangaData = await mangaService.fetchTotalCount();
-    totalLightNovelData = await lightNovelService.fetchTotalCount();
-  } catch {
-    return [];
-  }
+async function generateSitemaps() {
+  const [totalAnimeData, totalMangaData, totalLightNovelData] =
+    await Promise.all([
+      animeService.fetchTotalCount(),
+      mangaService.fetchTotalCount(),
+      lightNovelService.fetchTotalCount()
+    ]);
 
   const numberOfAnimeSitemaps = Math.ceil(
     totalAnimeData.count / URL_OF_SITEMAPS
@@ -67,9 +65,7 @@ export async function GET() {
       ...dynamicSitemaps.map((sitemap) => sitemap.url)
     ];
 
-    console.log("Generated sitemaps:", sitemaps);
-
-    const sitemapIndexXML = buildSitemapIndex(sitemaps);
+    const sitemapIndexXML = buildSitemapIndexXml(sitemaps);
 
     return new NextResponse(sitemapIndexXML, {
       headers: {
@@ -79,23 +75,11 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Error generating sitemap index:", error);
-    return NextResponse.error();
+    return new NextResponse(null, {
+      status: 503,
+      headers: {
+        "Retry-After": "300"
+      }
+    });
   }
-}
-
-function buildSitemapIndex(sitemaps: string[]) {
-  // XML declaration and opening tag for the sitemap index.
-  let xml = '<?xml version="1.0" encoding="UTF-8"?>';
-  xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-
-  // Iterate over each sitemap URL and add it to the sitemap index.
-  for (const sitemapURL of sitemaps) {
-    xml += "<sitemap>";
-    xml += `<loc>${sitemapURL}</loc>`; // Location tag specifying the URL of a sitemap file.
-    xml += "</sitemap>";
-  }
-
-  // Closing tag for the sitemap index.
-  xml += "</sitemapindex>";
-  return xml;
 }

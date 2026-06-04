@@ -1,119 +1,94 @@
-import {
-  ApiResponse,
-  ApiResponseList,
-  MessageResponse
-} from "@/types/api.type";
+import type {
+  FetchAllPagedOptions,
+  PaginatedBody,
+  PaginatedListPage,
+  ServiceResult
+} from "@/types/general.type";
 
 import interceptedAxios from "@/lib/axios";
+import { err, ok } from "@/lib/service-result";
+import { mapPaginatedBody } from "@/lib/utils";
 
-import { AxiosError } from "axios";
+const BASE_GENRE_URL = "/api/genres";
+const BASE_STUDIO_URL = "/api/studios";
+const BASE_THEME_URL = "/api/themes";
+const BASE_AUTHOR_URL = "/api/authors";
 
-const BASE_GENRE_URL = "/api/genre";
-const BASE_STUDIO_URL = "/api/studio";
-const BASE_THEME_URL = "/api/theme";
-const BASE_AUTHOR_URL = "/api/author";
+type EntityResponse = { id: number; name: string };
 
 const createEntityService = (baseUrl: string) => {
-  const fetchAll = async <T>(): Promise<ApiResponse<T>> => {
+  const fetchAll = async <T>(
+    opts?: FetchAllPagedOptions
+  ): Promise<ServiceResult<PaginatedListPage<T>>> => {
     try {
-      const response = await interceptedAxios.get(baseUrl);
-      return { success: true, data: response.data.data };
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError && error.response?.data.error
-            ? error.response?.data.error
-            : "There was a problem with your request."
+      const params = {
+        page: opts?.page,
+        limit: opts?.limit,
+        query: opts?.query,
+        connected_media: opts?.connectedMedia === true ? true : undefined,
+        include_ids: opts?.includeIds?.length
+          ? opts.includeIds.join(",")
+          : undefined
       };
-    }
-  };
-
-  const fetchAllWithMediaCount = async <T>(
-    page?: number,
-    limit?: number,
-    query?: string
-  ): Promise<ApiResponseList<T>> => {
-    try {
-      const response = await interceptedAxios.get(baseUrl, {
-        params: { connected_media: true, page, limit, q: query }
+      const response = await interceptedAxios.get<PaginatedBody<T>>(baseUrl, {
+        params
       });
-      return { success: true, data: response.data.data };
+      return ok(mapPaginatedBody(response.data));
     } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError && error.response?.data.error
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
+      return err(error);
     }
   };
 
   const addEntity = async (
     entity: string
-  ): Promise<ApiResponse<MessageResponse>> => {
+  ): Promise<ServiceResult<EntityResponse>> => {
     try {
-      const response = await interceptedAxios.post(baseUrl, { name: entity });
-      return { success: true, data: response.data };
+      const response = await interceptedAxios.post<EntityResponse>(baseUrl, {
+        name: entity
+      });
+      return ok(response.data);
     } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError && error.response?.data.error
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
+      return err(error);
     }
   };
 
   const updateEntity = async (
     id: number,
     entity: string
-  ): Promise<ApiResponse<MessageResponse>> => {
+  ): Promise<ServiceResult<EntityResponse>> => {
     try {
-      const response = await interceptedAxios.put(`${baseUrl}/${id}`, {
-        name: entity
-      });
-      return { success: true, data: response.data };
+      const response = await interceptedAxios.put<EntityResponse>(
+        `${baseUrl}/${id}`,
+        { name: entity }
+      );
+      return ok(response.data);
     } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError && error.response?.data.error
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
+      return err(error);
     }
   };
 
-  const deleteEntity = async (ids: number[]): Promise<ApiResponse<void>> => {
+  const deleteEntity = async (
+    ids: number[]
+  ): Promise<ServiceResult<undefined>> => {
     try {
       await interceptedAxios.delete(baseUrl, { data: { ids } });
-      return { success: true, data: undefined };
+      return ok(undefined);
     } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
+      return err(error);
     }
   };
 
   return {
     fetchAll,
-    fetchAllWithMediaCount,
     addEntity,
     updateEntity,
     deleteEntity
   };
 };
 
-const genreService = createEntityService(BASE_GENRE_URL);
-const studioService = createEntityService(BASE_STUDIO_URL);
-const themeService = createEntityService(BASE_THEME_URL);
-const authorService = createEntityService(BASE_AUTHOR_URL);
+export type EntityCrudService = ReturnType<typeof createEntityService>;
 
-export { genreService, studioService, themeService, authorService };
+export const genreService = createEntityService(BASE_GENRE_URL);
+export const studioService = createEntityService(BASE_STUDIO_URL);
+export const themeService = createEntityService(BASE_THEME_URL);
+export const authorService = createEntityService(BASE_AUTHOR_URL);

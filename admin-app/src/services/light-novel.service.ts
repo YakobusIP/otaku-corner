@@ -1,0 +1,184 @@
+import { ApiResponse, MessageResponse } from "@/types/api.type";
+import type {
+  FetchAllPagedOptions,
+  PaginatedBody,
+  PaginatedListPage,
+  ServiceResult
+} from "@/types/general.type";
+import type {
+  LightNovelCreateRequest,
+  LightNovelDetail,
+  LightNovelFilterSort,
+  LightNovelList,
+  LightNovelReviewRequest
+} from "@/types/light-novel.type";
+
+import interceptedAxios from "@/lib/axios";
+import { PROGRESS_STATUS } from "@/lib/enums";
+import { err, ok } from "@/lib/service-result";
+import { mapPaginatedBody } from "@/lib/utils";
+
+const BASE_LIGHTNOVEL_URL = "/api/light-novels";
+
+const createLightNovelService = () => {
+  const list = async (
+    params: LightNovelFilterSort & FetchAllPagedOptions
+  ): Promise<ServiceResult<PaginatedListPage<LightNovelList>>> => {
+    try {
+      const response = await interceptedAxios.get<
+        PaginatedBody<LightNovelList>
+      >(BASE_LIGHTNOVEL_URL, {
+        params: {
+          page: params.page,
+          limit: params.limit,
+          query: params.query,
+          include_ids: params.includeIds?.length
+            ? params.includeIds.join(",")
+            : undefined,
+          sort: params.sortBy,
+          order: params.sortOrder,
+          author: params.filterAuthor,
+          genre: params.filterGenre,
+          theme: params.filterTheme,
+          status: params.filterProgressStatus,
+          malScore: params.filterMALScore,
+          personalScore: params.filterPersonalScore,
+          statusCheck: params.filterStatusCheck
+        }
+      });
+      return ok(mapPaginatedBody(response.data));
+    } catch (error) {
+      return err(error);
+    }
+  };
+
+  const get = async (id: number): Promise<ServiceResult<LightNovelDetail>> => {
+    try {
+      const response = await interceptedAxios.get<LightNovelDetail>(
+        `${BASE_LIGHTNOVEL_URL}/${id}`
+      );
+      return ok(response.data);
+    } catch (error) {
+      return err(error);
+    }
+  };
+
+  const getDuplicates = async (
+    id: number
+  ): Promise<ServiceResult<{ exists: boolean }>> => {
+    try {
+      const response = await interceptedAxios.get<{ exists: boolean }>(
+        `${BASE_LIGHTNOVEL_URL}/duplicate/${id}`
+      );
+      return ok(response.data);
+    } catch (error) {
+      return err(error);
+    }
+  };
+
+  const create = async (
+    data: LightNovelCreateRequest[]
+  ): Promise<ServiceResult<number[]>> => {
+    try {
+      const response = await interceptedAxios.post<number[]>(
+        `${BASE_LIGHTNOVEL_URL}/bulk`,
+        { data }
+      );
+      return ok(response.data);
+    } catch (error) {
+      return err(error);
+    }
+  };
+
+  const updateReview = async (
+    id: number,
+    data: LightNovelReviewRequest
+  ): Promise<ServiceResult<MessageResponse>> => {
+    try {
+      await interceptedAxios.put(`${BASE_LIGHTNOVEL_URL}/${id}/review`, data);
+      return ok({ message: "Review saved successfully" });
+    } catch (error) {
+      return err(error);
+    }
+  };
+
+  const updateProgressStatus = async (
+    id: number,
+    data: PROGRESS_STATUS
+  ): Promise<ServiceResult<MessageResponse>> => {
+    try {
+      await interceptedAxios.put(`${BASE_LIGHTNOVEL_URL}/${id}/review`, {
+        progressStatus: data
+      });
+      return ok({ message: "Progress status updated successfully" });
+    } catch (error) {
+      return err(error);
+    }
+  };
+
+  const updateVolumes = async (
+    id: number,
+    volumesCount: number
+  ): Promise<ServiceResult<MessageResponse>> => {
+    try {
+      await interceptedAxios.put(`${BASE_LIGHTNOVEL_URL}/${id}`, {
+        volumesCount
+      });
+      return ok({ message: "Volumes updated successfully" });
+    } catch (error) {
+      return err(error);
+    }
+  };
+
+  const updateVolumeProgress = async (
+    data: { id: number; consumedAt?: Date | null }[]
+  ): Promise<ServiceResult<MessageResponse>> => {
+    try {
+      await interceptedAxios.put(`${BASE_LIGHTNOVEL_URL}/volume-progress`, {
+        data
+      });
+      return ok({ message: "Volume progress updated successfully" });
+    } catch (error) {
+      return err(error);
+    }
+  };
+
+  const enqueueMetadataSync = async (
+    id: number
+  ): Promise<ServiceResult<{ queued: true }>> => {
+    try {
+      const response = await interceptedAxios.post<{ queued: true }>(
+        `${BASE_LIGHTNOVEL_URL}/${id}/metadata-sync`
+      );
+      return ok(response.data);
+    } catch (error) {
+      return err(error);
+    }
+  };
+
+  const remove = async (ids: number[]): Promise<ServiceResult<undefined>> => {
+    try {
+      await interceptedAxios.delete<ApiResponse<void>>(BASE_LIGHTNOVEL_URL, {
+        data: { ids }
+      });
+      return ok(undefined);
+    } catch (error) {
+      return err(error);
+    }
+  };
+
+  return {
+    list,
+    get,
+    getDuplicates,
+    create,
+    updateReview,
+    updateProgressStatus,
+    updateVolumes,
+    updateVolumeProgress,
+    enqueueMetadataSync,
+    remove
+  };
+};
+
+export const lightNovelService = createLightNovelService();

@@ -1,11 +1,14 @@
-import { mangaService } from "@/services/manga.service";
-
 import GeneralFooter from "@/components/GeneralFooter";
-import { MangaProvider } from "@/components/context/MangaContext";
-import MangaHeader from "@/components/manga/MangaHeader";
-import MangaListSection from "@/components/manga/MangaListSection";
+import HeroWallpaper from "@/components/layout/HeroWallpaper";
+import { mangaListConfig } from "@/components/manga/MangaListConfig";
+import MediaListHeader from "@/components/media-list/MediaListHeader";
+import MediaListProvider from "@/components/media-list/MediaListProvider";
+import MediaListSection from "@/components/media-list/MediaListSection";
 
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import { mangaListQueryConfig } from "@/lib/media-list/manga-list-query";
+import { mangaListServerConfig } from "@/lib/media-list/manga-list-server";
+import { printedMediaListEntityLookups } from "@/lib/media-list/media-list-entity-lookups";
+import { prefetchMediaListPage } from "@/lib/media-list/prefetch-media-list-page";
 
 import {
   HydrationBoundary,
@@ -13,8 +16,6 @@ import {
   dehydrate
 } from "@tanstack/react-query";
 import { Metadata } from "next";
-
-const PAGINATION_SIZE = 15;
 
 export const metadata: Metadata = {
   title: "Manga Collection | Otaku Corner",
@@ -26,69 +27,31 @@ export const metadata: Metadata = {
 };
 
 type SearchParams = {
-  searchParams: Promise<{ page?: string; q?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; status?: string }>;
 };
 
 export default async function Page({ searchParams }: SearchParams) {
   const params = await searchParams;
-  const page = parseInt(params.page || "1", 10);
-  const query = params.q ?? "";
-  const status = params.status as keyof typeof PROGRESS_STATUS | undefined;
-
-  const sort = "title";
-  const order = SORT_ORDER.ASCENDING;
+  const listFilters =
+    mangaListServerConfig.buildListFiltersFromSearchParams(params);
 
   const queryClient = new QueryClient();
 
-  await Promise.all([
-    queryClient.fetchQuery({
-      queryKey: [
-        "mangas",
-        page,
-        PAGINATION_SIZE,
-        query,
-        sort,
-        order,
-        undefined,
-        undefined,
-        undefined,
-        status,
-        undefined,
-        undefined
-      ],
-      queryFn: () =>
-        mangaService.fetchAll(
-          page,
-          PAGINATION_SIZE,
-          query,
-          sort,
-          order,
-          undefined,
-          undefined,
-          undefined,
-          status,
-          undefined,
-          undefined
-        ),
-      retry: false
-    }),
-    queryClient.fetchQuery({
-      queryKey: ["mangaStatusCounts"],
-      queryFn: () => mangaService.fetchStatusCounts(),
-      staleTime: Infinity,
-      retry: false
-    })
-  ]);
+  await prefetchMediaListPage(queryClient, {
+    listFilters,
+    queryConfig: mangaListQueryConfig,
+    entityLookups: printedMediaListEntityLookups
+  });
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <MangaProvider>
-        <div className="flex flex-col min-h-[100dvh] main-gradient-bg">
-          <MangaHeader />
-          <MangaListSection />
+      <MediaListProvider config={mangaListConfig}>
+        <HeroWallpaper>
+          <MediaListHeader config={mangaListConfig} />
+          <MediaListSection config={mangaListConfig} />
           <GeneralFooter />
-        </div>
-      </MangaProvider>
+        </HeroWallpaper>
+      </MediaListProvider>
     </HydrationBoundary>
   );
 }
