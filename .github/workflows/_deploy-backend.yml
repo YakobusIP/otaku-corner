@@ -49,7 +49,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           port:     ${{ secrets.SSH_PORT }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "backend/dist/,backend/package.json,backend/pnpm-lock.yaml,backend/prisma/"
+          source: "backend/dist/,backend/package.json,backend/pnpm-lock.yaml,backend/.pnpmfile.cjs,backend/prisma/"
           target: /tmp/deploy/${{ inputs.environment }}/backend
           strip_components: 1
 
