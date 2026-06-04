@@ -38,8 +38,12 @@ jobs:
 
       - name: Build backend
         working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: |
           pnpm install --frozen-lockfile
+          pnpm run prisma:generate
           pnpm run build
 
       - name: Upload backend via SCP (env-scoped tmp dir)
@@ -116,7 +120,7 @@ jobs:
             export PATH="$(dirname "$NODE_BIN"):$PATH"
 
             pnpm install --prod --frozen-lockfile
-            npx prisma generate
-            npx prisma migrate deploy
+            pnpm dlx prisma@6.19.3 generate --sql
+            pnpm dlx prisma@6.19.3 migrate deploy
 
             sudo systemctl start "${{ inputs.service_name }}"
