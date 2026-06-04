@@ -1,58 +1,77 @@
-import AdminAnimeDetail from "@/pages/AdminAnimeDetail";
-import AdminLightNovelDetail from "@/pages/AdminLightNovelDetail";
-import AdminMangaDetail from "@/pages/AdminMangaDetail";
-import Dashboard from "@/pages/Dashboard";
-import Home from "@/pages/Home.tsx";
-import MediaList from "@/pages/MediaList";
+import { Suspense, lazy } from "react";
+
+import { RequireAuth } from "@/auth";
 import NotFoundPage from "@/routes/NotFoundPage";
-import ProtectedRoute from "@/routes/ProtectedRoute";
 import UnauthorizedPage from "@/routes/UnauthorizedPage";
+import type { Router } from "@remix-run/router";
 import { createBrowserRouter } from "react-router-dom";
 
-export const router = createBrowserRouter([
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Login = lazy(() => import("@/pages/Login"));
+const MediaLibrary = lazy(() => import("@/pages/MediaLibrary"));
+const AdminAnimeDetail = lazy(() => import("@/pages/AdminAnimeDetail"));
+const AdminMangaDetail = lazy(() => import("@/pages/AdminMangaDetail"));
+const AdminLightNovelDetail = lazy(
+  () => import("@/pages/AdminLightNovelDetail")
+);
+
+function PageLoader() {
+  return null;
+}
+
+export const router: Router = createBrowserRouter([
   {
     path: "/",
-    element: <Home />
-  },
-  {
-    path: "/dashboard",
     element: (
-      <ProtectedRoute>
-        <Dashboard />
-      </ProtectedRoute>
+      <Suspense fallback={<PageLoader />}>
+        <Login />
+      </Suspense>
     )
   },
   {
-    path: "/media-list",
-    element: (
-      <ProtectedRoute>
-        <MediaList />
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/anime/:animeId/:slug",
-    element: (
-      <ProtectedRoute>
-        <AdminAnimeDetail />
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/manga/:mangaId/:slug",
-    element: (
-      <ProtectedRoute>
-        <AdminMangaDetail />
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/light-novel/:lightNovelId/:slug",
-    element: (
-      <ProtectedRoute>
-        <AdminLightNovelDetail />
-      </ProtectedRoute>
-    )
+    element: <RequireAuth />,
+    children: [
+      {
+        path: "dashboard",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Dashboard />
+          </Suspense>
+        )
+      },
+      {
+        path: "media-list",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <MediaLibrary />
+          </Suspense>
+        )
+      },
+      {
+        path: "anime/:animeId/:slug",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminAnimeDetail />
+          </Suspense>
+        )
+      },
+      {
+        path: "manga/:mangaId/:slug",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminMangaDetail />
+          </Suspense>
+        )
+      },
+      {
+        path: "light-novel/:lightNovelId/:slug",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminLightNovelDetail />
+          </Suspense>
+        )
+      }
+    ]
   },
   {
     path: "/unauthorized",

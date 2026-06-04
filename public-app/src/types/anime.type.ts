@@ -4,7 +4,7 @@ import {
   ThemeEntityPartial
 } from "@/types/entity.type";
 
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import { PROGRESS_STATUS, type ProgressStatusKey } from "@/lib/shared/enums";
 
 type AnimeEntity = {
   id: number;
@@ -21,7 +21,7 @@ type AnimeEntity = {
   broadcast: string;
   episodesCount?: number | null;
   duration: string;
-  score: number;
+  score: number | null;
   images: {
     image_url: string;
     large_image_url?: string | null;
@@ -34,7 +34,7 @@ type AnimeEntity = {
   synopsis: string;
   trailer?: string | null;
   malUrl: string;
-  review: AnimeReview;
+  review: AnimeReview | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -47,7 +47,7 @@ type AnimeReview = {
   voiceActingRating?: number | null;
   soundTrackRating?: number | null;
   charDevelopmentRating?: number | null;
-  progressStatus: PROGRESS_STATUS;
+  progressStatus: ProgressStatusKey | PROGRESS_STATUS;
   personalScore?: number | null;
   consumedAt?: Date | null;
   createdAt: Date;
@@ -58,6 +58,13 @@ type AnimeDetail = Omit<AnimeEntity, "genres" | "studios" | "themes"> & {
   genres: GenreEntityPartial[];
   studios: StudioEntityPartial[];
   themes: ThemeEntityPartial[];
+};
+
+type AnimeListReviewFields = {
+  progressStatus?: ProgressStatusKey | PROGRESS_STATUS | null;
+  personalScore?: number | null;
+  reviewText?: string | null;
+  consumedAt?: Date | null;
 };
 
 type AnimeList = Pick<
@@ -71,13 +78,17 @@ type AnimeList = Pick<
   | "status"
   | "images"
   | "score"
+  | "season"
+  | "aired"
 > &
-  Pick<
-    AnimeReview,
-    "progressStatus" | "personalScore" | "reviewText" | "consumedAt"
-  > & {
+  AnimeListReviewFields & {
     fetchedEpisode: number;
   };
+
+type AnimeSitemap = Pick<AnimeEntity, "id" | "slug"> & {
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 type AnimeEpisode = {
   id: number;
@@ -88,16 +99,13 @@ type AnimeEpisode = {
   titleRomaji: string;
 };
 
-type AnimeFilterSort = {
-  sortBy: string;
-  sortOrder: SORT_ORDER;
-  filterGenre?: number;
-  filterStudio?: number;
-  filterTheme?: number;
-  filterProgressStatus?: keyof typeof PROGRESS_STATUS;
-  filterMALScore?: string;
-  filterPersonalScore?: string;
-  filterType?: string;
+type AnimeFilters = {
+  genre?: number;
+  studio?: number;
+  theme?: number;
+  malScore?: string;
+  personalScore?: string;
+  type?: string;
 };
 
-export type { AnimeDetail, AnimeList, AnimeFilterSort };
+export type { AnimeDetail, AnimeFilters, AnimeList, AnimeSitemap };

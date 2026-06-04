@@ -49,6 +49,7 @@ type MangaReview = {
 
 type MangaCreateRequest = {
   id: number;
+  slug: string;
   status: string;
   title: string;
   titleJapanese: string;

@@ -1,89 +1,111 @@
+"use client";
+
 import { useState } from "react";
+
+import { authorService } from "@/services/entity.service";
 
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
+
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { AuthorEntity } from "@/types/entity.type";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  Loader2Icon
-} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 type Props = {
-  authorList: AuthorEntity[];
-  isLoadingAuthor: boolean;
-  filterAuthor?: number;
+  selectedAuthor?: number;
   handleFilterAuthor: (key?: number) => void;
 };
 
 export default function FilterAuthor({
-  authorList,
-  isLoadingAuthor,
-  filterAuthor,
+  selectedAuthor,
   handleFilterAuthor
 }: Props) {
-  const [isFilterAuthorOpen, setIsFilterAuthorOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { data: authorList, error } = useQuery({
+    queryKey: ["authors"],
+    queryFn: () => authorService.fetchAll<AuthorEntity>(),
+    refetchOnWindowFocus: false,
+    staleTime: 24 * 60 * 60 * 1000
+  });
+
+  useQueryErrorToast(error);
 
   return (
-    <DropdownMenu onOpenChange={(value) => setIsFilterAuthorOpen(value)}>
-      <DropdownMenuTrigger asChild>
-        {isLoadingAuthor ? (
-          <Button variant="outline" size="sm" className="w-full" disabled>
-            <div className="flex items-center justify-center gap-2">
-              <Loader2Icon className="w-4 h-4 animate-spin" />
-              Fetching authors...
-            </div>
-            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" className="w-full">
+    <Popover open={isOpen} onOpenChange={setIsOpen} modal>
+      <PopoverTrigger asChild>
+        <Button variant="outline" role="combobox" className="w-full">
+          <p className="truncate text-center">
             Filter by:{" "}
-            {authorList.find((author) => author.id === filterAuthor)?.name ||
+            {authorList?.find((author) => author.id === selectedAuthor)?.name ||
               "Author"}
-            {isFilterAuthorOpen ? (
-              <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
-            ) : (
-              <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-            )}
-          </Button>
-        )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => handleFilterAuthor(undefined)}>
-          All Authors
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <ScrollArea className="h-[200px]">
-          {authorList.map((author) => {
-            return (
-              <DropdownMenuItem
-                key={author.id}
-                onClick={() => handleFilterAuthor(author.id)}
-              >
-                <CheckIcon
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    filterAuthor === author.id ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {author.name}
-              </DropdownMenuItem>
-            );
-          })}
-        </ScrollArea>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          </p>
+          {isOpen ? (
+            <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
+          ) : (
+            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="popover-content-width-full p-0">
+        <Command>
+          <CommandInput placeholder="Search author..." />
+          <CommandList>
+            <CommandEmpty>No author found.</CommandEmpty>
+            <CommandGroup>
+              {authorList?.map((author) => {
+                return (
+                  <CommandItem
+                    key={author.id}
+                    value={author.name}
+                    onSelect={(currentValue) => {
+                      const currentValueAuthor = authorList.find(
+                        (g) => g.name === currentValue
+                      );
+                      if (currentValueAuthor) {
+                        if (currentValueAuthor.id === selectedAuthor) {
+                          handleFilterAuthor(undefined);
+                        } else {
+                          handleFilterAuthor(currentValueAuthor.id);
+                        }
+                      } else {
+                        handleFilterAuthor(undefined);
+                      }
+                    }}
+                  >
+                    <CheckIcon
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedAuthor === author.id
+                          ? "opacity-100"
+                          : "opacity-0"
+                      )}
+                    />
+                    <p className="whitespace-normal">{author.name}</p>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

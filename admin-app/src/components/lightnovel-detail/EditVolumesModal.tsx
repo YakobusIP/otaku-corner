@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 
-import { updateLightNovelVolumesService } from "@/services/lightnovel.service";
+import { lightNovelService } from "@/services/light-novel.service";
 
 import {
   AlertDialog,
@@ -25,11 +25,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { useToast } from "@/hooks/useToast";
+import { LightNovelDetail } from "@/types/light-novel.type";
 
-import { LightNovelDetail } from "@/types/lightnovel.type";
+import { detailKeys } from "@/lib/query-keys";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, PencilIcon } from "lucide-react";
+import { toast } from "sonner";
 
 type Props = {
   lightNovelDetail: LightNovelDetail;
@@ -40,13 +42,38 @@ export default function EditVolumesModal({
   lightNovelDetail,
   resetParent
 }: Props) {
-  const toast = useToast();
+  const queryClient = useQueryClient();
   const [volumesCount, setVolumesCount] = useState(
     lightNovelDetail.volumesCount ?? 0
   );
   const [openAlertDialog, setOpenAlertDialog] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
+
+  const updateLightNovelStatsMutation = useMutation({
+    mutationFn: async (nextVolumesCount: number) => {
+      const response = await lightNovelService.updateVolumes(
+        lightNovelDetail.id,
+        nextVolumesCount
+      );
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({
+        queryKey: detailKeys.lightNovel(lightNovelDetail.id)
+      });
+      await resetParent();
+      toast.success("All set!", {
+        description: data?.message ?? "Volumes updated successfully"
+      });
+      setOpenAlertDialog(false);
+    },
+    onError: (error: Error) => {
+      toast.error("Uh oh! Something went wrong", {
+        description: error.message
+      });
+    }
+  });
 
   const validateVolumeNumber = async () => {
     if (lightNovelDetail.volumesCount) {
@@ -61,46 +88,29 @@ export default function EditVolumesModal({
           `You are about to remove volumes ${volumesCount + 1} to ${lightNovelDetail.volumesCount} from the system. All related data, including their consumed dates, will be permanently deleted.`
         );
       } else {
-        await updateLightNovelStats();
+        updateLightNovelStats();
       }
     }
   };
 
-  const updateLightNovelStats = async () => {
-    setIsLoadingUpdate(true);
-    const response = await updateLightNovelVolumesService(
-      lightNovelDetail.id,
-      volumesCount
-    );
-
-    if (response.success) {
-      resetParent();
-      toast.toast({
-        title: "All set!",
-        description: response.data.message
-      });
-    } else {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-
-    setIsLoadingUpdate(false);
-    setOpenAlertDialog(false);
+  const updateLightNovelStats = () => {
+    updateLightNovelStatsMutation.mutate(volumesCount);
   };
 
   return (
     <Fragment>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="destructive">
-            <PencilIcon className="w-4 h-4 mr-2" />
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-border/60 bg-background/30 text-foreground hover:bg-background/50"
+          >
+            <PencilIcon className="h-4 w-4" />
             Override Volumes
           </Button>
         </DialogTrigger>
-        <DialogContent className="w-full xl:w-1/5">
+        <DialogContent className="w-full xl:w-1/4">
           <DialogHeader>
             <DialogTitle>Override Volumes</DialogTitle>
             <DialogDescription>
@@ -118,8 +128,12 @@ export default function EditVolumesModal({
             />
           </div>
           <DialogFooter>
-            <Button type="submit" onClick={validateVolumeNumber}>
-              {!openAlertDialog && isLoadingUpdate && (
+            <Button
+              type="submit"
+              onClick={validateVolumeNumber}
+              disabled={updateLightNovelStatsMutation.isPending}
+            >
+              {!openAlertDialog && updateLightNovelStatsMutation.isPending && (
                 <Loader2Icon className="w-4 h-4 animate-spin mr-2" />
               )}
               Save changes
@@ -138,7 +152,7 @@ export default function EditVolumesModal({
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction onClick={updateLightNovelStats}>
-              {openAlertDialog && isLoadingUpdate && (
+              {openAlertDialog && updateLightNovelStatsMutation.isPending && (
                 <Loader2Icon className="w-4 h-4 animate-spin mr-2" />
               )}
               Continue

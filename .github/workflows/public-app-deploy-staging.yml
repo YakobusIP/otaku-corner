@@ -1,0 +1,18 @@
+name: Deploy Public App (staging)
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - "public-app/**"
+      - ".github/workflows/public-app-deploy-staging.yml"
+      - ".github/workflows/_deploy-public-app.yml"
+
+jobs:
+  call:
+    uses: ./.github/workflows/_deploy-public-app.yml
+    secrets: inherit
+    with:
+      environment: staging
+      deploy_path: /srv/staging/public
+      service_name: otaku-corner-public-staging.service

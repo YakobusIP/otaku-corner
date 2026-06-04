@@ -1,37 +1,36 @@
-import { ApiResponse } from "@/types/api.type";
+import { axiosClient, handleAxiosError } from "@/lib/api/axios";
+import {
+  type NestPaginatedListBody,
+  mapNestListPageToPublic
+} from "@/lib/shared/nest-paginated-list";
 
-import { axiosClient } from "@/lib/axios";
+const BASE_GENRE_URL = "/api/genres";
+const BASE_STUDIO_URL = "/api/studios";
+const BASE_THEME_URL = "/api/themes";
+const BASE_AUTHOR_URL = "/api/authors";
 
-import { AxiosError } from "axios";
-
-const BASE_GENRE_URL = "/api/genre";
-const BASE_STUDIO_URL = "/api/studio";
-const BASE_THEME_URL = "/api/theme";
-const BASE_AUTHOR_URL = "/api/author";
+const ENTITY_LIST_LIMIT = 100;
 
 const createEntityService = (baseUrl: string) => {
-  const fetchAll = async <T>(): Promise<ApiResponse<T>> => {
+  const fetchAll = async <T>() => {
     try {
-      const response = await axiosClient.get(baseUrl);
-      return { success: true, data: response.data.data };
+      const response = await axiosClient.get<NestPaginatedListBody<T>>(
+        baseUrl,
+        {
+          params: { page: 1, limit: ENTITY_LIST_LIMIT }
+        }
+      );
+      return mapNestListPageToPublic(response.data).data;
     } catch (error) {
-      console.error(error);
-      return {
-        success: false,
-        error:
-          error instanceof AxiosError && error.response?.data.error
-            ? error.response?.data.error
-            : "There was a problem with your request."
-      };
+      const message = handleAxiosError(error);
+      throw new Error(message);
     }
   };
 
   return { fetchAll };
 };
 
-const genreService = createEntityService(BASE_GENRE_URL);
-const studioService = createEntityService(BASE_STUDIO_URL);
-const themeService = createEntityService(BASE_THEME_URL);
-const authorService = createEntityService(BASE_AUTHOR_URL);
-
-export { genreService, studioService, themeService, authorService };
+export const genreService = createEntityService(BASE_GENRE_URL);
+export const studioService = createEntityService(BASE_STUDIO_URL);
+export const themeService = createEntityService(BASE_THEME_URL);
+export const authorService = createEntityService(BASE_AUTHOR_URL);

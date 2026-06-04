@@ -8,13 +8,13 @@ import {
   SelectValue
 } from "@/components/ui/select";
 
-import { useToast } from "@/hooks/useToast";
-
-import { ApiResponse, MessageResponse } from "@/types/api.type";
+import { MessageResponse } from "@/types/api.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
+import { mediaKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircleIcon,
   EyeIcon,
@@ -22,6 +22,7 @@ import {
   PlayCircleIcon,
   XCircleIcon
 } from "lucide-react";
+import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 
 type Props = {
@@ -31,81 +32,112 @@ type Props = {
   serviceFn?: (
     id: number,
     progressStatus: PROGRESS_STATUS
-  ) => Promise<ApiResponse<MessageResponse>>;
+  ) => Promise<
+    { success: true; data: MessageResponse } | { success: false; error: string }
+  >;
+  triggerClassName?: string;
 };
 
 export default function ProgressStatus({
   id,
   progressStatus,
   setProgressStatus,
-  serviceFn
+  serviceFn,
+  triggerClassName
 }: Props) {
   const [selectedStatus, setSelectedStatus] = useState(progressStatus);
-  const toast = useToast();
+  const queryClient = useQueryClient();
 
   const statusOptions = [
     {
       value: "PLANNED",
       label: PROGRESS_STATUS.PLANNED,
-      icon: <EyeIcon className="mr-2 h-4 w-4" />,
-      color: "bg-sky-400"
+      Icon: EyeIcon,
+      iconClass: "text-slate-300",
+      triggerClass:
+        "bg-linear-to-r from-slate-600 to-slate-700 text-white border-slate-500/40 shadow-xs [&_svg]:text-white"
     },
     {
       value: "ON_HOLD",
       label: PROGRESS_STATUS.ON_HOLD,
-      icon: <PauseCircleIcon className="mr-2 h-4 w-4" />,
-      color: "bg-yellow-400"
+      Icon: PauseCircleIcon,
+      iconClass: "text-amber-400",
+      triggerClass:
+        "bg-linear-to-r from-amber-600 to-orange-600 text-white border-amber-500/30 shadow-xs [&_svg]:text-white"
     },
     {
       value: "ON_PROGRESS",
       label: PROGRESS_STATUS.ON_PROGRESS,
-      icon: <PlayCircleIcon className="mr-2 h-4 w-4" />,
-      color: "bg-green-300"
+      Icon: PlayCircleIcon,
+      iconClass: "text-sky-400",
+      triggerClass:
+        "bg-linear-to-r from-blue-600 to-indigo-600 text-white border-blue-500/40 shadow-xs [&_svg]:text-white"
     },
     {
       value: "COMPLETED",
       label: PROGRESS_STATUS.COMPLETED,
-      icon: <CheckCircleIcon className="mr-2 h-4 w-4" />,
-      color: "bg-purple-300"
+      Icon: CheckCircleIcon,
+      iconClass: "text-violet-400",
+      triggerClass:
+        "bg-linear-to-r from-violet-600 to-purple-600 text-white border-violet-500/30 shadow-xs [&_svg]:text-white"
     },
     {
       value: "DROPPED",
       label: PROGRESS_STATUS.DROPPED,
-      icon: <XCircleIcon className="mr-2 h-4 w-4" />,
-      color: "bg-destructive"
+      Icon: XCircleIcon,
+      iconClass: "text-rose-400",
+      triggerClass:
+        "bg-linear-to-r from-rose-600 to-red-600 text-white border-rose-500/30 shadow-xs [&_svg]:text-white"
     }
   ];
 
-  const selectedStatusColor =
-    statusOptions.find((option) => option.value === selectedStatus)?.color ||
-    "bg-white";
+  const selectedTriggerClass =
+    statusOptions.find((option) => option.value === selectedStatus)
+      ?.triggerClass ?? "bg-linear-to-r from-slate-600 to-slate-700 text-white";
 
-  const debouncedSubmit = useDebouncedCallback(async () => {
-    if (serviceFn) {
-      const response = await serviceFn(id, selectedStatus as PROGRESS_STATUS);
-
-      if (response.success) {
-        toast.toast({
-          title: "All set!",
-          description: response.data.message
-        });
-      } else {
-        toast.toast({
-          variant: "destructive",
-          title: "Uh oh! Something went wrong",
-          description: response.error
-        });
-      }
+  const updateProgressStatusMutation = useMutation({
+    mutationFn: async (nextStatus: PROGRESS_STATUS) => {
+      if (!serviceFn) return undefined;
+      const response = await serviceFn(id, nextStatus);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: mediaKeys.all });
+      await queryClient.invalidateQueries({
+        queryKey: mediaKeys.statusCounts("anime")
+      });
+      await queryClient.invalidateQueries({
+        queryKey: mediaKeys.statusCounts("manga")
+      });
+      await queryClient.invalidateQueries({
+        queryKey: mediaKeys.statusCounts("lightNovel")
+      });
+      toast.success("All set!", {
+        description: data?.message ?? "Progress status updated successfully"
+      });
+    },
+    onError: (error: Error) => {
+      toast.error("Uh oh! Something went wrong", {
+        description: error.message
+      });
     }
-  }, 1000);
+  });
+
+  const debouncedSubmit = useDebouncedCallback(
+    (nextStatus: PROGRESS_STATUS) => {
+      updateProgressStatusMutation.mutate(nextStatus);
+    },
+    1000
+  );
 
   const handleStatusChange = (value: string) => {
     setSelectedStatus(value);
 
     if (setProgressStatus) {
       setProgressStatus(value);
-    } else {
-      debouncedSubmit();
+    } else if (serviceFn) {
+      debouncedSubmit(value as PROGRESS_STATUS);
     }
   };
 
@@ -115,24 +147,29 @@ export default function ProgressStatus({
       value={selectedStatus}
       onValueChange={handleStatusChange}
     >
-      <SelectTrigger className={cn("w-[180px]", selectedStatusColor)}>
+      <SelectTrigger
+        className={cn(
+          "w-[180px] border font-medium ring-offset-background [&_svg]:text-white",
+          selectedTriggerClass,
+          triggerClassName
+        )}
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {statusOptions.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            <div className="flex items-center">
-              {option.icon}
-              {option.label}
-              <span
-                className={cn(
-                  "aspect-square w-4 ml-2 rounded-full",
-                  option.color
-                )}
-              />
-            </div>
-          </SelectItem>
-        ))}
+        {statusOptions.map((option) => {
+          const ItemIcon = option.Icon;
+          return (
+            <SelectItem key={option.value} value={option.value}>
+              <div className="flex items-center">
+                <ItemIcon
+                  className={cn("mr-2 h-4 w-4 shrink-0", option.iconClass)}
+                />
+                {option.label}
+              </div>
+            </SelectItem>
+          );
+        })}
       </SelectContent>
     </Select>
   );

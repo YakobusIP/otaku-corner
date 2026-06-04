@@ -1,0 +1,19 @@
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - next@15.1.2
+  - next@15.2.2
+  - next@15.4.5
+  - next@15.4.7
+  - next@15.1.6
+  - next@15.0.5
+  - next@15.0.6
+  - next@15.5.10
+  - next@15.0.8
+  - next@15.2.3
+  - next@15.5.13
+  - next@15.5.14
+  - next@15.5.15
+  - postcss@8.5.10
+  - next@15.5.16

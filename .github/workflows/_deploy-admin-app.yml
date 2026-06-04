@@ -1,0 +1,72 @@
+name: _Deploy Admin App (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      deploy_path:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    concurrency:
+      group: deploy-admin-${{ inputs.environment }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: admin-app/pnpm-lock.yaml
+
+      - name: Build admin app
+        working-directory: admin-app
+        env:
+          VITE_AXIOS_BASE_URL: ${{ secrets.BACKEND_BASE_URL }}
+          VITE_PUBLIC_APP_URL: ${{ vars.PUBLIC_APP_URL }}
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      - name: Upload admin via SCP (env-scoped tmp dir)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port:     ${{ secrets.SSH_PORT }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          source: admin-app/dist/
+          target: /tmp/deploy/${{ inputs.environment }}/admin-app
+          strip_components: 1
+
+      - name: Remote admin deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port:     ${{ secrets.SSH_PORT }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+
+            SRC="/tmp/deploy/${{ inputs.environment }}/admin-app/dist"
+            DST="${{ inputs.deploy_path }}"
+
+            sudo mkdir -p "$DST"
+            sudo rsync -rt --delete "$SRC/" "$DST/"
+
+            sudo nginx -t && sudo systemctl reload nginx

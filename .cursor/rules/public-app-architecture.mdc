@@ -1,0 +1,102 @@
+---
+description: Public app architecture, scope, domain boundaries, Next.js app router conventions
+globs: public-app/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+# Public app architecture
+
+These rules apply to the `public-app` Next.js application. The public app is the user-facing read-only experience for Otaku Corner. It should stay optimized for browsing, SEO, predictable route behavior, and maintainable domain-specific UI.
+
+## Scope and intent
+
+- Treat `public-app` as a separate frontend surface from `admin-app` and `backend`.
+- Do not copy admin-app patterns blindly. Public app code is optimized for public browsing, server prefetching, metadata, sitemaps, and polished presentation.
+- Treat SEO as a top-priority requirement for public app work. Any route, metadata, sitemap, image, URL, or rendering change should be reviewed for SEO impact before it is considered complete.
+- Keep the public app read-only unless a feature explicitly introduces public write behavior. Existing services are read-oriented and should remain simple.
+- Prefer code that matches the existing public app conventions over new generic abstractions.
+- Avoid unrelated refactors while touching public app files. This app has several domain-specific patterns; keep changes scoped to the feature or bug being addressed.
+
+## SEO-first public app behavior
+
+- The public app is discoverable public content, not an internal dashboard. SEO is a first-class design constraint.
+- Preserve canonical URLs for list and detail pages.
+- Preserve metadata quality for every public route.
+- Preserve sitemap generation and XML correctness.
+- Preserve crawlable URLs for public content.
+- Preserve server prefetching and hydration patterns that make public pages render meaningful content quickly.
+- Do not introduce client-only data loading for primary public content when the existing server-prefetch pattern can be used.
+- When changing route paths, slugs, metadata, image handling, sitemap behavior, robots behavior, or dynamic/static rendering, explicitly think through search indexing and social preview consequences.
+- Prefer stable, descriptive page titles and descriptions over clever copy when metadata is involved.
+
+## Top-level directory responsibilities
+
+- `public-app/src/app`: Next.js App Router routes, route metadata, dynamic route wrappers, sitemap routes, loading/error/not-found files, and root providers/layout.
+- `public-app/src/components`: React components, including feature components, shared UI primitives, and route-facing view composition.
+- `public-app/src/hooks`: Client hooks that coordinate component state, TanStack Query hooks, media list state, browser-only behavior, and UI orchestration.
+- `public-app/src/lib`: Non-component TypeScript helpers, query infrastructure, route helpers, media helpers, sitemap XML builders, constants, and pure utilities.
+- `public-app/src/services`: API service wrappers around the backend endpoints.
+- `public-app/src/types`: Shared TypeScript shapes used by more than one module.
+
+## App router page conventions
+
+- Keep route files in `src/app` thin. They should assemble route-level config, prefetch data, set metadata, and delegate UI to components or helper factories.
+- List pages should follow the existing pattern:
+  - Build list filters from `searchParams` through the media-specific server config.
+  - Create a fresh `QueryClient`.
+  - Prefetch with `prefetchMediaListPage`.
+  - Render `HydrationBoundary`, `MediaListProvider`, `HeroWallpaper`, `MediaListHeader`, `MediaListSection`, and `GeneralFooter`.
+- Detail pages should use `createMediaDetailPage` from `src/components/media-detail/createMediaDetailPage.tsx`.
+  - Do not reintroduce repeated route boilerplate for anime, manga, and light novel detail pages.
+  - Keep media-specific wording and component selection in the small route config object.
+- Sitemap item routes should use `createMediaSitemapHandler`.
+  - Do not duplicate XML generation logic in each media route.
+  - Keep media-specific sitemap route files as thin wrappers around the generic helper.
+
+## Domain model conventions
+
+- The public app has three public media types: `anime`, `manga`, and `lightNovel`.
+- Cross-media metadata belongs in `src/lib/media/public-media-type.ts`.
+- Use `PUBLIC_MEDIA_TYPE_CONFIG` for shared display labels, detail path segments, navigation labels, chart labels, and cross-media href creation.
+- Use `buildPublicMediaDetailHref` when building links to detail pages from generic media data.
+- Avoid scattering hard-coded media route path segments across components. If a path segment represents a media type, prefer deriving it from `PUBLIC_MEDIA_TYPE_CONFIG`.
+
+## Duplication policy
+
+- Duplicated services for anime, manga, and light novels are intentional. These services may diverge as backend contracts diverge.
+- Do not force the service layer into a generic abstraction unless there is a concrete shared behavior that is stable across all three domains.
+- Generic helpers are appropriate for stable route, sitemap, list, and detail-page patterns where the app has already established common behavior.
+- If a generic helper starts requiring many conditional branches for one media type, prefer moving the exception back into media-specific config or media-specific code.
+
+## Server/client boundary
+
+- Keep server route concerns in server files and route helpers:
+  - `notFound()`
+  - metadata generation
+  - sitemap responses
+  - server prefetching
+  - parsing App Router params
+- Keep browser interaction and React state in client components and hooks:
+  - media list search/filter state
+  - dialog state
+  - spoiler warning state
+  - viewport/media-query behavior
+  - intersection-observer pagination triggers
+- Do not import browser-only hooks into server route files.
+- Do not import Next navigation APIs into shared service modules.
+
+## File naming and exports
+
+- Component files use PascalCase file names when they export a React component, such as `MediaListHeader.tsx`.
+- Hook files use `useThing.ts`.
+- Pure helper files use kebab-case names, such as `public-list-infinite-queries.ts`.
+- Route helper factories may live in component folders only when they return JSX or need `.tsx`.
+- For default React components, prefer:
+
+```tsx
+export default function ComponentName(props: ComponentNameProps) {
+  // ...
+}
+```
+
+- For non-component helpers, prefer `export const helperName = (...) => ...`.

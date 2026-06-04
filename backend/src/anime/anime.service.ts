@@ -1,0 +1,450 @@
+import { Injectable, NotFoundException } from "@nestjs/common";
+
+import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
+import { BaseCrudService } from "@/common/crud/base-crud.service";
+import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
+import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
+import type { RequestLogContextStore } from "@/common/logging/request-log-context";
+import {
+  ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS,
+  computeRoundedWeightedPersonalScore
+} from "@/common/review-personal-score";
+import {
+  buildRelationIdLookupMap,
+  requireRelationIdFromMap
+} from "@/common/utils";
+import { chunkArray } from "@/common/utils/chunk-array";
+
+import { PrismaService } from "@/prisma/prisma.service";
+
+import {
+  AnimeDetailResponseDto,
+  AnimeListResponseDto,
+  AnimeQueryDto,
+  CreateAnimeItemDto,
+  PaginatedAnimeResponseDto,
+  UpdateAnimeDto,
+  UpdateAnimeReviewDto
+} from "@/anime/dto";
+import { FetchEpisodesQueueService } from "@/anime/fetch-episodes.queue";
+import { GenresService } from "@/genre/genres.service";
+import { StudiosService } from "@/studio/studios.service";
+import { ThemesService } from "@/theme/themes.service";
+
+import { Prisma, ProgressStatus } from "@prisma/client";
+
+interface AnimeWithReviewAndCount {
+  id: number;
+  slug: string;
+  title: string;
+  titleJapanese: string;
+  images: unknown;
+  status: string;
+  type: string;
+  score: number | null;
+  season: string | null;
+  aired: string;
+  rating: string;
+  review: {
+    reviewText: string | null;
+    progressStatus: string;
+    personalScore: number | null;
+    consumedAt: Date | null;
+  } | null;
+  _count: { episodes: number };
+}
+
+interface AnimeDetailRaw {
+  id: number;
+  slug: string;
+  type: string;
+  status: string;
+  rating: string;
+  season: string | null;
+  title: string;
+  titleJapanese: string;
+  titleSynonyms: string;
+  source: string;
+  aired: string;
+  broadcast: string;
+  episodesCount: number | null;
+  duration: string;
+  score: number | null;
+  images: unknown;
+  synopsis: string;
+  trailer: string | null;
+  malUrl: string;
+  createdAt: Date;
+  updatedAt: Date;
+  review: {
+    id: number;
+    reviewText: string | null;
+    storylineRating: number | null;
+    qualityRating: number | null;
+    voiceActingRating: number | null;
+    soundTrackRating: number | null;
+    charDevelopmentRating: number | null;
+    personalScore: number | null;
+    progressStatus: string;
+    consumedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+  } | null;
+  genres: { genre: { id: number; name: string } }[];
+  studios: { studio: { id: number; name: string } }[];
+  themes: { theme: { id: number; name: string } }[];
+  episodes: {
+    id: number;
+    aired: string;
+    number: number;
+    title: string;
+    titleJapanese: string | null;
+    titleRomaji: string | null;
+  }[];
+}
+
+interface SitemapRow {
+  id: number;
+  slug: string;
+  review: { createdAt: Date; updatedAt: Date } | null;
+}
+
+export type AnimeStatusCountItemDto = {
+  label: string;
+  value: ProgressStatus | null;
+  count: number;
+};
+
+@Injectable()
+export class AnimeService extends BaseCrudService<
+  CrudDelegate,
+  CreateAnimeItemDto,
+  UpdateAnimeDto,
+  AnimeListResponseDto,
+  AnimeDetailResponseDto
+> {
+  protected readonly resourceName = "Anime";
+
+  constructor(
+    prisma: PrismaService,
+    queryBuilder: CrudQueryBuilder,
+    private readonly genresService: GenresService,
+    private readonly studiosService: StudiosService,
+    private readonly themesService: ThemesService,
+    private readonly fetchEpisodesQueue: FetchEpisodesQueueService
+  ) {
+    super(prisma, queryBuilder);
+  }
+
+  protected getDelegate(
+    client?: PrismaService | Prisma.TransactionClient
+  ): CrudDelegate {
+    return (client ?? this.prisma).anime;
+  }
+
+  override async findAll(
+    query: AnimeQueryDto
+  ): Promise<PaginatedAnimeResponseDto> {
+    const { where, skip, take, orderBy } =
+      this.queryBuilder.buildFindAllQuery(query);
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
+    const [rawData, total] = await Promise.all([
+      this.prisma.anime.findMany({
+        where,
+        skip,
+        take,
+        orderBy,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          titleJapanese: true,
+          images: true,
+          status: true,
+          type: true,
+          score: true,
+          season: true,
+          aired: true,
+          rating: true,
+          review: {
+            select: {
+              reviewText: true,
+              progressStatus: true,
+              personalScore: true,
+              consumedAt: true
+            }
+          },
+          _count: { select: { episodes: true } }
+        }
+      }),
+      this.prisma.anime.count({ where })
+    ]);
+
+    const data: AnimeListResponseDto[] = (
+      rawData as AnimeWithReviewAndCount[]
+    ).map((anime) => ({
+      id: anime.id,
+      slug: anime.slug,
+      title: anime.title,
+      titleJapanese: anime.titleJapanese,
+      images: anime.images as object,
+      status: anime.status,
+      type: anime.type,
+      score: anime.score,
+      season: anime.season,
+      aired: anime.aired,
+      rating: anime.rating,
+      reviewText: anime.review?.reviewText ?? null,
+      progressStatus:
+        (anime.review
+          ?.progressStatus as AnimeListResponseDto["progressStatus"]) ?? null,
+      personalScore: anime.review?.personalScore ?? null,
+      consumedAt: anime.review?.consumedAt ?? null,
+      fetchedEpisode: anime._count.episodes
+    }));
+
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  override async findOne(id: number): Promise<AnimeDetailResponseDto> {
+    const anime = (await this.prisma.anime.findUnique({
+      where: { id },
+      include: {
+        review: {
+          select: {
+            id: true,
+            reviewText: true,
+            storylineRating: true,
+            qualityRating: true,
+            voiceActingRating: true,
+            soundTrackRating: true,
+            charDevelopmentRating: true,
+            personalScore: true,
+            progressStatus: true,
+            consumedAt: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        },
+        genres: {
+          select: { genre: { select: { id: true, name: true } } }
+        },
+        studios: {
+          select: { studio: { select: { id: true, name: true } } }
+        },
+        themes: {
+          select: { theme: { select: { id: true, name: true } } }
+        },
+        episodes: {
+          select: {
+            id: true,
+            aired: true,
+            number: true,
+            title: true,
+            titleJapanese: true,
+            titleRomaji: true
+          },
+          orderBy: { number: "asc" }
+        }
+      }
+    })) as AnimeDetailRaw | null;
+
+    if (!anime) {
+      throw new NotFoundException("Anime not found");
+    }
+
+    return {
+      ...anime,
+      images: anime.images as object,
+      review: anime.review ?? null,
+      genres: anime.genres.map((g) => g.genre),
+      studios: anime.studios.map((s) => s.studio),
+      themes: anime.themes.map((t) => t.theme),
+      episodes: anime.episodes
+    } as AnimeDetailResponseDto;
+  }
+
+  async createBulk(
+    data: CreateAnimeItemDto[],
+    requestLog?: RequestLogContextStore
+  ) {
+    const allGenreNames = [...new Set(data.flatMap((d) => d.genres))];
+    const allStudioNames = [...new Set(data.flatMap((d) => d.studios))];
+    const allThemeNames = [...new Set(data.flatMap((d) => d.themes))];
+
+    const [genres, studios, themes] = await Promise.all([
+      this.genresService.getOrCreateMany(allGenreNames),
+      this.studiosService.getOrCreateMany(allStudioNames),
+      this.themesService.getOrCreateMany(allThemeNames)
+    ]);
+
+    const genreMap = buildRelationIdLookupMap(genres);
+    const studioMap = buildRelationIdLookupMap(studios);
+    const themeMap = buildRelationIdLookupMap(themes);
+
+    const chunks = chunkArray(data, 5);
+    const results: number[] = [];
+
+    for (const chunk of chunks) {
+      const enqueueAfterChunk: { id: number; type: string }[] = [];
+
+      await this.prisma.$transaction(async (tx) => {
+        for (const item of chunk) {
+          const {
+            genres: genreNames,
+            studios: studioNames,
+            themes: themeNames,
+            ...animeData
+          } = item;
+
+          await tx.anime.create({
+            data: {
+              ...animeData,
+              genres: {
+                createMany: {
+                  data: genreNames.map((name) => ({
+                    genreId: requireRelationIdFromMap(genreMap, name, "Genre")
+                  }))
+                }
+              },
+              studios: {
+                createMany: {
+                  data: studioNames.map((name) => ({
+                    studioId: requireRelationIdFromMap(
+                      studioMap,
+                      name,
+                      "Studio"
+                    )
+                  }))
+                }
+              },
+              themes: {
+                createMany: {
+                  data: themeNames.map((name) => ({
+                    themeId: requireRelationIdFromMap(themeMap, name, "Theme")
+                  }))
+                }
+              },
+              review: {
+                create: {}
+              }
+            }
+          });
+
+          enqueueAfterChunk.push({ id: item.id, type: item.type });
+          results.push(item.id);
+        }
+      });
+
+      for (const job of enqueueAfterChunk) {
+        this.fetchEpisodesQueue.enqueueAfterCreate(
+          job.id,
+          job.type,
+          requestLog
+        );
+      }
+    }
+
+    return results;
+  }
+
+  async updateReview(id: number, data: UpdateAnimeReviewDto) {
+    const anime = await this.prisma.anime.findUnique({
+      where: { id },
+      include: { review: true }
+    });
+
+    if (!anime) {
+      throw new NotFoundException("Anime not found");
+    }
+
+    const review = anime.review;
+
+    const ratings = {
+      storylineRating: data.storylineRating ?? review?.storylineRating,
+      qualityRating: data.qualityRating ?? review?.qualityRating,
+      voiceActingRating: data.voiceActingRating ?? review?.voiceActingRating,
+      soundTrackRating: data.soundTrackRating ?? review?.soundTrackRating,
+      charDevelopmentRating:
+        data.charDevelopmentRating ?? review?.charDevelopmentRating
+    };
+
+    const updateData: Record<string, unknown> = { ...data };
+
+    const personalScore = computeRoundedWeightedPersonalScore(
+      ratings,
+      ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS
+    );
+    if (personalScore !== null) {
+      updateData.personalScore = personalScore;
+    }
+
+    return this.prisma.animeReview.update({
+      where: { animeId: id },
+      data: updateData
+    });
+  }
+
+  async checkDuplicate(id: number): Promise<{ exists: boolean }> {
+    const anime = await this.prisma.anime.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+    return { exists: !!anime };
+  }
+
+  async getTotal(): Promise<{ count: number }> {
+    const count = await this.prisma.anime.count();
+    return { count };
+  }
+
+  async getSitemapData(page: number, limit: number) {
+    const rawData = (await this.prisma.anime.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        slug: true,
+        review: {
+          select: {
+            createdAt: true,
+            updatedAt: true
+          }
+        }
+      }
+    })) as SitemapRow[];
+
+    return rawData.map((item) => ({
+      id: item.id,
+      slug: item.slug,
+      createdAt: item.review?.createdAt ?? null,
+      updatedAt: item.review?.updatedAt ?? null
+    }));
+  }
+
+  async getStatusCounts(): Promise<AnimeStatusCountItemDto[]> {
+    const totalCount = await this.prisma.anime.count();
+
+    const counts = await this.prisma.animeReview.groupBy({
+      by: ["progressStatus"],
+      _count: { _all: true }
+    });
+
+    const countsMap = Object.fromEntries(
+      counts.map((c) => [c.progressStatus, c._count._all])
+    );
+
+    const mappedStatus = (
+      Object.keys(PROGRESS_STATUSES) as ProgressStatus[]
+    ).map((status) => ({
+      label: PROGRESS_STATUSES[status] ?? status,
+      value: status,
+      count: countsMap[status] ?? 0
+    }));
+
+    return [{ label: "All", value: null, count: totalCount }, ...mappedStatus];
+  }
+}

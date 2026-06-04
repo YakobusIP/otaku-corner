@@ -1,0 +1,18 @@
+name: Deploy Public App (production)
+
+on:
+  push:
+    branches: [production]
+    paths:
+      - "public-app/**"
+      - ".github/workflows/public-app-deploy-production.yml"
+      - ".github/workflows/_deploy-public-app.yml"
+
+jobs:
+  call:
+    uses: ./.github/workflows/_deploy-public-app.yml
+    secrets: inherit
+    with:
+      environment: production
+      deploy_path: /srv/production/public
+      service_name: otaku-corner-public-production.service

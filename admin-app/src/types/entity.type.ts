@@ -27,19 +27,19 @@ type AuthorEntity = {
 };
 
 type GenreWithMediaCount = GenreEntity & {
-  connectedMediaCount: number;
+  connectedMediaCount?: number;
 };
 
 type StudioWithMediaCount = StudioEntity & {
-  connectedMediaCount: number;
+  connectedMediaCount?: number;
 };
 
 type ThemeWithMediaCount = ThemeEntity & {
-  connectedMediaCount: number;
+  connectedMediaCount?: number;
 };
 
 type AuthorWithMediaCount = AuthorEntity & {
-  connectedMediaCount: number;
+  connectedMediaCount?: number;
 };
 
 type GenreEntityPartial = Pick<GenreEntity, "id" | "name">;

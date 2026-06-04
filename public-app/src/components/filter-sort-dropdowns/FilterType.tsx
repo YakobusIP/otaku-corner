@@ -9,16 +9,16 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 type Props = {
-  filterType?: string;
+  selectedType?: string;
   handleFilterType: (key?: string) => void;
 };
 
-export default function FilterType({ filterType, handleFilterType }: Props) {
+export default function FilterType({ selectedType, handleFilterType }: Props) {
   const [isFilterTypeOpen, setIsFilterTypeOpen] = useState(false);
 
   const typeFilters = [
@@ -30,7 +30,7 @@ export default function FilterType({ filterType, handleFilterType }: Props) {
     <DropdownMenu onOpenChange={(value) => setIsFilterTypeOpen(value)}>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="w-full">
-          Filter by: {filterType || "Type"}
+          Filter by: {selectedType || "Type"}
           {isFilterTypeOpen ? (
             <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
           ) : (
@@ -52,7 +52,7 @@ export default function FilterType({ filterType, handleFilterType }: Props) {
               <CheckIcon
                 className={cn(
                   "mr-2 h-4 w-4",
-                  filterType === filter.key ? "opacity-100" : "opacity-0"
+                  selectedType === filter.key ? "opacity-100" : "opacity-0"
                 )}
               />
               {filter.label}

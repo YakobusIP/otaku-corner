@@ -1,23 +1,21 @@
-import LightNovelListClient from "@/app/light-novel/LightNovelListClient";
+import GeneralFooter from "@/components/GeneralFooter";
+import HeroWallpaper from "@/components/layout/HeroWallpaper";
+import { lightNovelListConfig } from "@/components/light-novel/LightNovelListConfig";
+import MediaListHeader from "@/components/media-list/MediaListHeader";
+import MediaListProvider from "@/components/media-list/MediaListProvider";
+import MediaListSection from "@/components/media-list/MediaListSection";
+
+import { lightNovelListQueryConfig } from "@/lib/media-list/light-novel-list-query";
+import { lightNovelListServerConfig } from "@/lib/media-list/light-novel-list-server";
+import { printedMediaListEntityLookups } from "@/lib/media-list/media-list-entity-lookups";
+import { prefetchMediaListPage } from "@/lib/media-list/prefetch-media-list-page";
 
 import {
-  authorService,
-  genreService,
-  themeService
-} from "@/services/entity.service";
-import { fetchAllLightNovelService } from "@/services/lightnovel.service";
-
-import { MetadataResponse } from "@/types/api.type";
-import { AuthorEntity, GenreEntity, ThemeEntity } from "@/types/entity.type";
-import type { LightNovelList } from "@/types/lightnovel.type";
-
-import { SORT_ORDER } from "@/lib/enums";
-
+  HydrationBoundary,
+  QueryClient,
+  dehydrate
+} from "@tanstack/react-query";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
-
-const START_PAGE = 1;
-const PAGINATION_SIZE = 15;
 
 export const metadata: Metadata = {
   title: "Light Novel Collection | Otaku Corner",
@@ -28,68 +26,32 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function Page() {
-  const fetchLightNovelList = async (): Promise<
-    [LightNovelList[], MetadataResponse]
-  > => {
-    const response = await fetchAllLightNovelService(
-      START_PAGE,
-      PAGINATION_SIZE,
-      undefined,
-      "title",
-      SORT_ORDER.ASCENDING
-    );
-    if (response.success) {
-      return [response.data.data, response.data.metadata];
-    } else {
-      console.error("Error on fetching light novel list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
+type SearchParams = {
+  searchParams: Promise<{ q?: string; status?: string }>;
+};
 
-  const fetchAuthorList = async () => {
-    const response = await authorService.fetchAll<AuthorEntity[]>();
-    if (response.success) {
-      return response.data;
-    } else {
-      console.error("Error on fetching author list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
+export default async function Page({ searchParams }: SearchParams) {
+  const params = await searchParams;
+  const listFilters =
+    lightNovelListServerConfig.buildListFiltersFromSearchParams(params);
 
-  const fetchGenreList = async () => {
-    const response = await genreService.fetchAll<GenreEntity[]>();
-    if (response.success) {
-      return response.data;
-    } else {
-      console.error("Error on fetching genre list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
+  const queryClient = new QueryClient();
 
-  const fetchThemeList = async () => {
-    const response = await themeService.fetchAll<ThemeEntity[]>();
-    if (response.success) {
-      return response.data;
-    } else {
-      console.error("Error on fetching theme list:", response.error);
-      redirect("/fetch-error");
-    }
-  };
-
-  const [initialLightNovelList, initialLightNovelMetadata] =
-    await fetchLightNovelList();
-  const initialAuthorList = await fetchAuthorList();
-  const initialGenreList = await fetchGenreList();
-  const initialThemeList = await fetchThemeList();
+  await prefetchMediaListPage(queryClient, {
+    listFilters,
+    queryConfig: lightNovelListQueryConfig,
+    entityLookups: printedMediaListEntityLookups
+  });
 
   return (
-    <LightNovelListClient
-      initialLightNovelList={initialLightNovelList}
-      initialLightNovelMetadata={initialLightNovelMetadata}
-      initialAuthorList={initialAuthorList}
-      initialGenreList={initialGenreList}
-      initialThemeList={initialThemeList}
-    />
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <MediaListProvider config={lightNovelListConfig}>
+        <HeroWallpaper>
+          <MediaListHeader config={lightNovelListConfig} />
+          <MediaListSection config={lightNovelListConfig} />
+          <GeneralFooter />
+        </HeroWallpaper>
+      </MediaListProvider>
+    </HydrationBoundary>
   );
 }

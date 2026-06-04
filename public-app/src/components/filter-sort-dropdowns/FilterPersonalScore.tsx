@@ -9,25 +9,25 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
-import { scoreOptions } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { scoreOptions } from "@/lib/shared/constants";
+import { cn } from "@/lib/shared/utils";
 
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 type Props = {
-  filterPersonalScore?: string;
+  selectedPersonalScore?: string;
   handleFilterPersonalScore: (key?: string) => void;
 };
 
 export default function FilterPersonalScore({
-  filterPersonalScore,
+  selectedPersonalScore,
   handleFilterPersonalScore
 }: Props) {
   const [isFilterPersonalScoreOpen, setIsFilterPersonalScoreOpen] =
     useState(false);
 
   const selectedFilterPersonalScore = scoreOptions.find(
-    (filter) => filter.key === filterPersonalScore
+    (filter) => filter.key === selectedPersonalScore
   );
 
   return (
@@ -59,7 +59,7 @@ export default function FilterPersonalScore({
               <CheckIcon
                 className={cn(
                   "mr-2 h-4 w-4",
-                  filterPersonalScore === filter.key
+                  selectedPersonalScore === filter.key
                     ? "opacity-100"
                     : "opacity-0"
                 )}

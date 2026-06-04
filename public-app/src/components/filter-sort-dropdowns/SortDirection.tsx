@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -6,44 +8,77 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
-import { SORT_ORDER } from "@/lib/enums";
+import { SORT_ORDER } from "@/lib/shared/enums";
+import { cn } from "@/lib/shared/utils";
 
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
 
 type Props = {
-  sortBy: string;
-  sortOrder: SORT_ORDER;
+  sort?: string;
+  order?: SORT_ORDER;
   handleSort: (key: string) => void;
+  compactBelowMd?: boolean;
 };
 
+const sortLabel = (sort?: string) =>
+  sort === "title"
+    ? "Title"
+    : sort === "score"
+      ? "MAL Score"
+      : "Personal Score";
+
 export default function SortDirection({
-  sortBy,
-  sortOrder,
-  handleSort
+  sort,
+  order,
+  handleSort,
+  compactBelowMd = false
 }: Props) {
+  const orderIcon = (
+    <span className="shrink-0">
+      {order === SORT_ORDER.ASCENDING ? (
+        <ArrowUpIcon className="h-4 w-4" />
+      ) : (
+        <ArrowDownIcon className="h-4 w-4" />
+      )}
+    </span>
+  );
+
+  const sortLabelContent = (
+    <span className="inline-flex items-center gap-2 whitespace-nowrap">
+      {orderIcon}
+      <span>Sort by: {sortLabel(sort)}</span>
+    </span>
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full">
-          Sort by:{" "}
-          {sortBy === "title"
-            ? "Title"
-            : sortBy === "score"
-              ? "MAL Score"
-              : "Personal Score"}
-          {sortOrder === SORT_ORDER.ASCENDING ? (
-            <ArrowUpIcon className="ml-2 w-4 h-4" />
+        <Button
+          variant="outline"
+          aria-label={`Sort by ${sortLabel(sort)}`}
+          className={cn(
+            "bg-white/60 backdrop-blur-sm border-white/40",
+            compactBelowMd
+              ? "max-md:size-10 max-md:shrink-0 max-md:justify-center max-md:px-0 md:h-10 md:w-fit md:px-4"
+              : "w-full sm:w-fit"
+          )}
+        >
+          {compactBelowMd ? (
+            <Fragment>
+              <ArrowUpDownIcon className="h-4 w-4 md:hidden" />
+              <span className="hidden md:contents">{sortLabelContent}</span>
+            </Fragment>
           ) : (
-            <ArrowDownIcon className="ml-2 w-4 h-4" />
+            sortLabelContent
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="dropdown-content-width-full">
         <DropdownMenuItem onClick={() => handleSort("title")}>
           Title
-          {sortBy === "title" && (
+          {sort === "title" && (
             <span className="ml-1">
-              {sortOrder === SORT_ORDER.ASCENDING ? (
+              {order === SORT_ORDER.ASCENDING ? (
                 <ArrowUpIcon className="w-4 h-4" />
               ) : (
                 <ArrowDownIcon className="w-4 h-4" />
@@ -53,9 +88,9 @@ export default function SortDirection({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleSort("score")}>
           MAL Score
-          {sortBy === "score" && (
+          {sort === "score" && (
             <span className="ml-1">
-              {sortOrder === SORT_ORDER.ASCENDING ? (
+              {order === SORT_ORDER.ASCENDING ? (
                 <ArrowUpIcon className="w-4 h-4" />
               ) : (
                 <ArrowDownIcon className="w-4 h-4" />
@@ -65,9 +100,9 @@ export default function SortDirection({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleSort("personal_score")}>
           Personal Score
-          {sortBy === "personal_score" && (
+          {sort === "personal_score" && (
             <span className="ml-1">
-              {sortOrder === SORT_ORDER.ASCENDING ? (
+              {order === SORT_ORDER.ASCENDING ? (
                 <ArrowUpIcon className="w-4 h-4" />
               ) : (
                 <ArrowDownIcon className="w-4 h-4" />

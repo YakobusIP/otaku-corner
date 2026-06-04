@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,8 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
-import { scoreOptions } from "@/lib/constants";
-import { fixFloatingError } from "@/lib/utils";
+import { scoreOptions } from "@/lib/shared/constants";
+import { fixFloatingError } from "@/lib/shared/utils";
 
 import { InfoIcon } from "lucide-react";
 
@@ -39,31 +40,41 @@ export default function RatingDetailContent({ details, finalScore }: Props) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <InfoIcon className="w-4 h-4 hover:cursor-pointer" />
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-slate-600 hover:text-slate-800 hover:bg-white/40"
+        >
+          <InfoIcon size={16} />
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="bg-white/90 backdrop-blur-xl border border-white/40 text-slate-800 max-w-md">
         <DialogHeader>
-          <DialogTitle>Personal Score Breakdown</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-slate-800">
+            Personal Score Breakdown
+          </DialogTitle>
           <DialogDescription>Score details on every criteria</DialogDescription>
         </DialogHeader>
-        <div className="space-y-1 text-sm">
+        <div className="space-y-4">
           {details.map((detail) => (
             <Fragment key={`rating-${detail.title}`}>
-              <span className="flex flex-col xl:flex-row justify-between">
-                <p>{`${detail.title} (${detail.weight}%):`}</p>
-                <p>{detail.rating}</p>
-              </span>
-              <Separator />
+              <div className="flex justify-between items-center">
+                <span className="text-slate-700">{`${detail.title} (${detail.weight}%):`}</span>
+                <span className="font-semibold text-slate-800">
+                  {detail.rating}
+                </span>
+              </div>
+              <Separator className="border-slate-300" />
             </Fragment>
           ))}
-          <span className="flex flex-col xl:flex-row justify-between">
-            <p>Final score:</p>
-            <p className="text-left xl:text-right font-bold">
+          <div className="flex justify-between items-center font-bold text-lg text-slate-800">
+            <span>Final score:</span>
+            <span>
               {finalScore !== null && finalScore !== undefined
                 ? `${fixFloatingError(finalScore)} - ${selectedFinalScoreLabel?.label}`
                 : "N/A"}
-            </p>
-          </span>
+            </span>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,0 +1,123 @@
+---
+description: Backend NestJS architecture, module boundaries, controller/service conventions, and domain duplication policy
+globs: backend/**/*.{ts,json,prisma,sql}
+alwaysApply: true
+---
+
+# Backend architecture
+
+These rules apply to the `backend` NestJS application. The backend is the API, persistence, authentication, storage, queue, and structured logging surface for Otaku Corner. It should stay explicit, validated at the boundary, predictable under load, and easy to evolve by domain.
+
+## Scope and intent
+
+- Treat `backend` as a separate application from `public-app` and `admin-app`.
+- Do not copy frontend patterns into the backend. Backend code should be driven by NestJS modules, DTO validation, Prisma access, structured logging, and explicit API contracts.
+- Prefer conventions that already exist in `backend/src` over new framework-level abstractions.
+- Keep changes scoped to the feature or bug being addressed. Avoid broad rewrites of unrelated modules, generated Prisma output, migrations, or lockfiles unless the task explicitly requires them.
+- Preserve the current NestJS shape:
+  - modules own their controllers and services
+  - controllers own HTTP shape
+  - services own business logic and Prisma operations
+  - DTOs own request/response contracts and validation
+  - shared infrastructure belongs in `src/common`, `src/config`, `src/prisma`, `src/storage`, or a clear feature module
+
+## Top-level backend responsibilities
+
+- `backend/src/app.module.ts`: root Nest module wiring.
+- `backend/src/main.ts`: application bootstrap, global pipes, global filters, CORS, cookies, Swagger setup, process lifecycle logging, and global API prefix.
+- `backend/src/config`: environment validation and configuration helpers.
+- `backend/src/common`: shared decorators, guards, DTOs, CRUD helpers, Prisma filters, logging, constants, and small utilities.
+- `backend/src/prisma`: Prisma service and Prisma-specific extensions.
+- `backend/src/storage`: R2/S3-compatible storage infrastructure and object-key safety.
+- `backend/src/assets`: asset upload orchestration and asset-specific API behavior.
+- `backend/src/auth`: login, user identity, JWT strategy, and auth response contracts.
+- Feature modules such as `anime`, `manga`, `light-novel`, `author`, `genre`, `studio`, `theme`, `media-library`, and `statistic` own their domain behavior.
+- `backend/prisma`: schema, migrations, Prisma SQL files, and seed logic.
+
+## Module conventions
+
+- Every feature should have a Nest module when it has a controller, service, queue, or provider that belongs to a domain.
+- Keep module files thin. They should declare imports, controllers, providers, and exports; they should not contain business logic.
+- Keep providers in the smallest module that owns them.
+- Export providers only when another module genuinely needs them.
+- Avoid creating large shared modules just to avoid imports. Shared modules should represent real infrastructure, such as logging, Prisma, storage, or queue infrastructure.
+
+## Controller conventions
+
+- Controllers describe HTTP behavior only:
+  - route paths
+  - guards/decorators
+  - request params/query/body mapping
+  - pipes for route params
+  - Swagger docs
+  - service method calls
+- Controllers should not contain Prisma query construction, relation reconciliation, storage internals, or bulk business logic.
+- Use `AuthenticatedApiController` for authenticated API controllers unless a controller has a specific reason to opt out.
+- Use `@Public()` only for endpoints intentionally available without auth.
+- Prefer explicit route handlers over clever dynamic dispatch.
+- Keep route parameter coercion explicit with Nest pipes such as `ParseIntPipe` when route params are numeric.
+- Do not rely on TypeScript parameter types alone to convert or validate HTTP input.
+
+## Service conventions
+
+- Services own business logic and data access orchestration.
+- Services may inject `PrismaService`, domain services, storage services, queue services, config, and structured logging as needed.
+- Services should return typed DTO-compatible data or domain values. Avoid returning loosely shaped objects that only happen to work with the frontend.
+- Services should throw meaningful Nest exceptions for expected API errors, such as `NotFoundException`, `BadRequestException`, or `ConflictException`.
+- Let the global `PrismaExceptionFilter` translate known Prisma errors where that is the established path.
+- Avoid swallowing errors. If an operation can degrade gracefully, log context first and return an explicit fallback.
+- Do not use `console.log`, `console.warn`, or `console.error` in services. Use the structured logger.
+
+## DTO conventions
+
+- DTO files belong under the feature's `dto` directory or `src/common/dto` when shared.
+- Request DTOs should use `class-validator`, `class-transformer`, and Swagger decorators.
+- Response DTOs should describe the API response shape clearly.
+- Keep DTO barrel exports in `dto/index.ts` when the feature already uses them.
+- Do not put database implementation details in DTOs unless the public API intentionally exposes them.
+- Do not use DTOs as a substitute for business logic. DTOs validate and document shape; services enforce business rules.
+
+## Media domain policy
+
+- The backend has three review media domains: anime, manga, and light novels.
+- Anime, manga, and light novel services may remain duplicated. This is intentional because their backend contracts and business behavior may diverge.
+- Do not force these services into a generic abstraction just because they look similar today.
+- Query builders and DTO constants may remain domain-local when divergence is plausible.
+- Extract shared code only when the behavior is stable across domains, the abstraction removes meaningful complexity, and it does not create conditional branches for domain exceptions.
+- Generic helpers are appropriate for stable infrastructure and repeated mechanics, such as pagination, CRUD scaffolding, relation lookup utilities, and logging helpers.
+
+## CRUD helper policy
+
+- Use the existing `src/common/crud` helpers for simple entity CRUD patterns when they fit the endpoint.
+- Do not bend feature-specific media review behavior into the generic CRUD base if it makes the service harder to read.
+- Keep CRUD hooks explicit and typed.
+- Keep query builders responsible for query construction, not controller behavior.
+- Keep pagination behavior consistent with the shared pagination DTOs.
+
+## File naming and exports
+
+- Nest controller files use `feature.controller.ts`.
+- Nest service files use `feature.service.ts`.
+- Nest module files use `feature.module.ts`.
+- DTO files use descriptive kebab-case names such as `create-anime.dto.ts` or `media-library-query.dto.ts`.
+- Query builder files use descriptive kebab-case names such as `anime-query-builder.ts`.
+- Keep types and helpers close to the domain unless they are genuinely reused.
+- Prefer named exports for helpers, constants, DTO classes, and services.
+- Avoid default exports in backend code unless a tool or framework explicitly requires them.
+
+## Import conventions
+
+- Use the configured `@/*` alias for imports from `backend/src`.
+- Prefer clear absolute internal imports over deep relative paths between domains.
+- Relative imports are fine for files in the same small directory, such as DTO barrel exports or adjacent storage helpers.
+- Avoid import paths that depend on generated `dist` output.
+- Do not import from frontend applications.
+
+## What not to do
+
+- Do not mix public-app or admin-app UI concerns into backend modules.
+- Do not put route parsing or Swagger-only behavior in services.
+- Do not put Prisma query construction in controllers.
+- Do not turn all domain modules into one generic media mega-module.
+- Do not add broad abstractions unless they match a stable existing backend pattern.
+- Do not create new global state outside Nest providers unless there is a narrow infrastructure reason.
