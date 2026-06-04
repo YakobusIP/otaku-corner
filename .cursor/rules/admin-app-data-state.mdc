@@ -1,0 +1,118 @@
+---
+description: Admin app TanStack Query, services, cache keys, mutations, URL state, route params, auth session, and async workflows
+globs: admin-app/src/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+# Admin app data and state
+
+The admin app uses TanStack Query as the data-fetching and mutation layer. Services wrap backend HTTP calls. Components and hooks should coordinate those pieces consistently so list/detail state stays fresh after admin actions.
+
+## TanStack Query is required
+
+- Always use TanStack Query for backend reads, backend writes, and async server state.
+- Use `useQuery` for single-resource or finite reads.
+- Use `useInfiniteQuery` for paginated/infinite list workflows.
+- Use `useMutation` for create, update, delete, upload, sync, and action endpoints.
+- Do not call backend services directly from component render bodies or event handlers unless the call is inside a query/mutation adapter.
+- Do not introduce Redux, Zustand, SWR, Apollo, or another server-state layer for backend data.
+- Browser-local UI state can use React state/context when it is not server state.
+
+## Services
+
+- Backend HTTP calls belong in `src/services`.
+- Services should use `interceptedAxios` from `src/lib/axios` for backend API requests.
+- Services should return `ServiceResult` shapes where the current service pattern expects `success/error`.
+- Keep service methods focused on HTTP contract mapping:
+  - endpoint path
+  - request params/body
+  - response mapping
+  - error conversion through service-result helpers
+- Do not put component state, toasts, cache invalidation, or React hooks in services.
+- Use raw `axios` only for intentional non-backend calls, such as presigned asset uploads, where the existing upload service pattern does this.
+
+## Query keys
+
+- Use query key helpers from `src/lib/query-keys.ts`.
+- Do not hand-build unrelated string arrays for backend query keys when a helper already exists.
+- Keep cache key inputs stable and serializable.
+- Include filters in list query keys when those filters affect the data returned.
+- Keep media list keys under `mediaKeys`.
+- Keep detail keys under `detailKeys`.
+- Keep entity keys under `entityKeys`.
+- Keep dashboard/statistics keys under `statisticKeys`.
+
+## Cache invalidation
+
+- Every mutation must consider which queries become stale.
+- Mutations that create/delete media should invalidate:
+  - `mediaKeys.all`
+  - relevant status count keys
+  - relevant duplicate-check keys when MAL IDs are involved
+- Mutations that update detail review state should invalidate the detail query key.
+- Mutations that affect media list rows should invalidate `mediaKeys.all`.
+- Entity CRUD mutations should invalidate the specific entity query key.
+- Avoid invalidating the entire cache unless the action truly affects all admin data.
+- Await invalidations when subsequent UI state depends on fresh data before closing, navigating, or showing success.
+
+## Infinite queries
+
+- Use `useInfiniteQuery` for the media library list and Jikan search flows.
+- Use `react-intersection-observer` sentinels for automatic load-more behavior.
+- Do not write custom scroll listeners for ordinary infinite loading.
+- Guard load-more calls with `hasNextPage` and `isFetchingNextPage`.
+- Use stable scroll roots when a scroll area is inside a dialog or layout container.
+- Always provide an explicit `initialPageParam`.
+
+## URL state
+
+- The admin media library intentionally writes only a limited subset of filters to the URL so URLs do not become chaotic.
+- Do not add every advanced filter to the URL unless the business decision changes.
+- The current limited URL state should remain focused on high-value navigation state such as media type, page, query, sort, sort order, and progress status.
+- Even when URL writing is intentionally limited, URL reading must be validated.
+- Never cast arbitrary `searchParams` values directly into app union types without checking allowed values.
+- Invalid URL values should fall back to defaults rather than driving an unintended domain branch.
+
+## Route params
+
+- Route params are untrusted strings.
+- Use `parsePositiveIntParam` from `src/lib/parse-route-param.ts` for numeric media detail route params.
+- Numeric route params must be digit-only, positive, finite, and safe integers.
+- Do not use plain `parseInt` for route params.
+- Do not allow values like `123abc`, decimals, negatives, zero, blank strings, or unsafe integers to become backend IDs.
+- Invalid detail IDs should disable the query and let the page render the existing not-found/error state.
+
+## Auth and tokens
+
+- Keep the auth session flow centralized in `src/auth` and `src/lib/axios`.
+- `RequireAuth` owns protected route gating.
+- `useAuthSession` owns session validation through TanStack Query.
+- `interceptedAxios` owns access-token headers, refresh handling, and logout invalidation.
+- Do not store access tokens in localStorage/sessionStorage.
+- Do not manually attach authorization headers in feature services.
+- Do not call refresh/logout endpoints from random components when the centralized auth helpers already exist.
+
+## Error handling and toasts
+
+- User-visible mutation failures should show a toast with a useful message.
+- Query failures should render page/component error states or show toasts where the current page pattern does that.
+- Use `handleAxiosError` and service-result helpers instead of duplicating backend error parsing in every service.
+- Avoid silent catches. If a catch is intentionally silent, it should be limited to best-effort cleanup or logout flows where user-facing failure would be noisy.
+- Do not spam duplicate toasts during query retries.
+
+## Autosave and uploads
+
+- Review autosave belongs in `useDetailReviewAutosave`.
+- Keep markdown image upload behavior in `useReviewAssetUpload` and `upload.service`.
+- Keep upload progress user-visible.
+- When review images are removed, cleanup old uploaded assets after a successful review save.
+- Do not delete old assets before the review save succeeds.
+- Keep review editor API stable even if the heavy markdown editor is lazy-loaded internally.
+
+## What not to do
+
+- Do not bypass TanStack Query for server state.
+- Do not mutate query data manually when invalidation/refetch is the clearer existing pattern.
+- Do not call services from JSX.
+- Do not trust URL params or search params.
+- Do not make media list URLs encode every advanced filter unless the product decision changes.
