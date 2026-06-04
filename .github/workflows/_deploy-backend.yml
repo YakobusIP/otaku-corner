@@ -110,7 +110,7 @@ jobs:
             LOG_TO_FILE=${{ vars.LOG_TO_FILE }}
             DB_SLOW_QUERY_THRESHOLD_MS=${{ vars.DB_SLOW_QUERY_THRESHOLD_MS }}
             EOF
-            sudo chown deploy:deploy "$DST/.env"
+            sudo chown "${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }}" "$DST/.env"
             sudo chmod 600 "$DST/.env"
 
             export PATH="$(dirname "$NODE_BIN"):$PATH"
