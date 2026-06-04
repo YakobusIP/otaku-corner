@@ -1,42 +1,75 @@
+import { Suspense, lazy } from "react";
+
 import { RequireAuth } from "@/auth";
-import AdminAnimeDetail from "@/pages/AdminAnimeDetail";
-import AdminLightNovelDetail from "@/pages/AdminLightNovelDetail";
-import AdminMangaDetail from "@/pages/AdminMangaDetail";
-import Dashboard from "@/pages/Dashboard";
-import Login from "@/pages/Login";
-import MediaLibrary from "@/pages/MediaLibrary";
 import NotFoundPage from "@/routes/NotFoundPage";
 import UnauthorizedPage from "@/routes/UnauthorizedPage";
 import type { Router } from "@remix-run/router";
 import { createBrowserRouter } from "react-router-dom";
 
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Login = lazy(() => import("@/pages/Login"));
+const MediaLibrary = lazy(() => import("@/pages/MediaLibrary"));
+const AdminAnimeDetail = lazy(() => import("@/pages/AdminAnimeDetail"));
+const AdminMangaDetail = lazy(() => import("@/pages/AdminMangaDetail"));
+const AdminLightNovelDetail = lazy(
+  () => import("@/pages/AdminLightNovelDetail")
+);
+
+function PageLoader() {
+  return null;
+}
+
 export const router: Router = createBrowserRouter([
   {
     path: "/",
-    element: <Login />
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <Login />
+      </Suspense>
+    )
   },
   {
     element: <RequireAuth />,
     children: [
       {
         path: "dashboard",
-        element: <Dashboard />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Dashboard />
+          </Suspense>
+        )
       },
       {
         path: "media-list",
-        element: <MediaLibrary />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <MediaLibrary />
+          </Suspense>
+        )
       },
       {
         path: "anime/:animeId/:slug",
-        element: <AdminAnimeDetail />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminAnimeDetail />
+          </Suspense>
+        )
       },
       {
         path: "manga/:mangaId/:slug",
-        element: <AdminMangaDetail />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminMangaDetail />
+          </Suspense>
+        )
       },
       {
         path: "light-novel/:lightNovelId/:slug",
-        element: <AdminLightNovelDetail />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminLightNovelDetail />
+          </Suspense>
+        )
       }
     ]
   },

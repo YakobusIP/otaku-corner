@@ -1,8 +1,6 @@
-import { type SetStateAction, useCallback, useState } from "react";
+import { type SetStateAction, lazy, useCallback, useState } from "react";
+import { Suspense } from "react";
 
-import AddAnimeDialog from "@/components/add-media/add-anime/AddAnimeDialog";
-import AddLightNovelDialog from "@/components/add-media/add-lightnovel/AddLightNovelDialog";
-import AddMangaDialog from "@/components/add-media/add-manga/AddMangaDialog";
 import MediaEntityManagementModal from "@/components/entity-management/MediaEntityManagementModal";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +22,16 @@ import {
   SettingsIcon,
   TvIcon
 } from "lucide-react";
+
+const AddAnimeDialog = lazy(
+  () => import("@/components/add-media/add-anime/AddAnimeDialog")
+);
+const AddMangaDialog = lazy(
+  () => import("@/components/add-media/add-manga/AddMangaDialog")
+);
+const AddLightNovelDialog = lazy(
+  () => import("@/components/add-media/add-lightnovel/AddLightNovelDialog")
+);
 
 type DialogType = "anime" | "manga" | "lightNovel";
 
@@ -118,21 +126,33 @@ export default function AddMediaDropdown() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AddAnimeDialog
-        openDialog={activeDialog === "anime"}
-        setOpenDialog={makeDialogSetter("anime")}
-        resetParent={resetLists}
-      />
-      <AddMangaDialog
-        openDialog={activeDialog === "manga"}
-        setOpenDialog={makeDialogSetter("manga")}
-        resetParent={resetLists}
-      />
-      <AddLightNovelDialog
-        openDialog={activeDialog === "lightNovel"}
-        setOpenDialog={makeDialogSetter("lightNovel")}
-        resetParent={resetLists}
-      />
+      {activeDialog === "anime" ? (
+        <Suspense fallback={null}>
+          <AddAnimeDialog
+            openDialog
+            setOpenDialog={makeDialogSetter("anime")}
+            resetParent={resetLists}
+          />
+        </Suspense>
+      ) : null}
+      {activeDialog === "manga" ? (
+        <Suspense fallback={null}>
+          <AddMangaDialog
+            openDialog
+            setOpenDialog={makeDialogSetter("manga")}
+            resetParent={resetLists}
+          />
+        </Suspense>
+      ) : null}
+      {activeDialog === "lightNovel" ? (
+        <Suspense fallback={null}>
+          <AddLightNovelDialog
+            openDialog
+            setOpenDialog={makeDialogSetter("lightNovel")}
+            resetParent={resetLists}
+          />
+        </Suspense>
+      ) : null}
 
       <MediaEntityManagementModal
         open={entityModalOpen}
