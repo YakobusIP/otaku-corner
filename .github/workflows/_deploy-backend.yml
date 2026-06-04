@@ -38,12 +38,8 @@ jobs:
 
       - name: Build backend
         working-directory: backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: |
-          pnpm install --frozen-lockfile
-          pnpm run prisma:generate
+          pnpm install --frozen-lockfile --ignore-scripts
           pnpm run build
 
       - name: Upload backend via SCP (env-scoped tmp dir)
