@@ -82,6 +82,7 @@ jobs:
             cat > "$DST/.env" <<EOF
             NEXT_PUBLIC_AXIOS_BASE_URL=${{ secrets.BACKEND_BASE_URL }}
             NEXT_PUBLIC_WEBSITE_URL=${{ vars.PUBLIC_APP_URL }}
+            NEXT_PUBLIC_R2_HOSTNAME: ${{ vars.R2_HOSTNAME }}
             NODE_ENV=production
             EOF
             sudo chown "${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }}" "$DST/.env"
