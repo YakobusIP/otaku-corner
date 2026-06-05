@@ -38,8 +38,12 @@ jobs:
 
       - name: Build backend
         working-directory: backend
+        env:
+          DATABASE_URL: postgresql://prisma:prisma@localhost:5432/otaku_corner
+          DIRECT_URL: postgresql://prisma:prisma@localhost:5432/otaku_corner
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
+          pnpm run prisma:generate
           pnpm run build
 
       - name: Upload backend via SCP (env-scoped tmp dir)
