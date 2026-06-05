@@ -25,27 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.1.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: pnpm
-          cache-dependency-path: backend/pnpm-lock.yaml
-
-      - name: Build backend
-        working-directory: backend
-        env:
-          DATABASE_URL: postgresql://prisma:prisma@localhost:5432/otaku_corner
-          DIRECT_URL: postgresql://prisma:prisma@localhost:5432/otaku_corner
-        run: |
-          pnpm install --frozen-lockfile --ignore-scripts
-          pnpm run prisma:generate
-          pnpm run build
-
       - name: Upload backend via SCP (env-scoped tmp dir)
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -53,7 +32,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           port:     ${{ secrets.SSH_PORT }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "backend/dist/,backend/package.json,backend/pnpm-lock.yaml,backend/.pnpmfile.cjs,backend/prisma/"
+          source: "backend/src/,backend/package.json,backend/pnpm-lock.yaml,backend/pnpm-workspace.yaml,backend/.pnpmfile.cjs,backend/prisma/,backend/tsconfig.json,backend/tsconfig.build.json,backend/nest-cli.json"
           target: /tmp/deploy/${{ inputs.environment }}/backend
           strip_components: 1
 
@@ -119,8 +98,10 @@ jobs:
 
             export PATH="$(dirname "$NODE_BIN"):$PATH"
 
-            pnpm install --prod --frozen-lockfile
-            pnpm dlx prisma@6.19.3 generate --sql
-            pnpm dlx prisma@6.19.3 migrate deploy
+            pnpm install --frozen-lockfile
+            pnpm exec prisma migrate deploy
+            pnpm exec prisma generate --sql
+            pnpm run build
+            pnpm prune --prod
 
             sudo systemctl start "${{ inputs.service_name }}"
