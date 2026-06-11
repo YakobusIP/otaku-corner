@@ -18,17 +18,6 @@ enum ProgressStatus {
   DROPPED
 }
 
-enum ErrorType {
-  WARN
-  ERROR
-}
-
-enum QueueStatus {
-  QUEUED
-  COMPLETED
-  FAILED
-}
-
 enum AssetMediaType {
   IMAGE
   VIDEO
@@ -384,39 +373,4 @@ model ReviewAsset {
   @@index([mangaReviewId])
   @@index([lightNovelReviewId])
   @@index([assetId])
-}
-
-model RequestLog {
-  id        Int      @id @default(autoincrement())
-  hostname  String
-  ip        String?
-  method    String
-  url       String
-  headers   Json
-  body      Json
-  status    Int
-  response  Json?
-  timestamp DateTime @default(now())
-}
-
-model ErrorLog {
-  id         Int       @id @default(autoincrement())
-  message    String
-  type       ErrorType
-  statusCode Int?
-  stack      String?
-  route      String
-  timestamp  DateTime  @default(now())
-}
-
-model QueueLog {
-  id          Int         @id @default(autoincrement())
-  jobId       String      @unique
-  queueName   String
-  status      QueueStatus
-  data        Json
-  result      Json?
-  error       String?
-  timestamp   DateTime    @default(now())
-  completedAt DateTime?
 }
