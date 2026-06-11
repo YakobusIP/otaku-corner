@@ -106,7 +106,7 @@ export default function VolumeProgressModal({
           }
         />
       </DialogTrigger>
-      <DialogContent className="w-full xl:w-1/4">
+      <DialogContent className="w-full md:w-2/5 2xl:w-1/5">
         <DialogHeader>
           <DialogTitle>{lightNovelDetail.title} Volume Progress</DialogTitle>
           <DialogDescription>

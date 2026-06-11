@@ -9,6 +9,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useMangaDetail } from "@/hooks/useMangaDetail";
+import { useMediaLibraryBackPath } from "@/hooks/useMediaLibraryBackPath";
 
 import { parsePositiveIntParam } from "@/lib/parse-route-param";
 
@@ -24,6 +25,7 @@ import { toast } from "sonner";
 export default function AdminMangaDetail() {
   const { mangaId } = useParams();
   const parsedId = parsePositiveIntParam(mangaId);
+  const libraryBackPath = useMediaLibraryBackPath();
 
   const {
     data: mangaDetail,
@@ -50,7 +52,7 @@ export default function AdminMangaDetail() {
   }, [error, isError]);
 
   const backAction = (
-    <Link to="/media-list">
+    <Link to={libraryBackPath}>
       <Button variant="outline" size="sm" className="gap-2">
         <ArrowLeftIcon className="h-4 w-4" />
         <span className="hidden sm:inline">Back to library</span>
@@ -84,7 +86,7 @@ export default function AdminMangaDetail() {
               ? error.message
               : "Unknown error while loading the manga."}
           </p>
-          <Link to="/media-list">
+          <Link to={libraryBackPath}>
             <Button variant="default" size="sm" className="gap-2">
               <ArrowLeftIcon className="h-4 w-4" />
               Return to media library
@@ -105,7 +107,7 @@ export default function AdminMangaDetail() {
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="@tablet:hidden" />
-            <Link to="/media-list">
+            <Link to={libraryBackPath}>
               <Button variant="ghost" size="sm" className="gap-2">
                 <ArrowLeftIcon className="h-4 w-4" />
                 <span>Back to library</span>

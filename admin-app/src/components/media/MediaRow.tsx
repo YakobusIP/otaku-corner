@@ -15,8 +15,10 @@ import type { StatusCheck } from "@/types/status-check.type";
 
 import { ProgressStatusKey } from "@/lib/enums";
 
+import { createDetailNavigationState } from "@/lib/media-library-navigation";
+
 import { ChevronDownIcon, PencilIcon, Trash2Icon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 type Props = {
   mediaType: MediaType;
@@ -59,6 +61,7 @@ function MediaRow({
   statusChecks,
   onRequestDelete
 }: Props) {
+  const location = useLocation();
   const [reviewOpen, setReviewOpen] = useState(false);
   const malScore =
     score !== null && Number.isFinite(score) ? score.toFixed(2) : "N/A";
@@ -139,7 +142,10 @@ function MediaRow({
                 </Button>
               </CollapsibleTrigger>
             ) : null}
-            <Link to={`/${mediaPathMap[mediaType]}/${id}/${slug}`}>
+            <Link
+              to={`/${mediaPathMap[mediaType]}/${id}/${slug}`}
+              state={createDetailNavigationState(location.search)}
+            >
               <Button variant="ghost" size="icon" title="Edit">
                 <PencilIcon className="h-4 w-4" />
               </Button>

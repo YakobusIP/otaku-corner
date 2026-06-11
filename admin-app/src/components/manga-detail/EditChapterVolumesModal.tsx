@@ -86,7 +86,7 @@ export default function EditChapterVolumesModal({
           Override Chapter and Volumes
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full xl:w-1/5">
+      <DialogContent className="w-full md:w-2/5 2xl:w-1/5">
         <DialogHeader>
           <DialogTitle>Override Chapter and Volumes</DialogTitle>
           <DialogDescription>

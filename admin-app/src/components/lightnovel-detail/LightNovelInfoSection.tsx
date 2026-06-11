@@ -12,8 +12,7 @@ import {
   PenLineIcon,
   SignalIcon,
   SparklesIcon,
-  TagIcon,
-  TypeIcon
+  TagIcon
 } from "lucide-react";
 
 type Props = {
@@ -46,13 +45,6 @@ export default function LightNovelInfoSection({
       value: lightNovelDetail.volumesCount?.toString() ?? "—",
       icon: LibraryBigIcon,
       accent: "text-amber-300"
-    },
-    {
-      key: "synonyms",
-      label: "Synonyms",
-      value: lightNovelDetail.titleSynonyms || "—",
-      icon: TypeIcon,
-      accent: "text-rose-300"
     },
     {
       key: "score",
