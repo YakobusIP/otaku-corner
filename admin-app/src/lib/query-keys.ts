@@ -1,5 +1,7 @@
 import { STATISTICS_VIEW } from "@/lib/enums";
 
+import type { ImageVaultInfiniteListFilters } from "@/types/image-vault.type";
+
 export type MediaTypeFilter = "all" | "anime" | "manga" | "lightNovel";
 
 export type MediaFilters = {
@@ -42,6 +44,16 @@ export const detailKeys = {
   anime: (id: number) => [...mediaKeys.all, "anime", id] as const,
   manga: (id: number) => [...mediaKeys.all, "manga", id] as const,
   lightNovel: (id: number) => [...mediaKeys.all, "lightNovel", id] as const
+};
+
+export const imageVaultKeys = {
+  all: ["imageVault"] as const,
+  lists: () => [...imageVaultKeys.all, "list"] as const,
+  infiniteList: (filters: ImageVaultInfiniteListFilters) =>
+    [...imageVaultKeys.lists(), "infinite", filters] as const,
+  detail: (id: string) => [...imageVaultKeys.all, "detail", id] as const,
+  models: () => [...imageVaultKeys.all, "models"] as const,
+  categories: () => [...imageVaultKeys.all, "categories"] as const
 };
 
 export const statisticKeys = {

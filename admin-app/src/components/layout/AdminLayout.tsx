@@ -22,6 +22,7 @@ import {
   BarChart3Icon,
   BookOpenIcon,
   ExternalLinkIcon,
+  ImagesIcon,
   PanelLeftIcon
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -62,6 +63,11 @@ const NAV_ITEMS: NavItem[] = [
     to: "/media-list",
     label: "Media Library",
     icon: <BookOpenIcon />
+  },
+  {
+    to: "/image-vault",
+    label: "Image Vault",
+    icon: <ImagesIcon />
   }
 ];
 

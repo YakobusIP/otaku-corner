@@ -51,6 +51,13 @@ const prepareLineForPino = (line: StructuredLogLine): StructuredLogLine => {
   };
 };
 
+const stripPinoManagedFields = (
+  line: StructuredLogLine
+): Omit<StructuredLogLine, "level"> => {
+  const { level: _level, ...lineWithoutLevel } = line;
+  return lineWithoutLevel;
+};
+
 const buildDegradedLogLine = (
   line: StructuredLogLine,
   emitError: unknown
@@ -138,8 +145,8 @@ export function createStructuredPinoBackend(
         remove: false
       },
       formatters: {
-        level() {
-          return {};
+        level(label) {
+          return { level: label };
         },
         bindings() {
           return {};
@@ -164,13 +171,13 @@ export function createStructuredPinoBackend(
       if (!pinoLogger.isLevelEnabled(method)) {
         return;
       }
-      pinoLogger[method](prepared);
+      pinoLogger[method](stripPinoManagedFields(prepared));
     } catch (emitError: unknown) {
       try {
         const degraded = prepareLineForPino(
           buildDegradedLogLine(line, emitError)
         );
-        pinoLogger.error(degraded);
+        pinoLogger.error(stripPinoManagedFields(degraded));
       } catch {
         process.stdout.write(
           `${JSON.stringify({

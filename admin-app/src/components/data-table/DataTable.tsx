@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 
 interface Identifiable {
-  id: number;
+  id: number | string;
 }
 
 interface DataTableProps<TData extends Identifiable, TValue> {
@@ -56,6 +56,7 @@ interface DataTableProps<TData extends Identifiable, TValue> {
   page: number;
   setPage: Dispatch<SetStateAction<number>>;
   metadata?: MetadataResponse;
+  hideBulkDelete?: boolean;
 }
 
 export default function DataTable<TData extends Identifiable, TValue>({
@@ -70,7 +71,8 @@ export default function DataTable<TData extends Identifiable, TValue>({
   isLoadingDeleteData,
   page,
   setPage,
-  metadata
+  metadata,
+  hideBulkDelete = false
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -111,54 +113,56 @@ export default function DataTable<TData extends Identifiable, TValue>({
             {addNewDataComponent}
           </div>
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                aria-label="Delete selected"
-                className={cn(
-                  "flex shrink-0 items-center gap-2 border-destructive/70 text-destructive hover:bg-destructive/10 hover:text-destructive",
-                  "h-10 min-h-10 w-10 justify-center p-0 sm:h-8 sm:w-auto sm:justify-start sm:gap-2 sm:px-3 sm:py-1.5"
-                )}
-                disabled={selectedCount === 0 || isLoadingDeleteData}
-              >
-                {!isLoadingDeleteData && (
-                  <Trash2Icon className="h-4 w-4 shrink-0" aria-hidden />
-                )}
-                {isLoadingDeleteData && (
-                  <Loader2Icon className="h-4 w-4 shrink-0 animate-spin" />
-                )}
-                <span className="hidden sm:inline">Delete Selected</span>
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete selected entities?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {selectedCount === 1
-                    ? "This will permanently delete 1 selected entity. This action cannot be undone."
-                    : `This will permanently delete ${selectedCount} selected entities. This action cannot be undone.`}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className={buttonVariants({ variant: "destructive" })}
-                  disabled={isLoadingDeleteData}
-                  onClick={() => void deleteData()}
-                >
-                  {isLoadingDeleteData ? (
-                    <>
-                      <Loader2Icon className="mr-2 inline h-4 w-4 animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    "Delete"
+          {hideBulkDelete ? null : (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  aria-label="Delete selected"
+                  className={cn(
+                    "flex shrink-0 items-center gap-2 border-destructive/70 text-destructive hover:bg-destructive/10 hover:text-destructive",
+                    "h-10 min-h-10 w-10 justify-center p-0 sm:h-8 sm:w-auto sm:justify-start sm:gap-2 sm:px-3 sm:py-1.5"
                   )}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  disabled={selectedCount === 0 || isLoadingDeleteData}
+                >
+                  {!isLoadingDeleteData && (
+                    <Trash2Icon className="h-4 w-4 shrink-0" aria-hidden />
+                  )}
+                  {isLoadingDeleteData && (
+                    <Loader2Icon className="h-4 w-4 shrink-0 animate-spin" />
+                  )}
+                  <span className="hidden sm:inline">Delete Selected</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete selected entities?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {selectedCount === 1
+                      ? "This will permanently delete 1 selected entity. This action cannot be undone."
+                      : `This will permanently delete ${selectedCount} selected entities. This action cannot be undone.`}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className={buttonVariants({ variant: "destructive" })}
+                    disabled={isLoadingDeleteData}
+                    onClick={() => void deleteData()}
+                  >
+                    {isLoadingDeleteData ? (
+                      <>
+                        <Loader2Icon className="mr-2 inline h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      "Delete"
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </div>
 

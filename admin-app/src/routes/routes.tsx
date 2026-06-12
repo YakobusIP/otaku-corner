@@ -14,6 +14,7 @@ const AdminMangaDetail = lazy(() => import("@/pages/AdminMangaDetail"));
 const AdminLightNovelDetail = lazy(
   () => import("@/pages/AdminLightNovelDetail")
 );
+const ImageVault = lazy(() => import("@/pages/ImageVault"));
 
 function PageLoader() {
   return null;
@@ -44,6 +45,14 @@ export const router: Router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <MediaLibrary />
+          </Suspense>
+        )
+      },
+      {
+        path: "image-vault",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ImageVault />
           </Suspense>
         )
       },

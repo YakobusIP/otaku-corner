@@ -33,6 +33,11 @@ enum ReviewAssetUsage {
   IMAGE
 }
 
+enum ImageVaultOriginType {
+  AI
+  HUMAN
+}
+
 model Anime {
   id            Int      @id
   slug          String   @unique
@@ -348,10 +353,71 @@ model Asset {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  reviewAssets ReviewAsset[]
+  reviewAssets            ReviewAsset[]
+  imageVaultEntry         ImageVaultEntry?  @relation("ImageVaultEntryAsset")
+  imageVaultSourceEntries ImageVaultEntry? @relation("ImageVaultEntrySourceAsset")
 
   @@index([status, createdAt])
   @@index([mediaType])
+}
+
+model ImageVaultGenerationModel {
+  id        String            @id @default(uuid())
+  name      String
+  provider  String
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  images    ImageVaultEntry[]
+}
+
+model ImageVaultCategory {
+  id        String                    @id @default(uuid())
+  name      String
+  slug      String                    @unique
+  createdAt DateTime                  @default(now())
+  updatedAt DateTime                  @updatedAt
+  entries   ImageVaultEntryCategory[]
+}
+
+model ImageVaultEntry {
+  id             String                     @id @default(uuid())
+  assetId        String                     @unique
+  sourceAssetId  String?                    @unique
+  asset          Asset                      @relation("ImageVaultEntryAsset", fields: [assetId], references: [id], onDelete: Cascade)
+  sourceAsset    Asset?                     @relation("ImageVaultEntrySourceAsset", fields: [sourceAssetId], references: [id], onDelete: SetNull)
+  originType     ImageVaultOriginType
+  sourceUrl      String?
+  modelId        String?
+  model          ImageVaultGenerationModel? @relation(fields: [modelId], references: [id], onDelete: SetNull)
+  prompt         String?
+  originalPrompt String?
+  isExplicit     Boolean                    @default(false)
+  explicitReason String?
+  notes          String?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  categories     ImageVaultEntryCategory[]
+  parentId       String?
+  parent         ImageVaultEntry?           @relation("ImageVaultEntryLineage", fields: [parentId], references: [id], onDelete: SetNull)
+  children       ImageVaultEntry[]          @relation("ImageVaultEntryLineage")
+
+  @@index([originType])
+  @@index([modelId])
+  @@index([isExplicit])
+  @@index([createdAt])
+  @@index([parentId])
+}
+
+model ImageVaultEntryCategory {
+  imageVaultEntryId    String
+  imageVaultCategoryId String
+
+  imageVaultEntry    ImageVaultEntry    @relation(fields: [imageVaultEntryId], references: [id], onDelete: Cascade)
+  imageVaultCategory ImageVaultCategory @relation(fields: [imageVaultCategoryId], references: [id], onDelete: Cascade)
+
+  @@id([imageVaultEntryId, imageVaultCategoryId])
+  @@index([imageVaultCategoryId])
 }
 
 model ReviewAsset {

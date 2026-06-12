@@ -26,6 +26,11 @@ import type { InitAssetDto } from "@/assets/dto/init-asset.dto";
 import { AssetInitReviewMediaType } from "@/assets/dto/review-asset-target.dto";
 import { ReviewDomainMediaType } from "@/assets/review-domain-media-type.enum";
 import {
+  IMAGE_VAULT_STORAGE_PREFIX,
+  isPrivateVaultAssetUrl,
+  vaultPrivateUrlPlaceholder
+} from "@/storage/asset-storage-scope";
+import {
   R2FileStorageService,
   type R2HeadObjectResult,
   R2_ASSET_CACHE_CONTROL
@@ -33,6 +38,11 @@ import {
 import { assertSafeObjectStorageKey } from "@/storage/storage-object-key";
 
 import { AssetMediaType, AssetStatus, ReviewAssetUsage } from "@prisma/client";
+
+type DeleteAssetOptions = {
+  allowImageVaultLinkedAsset?: boolean;
+  allowImageVaultSourceAsset?: boolean;
+};
 
 const errorFromUnknown = (error: unknown) =>
   error instanceof Error
@@ -89,65 +99,80 @@ export class AssetsService {
         throw new BadRequestException("File exceeds maximum allowed size");
       }
 
-      if (dto.target.kind !== "REVIEW") {
-        throw new BadRequestException("Unsupported asset target kind");
-      }
-
-      const domainMediaType = this.reviewInitMediaToDomainType(
-        dto.target.mediaType
-      );
-
-      await this.assertReviewExists(domainMediaType, dto.target.id);
-
       const ext = fileExtensionForNormalizedImageMime(mimeNorm);
       if (!ext) {
         throw new BadRequestException("Unsupported MIME type");
       }
 
       const id = randomUUID();
-      const prefix = dto.storageDirectory
-        .trim()
-        .replace(/^\/+/, "")
-        .replace(/\/+$/, "");
-      if (!prefix) {
-        throw new BadRequestException("storageDirectory cannot be empty");
-      }
+      const prefix = this.resolveStorageDirectory(dto);
       const storageKey = `${prefix}/${id}${ext}`;
       assertSafeObjectStorageKey(storageKey);
-      const url = this.r2.publicUrlForFile(storageKey);
 
-      const reviewLink = this.buildReviewAssetLink(
-        domainMediaType,
-        dto.target.id
-      );
+      const isImageVault = dto.target.kind === "IMAGE_VAULT";
+      const url = isImageVault
+        ? vaultPrivateUrlPlaceholder(id)
+        : this.r2.publicUrlForFile(storageKey);
 
-      await this.prisma.asset.create({
-        data: {
-          id,
-          storageKey,
-          url,
-          mimeType: mimeNorm,
-          mediaType: AssetMediaType.IMAGE,
-          expectedFileSize: dto.expectedFileSize,
-          status: AssetStatus.PENDING,
-          reviewAssets: {
-            create: {
-              usage: ReviewAssetUsage.IMAGE,
-              ...reviewLink
+      if (dto.target.kind === "REVIEW") {
+        const domainMediaType = this.reviewInitMediaToDomainType(
+          dto.target.mediaType
+        );
+        await this.assertReviewExists(domainMediaType, dto.target.id);
+        const reviewLink = this.buildReviewAssetLink(
+          domainMediaType,
+          dto.target.id
+        );
+
+        await this.prisma.asset.create({
+          data: {
+            id,
+            storageKey,
+            url,
+            mimeType: mimeNorm,
+            mediaType: AssetMediaType.IMAGE,
+            expectedFileSize: dto.expectedFileSize,
+            status: AssetStatus.PENDING,
+            reviewAssets: {
+              create: {
+                usage: ReviewAssetUsage.IMAGE,
+                ...reviewLink
+              }
             }
           }
-        }
-      });
+        });
+      } else {
+        await this.prisma.asset.create({
+          data: {
+            id,
+            storageKey,
+            url,
+            mimeType: mimeNorm,
+            mediaType: AssetMediaType.IMAGE,
+            expectedFileSize: dto.expectedFileSize,
+            status: AssetStatus.PENDING
+          }
+        });
+      }
 
-      const uploadUrl = await this.r2.getPresignedPutUrl({
-        key: storageKey,
-        contentType: mimeNorm,
-        meta: {
-          asset_id: id,
-          asset_target_kind: assetTargetKind,
-          review_media_type: reviewMediaType
-        }
-      });
+      const uploadUrl = isImageVault
+        ? await this.r2.getPrivatePresignedPutUrl({
+            key: storageKey,
+            contentType: mimeNorm,
+            meta: {
+              asset_id: id,
+              asset_target_kind: assetTargetKind
+            }
+          })
+        : await this.r2.getPresignedPutUrl({
+            key: storageKey,
+            contentType: mimeNorm,
+            meta: {
+              asset_id: id,
+              asset_target_kind: assetTargetKind,
+              review_media_type: reviewMediaType
+            }
+          });
 
       this.logger.logStorage({
         level: "info",
@@ -167,10 +192,12 @@ export class AssetsService {
         assetId: id,
         uploadUrl,
         method: "PUT",
-        headers: {
-          "Content-Type": mimeNorm,
-          "Cache-Control": R2_ASSET_CACHE_CONTROL
-        }
+        headers: isImageVault
+          ? { "Content-Type": mimeNorm }
+          : {
+              "Content-Type": mimeNorm,
+              "Cache-Control": R2_ASSET_CACHE_CONTROL
+            }
       };
     } catch (error: unknown) {
       this.logger.logStorage({
@@ -231,12 +258,18 @@ export class AssetsService {
         );
       }
 
+      const isPrivate = isPrivateVaultAssetUrl(asset.url);
       let head: R2HeadObjectResult | null;
       try {
-        head = await this.r2.headObject(asset.storageKey, {
-          asset_id: assetId,
-          mime_type: asset.mimeType
-        });
+        head = isPrivate
+          ? await this.r2.headPrivateObject(asset.storageKey, {
+              asset_id: assetId,
+              mime_type: asset.mimeType
+            })
+          : await this.r2.headObject(asset.storageKey, {
+              asset_id: assetId,
+              mime_type: asset.mimeType
+            });
       } catch {
         throw new ServiceUnavailableException(
           "Storage temporarily unavailable; retry complete shortly"
@@ -308,7 +341,7 @@ export class AssetsService {
     }
   }
 
-  async delete(assetId: string): Promise<void> {
+  async delete(assetId: string, options?: DeleteAssetOptions): Promise<void> {
     this.logger.logStorage({
       level: "info",
       event: "asset.delete.started",
@@ -318,18 +351,45 @@ export class AssetsService {
 
     try {
       const asset = await this.prisma.asset.findUnique({
-        where: { id: assetId }
+        where: { id: assetId },
+        include: {
+          imageVaultEntry: { select: { id: true } },
+          imageVaultSourceEntries: { select: { id: true } }
+        }
       });
 
       if (!asset) {
         throw new NotFoundException(`Asset "${assetId}" not found`);
       }
 
+      if (asset.imageVaultEntry && !options?.allowImageVaultLinkedAsset) {
+        throw new BadRequestException(
+          "Asset is linked to Image Vault; delete via DELETE /image-vault/images/:id"
+        );
+      }
+
+      if (
+        asset.imageVaultSourceEntries &&
+        !options?.allowImageVaultSourceAsset
+      ) {
+        throw new BadRequestException(
+          "Asset is linked as an Image Vault source image; update or delete the owning entry first"
+        );
+      }
+
+      const isPrivate = isPrivateVaultAssetUrl(asset.url);
       try {
-        await this.r2.deleteObject(asset.storageKey, {
-          asset_id: assetId,
-          mime_type: asset.mimeType
-        });
+        if (isPrivate) {
+          await this.r2.deletePrivateObject(asset.storageKey, {
+            asset_id: assetId,
+            mime_type: asset.mimeType
+          });
+        } else {
+          await this.r2.deleteObject(asset.storageKey, {
+            asset_id: assetId,
+            mime_type: asset.mimeType
+          });
+        }
       } catch {
         throw new ServiceUnavailableException(
           "Could not delete object from storage; retry later"
@@ -358,6 +418,21 @@ export class AssetsService {
       });
       throw error;
     }
+  }
+
+  private resolveStorageDirectory(dto: InitAssetDto): string {
+    const raw =
+      dto.target.kind === "IMAGE_VAULT"
+        ? dto.storageDirectory?.trim() || IMAGE_VAULT_STORAGE_PREFIX
+        : dto.storageDirectory?.trim();
+    if (!raw) {
+      throw new BadRequestException("storageDirectory cannot be empty");
+    }
+    const prefix = raw.replace(/^\/+/, "").replace(/\/+$/, "");
+    if (!prefix) {
+      throw new BadRequestException("storageDirectory cannot be empty");
+    }
+    return prefix;
   }
 
   private reviewInitMediaToDomainType(

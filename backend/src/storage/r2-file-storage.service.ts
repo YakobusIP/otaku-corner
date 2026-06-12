@@ -5,6 +5,7 @@ import { StructuredLogger } from "@/common/logging/structured-logger.service";
 
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
   S3Client
@@ -13,11 +14,18 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { assertSafeObjectStorageKey } from "./storage-object-key";
 
-type R2Runtime = {
+type R2PublicRuntime = {
   client: S3Client;
   bucketName: string;
   publicBaseUrl: string;
 };
+
+type R2PrivateRuntime = {
+  client: S3Client;
+  bucketName: string;
+};
+
+export const R2_PRIVATE_PRESIGNED_GET_EXPIRES_SECONDS = 3600;
 
 export type R2HeadObjectResult = {
   contentLength: number;
@@ -41,29 +49,17 @@ const errorFromUnknown = (error: unknown) =>
 
 @Injectable()
 export class R2FileStorageService {
-  private runtime: R2Runtime | undefined;
+  private publicRuntime: R2PublicRuntime | undefined;
+  private privateRuntime: R2PrivateRuntime | undefined;
 
   constructor(
     private readonly config: ConfigService,
     private readonly logger: StructuredLogger
   ) {}
 
-  private getRuntime(): R2Runtime {
-    if (this.runtime) {
-      return this.runtime;
-    }
+  private createClient(accessKeyId: string, secretAccessKey: string): S3Client {
     const accountId = this.config.getOrThrow<string>("R2_ACCOUNT_ID");
-    const accessKeyId = this.config.getOrThrow<string>("R2_ACCESS_KEY_ID");
-    const secretAccessKey = this.config.getOrThrow<string>(
-      "R2_SECRET_ACCESS_KEY"
-    );
-    const bucketName = this.config.getOrThrow<string>("R2_BUCKET_NAME");
-    const rawPublicBaseUrl = this.config
-      .getOrThrow<string>("R2_PUBLIC_BASE_URL")
-      .trim();
-    new URL(rawPublicBaseUrl);
-    const publicBaseUrl = rawPublicBaseUrl.replace(/\/+$/, "");
-    const client = new S3Client({
+    return new S3Client({
       region: "auto",
       endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
       credentials: {
@@ -71,8 +67,43 @@ export class R2FileStorageService {
         secretAccessKey
       }
     });
-    this.runtime = { client, bucketName, publicBaseUrl };
-    return this.runtime;
+  }
+
+  private getPublicRuntime(): R2PublicRuntime {
+    if (this.publicRuntime) {
+      return this.publicRuntime;
+    }
+    const accessKeyId = this.config.getOrThrow<string>(
+      "R2_PUBLIC_ACCESS_KEY_ID"
+    );
+    const secretAccessKey = this.config.getOrThrow<string>(
+      "R2_PUBLIC_SECRET_ACCESS_KEY"
+    );
+    const bucketName = this.config.getOrThrow<string>("R2_PUBLIC_BUCKET_NAME");
+    const rawPublicBaseUrl = this.config
+      .getOrThrow<string>("R2_PUBLIC_BASE_URL")
+      .trim();
+    new URL(rawPublicBaseUrl);
+    const publicBaseUrl = rawPublicBaseUrl.replace(/\/+$/, "");
+    const client = this.createClient(accessKeyId, secretAccessKey);
+    this.publicRuntime = { client, bucketName, publicBaseUrl };
+    return this.publicRuntime;
+  }
+
+  private getPrivateRuntime(): R2PrivateRuntime {
+    if (this.privateRuntime) {
+      return this.privateRuntime;
+    }
+    const accessKeyId = this.config.getOrThrow<string>(
+      "R2_PRIVATE_ACCESS_KEY_ID"
+    );
+    const secretAccessKey = this.config.getOrThrow<string>(
+      "R2_PRIVATE_SECRET_ACCESS_KEY"
+    );
+    const bucketName = this.config.getOrThrow<string>("R2_PRIVATE_BUCKET_NAME");
+    const client = this.createClient(accessKeyId, secretAccessKey);
+    this.privateRuntime = { client, bucketName };
+    return this.privateRuntime;
   }
 
   async deleteObject(
@@ -80,7 +111,7 @@ export class R2FileStorageService {
     meta?: Record<string, unknown>
   ): Promise<void> {
     assertSafeObjectStorageKey(key);
-    const { client, bucketName } = this.getRuntime();
+    const { client, bucketName } = this.getPublicRuntime();
     try {
       await client.send(
         new DeleteObjectCommand({
@@ -91,8 +122,36 @@ export class R2FileStorageService {
     } catch (error: unknown) {
       this.logger.logStorage({
         level: "error",
-        event: "storage.r2.delete.failed",
-        message: "R2 delete object failed",
+        event: "storage.r2.public.delete.failed",
+        message: "R2 public delete object failed",
+        error: errorFromUnknown(error),
+        meta: {
+          storage_key: key,
+          ...(meta ?? {})
+        }
+      });
+      throw error;
+    }
+  }
+
+  async deletePrivateObject(
+    key: string,
+    meta?: Record<string, unknown>
+  ): Promise<void> {
+    assertSafeObjectStorageKey(key);
+    const { client, bucketName } = this.getPrivateRuntime();
+    try {
+      await client.send(
+        new DeleteObjectCommand({
+          Bucket: bucketName,
+          Key: key
+        })
+      );
+    } catch (error: unknown) {
+      this.logger.logStorage({
+        level: "error",
+        event: "storage.r2.private.delete.failed",
+        message: "R2 private delete object failed",
         error: errorFromUnknown(error),
         meta: {
           storage_key: key,
@@ -107,12 +166,38 @@ export class R2FileStorageService {
     key: string,
     meta?: Record<string, unknown>
   ): Promise<R2HeadObjectResult | null> {
+    return this.headObjectInBucket(key, this.getPublicRuntime(), {
+      failureEvent: "storage.r2.public.head.failed",
+      failureMessage: "R2 public head object failed",
+      meta
+    });
+  }
+
+  async headPrivateObject(
+    key: string,
+    meta?: Record<string, unknown>
+  ): Promise<R2HeadObjectResult | null> {
+    return this.headObjectInBucket(key, this.getPrivateRuntime(), {
+      failureEvent: "storage.r2.private.head.failed",
+      failureMessage: "R2 private head object failed",
+      meta
+    });
+  }
+
+  private async headObjectInBucket(
+    key: string,
+    runtime: { client: S3Client; bucketName: string },
+    log: {
+      failureEvent: string;
+      failureMessage: string;
+      meta?: Record<string, unknown>;
+    }
+  ): Promise<R2HeadObjectResult | null> {
     assertSafeObjectStorageKey(key);
-    const { client, bucketName } = this.getRuntime();
     try {
-      const out = await client.send(
+      const out = await runtime.client.send(
         new HeadObjectCommand({
-          Bucket: bucketName,
+          Bucket: runtime.bucketName,
           Key: key
         })
       );
@@ -143,12 +228,12 @@ export class R2FileStorageService {
       }
       this.logger.logStorage({
         level: "error",
-        event: "storage.r2.head.failed",
-        message: "R2 head object failed",
+        event: log.failureEvent,
+        message: log.failureMessage,
         error: errorFromUnknown(error),
         meta: {
           storage_key: key,
-          ...(meta ?? {})
+          ...(log.meta ?? {})
         }
       });
       throw error;
@@ -162,7 +247,7 @@ export class R2FileStorageService {
     meta?: Record<string, unknown>;
   }): Promise<string> {
     assertSafeObjectStorageKey(params.key);
-    const { client, bucketName } = this.getRuntime();
+    const { client, bucketName } = this.getPublicRuntime();
     const cmd = new PutObjectCommand({
       Bucket: bucketName,
       Key: params.key,
@@ -176,8 +261,8 @@ export class R2FileStorageService {
     } catch (error: unknown) {
       this.logger.logStorage({
         level: "error",
-        event: "storage.r2.presign.failed",
-        message: "R2 presigned URL generation failed",
+        event: "storage.r2.public.presign_put.failed",
+        message: "R2 public presigned PUT URL generation failed",
         error: errorFromUnknown(error),
         meta: {
           storage_key: params.key,
@@ -189,9 +274,77 @@ export class R2FileStorageService {
     }
   }
 
+  async getPrivatePresignedPutUrl(params: {
+    key: string;
+    contentType: string;
+    expiresInSeconds?: number;
+    meta?: Record<string, unknown>;
+  }): Promise<string> {
+    assertSafeObjectStorageKey(params.key);
+    const { client, bucketName } = this.getPrivateRuntime();
+    const cmd = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: params.key,
+      ContentType: params.contentType
+    });
+    try {
+      return await getSignedUrl(client, cmd, {
+        expiresIn: params.expiresInSeconds ?? 900
+      });
+    } catch (error: unknown) {
+      this.logger.logStorage({
+        level: "error",
+        event: "storage.r2.private.presign_put.failed",
+        message: "R2 private presigned PUT URL generation failed",
+        error: errorFromUnknown(error),
+        meta: {
+          storage_key: params.key,
+          mime_type: params.contentType,
+          ...(params.meta ?? {})
+        }
+      });
+      throw error;
+    }
+  }
+
+  async getPrivatePresignedGetUrl(params: {
+    key: string;
+    expiresInSeconds?: number;
+    responseContentDisposition?: string;
+    meta?: Record<string, unknown>;
+  }): Promise<string> {
+    assertSafeObjectStorageKey(params.key);
+    const { client, bucketName } = this.getPrivateRuntime();
+    const cmd = new GetObjectCommand({
+      Bucket: bucketName,
+      Key: params.key,
+      ...(params.responseContentDisposition
+        ? { ResponseContentDisposition: params.responseContentDisposition }
+        : {})
+    });
+    try {
+      return await getSignedUrl(client, cmd, {
+        expiresIn:
+          params.expiresInSeconds ?? R2_PRIVATE_PRESIGNED_GET_EXPIRES_SECONDS
+      });
+    } catch (error: unknown) {
+      this.logger.logStorage({
+        level: "error",
+        event: "storage.r2.private.presign_get.failed",
+        message: "R2 private presigned GET URL generation failed",
+        error: errorFromUnknown(error),
+        meta: {
+          storage_key: params.key,
+          ...(params.meta ?? {})
+        }
+      });
+      throw error;
+    }
+  }
+
   publicUrlForFile(key: string): string {
     assertSafeObjectStorageKey(key);
-    const { publicBaseUrl } = this.getRuntime();
+    const { publicBaseUrl } = this.getPublicRuntime();
     const pathSuffix = key
       .split("/")
       .map((segment) => encodeURIComponent(segment))
