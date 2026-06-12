@@ -116,6 +116,8 @@ export default function ImageVaultDetailDialog({
   const [notes, setNotes] = useState("");
   const [isExplicit, setIsExplicit] = useState(false);
   const [explicitReason, setExplicitReason] = useState("");
+  const [dialogContentElement, setDialogContentElement] =
+    useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!image) return;
@@ -157,7 +159,10 @@ export default function ImageVaultDetailDialog({
   return (
     <Fragment>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-2xl">
+        <DialogContent
+          ref={setDialogContentElement}
+          className="flex max-h-[90vh] flex-col sm:max-w-2xl"
+        >
           <DialogHeader>
             <DialogTitle>Image Detail</DialogTitle>
             <DialogDescription>
@@ -264,7 +269,6 @@ export default function ImageVaultDetailDialog({
                   <Label>Categories</Label>
                   <MultiSelect
                     key={image.id}
-                    modalPopover
                     options={categories.map((category) => ({
                       label: category.name,
                       value: category.id
@@ -288,6 +292,7 @@ export default function ImageVaultDetailDialog({
                     searchable
                     hideSelectAll
                     className="w-full"
+                    popoverPortalContainer={dialogContentElement}
                     disabled={isLoadingCategories || categories.length === 0}
                   />
                 </div>
