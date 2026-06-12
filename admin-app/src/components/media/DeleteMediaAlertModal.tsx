@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -31,10 +33,10 @@ const DeleteMediaAlertModal = ({
           <AlertDialogTitle>Delete this item?</AlertDialogTitle>
           <AlertDialogDescription>
             {itemTitle ? (
-              <>
+              <Fragment>
                 &quot;{itemTitle}&quot; will be permanently removed. This action
                 cannot be undone.
-              </>
+              </Fragment>
             ) : null}
           </AlertDialogDescription>
         </AlertDialogHeader>

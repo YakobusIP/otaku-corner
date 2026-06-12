@@ -1,4 +1,10 @@
-import { type SetStateAction, lazy, useCallback, useState } from "react";
+import {
+  Fragment,
+  type SetStateAction,
+  lazy,
+  useCallback,
+  useState
+} from "react";
 import { Suspense } from "react";
 
 import MediaEntityManagementModal from "@/components/entity-management/MediaEntityManagementModal";
@@ -71,7 +77,7 @@ export default function AddMediaDropdown() {
   };
 
   return (
-    <>
+    <Fragment>
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           <Button
@@ -159,6 +165,6 @@ export default function AddMediaDropdown() {
         onOpenChange={setEntityModalOpen}
         resetMediaQueries={resetLists}
       />
-    </>
+    </Fragment>
   );
 }

@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, Fragment, SetStateAction, useEffect, useState } from "react";
 
 import SelectedRow from "@/components/add-media/SelectedRow";
 import LightNovelDetailPanel from "@/components/add-media/add-lightnovel/LightNovelDetailPanel";
@@ -171,7 +171,7 @@ export default function AddLightNovelDialog({
                   </p>
                 </div>
               ) : (
-                <>
+                <Fragment>
                   <ul className="flex flex-col gap-2 pr-1">
                     {searchResults.map((lightNovel) => {
                       const alreadySelected = selectedMalIds.has(
@@ -243,7 +243,7 @@ export default function AddLightNovelDialog({
                       Loading more...
                     </div>
                   ) : null}
-                </>
+                </Fragment>
               )}
             </div>
             {searchTrimmed.length >= 2 && searchTotal !== null ? (

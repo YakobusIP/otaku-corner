@@ -298,7 +298,7 @@ export default function ImageVaultDetailDialog({
                 </div>
 
                 {originType === "AI" ? (
-                  <>
+                  <Fragment>
                     <div className="space-y-2">
                       <Label htmlFor="detail-prompt">Prompt</Label>
                       <Textarea
@@ -322,7 +322,7 @@ export default function ImageVaultDetailDialog({
                         className="min-h-[60px]"
                       />
                     </div>
-                  </>
+                  </Fragment>
                 ) : null}
 
                 <div className="space-y-2">

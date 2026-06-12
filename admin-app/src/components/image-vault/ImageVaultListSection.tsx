@@ -1,66 +1,26 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useMemo } from "react";
 
+import { useImageVaultFilters } from "@/components/context/ImageVaultFiltersContext";
 import ImageVaultCardBadges from "@/components/image-vault/ImageVaultCardBadges";
+import {
+  ListLoadingBounceDots,
+  ListRetryButton,
+  ListStatusPanel
+} from "@/components/list-status/ListStatusPanel";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import type { UseImageVaultListPageResult } from "@/hooks/useImageVaultListPage";
+import { useLoadingDots } from "@/hooks/useLoadingDots";
 
 import type { ImageVaultEntry } from "@/types/image-vault.type";
 
 import { resolveImageVaultPreviewUrl } from "@/lib/image-vault-preview";
 
-import { ImageIcon } from "lucide-react";
+import { UploadIcon } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 
 const IMAGE_VAULT_GRID_CLASS =
   "grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5";
-
-const MD_BREAKPOINT = 768;
-const XL_BREAKPOINT = 1280;
-const XL2_BREAKPOINT = 1536;
-
-const getImageVaultGridColumnCount = (width: number) => {
-  if (width >= XL2_BREAKPOINT) return 5;
-  if (width >= XL_BREAKPOINT) return 4;
-  if (width >= MD_BREAKPOINT) return 3;
-  return 2;
-};
-
-const useImageVaultGridColumnCount = () => {
-  const [columnCount, setColumnCount] = useState(() =>
-    typeof window === "undefined"
-      ? 2
-      : getImageVaultGridColumnCount(window.innerWidth)
-  );
-
-  useEffect(() => {
-    const updateColumnCount = () => {
-      setColumnCount(getImageVaultGridColumnCount(window.innerWidth));
-    };
-
-    window.addEventListener("resize", updateColumnCount);
-    updateColumnCount();
-    return () => window.removeEventListener("resize", updateColumnCount);
-  }, []);
-
-  return columnCount;
-};
-
-function ImageVaultCardSkeleton() {
-  return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-border/60 bg-card/40">
-      <Skeleton className="aspect-square w-full rounded-none" />
-      <div className="flex flex-col gap-2 p-3">
-        <div className="flex flex-wrap gap-1">
-          <Skeleton className="h-5 w-12 rounded-full" />
-          <Skeleton className="h-5 w-16 rounded-full" />
-        </div>
-        <Skeleton className="h-10 w-full" />
-      </div>
-    </div>
-  );
-}
 
 type Props = {
   listQuery: UseImageVaultListPageResult;
@@ -77,19 +37,22 @@ export default function ImageVaultListSection({
   onSelectImage,
   onUploadClick
 }: Props) {
-  const skeletonCount = useImageVaultGridColumnCount();
-  const images = useMemo(
-    () => listQuery.data?.pages.flatMap((page) => page.data) ?? [],
-    [listQuery.data?.pages]
-  );
-
   const {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     isLoading,
-    isError
+    isError,
+    isRefetching,
+    refetch
   } = listQuery;
+
+  const loadingDots = useLoadingDots(isLoading);
+  const { state } = useImageVaultFilters();
+  const images = useMemo(
+    () => listQuery.data?.pages.flatMap((page) => page.data) ?? [],
+    [listQuery.data?.pages]
+  );
 
   const loadMore = () => {
     if (!hasNextPage || isFetchingNextPage) return;
@@ -110,31 +73,61 @@ export default function ImageVaultListSection({
 
   if (isLoading) {
     return (
-      <div
-        className={IMAGE_VAULT_GRID_CLASS}
-        aria-busy="true"
-        aria-label="Loading images"
-      >
-        {Array.from({ length: skeletonCount }, (_, index) => (
-          <ImageVaultCardSkeleton key={index} />
-        ))}
-      </div>
+      <ListStatusPanel
+        imageSrc="/loading.webp"
+        imageAlt="Loading images"
+        title={
+          <>
+            Loading images
+            <span className="inline-block w-8 text-left">{loadingDots}</span>
+          </>
+        }
+        description="Pulling entries from the vault..."
+        hint="Just a moment"
+        footer={<ListLoadingBounceDots />}
+        busy
+      />
     );
   }
 
   if (isError) {
-    return <p className="text-sm text-destructive">Failed to load images.</p>;
+    return (
+      <ListStatusPanel
+        imageSrc="/error.webp"
+        imageAlt="Failed to load images"
+        title="Failed to load images"
+        description="Something went wrong while fetching the vault."
+        hint="You can try loading the list again."
+        footer={
+          <ListRetryButton
+            onRetry={() => void refetch()}
+            isRetrying={isRefetching}
+          />
+        }
+      />
+    );
   }
 
   if (images.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border/60 py-16 text-center">
-        <ImageIcon className="h-8 w-8 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">No images found.</p>
-        <Button type="button" size="sm" onClick={onUploadClick}>
-          Upload image
-        </Button>
-      </div>
+      <ListStatusPanel
+        imageSrc="/no-result.webp"
+        imageAlt="No images found"
+        title={
+          <>
+            No images found
+            {state.search ? ` for "${state.search}"` : null}
+          </>
+        }
+        description="Nothing in the vault matches your current filters."
+        hint="Try a different search or upload a new image."
+        footer={
+          <Button type="button" onClick={onUploadClick}>
+            <UploadIcon />
+            Upload image
+          </Button>
+        }
+      />
     );
   }
 
@@ -167,7 +160,7 @@ export default function ImageVaultListSection({
                 isExplicit={image.isExplicit}
                 categories={image.categories}
               />
-              <p className="line-clamp-2 h-10 overflow-hidden text-xs leading-5 text-muted-foreground">
+              <p className="line-clamp-2 h-10 overflow-hidden whitespace-normal text-xs leading-5 text-muted-foreground">
                 {image.originType === "AI"
                   ? image.prompt || "No prompt"
                   : image.sourceUrl || "Uploaded human image"}

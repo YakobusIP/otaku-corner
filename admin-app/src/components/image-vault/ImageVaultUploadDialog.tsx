@@ -1,4 +1,11 @@
-import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type ChangeEvent,
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState
+} from "react";
 
 import {
   createImageVaultUploadDefaultValues,
@@ -444,7 +451,7 @@ export default function ImageVaultUploadDialog({
               <form.Subscribe selector={(state) => state.values.originType}>
                 {(originType) =>
                   originType === "AI" ? (
-                    <>
+                    <Fragment>
                       <form.Field name="prompt">
                         {(field) => {
                           const isInvalid =
@@ -500,7 +507,7 @@ export default function ImageVaultUploadDialog({
                           );
                         }}
                       </form.Field>
-                    </>
+                    </Fragment>
                   ) : null
                 }
               </form.Subscribe>

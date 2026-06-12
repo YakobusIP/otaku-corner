@@ -1,4 +1,4 @@
-import { Dispatch, ReactNode, SetStateAction } from "react";
+import { Dispatch, Fragment, ReactNode, SetStateAction } from "react";
 
 import {
   AlertDialog,
@@ -151,10 +151,10 @@ export default function DataTable<TData extends Identifiable, TValue>({
                     onClick={() => void deleteData()}
                   >
                     {isLoadingDeleteData ? (
-                      <>
+                      <Fragment>
                         <Loader2Icon className="mr-2 inline h-4 w-4 animate-spin" />
                         Deleting...
-                      </>
+                      </Fragment>
                     ) : (
                       "Delete"
                     )}
