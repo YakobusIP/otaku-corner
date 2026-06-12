@@ -9,6 +9,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useLightNovelDetail } from "@/hooks/useLightNovelDetail";
+import { useMediaLibraryBackPath } from "@/hooks/useMediaLibraryBackPath";
 
 import { parsePositiveIntParam } from "@/lib/parse-route-param";
 
@@ -24,6 +25,7 @@ import { toast } from "sonner";
 export default function AdminLightNovelDetail() {
   const { lightNovelId } = useParams();
   const parsedId = parsePositiveIntParam(lightNovelId);
+  const libraryBackPath = useMediaLibraryBackPath();
 
   const {
     data: lightNovelDetail,
@@ -51,7 +53,7 @@ export default function AdminLightNovelDetail() {
   }, [error, isError]);
 
   const backAction = (
-    <Link to="/media-list">
+    <Link to={libraryBackPath}>
       <Button variant="outline" size="sm" className="gap-2">
         <ArrowLeftIcon className="h-4 w-4" />
         <span className="hidden sm:inline">Back to library</span>
@@ -89,7 +91,7 @@ export default function AdminLightNovelDetail() {
               ? error.message
               : "Unknown error while loading the light novel."}
           </p>
-          <Link to="/media-list">
+          <Link to={libraryBackPath}>
             <Button variant="default" size="sm" className="gap-2">
               <ArrowLeftIcon className="h-4 w-4" />
               Return to media library
@@ -110,7 +112,7 @@ export default function AdminLightNovelDetail() {
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="@tablet:hidden" />
-            <Link to="/media-list">
+            <Link to={libraryBackPath}>
               <Button variant="ghost" size="sm" className="gap-2">
                 <ArrowLeftIcon className="h-4 w-4" />
                 <span>Back to library</span>

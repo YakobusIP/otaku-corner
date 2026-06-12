@@ -10,6 +10,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useAnimeDetail } from "@/hooks/useAnimeDetail";
+import { useMediaLibraryBackPath } from "@/hooks/useMediaLibraryBackPath";
 
 import { parsePositiveIntParam } from "@/lib/parse-route-param";
 
@@ -20,6 +21,7 @@ import { toast } from "sonner";
 export default function AdminAnimeDetail() {
   const { animeId } = useParams();
   const parsedId = parsePositiveIntParam(animeId);
+  const libraryBackPath = useMediaLibraryBackPath();
 
   const {
     data: animeDetail,
@@ -45,7 +47,7 @@ export default function AdminAnimeDetail() {
   }, [error, isError]);
 
   const backAction = (
-    <Link to="/media-list">
+    <Link to={libraryBackPath}>
       <Button variant="outline" size="sm" className="gap-2">
         <ArrowLeftIcon className="h-4 w-4" />
         <span className="hidden sm:inline">Back to library</span>
@@ -79,7 +81,7 @@ export default function AdminAnimeDetail() {
               ? error.message
               : "Unknown error while loading the anime."}
           </p>
-          <Link to="/media-list">
+          <Link to={libraryBackPath}>
             <Button variant="default" size="sm" className="gap-2">
               <ArrowLeftIcon className="h-4 w-4" />
               Return to media library
@@ -99,7 +101,7 @@ export default function AdminAnimeDetail() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <SidebarTrigger className="@tablet:hidden" />
-          <Link to="/media-list">
+          <Link to={libraryBackPath}>
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeftIcon className="h-4 w-4" />
               <span>Back to library</span>

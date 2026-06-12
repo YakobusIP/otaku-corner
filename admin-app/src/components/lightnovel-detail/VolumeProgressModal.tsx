@@ -106,7 +106,7 @@ export default function VolumeProgressModal({
           }
         />
       </DialogTrigger>
-      <DialogContent className="w-full xl:w-1/4">
+      <DialogContent className="w-full md:w-2/5 2xl:w-1/5">
         <DialogHeader>
           <DialogTitle>{lightNovelDetail.title} Volume Progress</DialogTitle>
           <DialogDescription>
@@ -116,11 +116,11 @@ export default function VolumeProgressModal({
         <div className="flex flex-wrap items-center justify-center gap-2">
           {volumeProgress.map((volume) => {
             return (
-              <Popover key={volume.id}>
-                <PopoverTrigger>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
+              <Popover key={volume.id} modal>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <PopoverTrigger asChild>
                         <Button
                           className={cn(
                             "w-10 h-10 xl:w-12 xl:h-12",
@@ -129,26 +129,26 @@ export default function VolumeProgressModal({
                         >
                           {volume.volumeNumber}
                         </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {volume.consumedAt ? (
-                          <p>
-                            Consumed at{" "}
-                            {new Date(volume.consumedAt).toLocaleString(
-                              "default",
-                              {
-                                month: "long"
-                              }
-                            )}{" "}
-                            {new Date(volume.consumedAt).getUTCFullYear()}
-                          </p>
-                        ) : (
-                          <p>Consumed date is not set</p>
-                        )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </PopoverTrigger>
+                      </PopoverTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {volume.consumedAt ? (
+                        <p>
+                          Consumed at{" "}
+                          {new Date(volume.consumedAt).toLocaleString(
+                            "default",
+                            {
+                              month: "long"
+                            }
+                          )}{" "}
+                          {new Date(volume.consumedAt).getUTCFullYear()}
+                        </p>
+                      ) : (
+                        <p>Consumed date is not set</p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <PopoverContent className="w-fit">
                   <p className="text-center font-bold">Month consumed</p>
                   <MonthPicker

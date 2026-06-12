@@ -22,6 +22,7 @@ import {
   BarChart3Icon,
   BookOpenIcon,
   ExternalLinkIcon,
+  ImagesIcon,
   PanelLeftIcon
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -62,6 +63,11 @@ const NAV_ITEMS: NavItem[] = [
     to: "/media-list",
     label: "Media Library",
     icon: <BookOpenIcon />
+  },
+  {
+    to: "/image-vault",
+    label: "Image Vault",
+    icon: <ImagesIcon />
   }
 ];
 
@@ -89,6 +95,8 @@ function AppSidebar() {
                 className="h-14 w-auto max-w-[min(100%,280px)] shrink-0 object-contain object-left transition-[max-width,height,width] duration-200 ease-linear tablet:group-data-[state=expanded]:h-16 tablet:group-data-[state=expanded]:w-auto tablet:group-data-[state=expanded]:max-w-[min(calc(var(--sidebar-width)-1rem),288px)] tablet:group-data-[state=expanded]:object-left desktop:group-data-[state=expanded]:h-16 desktop:group-data-[state=expanded]:w-auto desktop:group-data-[state=expanded]:max-w-[min(calc(var(--sidebar-width)-1rem),288px)] desktop:group-data-[state=expanded]:object-left"
               />
               <span className="truncate text-sm font-semibold tracking-tight text-foreground">
+                Otaku Corner
+                <br />
                 Admin
               </span>
             </Link>

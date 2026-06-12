@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
+import { ImageVaultAssetTargetDto } from "@/assets/dto/image-vault-asset-target.dto";
 import { ReviewAssetTargetDto } from "@/assets/dto/review-asset-target.dto";
 
 import { AssetMediaType } from "@prisma/client";
@@ -12,17 +13,34 @@ import {
   IsString,
   MaxLength,
   Min,
+  ValidateIf,
   ValidateNested
 } from "class-validator";
 
+export type AssetInitTargetDto =
+  | ReviewAssetTargetDto
+  | ImageVaultAssetTargetDto;
+
 export class InitAssetDto {
   @ApiProperty({
-    type: ReviewAssetTargetDto,
-    description: "Attachment context for this asset (extensible by kind)"
+    description: "Attachment context for this asset (extensible by kind)",
+    oneOf: [
+      { $ref: "#/components/schemas/ReviewAssetTargetDto" },
+      { $ref: "#/components/schemas/ImageVaultAssetTargetDto" }
+    ]
   })
   @ValidateNested()
-  @Type(() => ReviewAssetTargetDto)
-  target: ReviewAssetTargetDto;
+  @Type(() => Object, {
+    discriminator: {
+      property: "kind",
+      subTypes: [
+        { value: ReviewAssetTargetDto, name: "REVIEW" },
+        { value: ImageVaultAssetTargetDto, name: "IMAGE_VAULT" }
+      ]
+    },
+    keepDiscriminatorProperty: true
+  })
+  target: AssetInitTargetDto;
 
   @ApiProperty({
     description: "Declared MIME type for the upload",
@@ -41,15 +59,16 @@ export class InitAssetDto {
   @Min(1)
   expectedFileSize: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description:
-      "Object key directory prefix without leading or trailing slashes (e.g. review-images). Combined with the generated filename to form the full storage key.",
+      "Object key directory prefix without leading or trailing slashes (e.g. review-images). Required for REVIEW targets; defaults to image-vault for IMAGE_VAULT targets.",
     example: "review-images"
   })
+  @ValidateIf((dto: InitAssetDto) => dto.target.kind === "REVIEW")
   @IsString()
   @IsNotEmpty()
   @MaxLength(512)
-  storageDirectory: string;
+  storageDirectory?: string;
 
   @ApiPropertyOptional({
     description: "Logical asset kind (video disabled until supported)",
