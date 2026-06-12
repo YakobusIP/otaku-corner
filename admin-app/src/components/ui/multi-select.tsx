@@ -205,6 +205,9 @@ interface MultiSelectProps
    */
   popoverClassName?: string;
 
+  /** Optional portal container for popovers rendered inside modal surfaces. */
+  popoverPortalContainer?: HTMLElement | null;
+
   /**
    * If true, disables the component completely.
    * Optional, defaults to false.
@@ -325,6 +328,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
       autoSize = false,
       singleLine = false,
       popoverClassName,
+      popoverPortalContainer,
       disabled = false,
       responsive,
       minWidth,
@@ -1014,17 +1018,27 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
             role="listbox"
             aria-multiselectable="true"
             aria-label="Available options"
+            portalContainer={popoverPortalContainer}
             portalled={!modalPopover}
             className={cn(
-              "popover-content-width-full p-0",
+              "w-auto p-0",
               getPopoverAnimationClass(),
+              (screenSize === "smallMobile" || screenSize === "mobile") &&
+                "w-[85vw] max-w-[280px]",
+              screenSize === "tablet" && "w-[70vw] max-w-md",
+              screenSize === "desktop" && "min-w-[300px]",
               popoverClassName
             )}
             style={{
               animationDuration: `${animationConfig?.duration || animation}s`,
               animationDelay: `${animationConfig?.delay || 0}s`,
-              maxWidth: "85vw",
-              maxHeight: screenSize === "mobile" ? "70vh" : "60vh",
+              maxWidth: `min(${
+                maxWidth ?? "var(--radix-popover-trigger-width)"
+              }, 85vw)`,
+              maxHeight:
+                screenSize === "smallMobile" || screenSize === "mobile"
+                  ? "70vh"
+                  : "60vh",
               touchAction: "manipulation"
             }}
             align="start"

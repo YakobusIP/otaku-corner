@@ -78,6 +78,8 @@ export default function ImageVaultUploadDialog({
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [dialogContentElement, setDialogContentElement] =
+    useState<HTMLDivElement | null>(null);
 
   const form = useForm({
     defaultValues: createImageVaultUploadDefaultValues(
@@ -186,7 +188,10 @@ export default function ImageVaultUploadDialog({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-lg">
+      <DialogContent
+        ref={setDialogContentElement}
+        className="flex max-h-[90vh] flex-col sm:max-w-lg"
+      >
         <DialogHeader>
           <DialogTitle>
             {isFollowUp ? "Add Follow-up" : "Upload Image"}
@@ -206,7 +211,7 @@ export default function ImageVaultUploadDialog({
             void form.handleSubmit();
           }}
         >
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden pr-1">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
             {isFollowUp && parentImage ? (
               <div className="space-y-2 rounded-md border border-border/60 p-3">
                 <p className="text-xs font-medium text-muted-foreground">
@@ -400,7 +405,6 @@ export default function ImageVaultUploadDialog({
                       <FieldLabel>Categories</FieldLabel>
                       <MultiSelect
                         key={`${parentImage?.id ?? "root"}-${open ? "open" : "closed"}`}
-                        modalPopover
                         options={categories.map((category) => ({
                           label: category.name,
                           value: category.id
@@ -424,6 +428,7 @@ export default function ImageVaultUploadDialog({
                         searchable
                         hideSelectAll
                         className="w-full"
+                        popoverPortalContainer={dialogContentElement}
                         disabled={
                           isLoadingCategories || categories.length === 0
                         }
