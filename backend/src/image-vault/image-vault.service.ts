@@ -55,7 +55,7 @@ type ImageVaultEntryCategoryWithCategory = ImageVaultEntryCategory & {
 
 type ImageVaultEntryWithRelations = ImageVaultEntry & {
   asset: Asset;
-  sourceAsset: Asset | null;
+  sourceAsset?: Asset | null;
   model: ImageVaultGenerationModel | null;
   categories: ImageVaultEntryCategoryWithCategory[];
   parent?: (ImageVaultEntry & { asset: Asset }) | null;
@@ -167,12 +167,14 @@ export class ImageVaultService {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: "desc" },
-        include: this.entryInclude()
+        include: this.listEntryInclude()
       }),
       this.prisma.imageVaultEntry.count({ where })
     ]);
 
-    const data = await Promise.all(rows.map((row) => this.mapEntry(row)));
+    const data = await Promise.all(
+      rows.map((row) => this.mapEntry(row, false, false))
+    );
 
     return {
       data,
@@ -409,6 +411,18 @@ export class ImageVaultService {
     return {
       asset: true,
       sourceAsset: true,
+      model: true,
+      categories: {
+        include: {
+          imageVaultCategory: true
+        }
+      }
+    } as const;
+  }
+
+  private listEntryInclude() {
+    return {
+      asset: true,
       model: true,
       categories: {
         include: {
@@ -669,16 +683,18 @@ export class ImageVaultService {
 
   private async mapEntry(
     entry: ImageVaultEntryWithRelations,
-    withLineage = false
+    withLineage = false,
+    includeSourceAsset = true
   ): Promise<ImageEntryResponseDto> {
     const previewUrl = await this.r2.getPrivatePresignedGetUrl({
       key: entry.asset.storageKey,
       meta: { image_entry_id: entry.id, asset_id: entry.assetId }
     });
 
-    const sourceAsset = entry.sourceAsset
-      ? await this.mapSourceAsset(entry.sourceAsset, entry.id)
-      : null;
+    const sourceAsset =
+      includeSourceAsset && entry.sourceAsset
+        ? await this.mapSourceAsset(entry.sourceAsset, entry.id)
+        : null;
 
     const response: ImageEntryResponseDto = {
       id: entry.id,

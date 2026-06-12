@@ -5,9 +5,10 @@ import {
   useImageVaultMutations
 } from "@/hooks/useImageVaultQueries";
 
-import type { ImageVaultCategory } from "@/types/image-vault.type";
-
-import type { ImageVaultCatalogEditDialogControl } from "@/hooks/useImageVaultModelManagement";
+import type {
+  ImageVaultCatalogEditDialogControl,
+  ImageVaultCategory
+} from "@/types/image-vault.type";
 
 import type { RowSelectionState } from "@tanstack/react-table";
 import { useDebounce } from "use-debounce";

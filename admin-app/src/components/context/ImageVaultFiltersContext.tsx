@@ -50,7 +50,6 @@ export type ImageVaultFiltersState = {
 type ImageVaultFiltersContextValue = {
   state: ImageVaultFiltersState;
   setState: (updater: Partial<ImageVaultFiltersState>) => void;
-  resetFilters: () => void;
 };
 
 const defaultState: ImageVaultFiltersState = {
@@ -65,17 +64,6 @@ const defaultState: ImageVaultFiltersState = {
 const ImageVaultFiltersContext = createContext<
   ImageVaultFiltersContextValue | undefined
 >(undefined);
-
-const hasStateChanges = (
-  previous: ImageVaultFiltersState,
-  updates: Partial<ImageVaultFiltersState>
-) => {
-  return Object.entries(updates).some(
-    ([key, value]) =>
-      previous[key as keyof ImageVaultFiltersState] !==
-      (value as ImageVaultFiltersState[keyof ImageVaultFiltersState])
-  );
-};
 
 const readStateFromSearchParams = (
   searchParams: URLSearchParams
@@ -109,17 +97,7 @@ export const ImageVaultFiltersProvider = ({
   }));
 
   const setState = useCallback((updater: Partial<ImageVaultFiltersState>) => {
-    setInternalState((prev) => {
-      const next = { ...prev, ...updater };
-      return hasStateChanges(prev, next) ? next : prev;
-    });
-  }, []);
-
-  const resetFilters = useCallback(() => {
-    setInternalState((prev) => {
-      const next = { ...defaultState };
-      return hasStateChanges(prev, next) ? next : prev;
-    });
+    setInternalState((prev) => ({ ...prev, ...updater }));
   }, []);
 
   useEffect(() => {
@@ -147,10 +125,9 @@ export const ImageVaultFiltersProvider = ({
   const value = useMemo(
     () => ({
       state,
-      setState,
-      resetFilters
+      setState
     }),
-    [resetFilters, setState, state]
+    [setState, state]
   );
 
   return (

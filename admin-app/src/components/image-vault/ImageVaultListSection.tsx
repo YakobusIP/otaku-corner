@@ -1,11 +1,4 @@
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState
-} from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 
 import ImageVaultCardBadges from "@/components/image-vault/ImageVaultCardBadges";
 import { Button } from "@/components/ui/button";
@@ -90,16 +83,18 @@ export default function ImageVaultListSection({
     [listQuery.data?.pages]
   );
 
-  const { hasNextPage, isFetchingNextPage, isLoading, isError } = listQuery;
+  const {
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError
+  } = listQuery;
 
-  const listQueryRef = useRef(listQuery);
-  listQueryRef.current = listQuery;
-
-  const fetchNextIfNeeded = useCallback(() => {
-    const query = listQueryRef.current;
-    if (!query.hasNextPage || query.isFetchingNextPage) return;
-    void query.fetchNextPage();
-  }, []);
+  const loadMore = () => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    void fetchNextPage();
+  };
 
   const { ref: loadMoreRef } = useInView({
     skip: !hasNextPage,
@@ -109,7 +104,7 @@ export default function ImageVaultListSection({
     initialInView: false,
     onChange: (visible) => {
       if (!visible) return;
-      fetchNextIfNeeded();
+      loadMore();
     }
   });
 
@@ -162,6 +157,7 @@ export default function ImageVaultListSection({
                   hideExplicitImages
                 )}
                 alt=""
+                loading="lazy"
                 className="h-full w-full object-cover transition group-hover:scale-[1.02]"
               />
             </div>
@@ -192,7 +188,7 @@ export default function ImageVaultListSection({
             size="sm"
             variant="outline"
             disabled={isFetchingNextPage || !hasNextPage}
-            onClick={fetchNextIfNeeded}
+            onClick={loadMore}
           >
             {isFetchingNextPage ? "Loading..." : "Load more"}
           </Button>

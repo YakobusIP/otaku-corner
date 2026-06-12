@@ -1,5 +1,17 @@
 export type ImageOriginType = "AI" | "HUMAN";
 
+export const IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY = 20;
+
+export const parseImageOriginType = (
+  value: string
+): ImageOriginType | null =>
+  value === "AI" || value === "HUMAN" ? value : null;
+
+export type ImageVaultCatalogEditDialogControl = {
+  isOpenFor: (entityId: string) => boolean;
+  onOpenChange: (entityId: string, open: boolean) => void;
+};
+
 export type ImageVaultModel = {
   id: string;
   name: string;

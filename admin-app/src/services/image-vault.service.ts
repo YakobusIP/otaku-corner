@@ -2,7 +2,6 @@ import axios from "axios";
 
 import type {
   CreateImageEntryPayload,
-  ImageOriginType,
   ImageVaultCategory,
   ImageVaultEntry,
   ImageVaultListFilters,
@@ -112,8 +111,7 @@ const createImageVaultService = () => {
           originType: filters.originType,
           modelId: filters.modelId,
           categoryId: filters.categoryId,
-          isExplicit:
-            filters.isExplicit === undefined ? undefined : filters.isExplicit
+          isExplicit: filters.isExplicit
         }
       });
       return ok(mapPaginatedBody(response.data));
@@ -144,10 +142,12 @@ const createImageVaultService = () => {
     }
   ): Promise<ServiceResult<ImageVaultEntry>> => {
     try {
-      const assetId = await uploadPrivateVaultAsset(file, options?.onProgress);
-      const sourceAssetId = options?.sourceFile
-        ? await uploadPrivateVaultAsset(options.sourceFile)
-        : undefined;
+      const [assetId, sourceAssetId] = await Promise.all([
+        uploadPrivateVaultAsset(file, options?.onProgress),
+        options?.sourceFile
+          ? uploadPrivateVaultAsset(options.sourceFile)
+          : Promise.resolve(undefined)
+      ]);
 
       const createResponse = await interceptedAxios.post<ImageVaultEntry>(
         `${BASE_URL}/images`,
@@ -316,5 +316,3 @@ const createImageVaultService = () => {
 };
 
 export const imageVaultService = createImageVaultService();
-
-export type { ImageOriginType };

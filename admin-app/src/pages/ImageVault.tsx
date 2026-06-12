@@ -20,7 +20,6 @@ function ImageVaultContent() {
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
   const [emptyUploadOpen, setEmptyUploadOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Image Vault | Otaku Corner Admin";
@@ -39,10 +38,7 @@ function ImageVaultContent() {
           listQuery={listQuery}
           scrollRoot={scrollRoot}
           hideExplicitImages={state.hideExplicitImages}
-          onSelectImage={(image) => {
-            setSelectedId(image.id);
-            setDetailOpen(true);
-          }}
+          onSelectImage={(image) => setSelectedId(image.id)}
           onUploadClick={() => setEmptyUploadOpen(true)}
         />
       </div>
@@ -53,8 +49,10 @@ function ImageVaultContent() {
       />
       <ImageVaultDetailDialog
         imageId={selectedId}
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
+        open={selectedId !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedId(null);
+        }}
         hideExplicitImages={state.hideExplicitImages}
       />
     </AdminLayout>

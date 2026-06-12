@@ -54,8 +54,8 @@ export const useImageVaultCategories = (enabled = true) =>
 export const useImageVaultMutations = () => {
   const queryClient = useQueryClient();
 
-  const invalidateAll = async () => {
-    await queryClient.invalidateQueries({ queryKey: imageVaultKeys.all });
+  const invalidateLists = async () => {
+    await queryClient.invalidateQueries({ queryKey: imageVaultKeys.lists() });
   };
 
   const uploadImage = useMutation({
@@ -79,7 +79,7 @@ export const useImageVaultMutations = () => {
       return result.data;
     },
     onSuccess: async () => {
-      await invalidateAll();
+      await invalidateLists();
       toast.success("Image added to vault");
     },
     onError: (error: unknown) => {
@@ -104,7 +104,7 @@ export const useImageVaultMutations = () => {
       return result.data;
     },
     onSuccess: async (data) => {
-      await invalidateAll();
+      await invalidateLists();
       queryClient.setQueryData(imageVaultKeys.detail(data.id), data);
       toast.success("Image updated");
     },
@@ -123,7 +123,7 @@ export const useImageVaultMutations = () => {
       }
     },
     onSuccess: async () => {
-      await invalidateAll();
+      await invalidateLists();
       toast.success("Image deleted");
     },
     onError: (error: unknown) => {
@@ -172,7 +172,7 @@ export const useImageVaultMutations = () => {
       await queryClient.invalidateQueries({
         queryKey: imageVaultKeys.models()
       });
-      await invalidateAll();
+      await invalidateLists();
       toast.success("Model updated");
     },
     onError: (error: unknown) => {
@@ -192,7 +192,7 @@ export const useImageVaultMutations = () => {
       await queryClient.invalidateQueries({
         queryKey: imageVaultKeys.models()
       });
-      await invalidateAll();
+      await invalidateLists();
       toast.success(
         deletedIds.length === 1
           ? "Model deleted"
@@ -241,7 +241,7 @@ export const useImageVaultMutations = () => {
       await queryClient.invalidateQueries({
         queryKey: imageVaultKeys.categories()
       });
-      await invalidateAll();
+      await invalidateLists();
       toast.success("Category updated");
     },
     onError: (error: unknown) => {
@@ -261,7 +261,7 @@ export const useImageVaultMutations = () => {
       await queryClient.invalidateQueries({
         queryKey: imageVaultKeys.categories()
       });
-      await invalidateAll();
+      await invalidateLists();
       toast.success(
         deletedIds.length === 1
           ? "Category deleted"

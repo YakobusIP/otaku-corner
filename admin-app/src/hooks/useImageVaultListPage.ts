@@ -50,7 +50,7 @@ export const useImageVaultListPage = (enabled = true) => {
       };
       const result = await imageVaultService.listImages(requestFilters);
       if (!result.success) {
-        throw new Error(result.error);
+        throw result.error;
       }
       return result.data;
     },

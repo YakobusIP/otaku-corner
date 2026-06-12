@@ -1,3 +1,5 @@
+import { IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY } from "@/types/image-vault.type";
+
 import { z } from "zod";
 
 const trim = (value: string) => value.trim();
@@ -9,7 +11,12 @@ export const imageVaultUploadFormSchema = z
     prompt: z.string(),
     originalPrompt: z.string(),
     sourceUrl: z.string(),
-    categoryIds: z.array(z.string()).max(3, "Select at most 3 categories."),
+    categoryIds: z
+      .array(z.string())
+      .max(
+        IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY,
+        `Select at most ${IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY} categories.`
+      ),
     notes: z.string(),
     isExplicit: z.boolean(),
     explicitReason: z.string()

@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   createImageVaultUploadDefaultValues,
@@ -37,7 +37,10 @@ import {
   useImageVaultMutations
 } from "@/hooks/useImageVaultQueries";
 
-import type { ImageOriginType } from "@/types/image-vault.type";
+import {
+  type ImageOriginType,
+  parseImageOriginType
+} from "@/types/image-vault.type";
 
 import { resolveImageVaultPreviewUrl } from "@/lib/image-vault-preview";
 
@@ -129,16 +132,11 @@ export default function ImageVaultUploadDialog({
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
-
-  useEffect(() => {
-    return () => {
       if (sourcePreviewUrl) URL.revokeObjectURL(sourcePreviewUrl);
     };
-  }, [sourcePreviewUrl]);
+  }, [previewUrl, sourcePreviewUrl]);
 
-  const resetDialogState = () => {
+  const resetDialogState = useCallback(() => {
     form.reset(
       createImageVaultUploadDefaultValues(parentImage?.categoryIds ?? [])
     );
@@ -146,21 +144,12 @@ export default function ImageVaultUploadDialog({
     setSourceFile(null);
     setFileError(null);
     setUploadProgress(null);
-  };
-
-  const inheritedCategoryIds = useMemo(
-    () => [...(parentImage?.categoryIds ?? [])],
-    [parentImage?.categoryIds]
-  );
+  }, [form, parentImage?.categoryIds]);
 
   useEffect(() => {
     if (!open) return;
-    form.reset(createImageVaultUploadDefaultValues(inheritedCategoryIds));
-    setFile(null);
-    setSourceFile(null);
-    setFileError(null);
-    setUploadProgress(null);
-  }, [open, inheritedCategoryIds, form]);
+    resetDialogState();
+  }, [open, resetDialogState]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const next = event.target.files?.[0] ?? null;
@@ -297,12 +286,14 @@ export default function ImageVaultUploadDialog({
                         </FieldLabel>
                         <Select
                           value={field.state.value}
-                          onValueChange={(value) =>
+                          onValueChange={(value) => {
+                            const nextOrigin = parseImageOriginType(value);
+                            if (!nextOrigin) return;
                             handleOriginTypeChange(
-                              value as ImageOriginType,
+                              nextOrigin,
                               field.handleChange
-                            )
-                          }
+                            );
+                          }}
                         >
                           <SelectTrigger
                             id="vault-origin-type"

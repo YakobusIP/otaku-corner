@@ -2,12 +2,12 @@ import ModelRowActions from "@/components/image-vault/models/ModelRowActions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-import type {
-  EditModelPayload,
-  ImageVaultCatalogEditDialogControl
-} from "@/hooks/useImageVaultModelManagement";
+import type { EditModelPayload } from "@/hooks/useImageVaultModelManagement";
 
-import type { ImageVaultModel } from "@/types/image-vault.type";
+import type {
+  ImageVaultCatalogEditDialogControl,
+  ImageVaultModel
+} from "@/types/image-vault.type";
 
 import type { ColumnDef } from "@tanstack/react-table";
 

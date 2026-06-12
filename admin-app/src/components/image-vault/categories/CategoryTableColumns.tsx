@@ -2,9 +2,11 @@ import CategoryRowActions from "@/components/image-vault/categories/CategoryRowA
 import { Checkbox } from "@/components/ui/checkbox";
 
 import type { EditCategoryPayload } from "@/hooks/useImageVaultCategoryManagement";
-import type { ImageVaultCatalogEditDialogControl } from "@/hooks/useImageVaultModelManagement";
 
-import type { ImageVaultCategory } from "@/types/image-vault.type";
+import type {
+  ImageVaultCatalogEditDialogControl,
+  ImageVaultCategory
+} from "@/types/image-vault.type";
 
 import type { ColumnDef } from "@tanstack/react-table";
 

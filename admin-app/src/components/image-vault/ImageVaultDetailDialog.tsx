@@ -31,9 +31,10 @@ import {
   useImageVaultMutations
 } from "@/hooks/useImageVaultQueries";
 
-import type {
-  ImageOriginType,
-  ImageVaultEntry
+import {
+  type ImageOriginType,
+  type ImageVaultEntry,
+  parseImageOriginType
 } from "@/types/image-vault.type";
 
 import {
@@ -207,9 +208,18 @@ export default function ImageVaultDetailDialog({
                     <Label>Origin</Label>
                     <Select
                       value={originType}
-                      onValueChange={(value) =>
-                        setOriginType(value as ImageOriginType)
-                      }
+                      onValueChange={(value) => {
+                        const nextOrigin = parseImageOriginType(value);
+                        if (!nextOrigin) return;
+                        setOriginType(nextOrigin);
+                        if (nextOrigin === "HUMAN") {
+                          setModelId("");
+                          setPrompt("");
+                          setOriginalPrompt("");
+                          return;
+                        }
+                        setSourceUrl("");
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -325,9 +335,11 @@ export default function ImageVaultDetailDialog({
                   <Checkbox
                     id="detail-explicit"
                     checked={isExplicit}
-                    onCheckedChange={(checked) =>
-                      setIsExplicit(checked === true)
-                    }
+                    onCheckedChange={(checked) => {
+                      const next = checked === true;
+                      setIsExplicit(next);
+                      if (!next) setExplicitReason("");
+                    }}
                   />
                   <Label htmlFor="detail-explicit">Explicit</Label>
                 </div>
@@ -387,7 +399,10 @@ export default function ImageVaultDetailDialog({
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setViewImageId(image.parent!.id)}
+                      onClick={() => {
+                        const parentId = image.parent?.id;
+                        if (parentId) setViewImageId(parentId);
+                      }}
                       className="h-auto w-full justify-start gap-3 p-2 text-left hover:border-primary/40 hover:bg-accent/30"
                     >
                       <img

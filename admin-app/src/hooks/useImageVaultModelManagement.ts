@@ -5,17 +5,15 @@ import {
   useImageVaultMutations
 } from "@/hooks/useImageVaultQueries";
 
-import type { ImageVaultModel } from "@/types/image-vault.type";
+import type {
+  ImageVaultCatalogEditDialogControl,
+  ImageVaultModel
+} from "@/types/image-vault.type";
 
 import type { RowSelectionState } from "@tanstack/react-table";
 import { useDebounce } from "use-debounce";
 
 const PAGE_SIZE = 10;
-
-export type ImageVaultCatalogEditDialogControl = {
-  isOpenFor: (entityId: string) => boolean;
-  onOpenChange: (entityId: string, open: boolean) => void;
-};
 
 export type EditModelPayload = {
   id: string;
