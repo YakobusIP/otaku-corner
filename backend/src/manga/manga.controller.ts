@@ -23,7 +23,7 @@ import {
 import { BaseCrudController } from "@/common/crud/base-crud.controller";
 import { AuthenticatedApiController } from "@/common/decorators/authenticated-api-controller.decorator";
 import { Public } from "@/common/decorators/public.decorator";
-import { BulkDeleteDto, PaginationQueryDto } from "@/common/dto";
+import { BulkDeleteDto, SitemapPaginationQueryDto } from "@/common/dto";
 import { getRequestLogContextFromRequest } from "@/common/logging/request-log-context";
 
 import {
@@ -92,9 +92,9 @@ export class MangaController extends BaseCrudController<
     status: 200,
     description: "Returns manga sitemap data"
   })
-  async getSitemapData(@Query() query: PaginationQueryDto) {
+  async getSitemapData(@Query() query: SitemapPaginationQueryDto) {
     const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const limit = query.limit ?? 50000;
     return this.service.getSitemapData(page, limit);
   }
 
