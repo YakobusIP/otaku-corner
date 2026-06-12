@@ -58,7 +58,12 @@ export const createMediaSitemapHandler = (
       });
     } catch (error) {
       console.error(`Error generating ${navLabel} sitemap:`, error);
-      return NextResponse.error();
+      return new NextResponse(null, {
+        status: 503,
+        headers: {
+          "Retry-After": "300"
+        }
+      });
     }
   };
 
