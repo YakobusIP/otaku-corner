@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, Fragment, SetStateAction, useEffect, useState } from "react";
 
 import SelectedRow from "@/components/add-media/SelectedRow";
 import AnimeDetailPanel from "@/components/add-media/add-anime/AnimeDetailPanel";
@@ -168,7 +168,7 @@ export default function AddAnimeDialog({
                   </p>
                 </div>
               ) : (
-                <>
+                <Fragment>
                   <ul className="flex flex-col gap-2 pr-1">
                     {searchResults.map((anime) => {
                       const alreadySelected = selectedMalIds.has(anime.mal_id);
@@ -238,7 +238,7 @@ export default function AddAnimeDialog({
                       Loading more...
                     </div>
                   ) : null}
-                </>
+                </Fragment>
               )}
             </div>
             {searchTrimmed.length >= 2 && searchTotal !== null ? (

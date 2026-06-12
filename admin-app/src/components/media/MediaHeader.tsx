@@ -55,10 +55,11 @@ export default function MediaHeader({ totalCount }: Props) {
   const lastPushedQueryRef = useRef(state.query);
 
   useEffect(() => {
-    if (state.query === debouncedQuery && state.page === 1) return;
+    if (debouncedQuery === lastPushedQueryRef.current) return;
+    if (debouncedQuery !== localQuery) return;
     setState({ query: debouncedQuery, page: 1 });
     lastPushedQueryRef.current = debouncedQuery;
-  }, [debouncedQuery, setState, state.page, state.query]);
+  }, [debouncedQuery, localQuery, setState]);
 
   useEffect(() => {
     if (state.query === lastPushedQueryRef.current) {

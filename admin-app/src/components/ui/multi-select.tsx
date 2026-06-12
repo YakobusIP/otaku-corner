@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Fragment } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -770,7 +771,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
     }, [selectedValues, isPopoverOpen, searchValue, announce, getAllOptions]);
 
     return (
-      <>
+      <Fragment>
         <div className="sr-only">
           <div aria-live="polite" aria-atomic="true" role="status">
             {politeMessage}
@@ -1201,7 +1202,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                 <CommandGroup>
                   <div className="flex items-center justify-between">
                     {selectedValues.length > 0 && (
-                      <>
+                      <Fragment>
                         <CommandItem
                           onSelect={handleClear}
                           className="flex-1 justify-center cursor-pointer"
@@ -1212,7 +1213,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                           orientation="vertical"
                           className="flex min-h-6 h-full"
                         />
-                      </>
+                      </Fragment>
                     )}
                     <CommandItem
                       onSelect={() => setIsPopoverOpen(false)}
@@ -1235,7 +1236,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
             />
           )}
         </Popover>
-      </>
+      </Fragment>
     );
   }
 );

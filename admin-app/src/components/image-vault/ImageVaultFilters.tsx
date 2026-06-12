@@ -31,10 +31,11 @@ export default function ImageVaultFilters() {
   const lastPushedSearchRef = useRef(state.search);
 
   useEffect(() => {
-    if (state.search === debouncedSearch) return;
+    if (debouncedSearch === lastPushedSearchRef.current) return;
+    if (debouncedSearch !== localSearch) return;
     setState({ search: debouncedSearch });
     lastPushedSearchRef.current = debouncedSearch;
-  }, [debouncedSearch, setState, state.search]);
+  }, [debouncedSearch, localSearch, setState]);
 
   useEffect(() => {
     if (state.search === lastPushedSearchRef.current) {
