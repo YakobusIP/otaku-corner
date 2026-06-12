@@ -1,73 +1,123 @@
-import { AnimeDetail, AnimeList } from "@/types/anime.type";
-import { ApiResponse, ApiResponseList } from "@/types/api.type";
+import { AnimeDetail, AnimeList, AnimeSitemap } from "@/types/anime.type";
+import { StatusFilter } from "@/types/statistic.type";
 
-import { axiosClient } from "@/lib/axios";
-import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/enums";
+import { axiosClient, handleAxiosError } from "@/lib/api/axios";
+import { PROGRESS_STATUS, SORT_ORDER } from "@/lib/shared/enums";
+import {
+  type NestPaginatedListBody,
+  mapNestListPageToPublic
+} from "@/lib/shared/nest-paginated-list";
 
-import { AxiosError } from "axios";
+const BASE_ANIME_URL = "/api/animes";
 
-const BASE_ANIME_URL = "/api/anime";
+const createAnimeService = () => {
+  const fetchAll = async (
+    page: number,
+    limit: number,
+    query?: string,
+    sort?: string,
+    order?: SORT_ORDER,
+    genre?: number,
+    studio?: number,
+    theme?: number,
+    status?: keyof typeof PROGRESS_STATUS,
+    malScore?: string,
+    personalScore?: string,
+    type?: string
+  ) => {
+    try {
+      const response = await axiosClient.get<NestPaginatedListBody<AnimeList>>(
+        BASE_ANIME_URL,
+        {
+          params: {
+            page,
+            limit,
+            query,
+            sort,
+            order,
+            genre,
+            studio,
+            theme,
+            status,
+            malScore,
+            personalScore,
+            type
+          }
+        }
+      );
+      return mapNestListPageToPublic(response.data);
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
 
-const fetchAllAnimeService = async (
-  currentPage: number,
-  limitPerPage: number,
-  query?: string,
-  sortBy?: string,
-  sortOrder?: SORT_ORDER,
-  filterGenre?: number,
-  filterStudio?: number,
-  filterTheme?: number,
-  filterProgressStatus?: keyof typeof PROGRESS_STATUS,
-  filterMALScore?: string,
-  filterPersonalScore?: string,
-  filterType?: string
-): Promise<ApiResponseList<AnimeList[]>> => {
-  try {
-    const response = await axiosClient.get(BASE_ANIME_URL, {
-      params: {
-        currentPage,
-        limitPerPage,
-        q: query,
-        sortBy,
-        sortOrder,
-        filterGenre,
-        filterStudio,
-        filterTheme,
-        filterProgressStatus,
-        filterMALScore,
-        filterPersonalScore,
-        filterType
-      }
-    });
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    console.error(error);
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
+  const fetchById = async (id: number) => {
+    try {
+      const response = await axiosClient.get<AnimeDetail>(
+        `${BASE_ANIME_URL}/${id}`
+      );
+      return response.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchTotalCount = async () => {
+    try {
+      const response = await axiosClient.get<{ count: number }>(
+        `${BASE_ANIME_URL}/total`
+      );
+      return response.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchSitemap = async (page: number, limit: number) => {
+    try {
+      const response = await axiosClient.get<AnimeSitemap[]>(
+        `${BASE_ANIME_URL}/sitemap`,
+        {
+          params: { page, limit }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  const fetchStatusCounts = async () => {
+    try {
+      const response = await axiosClient.get<
+        { label: string; value: string | null; count: number }[]
+      >(`${BASE_ANIME_URL}/status-count`);
+      return response.data.map(
+        (row): StatusFilter => ({
+          label: row.label,
+          count: row.count,
+          ...(row.value !== null && row.value !== undefined
+            ? { value: row.value as StatusFilter["value"] }
+            : {})
+        })
+      );
+    } catch (error) {
+      const message = handleAxiosError(error);
+      throw new Error(message);
+    }
+  };
+
+  return {
+    fetchAll,
+    fetchById,
+    fetchTotalCount,
+    fetchSitemap,
+    fetchStatusCounts
+  };
 };
 
-const fetchAnimeByIdService = async (
-  id: number
-): Promise<ApiResponse<AnimeDetail>> => {
-  try {
-    const response = await axiosClient.get(`${BASE_ANIME_URL}/${id}`);
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    console.error(error);
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
-};
-
-export { fetchAllAnimeService, fetchAnimeByIdService };
+export const animeService = createAnimeService();

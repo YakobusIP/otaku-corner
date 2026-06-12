@@ -1,0 +1,111 @@
+---
+description: Backend API contract, DTO validation, pagination, Swagger, public/auth route boundaries, and request safety
+globs: backend/src/**/*.{ts},backend/prisma/**/*.prisma
+alwaysApply: true
+---
+
+# Backend validation and API contracts
+
+The backend API must reject bad input at the boundary, document accepted input, and keep HTTP behavior explicit. The global `ValidationPipe` in `src/main.ts` is configured with `whitelist`, `forbidNonWhitelisted`, `transform`, and implicit conversion. DTOs and route pipes must be written with that behavior in mind.
+
+## Validation baseline
+
+- Validate every request body, query object, and route param that crosses an HTTP boundary.
+- TypeScript types are not runtime validation. Do not assume `param: number` or `query.limit?: number` is enough.
+- Use Nest pipes for primitive route params:
+  - `ParseIntPipe` for numeric IDs
+  - UUID parsing/validation when UUID route params are introduced
+  - explicit custom pipes only when built-in pipes are insufficient
+- Use DTO classes for request bodies and query strings.
+- DTOs should combine:
+  - `class-validator` decorators for runtime validation
+  - `class-transformer` decorators for safe conversion
+  - Swagger decorators for API documentation
+- Avoid accepting arbitrary strings for finite option sets. Use `@IsIn`, an enum validator, or a purpose-built DTO constraint.
+
+## Pagination
+
+- Use `PaginationQueryDto` or `EntityPaginationQueryDto` for paginated endpoints when they fit.
+- Keep `MAX_PAGE_LIMIT` in `src/common/dto/pagination-query.dto.ts` as the shared maximum page size for public list endpoints that use that DTO.
+- Every paginated endpoint must enforce a maximum `limit`; never allow unbounded client-controlled page sizes.
+- Use `@Min(1)` for `page` and `limit`.
+- Use `@Max(MAX_PAGE_LIMIT)` or an explicitly justified endpoint-specific maximum for `limit`.
+- Default pagination should be applied in services or query builders consistently with the DTO's documented defaults.
+- Do not silently clamp extreme page sizes unless the endpoint's contract explicitly says it clamps. Prefer validation errors for invalid client input.
+
+## include_ids behavior
+
+- `include_ids` is a comma-separated single query parameter, such as `include_ids=3,7,12`.
+- Invalid `include_ids` tokens must fail the request with a clear bad request error.
+- Do not silently drop invalid IDs.
+- Deduplicate `include_ids` while preserving the caller's order.
+- Only positive integers are valid.
+- Do not accept repeated query params for `include_ids` unless the API contract is deliberately changed and the DTO is updated.
+
+## Sort and filter options
+
+- Sort fields, sort order, score range keys, status checks, and similar finite filters must be validated in DTOs.
+- Do not let invalid sort/filter strings fall through to default behavior without validation.
+- Prefer domain-local constants when a domain may diverge, such as anime/manga/light-novel review query DTOs.
+- Extract constants only when the allowed values are truly shared policy, not accidental duplication.
+- Keep DTO validation and service/query-builder assumptions in sync. If a query builder only handles certain values, the DTO must reject everything else.
+
+## Request body DTOs
+
+- Use `@IsOptional()` only when a field is truly optional.
+- Combine optional fields with a type validator for the value when present.
+- Validate arrays with both `@IsArray()` and per-item validation such as `@IsInt({ each: true })`.
+- Validate strings with expected constraints such as `@IsString()`, `@IsNotEmpty()`, `@MaxLength()`, or `@IsIn()` as appropriate.
+- Use `@Type(() => Number)` for numeric query/body fields that need class-transformer conversion.
+- Avoid using `any` in DTO transforms. If transform input is unknown, narrow it before use.
+- Throw `BadRequestException` from transforms when custom parsing rejects a value.
+
+## Response contracts
+
+- Keep response DTOs honest about what the API returns.
+- Use Swagger response decorators in controllers for important routes, especially public and admin-facing endpoints.
+- Do not expose secrets, internal storage credentials, raw auth tokens in unexpected places, or implementation-only database fields.
+- For paginated responses, include clear item arrays and pagination metadata matching the existing DTO patterns.
+
+## Auth and public route boundaries
+
+- Authenticated API controllers should use `AuthenticatedApiController`.
+- Endpoints that are intentionally unauthenticated must be marked with `@Public()`.
+- Do not leave a route public by omission. Public access should be explicit and searchable.
+- Do not apply auth guards ad hoc when the shared decorator already expresses the controller's normal behavior.
+- Login and identity endpoints should stay in `src/auth`.
+- Use `CurrentUser` only where the route requires authenticated user context.
+
+## Swagger expectations
+
+- Keep Swagger documentation close to the controller and DTOs.
+- Use `ApiProperty`/`ApiPropertyOptional` on DTO fields that are part of the API contract.
+- Use response decorators to document common error states where the shared controller decorator does not already cover them.
+- Keep Swagger descriptions plain and accurate. Do not document behavior that the code does not enforce.
+- If an endpoint accepts a finite set of values, document those values in the DTO.
+
+## CORS, cookies, and global API behavior
+
+- The global API prefix is `api`.
+- Cookie parsing and CORS are configured in `src/main.ts`.
+- CORS origins must come from validated configuration through `getCorsOrigins`.
+- Do not hard-code new production origins in random modules.
+- Keep validation pipe behavior strict. Do not disable `whitelist`, `forbidNonWhitelisted`, or transform globally to make one DTO easier.
+
+## Error behavior
+
+- Expected invalid input should become a 400-level Nest exception.
+- Missing records should become a 404-level Nest exception.
+- Auth failures should remain 401/403 as appropriate.
+- Do not convert all service failures into `BadRequestException`.
+- Do not expose raw upstream/storage/database error messages to clients if they may include sensitive implementation details.
+- Log internal context through the structured logger, not the response body.
+
+## What not to do
+
+- Do not rely on plain TypeScript types for HTTP validation.
+- Do not accept unbounded `limit`.
+- Do not silently ignore invalid query values.
+- Do not use permissive DTOs just because the frontend currently sends valid input.
+- Do not make route access public unless it is an explicit product decision.
+- Do not remove strict global validation to work around a DTO issue.

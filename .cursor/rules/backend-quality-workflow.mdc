@@ -1,0 +1,125 @@
+---
+description: Backend TypeScript, lint/build workflow, Cursor rule authoring, formatting, safety, and review practices
+globs: backend/**/*.{ts,json,prisma,sql,md,mdc},.cursor/rules/*.mdc
+alwaysApply: true
+---
+
+# Backend quality workflow
+
+Use these rules when changing `backend` or backend Cursor rules. The goal is to keep the NestJS app type-safe, buildable, validated at the API boundary, and consistent with the current codebase.
+
+## TypeScript expectations
+
+- Keep backend TypeScript strict in practice.
+- Respect the current compiler options:
+  - `strictNullChecks`
+  - `noImplicitAny`
+  - `strictBindCallApply`
+  - `noFallthroughCasesInSwitch`
+  - `forceConsistentCasingInFileNames`
+- Avoid `any`. Prefer `unknown` plus narrowing for untrusted or caught values.
+- Do not weaken TypeScript settings to make a change pass.
+- Use explicit return types for exported helpers and service methods when inference is not obvious.
+- Avoid type assertions unless the value has been validated or the assertion is bridging a known framework limitation.
+- Keep DTO classes, response shapes, Prisma mappings, and service return types aligned.
+
+## Validation and runtime safety
+
+- Treat external input as untrusted even when it comes from the frontend apps.
+- Validate HTTP input in DTOs and route pipes.
+- Validate environment input in config validation.
+- Validate storage object keys before storage operations.
+- Validate raw SQL inputs before query execution.
+- Validate IDs before Prisma calls.
+- Do not use TypeScript-only checks as the only guard for runtime input.
+
+## Linting, typechecking, and build
+
+- After changing backend TypeScript, Prisma-adjacent TypeScript, DTOs, services, controllers, config, logging, storage, or API behavior, run from `backend`:
+
+```bash
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm build
+```
+
+- Use `pnpm lint` for non-mutating lint checks.
+- Use `pnpm lint:fix` only when intentionally applying automatic fixes.
+- Do not use a mutating lint command as the normal validation command.
+- Treat `pnpm exec tsc --noEmit` as the source of truth for type correctness.
+- Treat `pnpm build` as the source of truth for Nest integration and emitted build validity.
+- When Prisma schema or SQL files change, run the relevant Prisma generation/migration workflow for the task.
+- If only `.cursor/rules` files changed, inspect the `.mdc` frontmatter and use `git status --short` to verify the changed set.
+- Use `git diff --check -- backend .cursor/rules` when whitespace or line-ending concerns may matter.
+
+## Current test policy
+
+- Tests are not currently part of the required backend gate because the project has deliberately postponed tests.
+- Do not block backend work solely because `pnpm test` is not part of the current workflow.
+- Do not delete or worsen existing test files.
+- If the user asks for tests or the project changes its policy, wire the Jest alias/config issue before treating tests as a reliable gate.
+- When making risky changes without tests, compensate with tighter local review, typechecking, build checks, and targeted manual reasoning.
+
+## Formatting
+
+- Follow the existing Prettier and import sorting behavior.
+- Do not churn formatting across unrelated files.
+- Keep imports grouped according to the repository's configured formatting behavior.
+- Keep comments succinct and useful.
+- Do not add comments that merely repeat the code.
+- Prefer ASCII in new backend files unless the existing file or domain data requires Unicode.
+
+## Cursor rule authoring
+
+- Backend Cursor rules must be `.mdc` files under `.cursor/rules`.
+- Every backend rule file must include YAML frontmatter with `alwaysApply: true`.
+- Use concrete paths and concrete project conventions.
+- Write rules as internal documentation for agents who will work on this repository later.
+- Prefer rules that preserve current architecture over generic NestJS advice.
+- If a rule encodes a deliberate decision, state that decision explicitly.
+- Avoid contradictions with public app rules, admin app rules, or other backend rules.
+- Keep rules verbose enough to guide implementation, but specific enough that they can be followed.
+
+Example backend rule frontmatter:
+
+```md
+---
+description: Backend rule description
+globs: backend/**/*.{ts,json,prisma,sql}
+alwaysApply: true
+---
+```
+
+## Git and review hygiene
+
+- Use `git status --short` before editing or reviewing to understand the changed files.
+- Do not revert user changes unless explicitly asked.
+- Do not edit `.env` files or inspect secret values.
+- Do not hand-edit generated output unless the generated file is intentionally checked in and the task requires it.
+- Use `rg` for stale import scans after moving files.
+- Review all affected modules when touching shared DTOs, Prisma schema, auth guards, logging infrastructure, or common CRUD helpers.
+- Keep unrelated refactors out of feature fixes.
+
+## Dependency policy
+
+- Prefer dependencies already present in `backend/package.json`.
+- Do not add a dependency for a small helper that can be expressed clearly with platform APIs or existing libraries.
+- Add dependencies only when they solve a real backend problem and are appropriate for a NestJS service.
+- If a dependency affects runtime security, request size, startup behavior, Prisma generation, or deployment, call that out in the change.
+
+## Security and secrets
+
+- Never read, print, commit, or summarize secret `.env` values.
+- Do not log credentials, cookies, JWTs, signed URLs, passwords, or raw authorization headers.
+- Keep secret handling in config/auth/storage infrastructure.
+- Prefer fail-fast configuration validation for required secrets.
+- Review any public endpoint, upload endpoint, storage URL, auth change, or CORS change for security impact.
+
+## What not to do
+
+- Do not weaken TypeScript checks.
+- Do not use `any` as a shortcut around validation.
+- Do not use `pnpm lint:fix` as a passive check.
+- Do not require tests as a gate while the project policy says tests are postponed.
+- Do not ignore validation, typecheck, or build failures.
+- Do not mix backend rules with public-app UI rules.

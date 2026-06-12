@@ -1,89 +1,47 @@
-import { useState } from "react";
+import { studioService } from "@/services/entity.service";
 
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import FilterPopover from "@/components/filter-sort-dropdowns/FilterPopover";
 
 import { StudioEntity } from "@/types/entity.type";
 
-import { cn } from "@/lib/utils";
-
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  Loader2Icon
-} from "lucide-react";
+import { entityFilterIncludeIds } from "@/lib/utils";
 
 type Props = {
-  studioList: StudioEntity[];
-  isLoadingStudio: boolean;
-  filterStudio?: number;
+  selectedStudio?: number;
   handleFilterStudio: (key?: number) => void;
 };
 
+const PAGE_SIZE = 20;
+
 export default function FilterStudio({
-  studioList,
-  isLoadingStudio,
-  filterStudio,
+  selectedStudio,
   handleFilterStudio
 }: Props) {
-  const [isFilterStudioOpen, setIsFilterStudioOpen] = useState(false);
-
   return (
-    <DropdownMenu onOpenChange={(value) => setIsFilterStudioOpen(value)}>
-      <DropdownMenuTrigger asChild>
-        {isLoadingStudio ? (
-          <Button variant="outline" size="sm" className="w-full" disabled>
-            <div className="flex items-center justify-center gap-2">
-              <Loader2Icon className="w-4 h-4 animate-spin" />
-              Fetching studios...
-            </div>
-            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" className="w-full">
-            Filter by:{" "}
-            {studioList.find((studio) => studio.id === filterStudio)?.name ||
-              "Studio"}
-            {isFilterStudioOpen ? (
-              <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
-            ) : (
-              <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-            )}
-          </Button>
-        )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => handleFilterStudio(undefined)}>
-          All Studios
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <ScrollArea className="h-[200px]">
-          {studioList.map((studio) => {
-            return (
-              <DropdownMenuItem
-                key={studio.id}
-                onClick={() => handleFilterStudio(studio.id)}
-              >
-                <CheckIcon
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    filterStudio === studio.id ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {studio.name}
-              </DropdownMenuItem>
-            );
-          })}
-        </ScrollArea>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <FilterPopover<StudioEntity, number>
+      selectedKey={selectedStudio}
+      onChange={(key) => handleFilterStudio(key)}
+      infiniteQuery={{
+        queryKey: (search) => ["studios", "filter-popover", search],
+        pageSize: PAGE_SIZE,
+        fetchPage: async (page, search, context) => {
+          const result = await studioService.fetchAll<StudioEntity>({
+            page,
+            limit: PAGE_SIZE,
+            query: search || undefined,
+            includeIds: entityFilterIncludeIds(context)
+          });
+          if (!result.success) throw new Error(result.error);
+          return result.data;
+        },
+        refetchOnWindowFocus: false,
+        staleTime: 24 * 60 * 60 * 1000
+      }}
+      getKey={(s) => s.id}
+      getLabel={(s) => s.name}
+      placeholder="Search studio..."
+      buttonFallbackLabel="Studio"
+      emptyText="No studio found."
+    />
   );
 }

@@ -1,89 +1,109 @@
+"use client";
+
 import { useState } from "react";
+
+import { themeService } from "@/services/entity.service";
 
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
+
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { ThemeEntity } from "@/types/entity.type";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  Loader2Icon
-} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 type Props = {
-  themeList: ThemeEntity[];
-  isLoadingTheme: boolean;
-  filterTheme?: number;
+  selectedTheme?: number;
   handleFilterTheme: (key?: number) => void;
 };
 
 export default function FilterTheme({
-  themeList,
-  isLoadingTheme,
-  filterTheme,
+  selectedTheme,
   handleFilterTheme
 }: Props) {
-  const [isFilterThemeOpen, setIsFilterThemeOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { data: themeList, error } = useQuery({
+    queryKey: ["themes"],
+    queryFn: () => themeService.fetchAll<ThemeEntity>(),
+    refetchOnWindowFocus: false,
+    staleTime: 24 * 60 * 60 * 1000
+  });
+
+  useQueryErrorToast(error);
 
   return (
-    <DropdownMenu onOpenChange={(value) => setIsFilterThemeOpen(value)}>
-      <DropdownMenuTrigger asChild>
-        {isLoadingTheme ? (
-          <Button variant="outline" size="sm" className="w-full" disabled>
-            <div className="flex items-center justify-center gap-2">
-              <Loader2Icon className="w-4 h-4 animate-spin" />
-              Fetching themes...
-            </div>
-            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" className="w-full">
+    <Popover open={isOpen} onOpenChange={setIsOpen} modal>
+      <PopoverTrigger asChild>
+        <Button variant="outline" role="combobox" className="w-full">
+          <p className="truncate text-center">
             Filter by:{" "}
-            {themeList.find((theme) => theme.id === filterTheme)?.name ||
+            {themeList?.find((theme) => theme.id === selectedTheme)?.name ||
               "Theme"}
-            {isFilterThemeOpen ? (
-              <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
-            ) : (
-              <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-            )}
-          </Button>
-        )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => handleFilterTheme(undefined)}>
-          All Themes
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <ScrollArea className="h-[200px]">
-          {themeList.map((theme) => {
-            return (
-              <DropdownMenuItem
-                key={theme.id}
-                onClick={() => handleFilterTheme(theme.id)}
-              >
-                <CheckIcon
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    filterTheme === theme.id ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {theme.name}
-              </DropdownMenuItem>
-            );
-          })}
-        </ScrollArea>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          </p>
+          {isOpen ? (
+            <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
+          ) : (
+            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="popover-content-width-full p-0">
+        <Command>
+          <CommandInput placeholder="Search theme..." />
+          <CommandList>
+            <CommandEmpty>No theme found.</CommandEmpty>
+            <CommandGroup>
+              {themeList?.map((theme) => {
+                return (
+                  <CommandItem
+                    key={theme.id}
+                    value={theme.name}
+                    onSelect={(currentValue) => {
+                      const currentValueTheme = themeList.find(
+                        (g) => g.name === currentValue
+                      );
+                      if (currentValueTheme) {
+                        if (currentValueTheme.id === selectedTheme) {
+                          handleFilterTheme(undefined);
+                        } else {
+                          handleFilterTheme(currentValueTheme.id);
+                        }
+                      } else {
+                        handleFilterTheme(undefined);
+                      }
+                    }}
+                  >
+                    <CheckIcon
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedTheme === theme.id ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <p className="whitespace-normal">{theme.name}</p>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

@@ -1,89 +1,47 @@
-import { useState } from "react";
+import { genreService } from "@/services/entity.service";
 
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import FilterPopover from "@/components/filter-sort-dropdowns/FilterPopover";
 
 import { GenreEntity } from "@/types/entity.type";
 
-import { cn } from "@/lib/utils";
-
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  Loader2Icon
-} from "lucide-react";
+import { entityFilterIncludeIds } from "@/lib/utils";
 
 type Props = {
-  genreList: GenreEntity[];
-  isLoadingGenre: boolean;
-  filterGenre?: number;
+  selectedGenre?: number;
   handleFilterGenre: (key?: number) => void;
 };
 
+const PAGE_SIZE = 20;
+
 export default function FilterGenre({
-  genreList,
-  isLoadingGenre,
-  filterGenre,
+  selectedGenre,
   handleFilterGenre
 }: Props) {
-  const [isFilterGenreOpen, setIsFilterGenreOpen] = useState(false);
-
   return (
-    <DropdownMenu onOpenChange={(value) => setIsFilterGenreOpen(value)}>
-      <DropdownMenuTrigger asChild>
-        {isLoadingGenre ? (
-          <Button variant="outline" size="sm" className="w-full" disabled>
-            <div className="flex items-center justify-center gap-2">
-              <Loader2Icon className="w-4 h-4 animate-spin" />
-              Fetching genres...
-            </div>
-            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" className="w-full">
-            Filter by:{" "}
-            {genreList.find((genre) => genre.id === filterGenre)?.name ||
-              "Genre"}
-            {isFilterGenreOpen ? (
-              <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0" />
-            ) : (
-              <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
-            )}
-          </Button>
-        )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => handleFilterGenre(undefined)}>
-          All Genres
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <ScrollArea className="h-[200px]">
-          {genreList.map((genre) => {
-            return (
-              <DropdownMenuItem
-                key={genre.id}
-                onClick={() => handleFilterGenre(genre.id)}
-              >
-                <CheckIcon
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    filterGenre === genre.id ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {genre.name}
-              </DropdownMenuItem>
-            );
-          })}
-        </ScrollArea>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <FilterPopover<GenreEntity, number>
+      selectedKey={selectedGenre}
+      onChange={(key) => handleFilterGenre(key)}
+      infiniteQuery={{
+        queryKey: (search) => ["genres", "filter-popover", search],
+        pageSize: PAGE_SIZE,
+        fetchPage: async (page, search, context) => {
+          const result = await genreService.fetchAll<GenreEntity>({
+            page,
+            limit: PAGE_SIZE,
+            query: search || undefined,
+            includeIds: entityFilterIncludeIds(context)
+          });
+          if (!result.success) throw new Error(result.error);
+          return result.data;
+        },
+        refetchOnWindowFocus: false,
+        staleTime: 24 * 60 * 60 * 1000
+      }}
+      getKey={(g) => g.id}
+      getLabel={(g) => g.name}
+      placeholder="Search genre..."
+      buttonFallbackLabel="Genre"
+      emptyText="No genre found."
+    />
   );
 }

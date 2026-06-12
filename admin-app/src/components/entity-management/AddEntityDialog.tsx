@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, PlusIcon } from "lucide-react";
 
 type Props = {
   isOpenDialog: boolean;
@@ -32,13 +32,25 @@ export default function AddEntityDialog({
   const [entity, setEntity] = useState("");
 
   return (
-    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+    <Dialog
+      open={isOpenDialog}
+      onOpenChange={(open) => {
+        setIsOpenDialog(open);
+        if (!open) setEntity("");
+      }}
+    >
       <DialogTrigger asChild>
-        <Button variant="outline" className="float-right w-full xl:w-fit">
-          Add {entityType}
+        <Button
+          type="button"
+          variant="outline"
+          aria-label={`Add ${entityType}`}
+          className="h-10 min-h-10 w-10 shrink-0 justify-center gap-2 border-border/60 bg-background/50 p-0 hover:bg-background/70 sm:h-9 sm:w-auto sm:justify-start sm:px-4 sm:py-2"
+        >
+          <PlusIcon className="h-4 w-4 shrink-0 text-[#A855F7]" aria-hidden />
+          <span className="hidden sm:inline">{`Add ${entityType}`}</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[400px]">
+      <DialogContent className="max-w-[400px] border-border/60">
         <DialogHeader>
           <DialogTitle>Add {entityType}</DialogTitle>
           <DialogDescription>
@@ -53,7 +65,7 @@ export default function AddEntityDialog({
         <DialogFooter>
           <Button onClick={() => addHandler(entity)}>
             {isLoadingAddEntity && (
-              <Loader2Icon className="w-4 h-4 animate-spin" />
+              <Loader2Icon className="h-4 w-4 animate-spin" />
             )}
             Add
           </Button>

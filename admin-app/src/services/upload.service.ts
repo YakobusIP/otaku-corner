@@ -1,55 +1,149 @@
-import { ApiResponse, MessageResponse } from "@/types/api.type";
+import axios from "axios";
+
+import { MessageResponse } from "@/types/api.type";
+import type { ServiceResult } from "@/types/general.type";
 import { UploadImage } from "@/types/upload.type";
 
 import interceptedAxios from "@/lib/axios";
+import { MEDIA_TYPE } from "@/lib/enums";
 
-import { AxiosError } from "axios";
+import { err, ok } from "@/lib/service-result";
 
-const BASE_UPLOAD_URL = "/api/upload";
+const BASE_ASSETS_URL = "/api/assets";
+const REVIEW_IMAGE_STORAGE_DIRECTORY = "review-images";
 
-const uploadImageService = async (
+type InitAssetResponse = {
+  assetId: string;
+  uploadUrl: string;
+  method: "PUT";
+  headers?: Record<string, string>;
+};
+
+type CompleteAssetResponse = {
+  assetId: string;
+  status: string;
+  url: string;
+};
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const mapToReviewInitMediaType = (
+  mediaType: string
+): "ANIME" | "MANGA" | "LIGHT_NOVEL" => {
+  switch (mediaType) {
+    case MEDIA_TYPE.ANIME:
+      return "ANIME";
+    case MEDIA_TYPE.MANGA:
+      return "MANGA";
+    case MEDIA_TYPE.LIGHT_NOVEL:
+      return "LIGHT_NOVEL";
+    default:
+      throw new Error(`Unsupported media type: ${mediaType}`);
+  }
+};
+
+const uploadReviewImageViaAssets = async (
   file: File,
-  type: string,
-  reviewId: number
-): Promise<ApiResponse<UploadImage>> => {
-  try {
-    const form = new FormData();
-    form.append("image", file);
-    form.append("type", type);
-    form.append("reviewId", reviewId.toString());
+  mediaType: string,
+  reviewId: number,
+  onProgress?: (percent: number) => void
+): Promise<UploadImage> => {
+  const mimeType = file.type?.trim();
+  if (!mimeType) {
+    throw new Error(
+      "This file has no MIME type; try saving as PNG/JPEG or paste again."
+    );
+  }
 
-    const response = await interceptedAxios.post(BASE_UPLOAD_URL, form, {
-      headers: {
-        "Content-Type": "multipart/form-data"
+  const initResponse = await interceptedAxios.post<InitAssetResponse>(
+    `${BASE_ASSETS_URL}/init`,
+    {
+      target: {
+        kind: "REVIEW",
+        mediaType: mapToReviewInitMediaType(mediaType),
+        id: reviewId
+      },
+      mimeType,
+      expectedFileSize: file.size,
+      storageDirectory: REVIEW_IMAGE_STORAGE_DIRECTORY
+    }
+  );
+
+  const { assetId, uploadUrl, headers } = initResponse.data;
+  const putHeaders = {
+    "Content-Type": mimeType,
+    ...(headers ?? {})
+  };
+
+  const putResponse = await axios.put(uploadUrl, file, {
+    headers: putHeaders,
+    onUploadProgress: (event) => {
+      if (!onProgress || !event.total) return;
+      onProgress(Math.round((event.loaded / event.total) * 100));
+    }
+  });
+
+  if (putResponse.status < 200 || putResponse.status >= 300) {
+    throw new Error(`Upload failed (HTTP ${putResponse.status})`);
+  }
+
+  const maxAttempts = 40;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const completeResponse = await interceptedAxios.post<CompleteAssetResponse>(
+        `${BASE_ASSETS_URL}/${assetId}/complete`
+      );
+      return { id: assetId, url: completeResponse.data.url };
+    } catch (error: unknown) {
+      const status = axios.isAxiosError(error)
+        ? error.response?.status
+        : undefined;
+      if (status === 409 && attempt < maxAttempts - 1) {
+        await sleep(350);
+        continue;
       }
-    });
-    return { success: true, data: response.data.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
+      throw error;
+    }
   }
+
+  throw new Error("Timed out waiting for upload to finalize.");
 };
 
-const deleteImageService = async (
-  id: string
-): Promise<ApiResponse<MessageResponse>> => {
-  try {
-    const response = await interceptedAxios.delete(`${BASE_UPLOAD_URL}/${id}`);
-    return { success: true, data: response.data };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof AxiosError && error.response?.data.error
-          ? error.response?.data.error
-          : "There was a problem with your request."
-    };
-  }
+const createUploadService = () => {
+  const upload = async (
+    file: File,
+    type: string,
+    reviewId: number,
+    onProgress?: (percent: number) => void
+  ): Promise<ServiceResult<UploadImage>> => {
+    try {
+      const data = await uploadReviewImageViaAssets(
+        file,
+        type,
+        reviewId,
+        onProgress
+      );
+      return ok(data);
+    } catch (error: unknown) {
+      return err(error);
+    }
+  };
+
+  const remove = async (
+    id: string
+  ): Promise<ServiceResult<MessageResponse>> => {
+    try {
+      const response = await interceptedAxios.delete<MessageResponse>(
+        `${BASE_ASSETS_URL}/${id}`
+      );
+      return ok({ message: response.data.message ?? "" });
+    } catch (error: unknown) {
+      return err(error);
+    }
+  };
+
+  return { upload, remove };
 };
 
-export { uploadImageService, deleteImageService };
+export const uploadService = createUploadService();

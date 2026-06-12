@@ -1,0 +1,141 @@
+---
+description: Public app React components, UI composition, motion, list/detail views, shadcn primitives, and styling
+globs: public-app/src/components/**/*.{ts,tsx},public-app/src/hooks/**/*.{ts,tsx},public-app/src/app/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+# Public app components and UI
+
+The public app should feel polished, readable, and consistent with the existing Otaku Corner visual language. Preserve the current component patterns, responsive behavior, and domain-focused composition.
+
+## Client components
+
+- Use `"use client"` only when a file actually needs client behavior:
+  - React state or effects
+  - TanStack client hooks
+  - browser APIs
+  - media queries
+  - dialogs or interactive UI
+  - animation hooks
+  - intersection observer hooks
+- Keep route files server-first unless they must be client components.
+- Keep client hooks in `src/hooks`.
+- Keep large procedural UI logic out of components when a hook can own the behavior.
+
+## Component exports
+
+- Use one primary React component per component file.
+- Prefer default function exports for primary components:
+
+```tsx
+export default function MediaListHeader(props: MediaListHeaderProps) {
+  // ...
+}
+```
+
+- Use named exports for helper builders and config values when they are imported by multiple files.
+- Keep file-private prop types and helper types unexported unless another file imports them.
+- When grouping siblings without extra DOM, use `<Fragment>...</Fragment>` with `import { Fragment } from "react"` rather than empty fragment shorthand.
+
+## Media list component pattern
+
+- Media list pages should be built from:
+  - media-specific list config
+  - `MediaListProvider`
+  - `MediaListHeader`
+  - `MediaListSection`
+  - shared hooks such as `useMediaListHeader` and `useMediaListBody`
+- Do not fork separate full list implementations for anime, manga, and light novels.
+- Put media-specific card rendering, filters, labels, empty/loading copy, and entity lookups in the media-specific config files:
+  - `AnimeListConfig.tsx`
+  - `MangaListConfig.tsx`
+  - `LightNovelListConfig.tsx`
+- Keep the shared media list components generic and driven by config.
+- Maintain infinite loading through a sentinel element and `react-intersection-observer`, not ad-hoc scroll listeners.
+
+## Media detail component pattern
+
+- Shared detail page layout belongs in `MediaDetailPage`.
+- Media-specific detail configuration belongs in:
+  - `AnimeDetailConfig.tsx`
+  - `MangaDetailConfig.tsx`
+  - `LightNovelDetailConfig.tsx`
+- Keep the top section, synopsis card, score card core, score breakdowns, review tabs, and spoiler modal reusable.
+- Build review tabs with `buildMediaDetailReviewTab`.
+- Use helpers from `@/lib/media-detail/media-detail-helpers` for score criteria, labels, score percentages, genre tags, and counts.
+- Use `pickMediaImageSrc` from `@/lib/media-detail/media-images` for poster image selection.
+
+## Home page pattern
+
+- Keep homepage sections focused:
+  - `HomeHeroWithNav`
+  - `HomeYearProgressSection`
+  - `HomeInsightsCarousel`
+  - `HomeQuoteSection`
+  - `GeneralFooter`
+- Use `PUBLIC_MEDIA_TYPE_CONFIG` from `@/lib/media/public-media-type` for cross-media display labels, counts, chart keys, and link construction.
+- Do not hard-code parallel anime/manga/light novel display metadata in each home component when it can come from the shared media config.
+
+## UI primitives
+
+- The `src/components/ui` directory contains shadcn-style primitives and small shared UI building blocks.
+- Always prefer shadcn-style components and existing `src/components/ui` primitives for common UI needs.
+- Installing a new shadcn component is allowed when the app does not already have a suitable primitive, but first search the existing `src/components/ui` directory and nearby feature components.
+- Most UI needs should be satisfied by the existing primitives. Add new shadcn components sparingly and only when they fit the established design system.
+- When adding a new shadcn component, keep it in `src/components/ui`, preserve the local import style, and adapt it to use `cn` from `@/lib/shared/utils`.
+- Do not put feature-specific business logic into UI primitives.
+- Keep UI primitive APIs general and composable.
+- When changing a primitive, review all public app call sites because primitives are shared broadly.
+- Import `cn` from `@/lib/shared/utils`.
+- Prefer existing primitives (`Button`, `Badge`, `Card`, `Select`, `Tabs`, `Dialog`, `Popover`, etc.) over new one-off markup.
+- Do not hand-roll common controls such as dialogs, dropdowns, popovers, selects, tabs, sheets, command menus, cards, badges, buttons, inputs, or separators when a shadcn primitive exists or can be installed cleanly.
+
+## Icons and labels
+
+- Use `lucide-react` icons where suitable.
+- Icons that communicate meaning should have accessible labels through surrounding text, `aria-label`, or hidden text.
+- Decorative icons should use `aria-hidden`.
+- Buttons with only icons must have an accessible name.
+- Keep public-facing copy consistent with the existing voice: concise, personal, and domain-specific.
+
+## Motion and reduced motion
+
+- The public app uses `framer-motion` for subtle entrance and highlight animation.
+- Respect `useReducedMotion` in animated components.
+- Do not add animation that changes layout dimensions after hydration.
+- Avoid scroll listeners for reveal or load-more behavior when existing intersection-observer patterns work.
+- Keep animation constants near the component that owns them unless reused across multiple components.
+
+## Styling conventions
+
+- Use Tailwind utility classes consistent with the existing public app style.
+- Preserve the current soft white, rose, slate, violet, orange, and translucent/backdrop treatment unless a design task intentionally changes it.
+- Avoid introducing unrelated design-system changes during feature work.
+- Keep cards, panels, headers, badges, and filters visually consistent with the current media list and detail pages.
+- Do not place text where it can overlap or overflow on mobile.
+- Use stable dimensions for grids, media, controls, and sentinel areas to avoid layout shift.
+- Use `container` and existing responsive layout conventions.
+
+## Images
+
+- Use `next/image` for public assets and remote media images.
+- Use the configured image hosts in `next.config.ts`.
+- Use `NEXT_PUBLIC_R2_HOSTNAME` for R2/Cloudflare-hosted images when configuring remote image loading.
+- Keep decorative images `alt=""`.
+- Use meaningful alt text for content images that are not decorative.
+- Use `/no-poster.webp`, `/loading.webp`, `/no-result.webp`, and related public assets where the existing UI expects them.
+
+## Accessibility
+
+- Preserve keyboard-accessible controls.
+- Do not replace buttons, selects, dialogs, tabs, or menus with non-semantic `div` click handlers.
+- Dialogs need titles, even if visually hidden.
+- Form controls need labels or accessible names.
+- Status badges and loading states should be understandable from text, not color alone.
+
+## Component size and extraction
+
+- If a component grows hard to scan, extract focused subcomponents or hooks.
+- Prefer config arrays and `.map()` for repeated UI sections.
+- Avoid copying large JSX blocks for anime, manga, and light novel variants.
+- Keep extracted components close to their feature folder unless they are truly shared across the app.

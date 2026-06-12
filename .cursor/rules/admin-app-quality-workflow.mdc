@@ -1,0 +1,118 @@
+---
+description: Admin app TypeScript, lint/build workflow, formatting, Cursor rule authoring, dependency choices, and review hygiene
+globs: admin-app/**/*.{ts,tsx,json,css,md,mdc},.cursor/rules/*.mdc
+alwaysApply: true
+---
+
+# Admin app quality workflow
+
+Use these rules when changing `admin-app` or admin-app Cursor rules. The goal is to keep the app strict, buildable, interactive, and consistent with the current Vite/React codebase.
+
+## TypeScript expectations
+
+- Keep `strict` TypeScript behavior.
+- Respect `noUnusedLocals`, `noUnusedParameters`, and `noFallthroughCasesInSwitch`.
+- Avoid `any`. Prefer `unknown` plus narrowing for untrusted values and caught errors.
+- Keep route params, URL params, form input, and external API data validated or narrowed before use.
+- Keep shared API/domain shapes in `src/types` only when more than one module needs them.
+- Keep local props/config types private unless callers import them.
+- Use type-only imports where appropriate.
+- Avoid broad type assertions. If an assertion is required, keep it narrow and close to the validation or library boundary.
+
+## Formatting
+
+- Follow the existing Prettier/import sorting behavior.
+- Do not churn formatting across unrelated files.
+- Prefer ASCII in new files and UI strings unless the file already intentionally uses Unicode.
+- If using ellipses or dashes, avoid mojibake. Plain ASCII `...` is acceptable and often preferred.
+- Ensure edited files end with a newline.
+- Do not leave stale imports after lazy-loading or moving code.
+
+## Linting, typechecking, and build
+
+- After changing admin app TypeScript, TSX, routing, hooks, services, UI primitives, CSS, or code splitting behavior, run from `admin-app`:
+
+```bash
+pnpm lint
+pnpm build
+```
+
+- `pnpm build` already runs `tsc -b` before the Vite build.
+- Treat `pnpm lint` as the source of truth for lint-enforced style.
+- Treat `pnpm build` as the source of truth for TypeScript build and bundle integration.
+- Use `git diff --check -- admin-app .cursor/rules` when whitespace or line-ending concerns may matter.
+- If only `.cursor/rules` files changed, inspect `.mdc` frontmatter and run `git status --short`.
+
+## Bundle review
+
+- Watch Vite build output after routing or dependency changes.
+- The current admin app intentionally uses route/workflow code splitting.
+- Initial admin JS should remain meaningfully smaller than the old single-chunk build.
+- Lazy chunks are acceptable for:
+  - dashboard/recharts
+  - media library
+  - detail pages
+  - add-media dialogs
+  - markdown editor
+  - devtools
+- A chunk warning is not automatically a bug, but it should prompt review of what still lives in the initial bundle.
+- Do not silence chunk warnings with `chunkSizeWarningLimit` until the actual load behavior has been reviewed.
+- Prefer dynamic imports at route/workflow boundaries over manual chunk configuration.
+
+## Dependency choices
+
+- Prefer dependencies already present in `admin-app/package.json`.
+- Use TanStack Query for server state.
+- Use React Router for routing.
+- Use shadcn/Radix primitives for UI.
+- Use lucide-react for icons.
+- Use TanStack Table for admin tables.
+- Use Recharts for dashboard charts where the dashboard already uses it.
+- Use `@uiw/react-md-editor` through the lazy-loaded `ReviewEditor` wrapper.
+- Do not add a dependency for a small helper.
+- Do not add another data-fetching/state library for backend server state.
+
+## Cursor rule authoring
+
+- Admin app Cursor rules must be `.mdc` files under `.cursor/rules`.
+- Every admin app rule file must include YAML frontmatter with `alwaysApply: true`.
+- Keep rules concrete and tied to paths that exist in this codebase.
+- If a rule encodes a deliberate product or architecture decision, say so explicitly.
+- Avoid contradictory rules across admin, public, and backend rule files.
+- Keep rules verbose enough to guide an agent who has not read the full review history.
+
+Example admin rule frontmatter:
+
+```md
+---
+description: Admin app rule description
+globs: admin-app/**/*.{ts,tsx}
+alwaysApply: true
+---
+```
+
+## Git and review hygiene
+
+- Use `git status --short` before reviewing or editing.
+- Do not revert user changes unless explicitly asked.
+- Work with dirty files carefully. If a file has user changes, read the relevant diff before editing.
+- Use `rg` for stale import scans.
+- After lazy-loading a component, scan for any remaining static imports of the heavy module.
+- After changing route params or URL parsing, scan for `parseInt` and direct casts in route/search-param code.
+- After moving or extracting hooks/components, scan for old exported names and stale imports.
+
+## Environment variables
+
+- `VITE_AXIOS_BASE_URL` is the backend API base URL.
+- `VITE_PUBLIC_APP` is the public app link used by the admin layout.
+- Do not print or inspect full `.env` values unless the user explicitly asks and understands the risk.
+- Do not introduce unvalidated assumptions about new env vars.
+
+## What not to do
+
+- Do not weaken TypeScript settings.
+- Do not bypass lint/build checks after meaningful admin app changes.
+- Do not leave generated `dist` artifacts as source changes unless the task explicitly asks for build artifacts.
+- Do not inspect or commit secrets.
+- Do not mix public-app SEO rules into admin app rules.
+- Do not write generic rules that contradict the current admin codebase.

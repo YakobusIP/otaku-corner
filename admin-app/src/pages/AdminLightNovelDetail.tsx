@@ -1,48 +1,40 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 
-import { fetchLightNovelByIdService } from "@/services/lightnovel.service";
-
-import AboutTab from "@/components/lightnovel-detail/AboutTab";
-import ReviewTab from "@/components/lightnovel-detail/ReviewTab";
+import AdminLayout from "@/components/layout/AdminLayout";
+import LightNovelHero from "@/components/lightnovel-detail/LightNovelHero";
+import LightNovelInfoSection from "@/components/lightnovel-detail/LightNovelInfoSection";
+import LightNovelReviewSection from "@/components/lightnovel-detail/LightNovelReviewSection";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 
-import { useToast } from "@/hooks/useToast";
+import { useLightNovelDetail } from "@/hooks/useLightNovelDetail";
+import { useMediaLibraryBackPath } from "@/hooks/useMediaLibraryBackPath";
 
-import { type LightNovelDetail } from "@/types/lightnovel.type";
+import { parsePositiveIntParam } from "@/lib/parse-route-param";
 
-import { ArrowLeftIcon, Loader2Icon } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  ArrowLeftIcon,
+  Loader2Icon,
+  RefreshCwIcon
+} from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function AdminLightNovelDetail() {
-  const [lightNovelDetail, setLightNovelDetail] = useState<LightNovelDetail>();
-  const [isLoadingLightNovelDetail, setIsLoadingLightNovelDetail] =
-    useState(false);
   const { lightNovelId } = useParams();
+  const parsedId = parsePositiveIntParam(lightNovelId);
+  const libraryBackPath = useMediaLibraryBackPath();
 
-  const toast = useToast();
-  const toastRef = useRef(toast.toast);
-
-  const fetchLightNovelById = useCallback(async () => {
-    setIsLoadingLightNovelDetail(true);
-    const response = await fetchLightNovelByIdService(
-      parseInt(lightNovelId as string)
-    );
-    if (response.success) {
-      setLightNovelDetail(response.data);
-    } else {
-      toastRef.current({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong",
-        description: response.error
-      });
-    }
-    setIsLoadingLightNovelDetail(false);
-  }, [lightNovelId]);
-
-  useEffect(() => {
-    fetchLightNovelById();
-  }, [fetchLightNovelById]);
+  const {
+    data: lightNovelDetail,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    syncMetadataMutation
+  } = useLightNovelDetail(parsedId ?? undefined);
 
   useEffect(() => {
     if (lightNovelDetail) {
@@ -52,56 +44,139 @@ export default function AdminLightNovelDetail() {
     }
   }, [lightNovelDetail]);
 
-  return !isLoadingLightNovelDetail && lightNovelDetail ? (
-    <div className="flex flex-col min-h-[100dvh]">
-      <Link to="/media-list">
-        <Button variant="outline" className="absolute top-4 left-4">
-          <ArrowLeftIcon className="w-4 h-4" /> Back to list
-        </Button>
-      </Link>
-      <header className="w-full bg-gradient-to-b xl:bg-gradient-to-r from-primary to-muted-foreground pt-20 pb-12 xl:py-12 px-4">
-        <div className="container mx-auto flex flex-col xl:flex-row gap-6 items-center">
-          <img
-            src={
-              lightNovelDetail.images.large_image_url ??
-              lightNovelDetail.images.image_url
-            }
-            width={300}
-            height={400}
-            alt="LightNovel Cover"
-            className="rounded-xl"
-          />
-          <div className="flex flex-col gap-4">
-            <h1 className="text-white">{lightNovelDetail.title}</h1>
-            <p className="text-lg text-white/80 whitespace-pre-line">
-              {lightNovelDetail.synopsis}
-            </p>
+  useEffect(() => {
+    if (isError && error instanceof Error) {
+      toast.error("Uh oh! Something went wrong", {
+        description: error.message
+      });
+    }
+  }, [error, isError]);
+
+  const backAction = (
+    <Link to={libraryBackPath}>
+      <Button variant="outline" size="sm" className="gap-2">
+        <ArrowLeftIcon className="h-4 w-4" />
+        <span className="hidden sm:inline">Back to library</span>
+      </Button>
+    </Link>
+  );
+
+  const resetParent = async () => {
+    await refetch();
+  };
+
+  if (isLoading || (!lightNovelDetail && !isError)) {
+    return (
+      <AdminLayout
+        title="Loading light novel..."
+        description="Fetching details from the library"
+        actions={backAction}
+      >
+        <LightNovelDetailSkeleton />
+      </AdminLayout>
+    );
+  }
+
+  if (isError || !lightNovelDetail) {
+    return (
+      <AdminLayout
+        title="Light novel not found"
+        description="We couldn't load this light novel entry"
+        actions={backAction}
+      >
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border/40 bg-background/35 p-10 text-center shadow-xs backdrop-blur-xs">
+          <AlertTriangleIcon className="h-8 w-8 text-rose-400" />
+          <p className="text-sm text-muted-foreground">
+            {error instanceof Error
+              ? error.message
+              : "Unknown error while loading the light novel."}
+          </p>
+          <Link to={libraryBackPath}>
+            <Button variant="default" size="sm" className="gap-2">
+              <ArrowLeftIcon className="h-4 w-4" />
+              Return to media library
+            </Button>
+          </Link>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout
+      title={lightNovelDetail.title}
+      description={lightNovelDetail.titleJapanese || "Light novel entry"}
+      hideHeader
+    >
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="@tablet:hidden" />
+            <Link to={libraryBackPath}>
+              <Button variant="ghost" size="sm" className="gap-2">
+                <ArrowLeftIcon className="h-4 w-4" />
+                <span>Back to library</span>
+              </Button>
+            </Link>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            disabled={syncMetadataMutation.isPending}
+            onClick={() => syncMetadataMutation.mutate()}
+          >
+            <RefreshCwIcon
+              className={`h-4 w-4 ${syncMetadataMutation.isPending ? "animate-spin" : ""}`}
+            />
+            <span className="hidden sm:inline">Sync details</span>
+            <span className="sm:hidden">Sync</span>
+          </Button>
+        </div>
+        <LightNovelHero lightNovelDetail={lightNovelDetail} />
+        <LightNovelInfoSection
+          lightNovelDetail={lightNovelDetail}
+          resetParent={resetParent}
+        />
+        <LightNovelReviewSection
+          key={lightNovelDetail.id}
+          lightNovelDetail={lightNovelDetail}
+          resetParent={resetParent}
+        />
+      </div>
+    </AdminLayout>
+  );
+}
+
+function LightNovelDetailSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="rounded-2xl border border-border/40 bg-background/35 p-6 shadow-xs backdrop-blur-xs">
+        <div className="flex flex-col gap-6 @7xl:flex-row">
+          <Skeleton className="h-[340px] w-[240px] rounded-xl @7xl:h-[400px] @7xl:w-[280px]" />
+          <div className="flex flex-1 flex-col gap-4">
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-20" />
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <Skeleton className="h-14 rounded-lg" />
+              <Skeleton className="h-14 rounded-lg" />
+              <Skeleton className="h-14 rounded-lg" />
+            </div>
+            <Skeleton className="h-24 w-full rounded-lg" />
           </div>
         </div>
-      </header>
-      <main className="container mx-auto py-8 xl:py-12 px-8 xl:px-6">
-        <Tabs defaultValue="about">
-          <TabsList>
-            <TabsTrigger value="about">About</TabsTrigger>
-            <TabsTrigger value="reviews">Reviews</TabsTrigger>
-          </TabsList>
-          <AboutTab
-            lightNovelDetail={lightNovelDetail}
-            resetParent={fetchLightNovelById}
-          />
-          <ReviewTab
-            lightNovelDetail={lightNovelDetail}
-            resetParent={fetchLightNovelById}
-          />
-        </Tabs>
-      </main>
-    </div>
-  ) : (
-    <div className="flex flex-col min-h-[100dvh] items-center justify-center gap-4">
-      <img src="/loading.gif" className="w-32 h-32 rounded-xl" />
-      <div className="flex items-center justify-center gap-2 xl:gap-4">
-        <Loader2Icon className="w-8 h-8 xl:w-16 xl:h-16 animate-spin" />
-        <h2>Fetching light novel details...</h2>
+      </div>
+      <div className="flex items-center gap-2 rounded-2xl border border-border/40 bg-background/35 p-6 shadow-xs backdrop-blur-xs">
+        <Loader2Icon className="h-4 w-4 animate-spin" />
+        <span className="text-sm text-muted-foreground">
+          Loading light novel details...
+        </span>
       </div>
     </div>
   );

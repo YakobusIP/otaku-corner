@@ -1,0 +1,120 @@
+---
+description: Public app data fetching, TanStack Query, route params, metadata, sitemaps, and API errors
+globs: public-app/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+# Public app data and routing
+
+The public app uses Next.js App Router, TanStack Query, Axios services, server prefetching, hydrated client queries, dynamic metadata, and XML sitemap routes. Preserve these boundaries carefully.
+
+## SEO and public route priority
+
+- SEO is a top priority for this app.
+- Public pages should have useful metadata, stable canonical URLs, and sitemap coverage where appropriate.
+- Do not treat metadata, canonical paths, sitemap XML, or image loading as afterthoughts.
+- Any change to public routes should preserve or improve crawlability.
+- Any change to detail pages should preserve dynamic metadata based on fetched media details when data is available.
+- Any change to list pages should preserve stable list metadata and canonical routes.
+- Any change to sitemap helpers should preserve valid XML, escaped values, correct public URLs, and appropriate HTTP response headers.
+- Avoid moving primary content behind client-only effects if it can be server-rendered or server-prefetched.
+
+## Services and API errors
+
+- All backend HTTP calls go through service modules in `public-app/src/services`.
+- Service modules should use `axiosClient` and `handleAxiosError` from `@/lib/api/axios`.
+- Service modules may remain media-specific. Do not collapse anime, manga, and light novel services into one generic service unless the backend contracts are truly stable and identical.
+- Services must not import `next/navigation`.
+- Services must not call `notFound()`, `redirect()`, or other route-level APIs.
+- Services may throw `NotFoundError` indirectly through `handleAxiosError`.
+- Route helpers and route files decide how to handle `NotFoundError`.
+- For non-404 API errors, services should throw ordinary `Error` instances with a useful message from `handleAxiosError`.
+
+## Axios conventions
+
+- `axiosClient` uses `process.env.NEXT_PUBLIC_AXIOS_BASE_URL`.
+- Keep `NEXT_PUBLIC_AXIOS_BASE_URL` as the API base URL, not as an image hostname.
+- Image host configuration uses `NEXT_PUBLIC_R2_HOSTNAME` and assumes that value is a hostname only, not a full URL.
+- Do not read `.env` contents into code review or Cursor context. Work from typed env names and config shape.
+
+## Query client conventions
+
+- Use `getQueryClient` from `@/lib/api/query-client` in client providers.
+- Server route files that prefetch should create a fresh `QueryClient`.
+- Always use TanStack Query for public app data fetching state.
+- Client hooks should use TanStack Query (`useQuery`, `useQueries`, `useInfiniteQuery`) rather than calling services directly from components.
+- Components should not call services directly from render bodies, effects, or event handlers unless a narrowly scoped exception is explicitly justified.
+- Server routes may call services for prefetching, metadata, and sitemap generation, then hydrate client queries through the established TanStack Query pattern.
+- It is acceptable for query option factories to reference services because their purpose is to build TanStack Query configuration.
+- Keep query keys deterministic and stable.
+- Use `publicListKeys` from `@/lib/media-list/query-keys` for public media list queries.
+
+## Server prefetch and hydration
+
+- List pages should server-prefetch the first page, status counts, and entity lookup data through `prefetchMediaListPage`.
+- Do not silently swallow server prefetch errors.
+- Optional or degraded prefetches may catch errors, but the catch block must log enough context to debug the failing query.
+- Server-prefetched data should be passed through `HydrationBoundary`.
+- Client hooks should use the same query keys and query option builders as server prefetching so hydration lines up.
+
+## Media list routing and URL state
+
+- The public media list business decision is that only `q` and `status` are URL-backed.
+- Do not add advanced filters or sort state to the URL unless the product decision changes.
+- Advanced filters and sort state may remain ephemeral client state to avoid cluttering URLs.
+- `CreateMediaListContext` is the source of truth for syncing list URL state.
+- Search input changes should continue to debounce non-empty search text and clear immediately for empty search.
+
+## Route param parsing
+
+- Next.js App Router params arrive as strings.
+- Do not type route params as numbers.
+- Parse and validate route params at the route boundary or in a route helper.
+- Detail page IDs must be positive integer strings.
+- Use the existing `parseId` logic in `createMediaDetailPage` for media detail pages.
+- Invalid detail IDs should call `notFound()`.
+- Do not pass raw string IDs into services that expect numbers.
+- Do not allow decimal, negative, blank, whitespace, or non-numeric IDs to reach services.
+
+## Detail pages
+
+- Anime, manga, and light novel detail routes should use `createMediaDetailPage`.
+- `createMediaDetailPage` owns:
+  - string-to-number ID parsing
+  - request-level data dedupe with React `cache`
+  - route metadata generation
+  - canonical URL generation
+  - `NotFoundError` to `notFound()` conversion
+  - `HydrationBoundary` wrapping
+- Do not duplicate these concerns in individual media detail route files.
+- Keep media-specific page title and description copy in the route config object passed to `createMediaDetailPage`.
+- Keep media-specific UI in `AnimeDetailConfig`, `MangaDetailConfig`, and `LightNovelDetailConfig`.
+
+## Metadata
+
+- Root metadata should continue to use `metadataBase` from `NEXT_PUBLIC_WEBSITE_URL`.
+- List pages should provide stable page metadata and canonical paths.
+- Detail metadata should use fetched detail title when available.
+- On non-404 metadata fetch failures, return the configured fallback title and description rather than crashing the whole route.
+- On `NotFoundError`, call `notFound()`.
+
+## Sitemaps
+
+- Sitemap index logic belongs in `src/app/sitemaps.xml/route.ts`.
+- Per-media sitemap item routes should use `createMediaSitemapHandler` from `@/lib/sitemap/media-sitemap-route`.
+- `createMediaSitemapHandler` owns:
+  - sitemap page param validation
+  - conversion from rewrite index to backend page number
+  - media detail URL creation for XML entries
+  - XML response headers
+  - sitemap error logging
+- Sitemap route params must be digit-only.
+- Invalid sitemap page params should return a controlled HTTP error response before calling the service.
+- Do not duplicate XML string construction in route files. Use `buildUrlsetXml` and `buildSitemapIndexXml`.
+- Continue escaping XML values in sitemap XML builders.
+
+## Dynamic rendering and cache behavior
+
+- Preserve explicit `dynamic = "force-dynamic"` on routes that depend on live backend counts or dynamic sitemap data.
+- Do not remove dynamic rendering declarations just because build passes.
+- If adding caching or revalidation, document the freshness tradeoff and ensure sitemaps, homepage stats, and list data still match product expectations.

@@ -1,0 +1,139 @@
+---
+description: Admin app architecture, routing, module boundaries, domain workflows, and code-splitting conventions
+globs: admin-app/**/*.{ts,tsx,json,css}
+alwaysApply: true
+---
+
+# Admin app architecture
+
+These rules apply to the `admin-app` Vite/React application. The admin app is an authenticated operational interface for managing Otaku Corner media, reviews, assets, entities, and dashboard statistics. It should stay fast enough for daily use, predictable under repeated workflows, and consistent with the backend API contracts.
+
+## Scope and intent
+
+- Treat `admin-app` as a separate frontend surface from `public-app` and `backend`.
+- Do not copy public-app SEO patterns into the admin app. The admin app is an authenticated tool, not a crawlable public site.
+- Do not copy backend concerns into the admin app. The admin app consumes backend contracts through services and TanStack Query.
+- Optimize for efficient admin workflows:
+  - fast route transitions
+  - stable list/detail state
+  - clear mutation feedback
+  - safe forms
+  - predictable dialogs
+  - useful loading and error states
+- Prefer current admin app conventions over introducing a new architecture.
+- Keep changes scoped. Avoid broad visual redesigns or unrelated refactors during feature work.
+
+## Top-level directory responsibilities
+
+- `admin-app/src/main.tsx`: React root, providers, router mounting, toaster, global dark-mode setup, and dev-only tooling.
+- `admin-app/src/routes`: React Router definitions and route-level behavior.
+- `admin-app/src/pages`: route-level pages and route composition.
+- `admin-app/src/components`: UI composition, feature components, shadcn-style primitives, layout, dialogs, tables, dashboard sections, media rows, review sections, and route-facing views.
+- `admin-app/src/hooks`: stateful workflows, TanStack Query hooks, mutations, autosave, add-media orchestration, media list state, responsive hooks, and upload behavior.
+- `admin-app/src/services`: HTTP service wrappers around backend endpoints.
+- `admin-app/src/lib`: non-component helpers, constants, query client, query keys, route param parsing, enum helpers, score utilities, and service-result helpers.
+- `admin-app/src/types`: API/domain shapes shared across more than one module.
+- `admin-app/public`: static assets used by the admin app.
+
+## Routing
+
+- Use React Router for route definitions in `src/routes/routes.tsx`.
+- Keep route definitions readable. Each route should clearly name its path and element.
+- Route pages should be lazy-loaded when they represent a separate workflow:
+  - dashboard
+  - media library
+  - login
+  - anime detail
+  - manga detail
+  - light novel detail
+- Tiny error pages such as not-found and unauthorized may stay eager.
+- Route-level lazy components must be wrapped in `Suspense`.
+- Route fallbacks should not fight the page's own loading state. A `null` route fallback is acceptable when the page renders its own skeleton/loading state after the chunk loads.
+- Do not eagerly import heavy route pages into `routes.tsx` unless there is a concrete reason.
+
+## Code splitting
+
+- Be moderately aggressive with code splitting. Split by workflow boundaries, not by every small component.
+- Use dynamic imports for:
+  - route pages
+  - heavy editors such as markdown editors
+  - chart-heavy dashboard routes
+  - modal/dialog workflows that are only needed after user interaction
+  - dev-only tools
+- Interaction-only dialogs must be rendered only when active. A `React.lazy` component starts loading when it is rendered, even if its `open` prop is false.
+- Keep trigger buttons, menus, and lightweight shells eager. Lazy-load the heavy dialog body or route content.
+- Use `Suspense` boundaries with small, domain-appropriate fallbacks:
+  - `null` for devtools
+  - `null` for route wrappers when pages own loading UI
+  - stable-height spinner placeholders for heavy inline components like the review editor
+- Do not use `manualChunks` as the first solution to a bundle problem. Prefer route/workflow lazy loading because it changes actual load behavior.
+- If build output shows a large initial chunk, identify which workflow still leaks into the first route before adding more broad chunk configuration.
+
+## Domain workflows
+
+- The admin app manages three media domains: anime, manga, and light novels.
+- Domain-specific services may remain separate because backend contracts can diverge.
+- Shared workflow mechanics may be generic when the behavior is stable across domains.
+- The generic Jikan selection/add flow is a good pattern:
+  - keep Jikan search/selection/duplicate/check/infinite-scroll mechanics shared
+  - keep media-specific service calls, create payload mapping, media labels, and query keys in small domain config wrappers
+- Do not create a generic abstraction when it forces many domain-specific conditionals into one file.
+- If a generic helper starts knowing too much about anime, manga, and light novels separately, move that behavior back into domain-specific code or config.
+
+## Page conventions
+
+- Pages should compose layout, route params, page-specific hooks, title effects, loading states, error states, and feature sections.
+- Keep page files focused on route behavior and top-level composition.
+- Move large repeated JSX sections into feature components.
+- Move multi-step procedural logic into hooks.
+- Set `document.title` for pages that represent a user-visible admin route.
+- Do not put low-level service calls directly inside page render bodies.
+
+## Authenticated app posture
+
+- Protected routes should go through `RequireAuth`.
+- Do not bypass the auth session flow for admin routes.
+- Login should remain the unauthenticated entry route.
+- Unauthorized/not-found routes should remain simple and immediate.
+- Do not store access tokens in local storage or session storage. Preserve the current in-memory access token plus refresh-cookie flow unless the auth model is deliberately redesigned.
+
+## File naming and exports
+
+- React component files use PascalCase file names, such as `MediaHeader.tsx`.
+- Hook files use `useThing.ts` or `useThing.tsx` only when the hook returns JSX or React nodes.
+- Pure helper files use kebab-case names, such as `parse-route-param.ts`.
+- Component files should default export the main component with default function syntax:
+
+```tsx
+export default function ComponentName(props: ComponentNameProps) {
+  // ...
+}
+```
+
+- Hooks should normally use named exports:
+
+```ts
+export const useThing = () => {
+  // ...
+};
+```
+
+- Existing `export function useThing()` hooks may remain, but prefer `export const` for new hooks unless the surrounding module already uses function declarations.
+- Non-component helpers should use named exports.
+- Do not export local-only types. Export types only when another module imports them.
+
+## Import conventions
+
+- Use the `@/*` alias for imports from `admin-app/src`.
+- Prefer existing services, hooks, UI primitives, and lib helpers over new ad hoc modules.
+- Avoid imports from `public-app`, `backend`, or generated build output.
+- Keep type imports as type-only imports where the file already follows that pattern.
+
+## What not to do
+
+- Do not turn the admin app into a public SEO-oriented app.
+- Do not eagerly import every page into the router.
+- Do not render lazy modal components while closed if they are intended to be interaction-loaded.
+- Do not add cross-domain abstractions just because files look similar today.
+- Do not introduce a second data-fetching library.
+- Do not bypass the service layer from UI components.

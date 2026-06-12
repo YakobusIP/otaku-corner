@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  previewFeatures = ["postgresqlExtensions", "typedSql"]
 }
 
 datasource db {
@@ -18,15 +18,24 @@ enum ProgressStatus {
   DROPPED
 }
 
-enum ErrorType {
-  WARN
-  ERROR
+enum AssetMediaType {
+  IMAGE
+  VIDEO
 }
 
-enum QueueStatus {
-  QUEUED
-  COMPLETED
+enum AssetStatus {
+  PENDING
+  READY
   FAILED
+}
+
+enum ReviewAssetUsage {
+  IMAGE
+}
+
+enum ImageVaultOriginType {
+  AI
+  HUMAN
 }
 
 model Anime {
@@ -86,6 +95,7 @@ model AnimeReview {
   updatedAt             DateTime       @updatedAt
 
   reviewImages ReviewImage[] @relation("AnimeReviewImages")
+  reviewAssets ReviewAsset[]
   anime        Anime         @relation(fields: [animeId], references: [id], onDelete: Cascade)
   animeId      Int           @unique
 }
@@ -128,6 +138,7 @@ model MangaReview {
   updatedAt             DateTime       @updatedAt
 
   reviewImages ReviewImage[] @relation("MangaReviewImages")
+  reviewAssets ReviewAsset[]
   manga        Manga         @relation(fields: [mangaId], references: [id], onDelete: Cascade)
   mangaId      Int           @unique
 }
@@ -170,6 +181,7 @@ model LightNovelReview {
   updatedAt DateTime @updatedAt
 
   reviewImages ReviewImage[] @relation("LightNovelReviewImages")
+  reviewAssets ReviewAsset[]
   lightNovel   LightNovel    @relation(fields: [lightNovelId], references: [id], onDelete: Cascade)
   lightNovelId Int           @unique
 }
@@ -310,10 +322,11 @@ model AdminPin {
 }
 
 model ReviewImage {
-  id        String   @id @default(uuid())
-  url       String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(uuid())
+  url        String   @unique
+  storageKey String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   animeReview   AnimeReview? @relation("AnimeReviewImages", fields: [animeReviewId], references: [id], onDelete: Cascade)
   animeReviewId Int?
@@ -325,37 +338,105 @@ model ReviewImage {
   lightNovelReviewId Int?
 }
 
-model RequestLog {
-  id        Int      @id @default(autoincrement())
-  hostname  String
-  ip        String?
-  method    String
-  url       String
-  headers   Json
-  body      Json
-  status    Int
-  response  Json?
-  timestamp DateTime @default(now())
+model Asset {
+  id               String         @id @default(uuid())
+  storageKey       String         @unique
+  url              String         @unique
+  mimeType         String
+  mediaType        AssetMediaType
+  expectedFileSize Int
+  fileSize         Int?
+  width            Int?
+  height           Int?
+  durationMs       Int?
+  status           AssetStatus    @default(PENDING)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  reviewAssets            ReviewAsset[]
+  imageVaultEntry         ImageVaultEntry?  @relation("ImageVaultEntryAsset")
+  imageVaultSourceEntries ImageVaultEntry? @relation("ImageVaultEntrySourceAsset")
+
+  @@index([status, createdAt])
+  @@index([mediaType])
 }
 
-model ErrorLog {
-  id         Int       @id @default(autoincrement())
-  message    String
-  type       ErrorType
-  statusCode Int?
-  stack      String?
-  route      String
-  timestamp  DateTime  @default(now())
+model ImageVaultGenerationModel {
+  id        String            @id @default(uuid())
+  name      String
+  provider  String
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  images    ImageVaultEntry[]
 }
 
-model QueueLog {
-  id          Int         @id @default(autoincrement())
-  jobId       String      @unique
-  queueName   String
-  status      QueueStatus
-  data        Json
-  result      Json?
-  error       String?
-  timestamp   DateTime    @default(now())
-  completedAt DateTime?
+model ImageVaultCategory {
+  id        String                    @id @default(uuid())
+  name      String
+  slug      String                    @unique
+  createdAt DateTime                  @default(now())
+  updatedAt DateTime                  @updatedAt
+  entries   ImageVaultEntryCategory[]
+}
+
+model ImageVaultEntry {
+  id             String                     @id @default(uuid())
+  assetId        String                     @unique
+  sourceAssetId  String?                    @unique
+  asset          Asset                      @relation("ImageVaultEntryAsset", fields: [assetId], references: [id], onDelete: Cascade)
+  sourceAsset    Asset?                     @relation("ImageVaultEntrySourceAsset", fields: [sourceAssetId], references: [id], onDelete: SetNull)
+  originType     ImageVaultOriginType
+  sourceUrl      String?
+  modelId        String?
+  model          ImageVaultGenerationModel? @relation(fields: [modelId], references: [id], onDelete: SetNull)
+  prompt         String?
+  originalPrompt String?
+  isExplicit     Boolean                    @default(false)
+  explicitReason String?
+  notes          String?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  categories     ImageVaultEntryCategory[]
+  parentId       String?
+  parent         ImageVaultEntry?           @relation("ImageVaultEntryLineage", fields: [parentId], references: [id], onDelete: SetNull)
+  children       ImageVaultEntry[]          @relation("ImageVaultEntryLineage")
+
+  @@index([originType])
+  @@index([modelId])
+  @@index([isExplicit])
+  @@index([createdAt])
+  @@index([parentId])
+}
+
+model ImageVaultEntryCategory {
+  imageVaultEntryId    String
+  imageVaultCategoryId String
+
+  imageVaultEntry    ImageVaultEntry    @relation(fields: [imageVaultEntryId], references: [id], onDelete: Cascade)
+  imageVaultCategory ImageVaultCategory @relation(fields: [imageVaultCategoryId], references: [id], onDelete: Cascade)
+
+  @@id([imageVaultEntryId, imageVaultCategoryId])
+  @@index([imageVaultCategoryId])
+}
+
+model ReviewAsset {
+  id                 String            @id @default(uuid())
+  assetId            String
+  asset              Asset             @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  animeReviewId      Int?
+  mangaReviewId      Int?
+  lightNovelReviewId Int?
+  usage              ReviewAssetUsage  @default(IMAGE)
+  sortOrder          Int?
+  createdAt          DateTime          @default(now())
+
+  animeReview      AnimeReview?      @relation(fields: [animeReviewId], references: [id], onDelete: Cascade)
+  mangaReview      MangaReview?      @relation(fields: [mangaReviewId], references: [id], onDelete: Cascade)
+  lightNovelReview LightNovelReview? @relation(fields: [lightNovelReviewId], references: [id], onDelete: Cascade)
+
+  @@index([animeReviewId])
+  @@index([mangaReviewId])
+  @@index([lightNovelReviewId])
+  @@index([assetId])
 }
