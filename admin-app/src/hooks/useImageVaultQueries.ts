@@ -80,6 +80,9 @@ export const useImageVaultMutations = () => {
     },
     onSuccess: async () => {
       await invalidateLists();
+      await queryClient.invalidateQueries({
+        queryKey: imageVaultKeys.details()
+      });
       toast.success("Image added to vault");
     },
     onError: (error: unknown) => {
@@ -103,9 +106,11 @@ export const useImageVaultMutations = () => {
       }
       return result.data;
     },
-    onSuccess: async (data) => {
+    onSuccess: async () => {
       await invalidateLists();
-      queryClient.setQueryData(imageVaultKeys.detail(data.id), data);
+      await queryClient.invalidateQueries({
+        queryKey: imageVaultKeys.details()
+      });
       toast.success("Image updated");
     },
     onError: (error: unknown) => {

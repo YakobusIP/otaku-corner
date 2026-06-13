@@ -51,6 +51,7 @@ export const imageVaultKeys = {
   lists: () => [...imageVaultKeys.all, "list"] as const,
   infiniteList: (filters: ImageVaultInfiniteListFilters) =>
     [...imageVaultKeys.lists(), "infinite", filters] as const,
+  details: () => [...imageVaultKeys.all, "detail"] as const,
   detail: (id: string) => [...imageVaultKeys.all, "detail", id] as const,
   models: () => [...imageVaultKeys.all, "models"] as const,
   categories: () => [...imageVaultKeys.all, "categories"] as const

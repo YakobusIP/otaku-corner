@@ -17,7 +17,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 
 const PAGE_SIZE = 10;
 
-export const useImageVaultListPage = (enabled = true) => {
+export const useImageVaultListPage = () => {
   const { state } = useImageVaultFilters();
 
   const listFilters = useMemo((): ImageVaultInfiniteListFilters => {
@@ -27,23 +27,23 @@ export const useImageVaultListPage = (enabled = true) => {
       originType: state.originType === "all" ? undefined : state.originType,
       modelId: state.modelId || undefined,
       categoryId: state.categoryId || undefined,
-      isExplicit: state.explicitOnly ? true : undefined
+      safetyLevel:
+        state.safetyFilter === "all" ? undefined : state.safetyFilter
     };
   }, [
     state.search,
     state.originType,
     state.modelId,
     state.categoryId,
-    state.explicitOnly
+    state.safetyFilter
   ]);
 
   return useInfiniteQuery({
     queryKey: imageVaultKeys.infiniteList(listFilters),
-    enabled,
     queryFn: async ({
       pageParam
     }): Promise<PaginatedListPage<ImageVaultEntry>> => {
-      const page = pageParam as number;
+      const page = pageParam;
       const requestFilters: ImageVaultListFilters = {
         ...listFilters,
         page

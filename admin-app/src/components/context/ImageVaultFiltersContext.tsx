@@ -8,48 +8,26 @@ import {
   useState
 } from "react";
 
-import type { ImageOriginType } from "@/types/image-vault.type";
+import type {
+  ImageOriginType,
+  ImageVaultSafetyLevel,
+  SensitiveImageVisibility
+} from "@/types/image-vault.type";
+import {
+  parseOriginFilter,
+  parseSafetyFilter,
+  parseSensitiveImageVisibility
+} from "@/types/image-vault.type";
 
 import { useSearchParams } from "react-router-dom";
-
-const VALID_ORIGINS: ReadonlySet<string> = new Set(["AI", "HUMAN"]);
-
-const validateOrigin = (value: string | null): ImageOriginType | "all" => {
-  if (!value || value === "all") {
-    return "all";
-  }
-  if (VALID_ORIGINS.has(value)) {
-    return value as ImageOriginType;
-  }
-  return "all";
-};
-
-const parseBooleanParam = (value: string | null): boolean =>
-  value === "true" || value === "1";
-
-const readBooleanParam = (
-  searchParams: URLSearchParams,
-  key: string,
-  fallback: boolean
-): boolean => {
-  if (!searchParams.has(key)) {
-    return fallback;
-  }
-  return parseBooleanParam(searchParams.get(key));
-};
 
 export type ImageVaultFiltersState = {
   search: string;
   originType: ImageOriginType | "all";
   modelId: string;
   categoryId: string;
-  explicitOnly: boolean;
-  hideExplicitImages: boolean;
-};
-
-type ImageVaultFiltersContextValue = {
-  state: ImageVaultFiltersState;
-  setState: (updater: Partial<ImageVaultFiltersState>) => void;
+  safetyFilter: ImageVaultSafetyLevel | "all";
+  sensitiveImageVisibility: SensitiveImageVisibility;
 };
 
 const defaultState: ImageVaultFiltersState = {
@@ -57,8 +35,19 @@ const defaultState: ImageVaultFiltersState = {
   originType: "all",
   modelId: "",
   categoryId: "",
-  explicitOnly: false,
-  hideExplicitImages: true
+  safetyFilter: "all",
+  sensitiveImageVisibility: "MASK_EXPLICIT"
+};
+
+const parseVisibilityFilter = (
+  value: string | null
+): SensitiveImageVisibility =>
+  parseSensitiveImageVisibility(value ?? "") ??
+  defaultState.sensitiveImageVisibility;
+
+type ImageVaultFiltersContextValue = {
+  state: ImageVaultFiltersState;
+  setState: (updater: Partial<ImageVaultFiltersState>) => void;
 };
 
 const ImageVaultFiltersContext = createContext<
@@ -69,19 +58,13 @@ const readStateFromSearchParams = (
   searchParams: URLSearchParams
 ): Pick<
   ImageVaultFiltersState,
-  "search" | "originType" | "explicitOnly" | "hideExplicitImages"
+  "search" | "originType" | "safetyFilter" | "sensitiveImageVisibility"
 > => ({
   search: searchParams.get("q") ?? defaultState.search,
-  originType: validateOrigin(searchParams.get("origin")),
-  explicitOnly: readBooleanParam(
-    searchParams,
-    "explicit_only",
-    defaultState.explicitOnly
-  ),
-  hideExplicitImages: readBooleanParam(
-    searchParams,
-    "hide_explicit_images",
-    defaultState.hideExplicitImages
+  originType: parseOriginFilter(searchParams.get("origin")),
+  safetyFilter: parseSafetyFilter(searchParams.get("safety")),
+  sensitiveImageVisibility: parseVisibilityFilter(
+    searchParams.get("visibility")
   )
 });
 
@@ -107,19 +90,16 @@ export const ImageVaultFiltersProvider = ({
       params.set("q", state.search);
     }
     params.set("origin", state.originType);
-    params.set("explicit_only", state.explicitOnly ? "true" : "false");
-    params.set(
-      "hide_explicit_images",
-      state.hideExplicitImages ? "true" : "false"
-    );
+    params.set("safety", state.safetyFilter);
+    params.set("visibility", state.sensitiveImageVisibility);
 
     setSearchParams(params, { replace: true });
   }, [
     setSearchParams,
-    state.explicitOnly,
-    state.hideExplicitImages,
     state.originType,
-    state.search
+    state.safetyFilter,
+    state.search,
+    state.sensitiveImageVisibility
   ]);
 
   const value = useMemo(

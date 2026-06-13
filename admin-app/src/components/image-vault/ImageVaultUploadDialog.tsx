@@ -7,12 +7,13 @@ import {
   useState
 } from "react";
 
+import ImageVaultSafetyFields from "@/components/image-vault/ImageVaultSafetyFields";
 import {
+  type ImageVaultUploadParentDefaults,
   createImageVaultUploadDefaultValues,
   imageVaultUploadFormSchema
 } from "@/components/image-vault/image-vault-upload-form.schema";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -46,24 +47,27 @@ import {
 
 import {
   type ImageOriginType,
+  type SensitiveImageVisibility,
+  normalizeImageVaultSafetyReasonForSubmit,
   parseImageOriginType
 } from "@/types/image-vault.type";
 
 import { resolveImageVaultPreviewUrl } from "@/lib/image-vault-preview";
 
 import { useForm } from "@tanstack/react-form";
+import { UploadIcon, XIcon } from "lucide-react";
+
+type ParentImage = ImageVaultUploadParentDefaults & {
+  id: string;
+  previewUrl: string;
+  prompt?: string | null;
+};
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  parentImage?: {
-    id: string;
-    previewUrl: string;
-    prompt?: string | null;
-    isExplicit: boolean;
-    categoryIds: string[];
-  } | null;
-  hideExplicitImages?: boolean;
+  parentImage?: ParentImage | null;
+  sensitiveImageVisibility?: SensitiveImageVisibility;
 };
 
 const FORM_ID = "image-vault-upload-form";
@@ -72,9 +76,17 @@ export default function ImageVaultUploadDialog({
   open,
   onOpenChange,
   parentImage = null,
-  hideExplicitImages = false
+  sensitiveImageVisibility = "MASK_EXPLICIT"
 }: Props) {
   const isFollowUp = Boolean(parentImage);
+
+  const parentDefaults = useMemo((): ImageVaultUploadParentDefaults => {
+    if (!parentImage) {
+      return {};
+    }
+    const { categoryIds, modelId, safetyLevel, safetyReason } = parentImage;
+    return { categoryIds, modelId, safetyLevel, safetyReason };
+  }, [parentImage]);
 
   const { data: models = [] } = useImageVaultModels(open);
   const { data: categories = [], isLoading: isLoadingCategories } =
@@ -89,9 +101,7 @@ export default function ImageVaultUploadDialog({
     useState<HTMLDivElement | null>(null);
 
   const form = useForm({
-    defaultValues: createImageVaultUploadDefaultValues(
-      parentImage?.categoryIds ?? []
-    ),
+    defaultValues: createImageVaultUploadDefaultValues(parentDefaults),
     validators: {
       onSubmit: imageVaultUploadFormSchema
     },
@@ -116,10 +126,11 @@ export default function ImageVaultUploadDialog({
           categoryIds:
             value.categoryIds.length > 0 ? value.categoryIds : undefined,
           notes: value.notes || undefined,
-          isExplicit: value.isExplicit,
-          explicitReason: value.isExplicit
-            ? value.explicitReason || undefined
-            : undefined
+          safetyLevel: value.safetyLevel,
+          safetyReason: normalizeImageVaultSafetyReasonForSubmit(
+            value.safetyLevel,
+            value.safetyReason
+          )
         },
         onProgress: setUploadProgress
       });
@@ -146,14 +157,12 @@ export default function ImageVaultUploadDialog({
   }, [previewUrl, sourcePreviewUrl]);
 
   const resetDialogState = useCallback(() => {
-    form.reset(
-      createImageVaultUploadDefaultValues(parentImage?.categoryIds ?? [])
-    );
+    form.reset(createImageVaultUploadDefaultValues(parentDefaults));
     setFile(null);
     setSourceFile(null);
     setFileError(null);
     setUploadProgress(null);
-  }, [form, parentImage?.categoryIds]);
+  }, [form, parentDefaults]);
 
   useEffect(() => {
     if (!open) return;
@@ -197,7 +206,7 @@ export default function ImageVaultUploadDialog({
     >
       <DialogContent
         ref={setDialogContentElement}
-        className="flex max-h-[90vh] flex-col sm:max-w-lg"
+        className="flex max-h-[90vh] flex-col sm:max-w-lg xl:h-[90vh] xl:max-w-5xl"
       >
         <DialogHeader>
           <DialogTitle>
@@ -218,30 +227,30 @@ export default function ImageVaultUploadDialog({
             void form.handleSubmit();
           }}
         >
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
-            {isFollowUp && parentImage ? (
-              <div className="space-y-2 rounded-md border border-border/60 p-3">
-                <p className="text-xs font-medium text-muted-foreground">
-                  Parent image
-                </p>
-                <img
-                  src={resolveImageVaultPreviewUrl(
-                    parentImage.previewUrl,
-                    parentImage.isExplicit,
-                    hideExplicitImages
-                  )}
-                  alt=""
-                  className="max-h-40 w-full rounded-md border border-border/60 object-contain bg-muted/20"
-                />
-                {parentImage.prompt ? (
-                  <p className="line-clamp-3 text-xs text-muted-foreground">
-                    {parentImage.prompt}
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden pr-1 xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.9fr)] xl:gap-6 xl:space-y-0 xl:overflow-hidden xl:pr-0">
+            <div className="space-y-4 xl:min-h-0 xl:overflow-hidden xl:pb-3">
+              {isFollowUp && parentImage ? (
+                <div className="space-y-2 rounded-md border border-border/60 p-3">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Parent image
                   </p>
-                ) : null}
-              </div>
-            ) : null}
+                  <img
+                    src={resolveImageVaultPreviewUrl(
+                      parentImage.previewUrl,
+                      parentImage.safetyLevel ?? "SAFE",
+                      sensitiveImageVisibility
+                    )}
+                    alt=""
+                    className="max-h-40 w-full rounded-md border border-border/60 object-contain bg-muted/20 xl:max-h-[24vh]"
+                  />
+                  {parentImage.prompt ? (
+                    <p className="line-clamp-3 text-xs text-muted-foreground">
+                      {parentImage.prompt}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
 
-            <FieldGroup>
               <Field data-invalid={Boolean(fileError)}>
                 <FieldLabel htmlFor="vault-file">Image file</FieldLabel>
                 <Input
@@ -257,7 +266,7 @@ export default function ImageVaultUploadDialog({
                     <img
                       src={previewUrl}
                       alt="Selected upload preview"
-                      className="max-h-64 w-full object-contain"
+                      className="max-h-64 w-full object-contain xl:max-h-[38vh]"
                     />
                   </div>
                 ) : null}
@@ -279,45 +288,174 @@ export default function ImageVaultUploadDialog({
                       <img
                         src={sourcePreviewUrl}
                         alt="Selected source image preview"
-                        className="max-h-48 w-full object-contain"
+                        className="max-h-48 w-full object-contain xl:max-h-[24vh]"
                       />
                     </div>
                   ) : null}
                 </Field>
               ) : null}
+            </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <form.Field name="originType">
+            <div className="space-y-4 xl:min-h-0 xl:overflow-y-auto xl:overflow-x-hidden xl:pb-4 xl:pr-1">
+              <FieldGroup className="gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <form.Field name="originType">
+                    {(field) => {
+                      const isInvalid =
+                        field.state.meta.isTouched && !field.state.meta.isValid;
+                      return (
+                        <Field data-invalid={isInvalid}>
+                          <FieldLabel htmlFor="vault-origin-type">
+                            Origin
+                          </FieldLabel>
+                          <Select
+                            value={field.state.value}
+                            onValueChange={(value) => {
+                              const nextOrigin = parseImageOriginType(value);
+                              if (!nextOrigin) return;
+                              handleOriginTypeChange(
+                                nextOrigin,
+                                field.handleChange
+                              );
+                            }}
+                          >
+                            <SelectTrigger
+                              id="vault-origin-type"
+                              aria-invalid={isInvalid}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="AI">AI</SelectItem>
+                              <SelectItem value="HUMAN">Human</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {isInvalid ? (
+                            <FieldError errors={field.state.meta.errors} />
+                          ) : null}
+                        </Field>
+                      );
+                    }}
+                  </form.Field>
+
+                  <form.Subscribe selector={(state) => state.values.originType}>
+                    {(originType) =>
+                      originType === "AI" ? (
+                        <form.Field name="modelId">
+                          {(field) => {
+                            const isInvalid =
+                              field.state.meta.isTouched &&
+                              !field.state.meta.isValid;
+                            return (
+                              <Field data-invalid={isInvalid}>
+                                <FieldLabel htmlFor="vault-model">
+                                  Model
+                                </FieldLabel>
+                                <Select
+                                  value={field.state.value}
+                                  onValueChange={field.handleChange}
+                                >
+                                  <SelectTrigger
+                                    id="vault-model"
+                                    aria-invalid={isInvalid}
+                                  >
+                                    <SelectValue placeholder="Select model" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {models
+                                      .filter((model) => model.isActive)
+                                      .map((model) => (
+                                        <SelectItem
+                                          key={model.id}
+                                          value={model.id}
+                                        >
+                                          {model.name} ({model.provider})
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                </Select>
+                                {isInvalid ? (
+                                  <FieldError
+                                    errors={field.state.meta.errors}
+                                  />
+                                ) : null}
+                              </Field>
+                            );
+                          }}
+                        </form.Field>
+                      ) : (
+                        <form.Field name="sourceUrl">
+                          {(field) => {
+                            const isInvalid =
+                              field.state.meta.isTouched &&
+                              !field.state.meta.isValid;
+                            return (
+                              <Field data-invalid={isInvalid}>
+                                <FieldLabel htmlFor="vault-source-url">
+                                  Source URL (optional)
+                                </FieldLabel>
+                                <Input
+                                  id="vault-source-url"
+                                  type="url"
+                                  value={field.state.value}
+                                  onBlur={field.handleBlur}
+                                  onChange={(event) =>
+                                    field.handleChange(event.target.value)
+                                  }
+                                  placeholder="https://..."
+                                  aria-invalid={isInvalid}
+                                />
+                                {isInvalid ? (
+                                  <FieldError
+                                    errors={field.state.meta.errors}
+                                  />
+                                ) : null}
+                              </Field>
+                            );
+                          }}
+                        </form.Field>
+                      )
+                    }
+                  </form.Subscribe>
+                </div>
+
+                <form.Field name="categoryIds">
                   {(field) => {
                     const isInvalid =
                       field.state.meta.isTouched && !field.state.meta.isValid;
                     return (
                       <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor="vault-origin-type">
-                          Origin
-                        </FieldLabel>
-                        <Select
-                          value={field.state.value}
-                          onValueChange={(value) => {
-                            const nextOrigin = parseImageOriginType(value);
-                            if (!nextOrigin) return;
-                            handleOriginTypeChange(
-                              nextOrigin,
-                              field.handleChange
-                            );
+                        <FieldLabel>Categories</FieldLabel>
+                        <MultiSelect
+                          key={`${parentImage?.id ?? "root"}-${open ? "open" : "closed"}`}
+                          options={categories.map((category) => ({
+                            label: category.name,
+                            value: category.id
+                          }))}
+                          defaultValue={field.state.value}
+                          onValueChange={field.handleChange}
+                          placeholder={
+                            isLoadingCategories
+                              ? "Fetching categories..."
+                              : categories.length === 0
+                                ? "No categories available"
+                                : "Select categories"
+                          }
+                          maxCount={3}
+                          responsive={{
+                            smallMobile: { maxCount: 1, compactMode: true },
+                            mobile: { maxCount: 2, compactMode: true },
+                            tablet: { maxCount: 3 },
+                            desktop: { maxCount: 3 }
                           }}
-                        >
-                          <SelectTrigger
-                            id="vault-origin-type"
-                            aria-invalid={isInvalid}
-                          >
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AI">AI</SelectItem>
-                            <SelectItem value="HUMAN">Human</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          searchable
+                          hideSelectAll
+                          className="w-full"
+                          popoverPortalContainer={dialogContentElement}
+                          disabled={
+                            isLoadingCategories || categories.length === 0
+                          }
+                        />
                         {isInvalid ? (
                           <FieldError errors={field.state.meta.errors} />
                         ) : null}
@@ -329,295 +467,150 @@ export default function ImageVaultUploadDialog({
                 <form.Subscribe selector={(state) => state.values.originType}>
                   {(originType) =>
                     originType === "AI" ? (
-                      <form.Field name="modelId">
-                        {(field) => {
-                          const isInvalid =
-                            field.state.meta.isTouched &&
-                            !field.state.meta.isValid;
-                          return (
-                            <Field data-invalid={isInvalid}>
-                              <FieldLabel htmlFor="vault-model">
-                                Model
-                              </FieldLabel>
-                              <Select
-                                value={field.state.value}
-                                onValueChange={field.handleChange}
-                              >
-                                <SelectTrigger
-                                  id="vault-model"
+                      <Fragment>
+                        <form.Field name="prompt">
+                          {(field) => {
+                            const isInvalid =
+                              field.state.meta.isTouched &&
+                              !field.state.meta.isValid;
+                            return (
+                              <Field data-invalid={isInvalid}>
+                                <FieldLabel htmlFor="vault-prompt">
+                                  {isFollowUp ? "Follow-up prompt" : "Prompt"}
+                                </FieldLabel>
+                                <Textarea
+                                  id="vault-prompt"
+                                  value={field.state.value}
+                                  onBlur={field.handleBlur}
+                                  onChange={(event) =>
+                                    field.handleChange(event.target.value)
+                                  }
+                                  rows={4}
                                   aria-invalid={isInvalid}
-                                >
-                                  <SelectValue placeholder="Select model" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {models
-                                    .filter((model) => model.isActive)
-                                    .map((model) => (
-                                      <SelectItem
-                                        key={model.id}
-                                        value={model.id}
-                                      >
-                                        {model.name} ({model.provider})
-                                      </SelectItem>
-                                    ))}
-                                </SelectContent>
-                              </Select>
-                              {isInvalid ? (
-                                <FieldError errors={field.state.meta.errors} />
-                              ) : null}
-                            </Field>
-                          );
-                        }}
-                      </form.Field>
-                    ) : (
-                      <form.Field name="sourceUrl">
-                        {(field) => {
-                          const isInvalid =
-                            field.state.meta.isTouched &&
-                            !field.state.meta.isValid;
-                          return (
-                            <Field data-invalid={isInvalid}>
-                              <FieldLabel htmlFor="vault-source-url">
-                                Source URL (optional)
-                              </FieldLabel>
-                              <Input
-                                id="vault-source-url"
-                                type="url"
-                                value={field.state.value}
-                                onBlur={field.handleBlur}
-                                onChange={(event) =>
-                                  field.handleChange(event.target.value)
-                                }
-                                placeholder="https://..."
-                                aria-invalid={isInvalid}
-                              />
-                              {isInvalid ? (
-                                <FieldError errors={field.state.meta.errors} />
-                              ) : null}
-                            </Field>
-                          );
-                        }}
-                      </form.Field>
-                    )
+                                />
+                                {isInvalid ? (
+                                  <FieldError
+                                    errors={field.state.meta.errors}
+                                  />
+                                ) : null}
+                              </Field>
+                            );
+                          }}
+                        </form.Field>
+                        <form.Field name="originalPrompt">
+                          {(field) => {
+                            const isInvalid =
+                              field.state.meta.isTouched &&
+                              !field.state.meta.isValid;
+                            return (
+                              <Field data-invalid={isInvalid}>
+                                <FieldLabel htmlFor="vault-original-prompt">
+                                  Original prompt (optional)
+                                </FieldLabel>
+                                <Textarea
+                                  id="vault-original-prompt"
+                                  value={field.state.value}
+                                  onBlur={field.handleBlur}
+                                  onChange={(event) =>
+                                    field.handleChange(event.target.value)
+                                  }
+                                  rows={3}
+                                  className="min-h-[60px]"
+                                  aria-invalid={isInvalid}
+                                />
+                                {isInvalid ? (
+                                  <FieldError
+                                    errors={field.state.meta.errors}
+                                  />
+                                ) : null}
+                              </Field>
+                            );
+                          }}
+                        </form.Field>
+                      </Fragment>
+                    ) : null
                   }
                 </form.Subscribe>
-              </div>
 
-              <form.Field name="categoryIds">
-                {(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid;
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel>Categories</FieldLabel>
-                      <MultiSelect
-                        key={`${parentImage?.id ?? "root"}-${open ? "open" : "closed"}`}
-                        options={categories.map((category) => ({
-                          label: category.name,
-                          value: category.id
-                        }))}
-                        defaultValue={field.state.value}
-                        onValueChange={field.handleChange}
-                        placeholder={
-                          isLoadingCategories
-                            ? "Fetching categories..."
-                            : categories.length === 0
-                              ? "No categories available"
-                              : "Select categories"
-                        }
-                        maxCount={3}
-                        responsive={{
-                          smallMobile: { maxCount: 1, compactMode: true },
-                          mobile: { maxCount: 2, compactMode: true },
-                          tablet: { maxCount: 3 },
-                          desktop: { maxCount: 3 }
-                        }}
-                        searchable
-                        hideSelectAll
-                        className="w-full"
-                        popoverPortalContainer={dialogContentElement}
-                        disabled={
-                          isLoadingCategories || categories.length === 0
-                        }
-                      />
-                      {isInvalid ? (
-                        <FieldError errors={field.state.meta.errors} />
-                      ) : null}
-                    </Field>
-                  );
-                }}
-              </form.Field>
-
-              <form.Subscribe selector={(state) => state.values.originType}>
-                {(originType) =>
-                  originType === "AI" ? (
-                    <Fragment>
-                      <form.Field name="prompt">
-                        {(field) => {
-                          const isInvalid =
-                            field.state.meta.isTouched &&
-                            !field.state.meta.isValid;
-                          return (
-                            <Field data-invalid={isInvalid}>
-                              <FieldLabel htmlFor="vault-prompt">
-                                {isFollowUp ? "Follow-up prompt" : "Prompt"}
-                              </FieldLabel>
-                              <Textarea
-                                id="vault-prompt"
-                                value={field.state.value}
-                                onBlur={field.handleBlur}
-                                onChange={(event) =>
-                                  field.handleChange(event.target.value)
-                                }
-                                rows={4}
-                                aria-invalid={isInvalid}
-                              />
-                              {isInvalid ? (
-                                <FieldError errors={field.state.meta.errors} />
-                              ) : null}
-                            </Field>
-                          );
-                        }}
-                      </form.Field>
-                      <form.Field name="originalPrompt">
-                        {(field) => {
-                          const isInvalid =
-                            field.state.meta.isTouched &&
-                            !field.state.meta.isValid;
-                          return (
-                            <Field data-invalid={isInvalid}>
-                              <FieldLabel htmlFor="vault-original-prompt">
-                                Original prompt (optional)
-                              </FieldLabel>
-                              <Textarea
-                                id="vault-original-prompt"
-                                value={field.state.value}
-                                onBlur={field.handleBlur}
-                                onChange={(event) =>
-                                  field.handleChange(event.target.value)
-                                }
-                                rows={3}
-                                className="min-h-[60px]"
-                                aria-invalid={isInvalid}
-                              />
-                              {isInvalid ? (
-                                <FieldError errors={field.state.meta.errors} />
-                              ) : null}
-                            </Field>
-                          );
-                        }}
-                      </form.Field>
-                    </Fragment>
-                  ) : null
-                }
-              </form.Subscribe>
-
-              <form.Field name="notes">
-                {(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid;
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor="vault-notes">Notes</FieldLabel>
-                      <Textarea
-                        id="vault-notes"
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={(event) =>
-                          field.handleChange(event.target.value)
-                        }
-                        rows={2}
-                        className="min-h-[60px]"
-                        aria-invalid={isInvalid}
-                      />
-                      {isInvalid ? (
-                        <FieldError errors={field.state.meta.errors} />
-                      ) : null}
-                    </Field>
-                  );
-                }}
-              </form.Field>
-
-              <form.Field name="isExplicit">
-                {(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid;
-                  return (
-                    <Field
-                      orientation="horizontal"
-                      data-invalid={isInvalid}
-                      className="rounded-md border border-border/60 px-3 py-2"
-                    >
-                      <Checkbox
-                        id="vault-explicit"
-                        checked={field.state.value}
-                        onCheckedChange={(checked) => {
-                          const next = checked === true;
-                          field.handleChange(next);
-                          if (!next) {
-                            form.setFieldValue("explicitReason", "");
+                <form.Field name="notes">
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && !field.state.meta.isValid;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="vault-notes">Notes</FieldLabel>
+                        <Textarea
+                          id="vault-notes"
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(event) =>
+                            field.handleChange(event.target.value)
                           }
-                        }}
-                        aria-invalid={isInvalid}
-                      />
-                      <FieldLabel
-                        htmlFor="vault-explicit"
-                        className="font-normal"
-                      >
-                        Explicit content
-                      </FieldLabel>
-                      {isInvalid ? (
-                        <FieldError errors={field.state.meta.errors} />
-                      ) : null}
-                    </Field>
-                  );
-                }}
-              </form.Field>
+                          rows={2}
+                          className="min-h-[60px]"
+                          aria-invalid={isInvalid}
+                        />
+                        {isInvalid ? (
+                          <FieldError errors={field.state.meta.errors} />
+                        ) : null}
+                      </Field>
+                    );
+                  }}
+                </form.Field>
 
-              <form.Subscribe selector={(state) => state.values.isExplicit}>
-                {(isExplicit) =>
-                  isExplicit ? (
-                    <form.Field name="explicitReason">
-                      {(field) => {
-                        const isInvalid =
-                          field.state.meta.isTouched &&
-                          !field.state.meta.isValid;
+                <form.Field name="safetyLevel">
+                  {(levelField) => (
+                    <form.Field name="safetyReason">
+                      {(reasonField) => {
+                        const reasonInvalid =
+                          reasonField.state.meta.isTouched &&
+                          !reasonField.state.meta.isValid;
                         return (
-                          <Field data-invalid={isInvalid}>
-                            <FieldLabel htmlFor="vault-explicit-reason">
-                              Explicit reason
-                            </FieldLabel>
-                            <Input
-                              id="vault-explicit-reason"
-                              value={field.state.value}
-                              onBlur={field.handleBlur}
-                              onChange={(event) =>
-                                field.handleChange(event.target.value)
-                              }
-                              aria-invalid={isInvalid}
-                            />
-                            {isInvalid ? (
-                              <FieldError errors={field.state.meta.errors} />
-                            ) : null}
-                          </Field>
+                          <ImageVaultSafetyFields
+                            safetyLevel={levelField.state.value}
+                            safetyReason={reasonField.state.value}
+                            onSafetyLevelChange={levelField.handleChange}
+                            onSafetyReasonChange={reasonField.handleChange}
+                            safetyReasonInvalid={reasonInvalid}
+                            safetyReasonErrors={reasonField.state.meta.errors}
+                          />
                         );
                       }}
                     </form.Field>
-                  ) : null
-                }
-              </form.Subscribe>
-            </FieldGroup>
+                  )}
+                </form.Field>
+              </FieldGroup>
 
-            {uploadProgress !== null ? (
-              <p className="text-sm text-muted-foreground">
-                Uploading: {uploadProgress}%
-              </p>
-            ) : null}
+              {uploadProgress !== null ? (
+                <p className="text-sm text-muted-foreground">
+                  Uploading: {uploadProgress}%
+                </p>
+              ) : null}
+            </div>
           </div>
 
-          <DialogFooter>
-            <Button type="submit" disabled={!file || uploadImage.isPending}>
-              {uploadImage.isPending ? "Uploading..." : "Upload"}
+          <DialogFooter className="sticky bottom-0 flex-row justify-end gap-2 border-t bg-background pt-4 sm:space-x-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={uploadImage.isPending}
+              className="h-10 w-10 shrink-0 px-0 md:w-32 md:px-4"
+            >
+              <XIcon className="h-4 w-4" />
+              <span className="sr-only md:not-sr-only md:whitespace-nowrap">
+                Cancel
+              </span>
+            </Button>
+            <Button
+              type="submit"
+              disabled={!file || uploadImage.isPending}
+              className="h-10 w-10 shrink-0 px-0 md:w-32 md:px-4"
+            >
+              <UploadIcon className="h-4 w-4" />
+              <span className="sr-only md:not-sr-only md:whitespace-nowrap">
+                {uploadImage.isPending ? "Uploading..." : "Upload"}
+              </span>
             </Button>
           </DialogFooter>
         </form>

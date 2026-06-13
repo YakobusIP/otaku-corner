@@ -1,4 +1,11 @@
-import { IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY } from "@/types/image-vault.type";
+import {
+  IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY,
+  isExplicitSafetyLevel
+} from "@/types/image-vault.type";
+import type {
+  ImageVaultEntry,
+  ImageVaultSafetyLevel
+} from "@/types/image-vault.type";
 
 import { z } from "zod";
 
@@ -18,8 +25,8 @@ export const imageVaultUploadFormSchema = z
         `Select at most ${IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY} categories.`
       ),
     notes: z.string(),
-    isExplicit: z.boolean(),
-    explicitReason: z.string()
+    safetyLevel: z.enum(["SAFE", "NSFW", "EXPLICIT"]),
+    safetyReason: z.string()
   })
   .superRefine((data, ctx) => {
     if (data.originType === "AI") {
@@ -87,11 +94,11 @@ export const imageVaultUploadFormSchema = z
         path: ["originalPrompt"]
       });
     }
-    if (!data.isExplicit && trim(data.explicitReason)) {
+    if (isExplicitSafetyLevel(data.safetyLevel) && !trim(data.safetyReason)) {
       ctx.addIssue({
         code: "custom",
-        message: "Explicit reason is only allowed when explicit is enabled.",
-        path: ["explicitReason"]
+        message: "Safety reason is required for explicit content.",
+        path: ["safetyReason"]
       });
     }
   });
@@ -100,16 +107,45 @@ export type ImageVaultUploadFormValues = z.infer<
   typeof imageVaultUploadFormSchema
 >;
 
-export const createImageVaultUploadDefaultValues = (
-  categoryIds: string[] = []
+export type ImageVaultUploadParentDefaults = {
+  categoryIds?: string[];
+  modelId?: string;
+  safetyLevel?: ImageVaultSafetyLevel;
+  safetyReason?: string | null;
+};
+
+export const createImageVaultDetailFormValues = (
+  image: ImageVaultEntry
 ): ImageVaultUploadFormValues => ({
-  originType: "AI",
-  modelId: "",
-  prompt: "",
-  originalPrompt: "",
-  sourceUrl: "",
-  categoryIds,
-  notes: "",
-  isExplicit: false,
-  explicitReason: ""
+  originType: image.originType,
+  modelId: image.model?.id ?? "",
+  prompt: image.prompt ?? "",
+  originalPrompt: image.originalPrompt ?? "",
+  sourceUrl: image.sourceUrl ?? "",
+  categoryIds: image.categories.map((category) => category.id),
+  notes: image.notes ?? "",
+  safetyLevel: image.safetyLevel,
+  safetyReason: image.safetyReason ?? ""
 });
+
+export const createImageVaultUploadDefaultValues = (
+  parentDefaults: ImageVaultUploadParentDefaults = {}
+): ImageVaultUploadFormValues => {
+  const safetyLevel = parentDefaults.safetyLevel ?? "SAFE";
+  const safetyReason =
+    safetyLevel !== "SAFE"
+      ? (parentDefaults.safetyReason?.trim() ?? "")
+      : "";
+
+  return {
+    originType: "AI",
+    modelId: parentDefaults.modelId ?? "",
+    prompt: "",
+    originalPrompt: "",
+    sourceUrl: "",
+    categoryIds: parentDefaults.categoryIds ?? [],
+    notes: "",
+    safetyLevel,
+    safetyReason
+  };
+};

@@ -111,7 +111,7 @@ const createImageVaultService = () => {
           originType: filters.originType,
           modelId: filters.modelId,
           categoryId: filters.categoryId,
-          isExplicit: filters.isExplicit
+          safetyLevel: filters.safetyLevel
         }
       });
       return ok(mapPaginatedBody(response.data));

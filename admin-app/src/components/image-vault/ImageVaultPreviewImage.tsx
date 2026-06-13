@@ -14,13 +14,15 @@ type Props = {
   downloadUrl: string;
   alt?: string;
   className?: string;
+  containerClassName?: string;
 };
 
 export default function ImageVaultPreviewImage({
   src,
   downloadUrl,
   alt = "",
-  className
+  className,
+  containerClassName
 }: Props) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -40,12 +42,12 @@ export default function ImageVaultPreviewImage({
 
   return (
     <Fragment>
-      <div className="relative">
+      <div className={cn("relative", containerClassName)}>
         <Button
           type="button"
           variant="outline"
           onClick={() => setLightboxOpen(true)}
-          className="h-auto w-full overflow-hidden rounded-md border-border/60 bg-muted/20 p-0 text-left"
+          className="h-full w-full overflow-hidden rounded-md border-border/60 bg-muted/20 p-0 text-left"
           aria-label="Open larger preview"
         >
           <img

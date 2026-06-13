@@ -15,7 +15,7 @@ import { useImageVaultListPage } from "@/hooks/useImageVaultListPage";
 
 function ImageVaultContent() {
   const { state } = useImageVaultFilters();
-  const listQuery = useImageVaultListPage(true);
+  const listQuery = useImageVaultListPage();
 
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
   const [emptyUploadOpen, setEmptyUploadOpen] = useState(false);
@@ -37,7 +37,6 @@ function ImageVaultContent() {
         <ImageVaultListSection
           listQuery={listQuery}
           scrollRoot={scrollRoot}
-          hideExplicitImages={state.hideExplicitImages}
           onSelectImage={(image) => setSelectedId(image.id)}
           onUploadClick={() => setEmptyUploadOpen(true)}
         />
@@ -53,7 +52,7 @@ function ImageVaultContent() {
         onOpenChange={(open) => {
           if (!open) setSelectedId(null);
         }}
-        hideExplicitImages={state.hideExplicitImages}
+        sensitiveImageVisibility={state.sensitiveImageVisibility}
       />
     </AdminLayout>
   );

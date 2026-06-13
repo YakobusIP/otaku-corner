@@ -1,3 +1,12 @@
+import type {
+  ImageVaultSafetyLevel,
+  SensitiveImageVisibility
+} from "@/types/image-vault.type";
+import {
+  isExplicitSafetyLevel,
+  isSensitiveSafetyLevel
+} from "@/types/image-vault.type";
+
 import interceptedAxios, { ensureValidAccessToken } from "@/lib/axios";
 
 export const EXPLICIT_IMAGE_PLACEHOLDER = "/explicit-image.webp";
@@ -30,12 +39,27 @@ export async function downloadImageVaultAsset(
   window.location.assign(downloadUrl);
 }
 
+function shouldMaskImageVaultPreview(
+  safetyLevel: ImageVaultSafetyLevel,
+  visibility: SensitiveImageVisibility
+): boolean {
+  if (visibility === "SHOW_ALL") {
+    return false;
+  }
+
+  if (visibility === "MASK_EXPLICIT") {
+    return isExplicitSafetyLevel(safetyLevel);
+  }
+
+  return isSensitiveSafetyLevel(safetyLevel);
+}
+
 export function resolveImageVaultPreviewUrl(
   previewUrl: string,
-  isExplicit: boolean,
-  hideExplicitImages: boolean
+  safetyLevel: ImageVaultSafetyLevel,
+  visibility: SensitiveImageVisibility
 ): string {
-  if (hideExplicitImages && isExplicit) {
+  if (shouldMaskImageVaultPreview(safetyLevel, visibility)) {
     return EXPLICIT_IMAGE_PLACEHOLDER;
   }
 

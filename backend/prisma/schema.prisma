@@ -38,6 +38,12 @@ enum ImageVaultOriginType {
   HUMAN
 }
 
+enum ImageVaultSafetyLevel {
+  SAFE
+  NSFW
+  EXPLICIT
+}
+
 model Anime {
   id            Int      @id
   slug          String   @unique
@@ -394,6 +400,8 @@ model ImageVaultEntry {
   originalPrompt String?
   isExplicit     Boolean                    @default(false)
   explicitReason String?
+  safetyLevel    ImageVaultSafetyLevel      @default(SAFE)
+  safetyReason   String?
   notes          String?
   createdAt      DateTime                   @default(now())
   updatedAt      DateTime                   @updatedAt
@@ -405,6 +413,7 @@ model ImageVaultEntry {
   @@index([originType])
   @@index([modelId])
   @@index([isExplicit])
+  @@index([safetyLevel])
   @@index([createdAt])
   @@index([parentId])
 }
