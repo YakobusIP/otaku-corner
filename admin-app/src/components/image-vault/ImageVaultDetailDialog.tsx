@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useState } from "react";
 
 import ImageVaultCardBadges from "@/components/image-vault/ImageVaultCardBadges";
 import ImageVaultPreviewImage from "@/components/image-vault/ImageVaultPreviewImage";
@@ -176,7 +176,10 @@ export default function ImageVaultDetailDialog({
         id: viewImageId,
         payload: {
           originType: value.originType,
-          modelId: value.originType === "AI" ? value.modelId || null : null,
+          modelId:
+            value.originType === "AI"
+              ? value.modelId || image?.model?.id || null
+              : null,
           prompt: value.originType === "AI" ? value.prompt || null : null,
           originalPrompt: value.originalPrompt || null,
           sourceUrl: value.sourceUrl || null,
@@ -192,10 +195,12 @@ export default function ImageVaultDetailDialog({
     }
   });
 
-  useEffect(() => {
-    if (!image) return;
-    form.reset(createImageVaultDetailFormValues(image));
-  }, [form, image]);
+  useLayoutEffect(() => {
+    if (!open || !image) return;
+    const detailValues = createImageVaultDetailFormValues(image);
+    form.reset(detailValues);
+    form.setFieldValue("modelId", detailValues.modelId);
+  }, [form, image, open, viewImageId]);
 
   const handleOriginTypeChange = (
     nextOriginType: ImageOriginType,
@@ -219,6 +224,11 @@ export default function ImageVaultDetailDialog({
 
   const parentImage = image?.parent ?? null;
   const followUpImages = image?.children ?? [];
+  const activeModels = models.filter((model) => model.isActive);
+  const detailModelOptions =
+    image?.model && !activeModels.some((model) => model.id === image.model?.id)
+      ? [image.model, ...activeModels]
+      : activeModels;
 
   return (
     <Fragment>
@@ -324,20 +334,27 @@ export default function ImageVaultDetailDialog({
                       <form.Subscribe
                         selector={(state) => state.values.originType}
                       >
-                        {(originType) =>
-                          originType === "AI" ? (
+                        {(originType) => (
+                          <Fragment>
                             <form.Field name="modelId">
                               {(field) => {
                                 const isInvalid =
                                   field.state.meta.isTouched &&
                                   !field.state.meta.isValid;
+                                const selectedModelId =
+                                  field.state.value || image.model?.id || "";
                                 return (
-                                  <Field data-invalid={isInvalid}>
+                                  <Field
+                                    className={
+                                      originType === "AI" ? undefined : "hidden"
+                                    }
+                                    data-invalid={isInvalid}
+                                  >
                                     <FieldLabel htmlFor="detail-model">
                                       Model
                                     </FieldLabel>
                                     <Select
-                                      value={field.state.value}
+                                      value={selectedModelId}
                                       onValueChange={field.handleChange}
                                     >
                                       <SelectTrigger
@@ -347,16 +364,14 @@ export default function ImageVaultDetailDialog({
                                         <SelectValue placeholder="Select model" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        {models
-                                          .filter((model) => model.isActive)
-                                          .map((model) => (
-                                            <SelectItem
-                                              key={model.id}
-                                              value={model.id}
-                                            >
-                                              {model.name}
-                                            </SelectItem>
-                                          ))}
+                                        {detailModelOptions.map((model) => (
+                                          <SelectItem
+                                            key={model.id}
+                                            value={model.id}
+                                          >
+                                            {model.name}
+                                          </SelectItem>
+                                        ))}
                                       </SelectContent>
                                     </Select>
                                     {isInvalid ? (
@@ -368,14 +383,20 @@ export default function ImageVaultDetailDialog({
                                 );
                               }}
                             </form.Field>
-                          ) : (
                             <form.Field name="sourceUrl">
                               {(field) => {
                                 const isInvalid =
                                   field.state.meta.isTouched &&
                                   !field.state.meta.isValid;
                                 return (
-                                  <Field data-invalid={isInvalid}>
+                                  <Field
+                                    className={
+                                      originType === "HUMAN"
+                                        ? undefined
+                                        : "hidden"
+                                    }
+                                    data-invalid={isInvalid}
+                                  >
                                     <FieldLabel htmlFor="detail-source-url">
                                       Source URL
                                     </FieldLabel>
@@ -398,8 +419,8 @@ export default function ImageVaultDetailDialog({
                                 );
                               }}
                             </form.Field>
-                          )
-                        }
+                          </Fragment>
+                        )}
                       </form.Subscribe>
                     </div>
 

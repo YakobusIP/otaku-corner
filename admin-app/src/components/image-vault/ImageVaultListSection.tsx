@@ -75,10 +75,10 @@ export default function ImageVaultListSection({
         imageSrc="/loading.webp"
         imageAlt="Loading images"
         title={
-          <>
+          <Fragment>
             Loading images
             <span className="inline-block w-8 text-left">{loadingDots}</span>
-          </>
+          </Fragment>
         }
         description="Pulling entries from the vault..."
         hint="Just a moment"
@@ -112,10 +112,10 @@ export default function ImageVaultListSection({
         imageSrc="/no-result.webp"
         imageAlt="No images found"
         title={
-          <>
+          <Fragment>
             No images found
             {state.search ? ` for "${state.search}"` : null}
-          </>
+          </Fragment>
         }
         description="Nothing in the vault matches your current filters."
         hint="Try a different search or upload a new image."

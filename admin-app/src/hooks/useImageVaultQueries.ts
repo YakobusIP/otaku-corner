@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  skipToken,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { imageVaultService } from "@/services/image-vault.service";
@@ -13,16 +18,16 @@ import { imageVaultKeys } from "@/lib/query-keys";
 
 export const useImageVaultDetail = (id: string | null) =>
   useQuery({
-    queryKey: imageVaultKeys.detail(id ?? ""),
-    enabled: Boolean(id),
-    queryFn: async () => {
-      if (!id) throw new Error("Missing image id");
-      const result = await imageVaultService.getImage(id);
-      if (!result.success) {
-        throw result.error;
-      }
-      return result.data;
-    }
+    queryKey: id ? imageVaultKeys.detail(id) : imageVaultKeys.details(),
+    queryFn: id
+      ? async () => {
+          const result = await imageVaultService.getImage(id);
+          if (!result.success) {
+            throw result.error;
+          }
+          return result.data;
+        }
+      : skipToken
   });
 
 export const useImageVaultModels = (enabled = true) =>
