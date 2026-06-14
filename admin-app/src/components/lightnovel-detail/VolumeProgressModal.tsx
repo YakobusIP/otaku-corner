@@ -31,7 +31,7 @@ import { detailKeys } from "@/lib/query-keys";
 import { cn, createUTCDate } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalendarDaysIcon, Loader2Icon } from "lucide-react";
+import { CalendarDaysIcon, Loader2Icon, SaveIcon } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
@@ -171,9 +171,12 @@ export default function VolumeProgressModal({
             type="submit"
             onClick={updateLightNovelVolumeProgress}
             disabled={updateVolumeProgressMutation.isPending}
+            className="gap-2"
           >
-            {updateVolumeProgressMutation.isPending && (
-              <Loader2Icon className="w-4 h-4 animate-spin mr-2" />
+            {updateVolumeProgressMutation.isPending ? (
+              <Loader2Icon className="h-4 w-4 animate-spin" />
+            ) : (
+              <SaveIcon className="h-4 w-4" />
             )}
             Save changes
           </Button>

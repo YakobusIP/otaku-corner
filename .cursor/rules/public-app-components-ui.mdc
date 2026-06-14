@@ -35,7 +35,7 @@ export default function MediaListHeader(props: MediaListHeaderProps) {
 
 - Use named exports for helper builders and config values when they are imported by multiple files.
 - Keep file-private prop types and helper types unexported unless another file imports them.
-- When grouping siblings without extra DOM, use `<Fragment>...</Fragment>` with `import { Fragment } from "react"` rather than empty fragment shorthand.
+- When grouping siblings without extra DOM, use `<Fragment>...</Fragment>` with `import { Fragment } from "react"` rather than empty fragment shorthand `<>...</>`.
 
 ## Media list component pattern
 

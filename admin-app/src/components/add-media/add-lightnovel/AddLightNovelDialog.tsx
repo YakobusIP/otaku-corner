@@ -34,7 +34,8 @@ import {
   InfoIcon,
   Loader2Icon,
   PlusIcon,
-  SearchIcon
+  SearchIcon,
+  XIcon
 } from "lucide-react";
 
 type Props = {
@@ -356,7 +357,9 @@ export default function AddLightNovelDialog({
             type="button"
             variant="outline"
             onClick={() => handleOpenChange(false)}
+            className="gap-2"
           >
+            <XIcon className="h-4 w-4" />
             Cancel
           </Button>
           <Button

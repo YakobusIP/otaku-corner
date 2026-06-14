@@ -1,7 +1,6 @@
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 
 import { useImageVaultFilters } from "@/components/context/ImageVaultFiltersContext";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,8 +16,17 @@ import {
   useImageVaultModels
 } from "@/hooks/useImageVaultQueries";
 
-import type { ImageOriginType } from "@/types/image-vault.type";
+import {
+  IMAGE_VAULT_SAFETY_LEVELS,
+  IMAGE_VAULT_SAFETY_LEVEL_LABELS,
+  SENSITIVE_IMAGE_VISIBILITY_LABELS,
+  SENSITIVE_IMAGE_VISIBILITY_OPTIONS,
+  parseOriginFilter,
+  parseSafetyFilter,
+  parseSensitiveImageVisibility
+} from "@/types/image-vault.type";
 
+import { SearchIcon } from "lucide-react";
 import { useDebounce } from "use-debounce";
 
 export default function ImageVaultFilters() {
@@ -50,22 +58,29 @@ export default function ImageVaultFilters() {
   };
 
   return (
-    <div className="grid gap-3 rounded-lg border border-border/60 bg-card/40 p-4 md:grid-cols-2 xl:grid-cols-5">
-      <div className="space-y-2 xl:col-span-2">
+    <div className="grid grid-cols-2 gap-3 rounded-lg border border-border/60 bg-card/40 p-4 xl:grid-cols-4">
+      <div className="col-span-2 space-y-2 xl:col-span-4">
         <Label htmlFor="vault-search">Search</Label>
-        <Input
-          id="vault-search"
-          value={localSearch}
-          onChange={handleSearchChange}
-          placeholder="Prompt, source URL, or notes"
-        />
+        <div className="relative">
+          <SearchIcon
+            aria-hidden
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            id="vault-search"
+            value={localSearch}
+            onChange={handleSearchChange}
+            placeholder="Prompt, source URL, or notes"
+            className="pl-9"
+          />
+        </div>
       </div>
       <div className="space-y-2">
         <Label>Origin</Label>
         <Select
           value={state.originType}
           onValueChange={(value) =>
-            setState({ originType: value as ImageOriginType | "all" })
+            setState({ originType: parseOriginFilter(value) })
           }
         >
           <SelectTrigger>
@@ -100,6 +115,50 @@ export default function ImageVaultFilters() {
         </Select>
       </div>
       <div className="space-y-2">
+        <Label>Safety</Label>
+        <Select
+          value={state.safetyFilter}
+          onValueChange={(value) =>
+            setState({ safetyFilter: parseSafetyFilter(value) })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            {IMAGE_VAULT_SAFETY_LEVELS.map((level) => (
+              <SelectItem key={level} value={level}>
+                {IMAGE_VAULT_SAFETY_LEVEL_LABELS[level]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>Visibility</Label>
+        <Select
+          value={state.sensitiveImageVisibility}
+          onValueChange={(value) => {
+            const parsed = parseSensitiveImageVisibility(value);
+            if (parsed) {
+              setState({ sensitiveImageVisibility: parsed });
+            }
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SENSITIVE_IMAGE_VISIBILITY_OPTIONS.map((option) => (
+              <SelectItem key={option} value={option}>
+                {SENSITIVE_IMAGE_VISIBILITY_LABELS[option]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="col-span-2 space-y-2 xl:col-span-4">
         <Label>Category</Label>
         <Select
           value={state.categoryId || "all"}
@@ -119,28 +178,6 @@ export default function ImageVaultFilters() {
             ))}
           </SelectContent>
         </Select>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 md:col-span-2 xl:col-span-5">
-        <div className="flex items-center gap-2 rounded-md border border-border/60 px-3 py-2">
-          <Checkbox
-            id="vault-explicit-only"
-            checked={state.explicitOnly}
-            onCheckedChange={(checked) =>
-              setState({ explicitOnly: checked === true })
-            }
-          />
-          <Label htmlFor="vault-explicit-only">Explicit only</Label>
-        </div>
-        <div className="flex items-center gap-2 rounded-md border border-border/60 px-3 py-2">
-          <Checkbox
-            id="vault-hide-explicit"
-            checked={state.hideExplicitImages}
-            onCheckedChange={(checked) =>
-              setState({ hideExplicitImages: checked === true })
-            }
-          />
-          <Label htmlFor="vault-hide-explicit">Hide explicit images</Label>
-        </div>
       </div>
     </div>
   );

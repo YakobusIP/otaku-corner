@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 
 import { cn } from "@/lib/utils";
 
-import { Loader2Icon, PencilIcon } from "lucide-react";
+import { Loader2Icon, PencilIcon, SaveIcon, XIcon } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -62,7 +62,8 @@ export default function EditEntityDialog({
             <PencilIcon className="h-4 w-4" />
           </Button>
         ) : (
-          <Button variant="outline" size="sm" className="float-right">
+          <Button variant="outline" size="sm" className="float-right gap-2">
+            <PencilIcon className="h-4 w-4" />
             Edit
           </Button>
         )}
@@ -76,10 +77,26 @@ export default function EditEntityDialog({
           value={entityState}
           onChange={(e) => setEntityState(e.target.value)}
         />
-        <DialogFooter>
-          <Button onClick={() => editHandler(entityId, entityState)}>
-            {isLoadingEditEntity && (
+        <DialogFooter className="gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isLoadingEditEntity}
+            className="gap-2"
+          >
+            <XIcon className="h-4 w-4" />
+            Cancel
+          </Button>
+          <Button
+            onClick={() => editHandler(entityId, entityState)}
+            disabled={isLoadingEditEntity}
+            className="gap-2"
+          >
+            {isLoadingEditEntity ? (
               <Loader2Icon className="h-4 w-4 animate-spin" />
+            ) : (
+              <SaveIcon className="h-4 w-4" />
             )}
             Save
           </Button>

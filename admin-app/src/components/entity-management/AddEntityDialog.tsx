@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-import { Loader2Icon, PlusIcon } from "lucide-react";
+import { Loader2Icon, PlusIcon, XIcon } from "lucide-react";
 
 type Props = {
   isOpenDialog: boolean;
@@ -62,10 +62,26 @@ export default function AddEntityDialog({
           value={entity}
           onChange={(e) => setEntity(e.target.value)}
         />
-        <DialogFooter>
-          <Button onClick={() => addHandler(entity)}>
-            {isLoadingAddEntity && (
+        <DialogFooter className="gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsOpenDialog(false)}
+            disabled={isLoadingAddEntity}
+            className="gap-2"
+          >
+            <XIcon className="h-4 w-4" />
+            Cancel
+          </Button>
+          <Button
+            onClick={() => addHandler(entity)}
+            disabled={isLoadingAddEntity || !entity.trim()}
+            className="gap-2"
+          >
+            {isLoadingAddEntity ? (
               <Loader2Icon className="h-4 w-4 animate-spin" />
+            ) : (
+              <PlusIcon className="h-4 w-4" />
             )}
             Add
           </Button>

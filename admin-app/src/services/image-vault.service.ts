@@ -15,6 +15,7 @@ import type {
 } from "@/types/general.type";
 
 import interceptedAxios from "@/lib/axios";
+import type { ImageVaultUploadStatus } from "@/lib/image-vault-upload-status";
 import { err, ok } from "@/lib/service-result";
 import { mapPaginatedBody } from "@/lib/utils";
 
@@ -40,12 +41,16 @@ const createImageVaultService = () => {
 
   const uploadPrivateVaultAsset = async (
     file: File,
-    onProgress?: (percent: number) => void
+    options?: {
+      onStatus?: (status: ImageVaultUploadStatus) => void;
+    }
   ): Promise<string> => {
     const mimeType = file.type?.trim();
     if (!mimeType) {
       throw new Error("File has no MIME type.");
     }
+
+    options?.onStatus?.({ phase: "preparing" });
 
     const initResponse = await interceptedAxios.post<InitAssetResponse>(
       `${BASE_ASSETS_URL}/init`,
@@ -63,17 +68,24 @@ const createImageVaultService = () => {
       ...(headers ?? {})
     };
 
+    options?.onStatus?.({ phase: "uploading", percent: 0 });
+
     const putResponse = await axios.put(uploadUrl, file, {
       headers: putHeaders,
       onUploadProgress: (event) => {
-        if (!onProgress || !event.total) return;
-        onProgress(Math.round((event.loaded / event.total) * 100));
+        if (!options?.onStatus || !event.total) return;
+        options.onStatus({
+          phase: "uploading",
+          percent: Math.round((event.loaded / event.total) * 100)
+        });
       }
     });
 
     if (putResponse.status < 200 || putResponse.status >= 300) {
       throw new Error(`Upload failed (HTTP ${putResponse.status})`);
     }
+
+    options?.onStatus?.({ phase: "finalizing" });
 
     const maxAttempts = 40;
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -111,7 +123,7 @@ const createImageVaultService = () => {
           originType: filters.originType,
           modelId: filters.modelId,
           categoryId: filters.categoryId,
-          isExplicit: filters.isExplicit
+          safetyLevel: filters.safetyLevel
         }
       });
       return ok(mapPaginatedBody(response.data));
@@ -138,16 +150,27 @@ const createImageVaultService = () => {
     metadata: Omit<CreateImageEntryPayload, "assetId" | "sourceAssetId">,
     options?: {
       sourceFile?: File | null;
-      onProgress?: (percent: number) => void;
+      onStatus?: (status: ImageVaultUploadStatus) => void;
     }
   ): Promise<ServiceResult<ImageVaultEntry>> => {
     try {
-      const [assetId, sourceAssetId] = await Promise.all([
-        uploadPrivateVaultAsset(file, options?.onProgress),
-        options?.sourceFile
-          ? uploadPrivateVaultAsset(options.sourceFile)
-          : Promise.resolve(undefined)
-      ]);
+      const assetId = await uploadPrivateVaultAsset(file, {
+        onStatus: options?.onStatus
+      });
+
+      let sourceAssetId: string | undefined;
+      if (options?.sourceFile) {
+        sourceAssetId = await uploadPrivateVaultAsset(options.sourceFile, {
+          onStatus: (status) => {
+            options.onStatus?.({
+              phase: "uploading-source",
+              percent: status.percent
+            });
+          }
+        });
+      }
+
+      options?.onStatus?.({ phase: "creating" });
 
       const createResponse = await interceptedAxios.post<ImageVaultEntry>(
         `${BASE_URL}/images`,

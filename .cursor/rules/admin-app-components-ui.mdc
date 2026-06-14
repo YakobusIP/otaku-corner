@@ -40,6 +40,21 @@ The admin app should feel like a focused operational tool: dense enough for repe
 - Use config arrays plus `.map()` for repeated sibling controls when the repeated shape is stable.
 - Avoid long stacks of nearly identical JSX.
 
+## Component exports
+
+- Use one primary React component per component file.
+- Prefer default function exports for primary components:
+
+```tsx
+export default function MediaListHeader(props: MediaListHeaderProps) {
+  // ...
+}
+```
+
+- Use named exports for helper builders and config values when they are imported by multiple files.
+- Keep file-private prop types and helper types unexported unless another file imports them.
+- When grouping siblings without extra DOM, use `<Fragment>...</Fragment>` with `import { Fragment } from "react"` rather than empty fragment shorthand `<>...</>`.
+
 ## Forms and controls
 
 - Use appropriate controls for the job:

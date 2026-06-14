@@ -1,18 +1,13 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 
 import { PaginationQueryDto } from "@/common/dto/pagination-query.dto";
-import { parseOptionalQueryBoolean } from "@/common/utils/parse-optional-query-boolean";
 
-import { ImageOriginTypeDto } from "@/image-vault/dto/image-vault-enums";
-
-import { Transform } from "class-transformer";
 import {
-  IsBoolean,
-  IsEnum,
-  IsOptional,
-  IsString,
-  IsUUID
-} from "class-validator";
+  ImageOriginTypeDto,
+  ImageVaultSafetyLevelDto
+} from "@/image-vault/dto/image-vault-enums";
+
+import { IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
 
 export const IMAGE_VAULT_DEFAULT_PAGE_LIMIT = 10;
 
@@ -32,11 +27,10 @@ export class ImageEntryListQueryDto extends PaginationQueryDto {
   @IsUUID()
   categoryId?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ enum: ImageVaultSafetyLevelDto })
   @IsOptional()
-  @Transform(({ value }) => parseOptionalQueryBoolean(value))
-  @IsBoolean()
-  isExplicit?: boolean;
+  @IsEnum(ImageVaultSafetyLevelDto)
+  safetyLevel?: ImageVaultSafetyLevelDto;
 
   @ApiPropertyOptional({
     description: "Search prompt, source URL, or notes"
