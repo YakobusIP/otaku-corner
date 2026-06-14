@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 
 import { generateSlug } from "@/lib/utils";
 
-import { Loader2Icon, PlusIcon } from "lucide-react";
+import { Loader2Icon, PlusIcon, XIcon } from "lucide-react";
 
 type Props = {
   isOpenDialog: boolean;
@@ -97,15 +97,28 @@ export default function AddCategoryDialog({
             />
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsOpenDialog(false)}
+            disabled={isLoadingAdd}
+            className="gap-2"
+          >
+            <XIcon className="h-4 w-4" />
+            Cancel
+          </Button>
           <Button
             type="button"
             onClick={handleAdd}
             disabled={isLoadingAdd || !name.trim()}
+            className="gap-2"
           >
             {isLoadingAdd ? (
               <Loader2Icon className="h-4 w-4 animate-spin" />
-            ) : null}
+            ) : (
+              <PlusIcon className="h-4 w-4" />
+            )}
             Add
           </Button>
         </DialogFooter>

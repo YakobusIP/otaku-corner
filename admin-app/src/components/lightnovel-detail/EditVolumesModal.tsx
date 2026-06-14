@@ -12,7 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -28,9 +28,10 @@ import { Label } from "@/components/ui/label";
 import { LightNovelDetail } from "@/types/light-novel.type";
 
 import { detailKeys } from "@/lib/query-keys";
+import { cn } from "@/lib/utils";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon, PencilIcon } from "lucide-react";
+import { Loader2Icon, PencilIcon, SaveIcon, TriangleAlertIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
@@ -132,9 +133,12 @@ export default function EditVolumesModal({
               type="submit"
               onClick={validateVolumeNumber}
               disabled={updateLightNovelStatsMutation.isPending}
+              className="gap-2"
             >
-              {!openAlertDialog && updateLightNovelStatsMutation.isPending && (
-                <Loader2Icon className="w-4 h-4 animate-spin mr-2" />
+              {updateLightNovelStatsMutation.isPending ? (
+                <Loader2Icon className="h-4 w-4 animate-spin" />
+              ) : (
+                <SaveIcon className="h-4 w-4" />
               )}
               Save changes
             </Button>
@@ -148,12 +152,22 @@ export default function EditVolumesModal({
             <AlertDialogDescription>{alertMessage}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setOpenAlertDialog(false)}>
+            <AlertDialogCancel
+              onClick={() => setOpenAlertDialog(false)}
+              className="gap-2"
+            >
+              <XIcon className="h-4 w-4" />
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction onClick={updateLightNovelStats}>
-              {openAlertDialog && updateLightNovelStatsMutation.isPending && (
-                <Loader2Icon className="w-4 h-4 animate-spin mr-2" />
+            <AlertDialogAction
+              className={cn(buttonVariants({ variant: "destructive" }), "gap-2")}
+              onClick={updateLightNovelStats}
+              disabled={updateLightNovelStatsMutation.isPending}
+            >
+              {updateLightNovelStatsMutation.isPending ? (
+                <Loader2Icon className="h-4 w-4 animate-spin" />
+              ) : (
+                <TriangleAlertIcon className="h-4 w-4" />
               )}
               Continue
             </AlertDialogAction>

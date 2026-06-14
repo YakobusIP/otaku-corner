@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multi-select";
+import Progress from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -53,9 +54,13 @@ import {
 } from "@/types/image-vault.type";
 
 import { resolveImageVaultPreviewUrl } from "@/lib/image-vault-preview";
+import {
+  IMAGE_VAULT_UPLOAD_PHASE_LABELS,
+  type ImageVaultUploadStatus
+} from "@/lib/image-vault-upload-status";
 
 import { useForm } from "@tanstack/react-form";
-import { UploadIcon, XIcon } from "lucide-react";
+import { Loader2Icon, UploadIcon, XIcon } from "lucide-react";
 
 type ParentImage = ImageVaultUploadParentDefaults & {
   id: string;
@@ -96,7 +101,8 @@ export default function ImageVaultUploadDialog({
   const [file, setFile] = useState<File | null>(null);
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadStatus, setUploadStatus] =
+    useState<ImageVaultUploadStatus | null>(null);
   const [dialogContentElement, setDialogContentElement] =
     useState<HTMLDivElement | null>(null);
 
@@ -132,7 +138,7 @@ export default function ImageVaultUploadDialog({
             value.safetyReason
           )
         },
-        onProgress: setUploadProgress
+        onStatus: setUploadStatus
       });
 
       resetDialogState();
@@ -161,7 +167,7 @@ export default function ImageVaultUploadDialog({
     setFile(null);
     setSourceFile(null);
     setFileError(null);
-    setUploadProgress(null);
+    setUploadStatus(null);
   }, [form, parentDefaults]);
 
   useEffect(() => {
@@ -580,38 +586,55 @@ export default function ImageVaultUploadDialog({
                   )}
                 </form.Field>
               </FieldGroup>
-
-              {uploadProgress !== null ? (
-                <p className="text-sm text-muted-foreground">
-                  Uploading: {uploadProgress}%
-                </p>
-              ) : null}
             </div>
           </div>
 
-          <DialogFooter className="sticky bottom-0 flex-row justify-end gap-2 border-t bg-background pt-4 sm:space-x-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={uploadImage.isPending}
-              className="h-10 w-10 shrink-0 px-0 md:w-32 md:px-4"
-            >
-              <XIcon className="h-4 w-4" />
-              <span className="sr-only md:not-sr-only md:whitespace-nowrap">
-                Cancel
-              </span>
-            </Button>
-            <Button
-              type="submit"
-              disabled={!file || uploadImage.isPending}
-              className="h-10 w-10 shrink-0 px-0 md:w-32 md:px-4"
-            >
-              <UploadIcon className="h-4 w-4" />
-              <span className="sr-only md:not-sr-only md:whitespace-nowrap">
-                {uploadImage.isPending ? "Uploading..." : "Upload"}
-              </span>
-            </Button>
+          <DialogFooter className="sticky bottom-0 flex-col gap-3 border-t bg-background pt-4 sm:space-x-0">
+            {uploadStatus ? (
+              <div className="w-full space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  {IMAGE_VAULT_UPLOAD_PHASE_LABELS[uploadStatus.phase]}
+                  {uploadStatus.phase === "uploading" ||
+                  uploadStatus.phase === "uploading-source"
+                    ? uploadStatus.percent !== undefined
+                      ? ` ${uploadStatus.percent}%`
+                      : null
+                    : null}
+                </p>
+                {uploadStatus.phase === "uploading" ||
+                uploadStatus.phase === "uploading-source" ? (
+                  <Progress value={uploadStatus.percent ?? 0} />
+                ) : null}
+              </div>
+            ) : null}
+            <div className="flex w-full flex-row justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={uploadImage.isPending}
+                className="h-10 w-10 shrink-0 px-0 md:w-32 md:px-4"
+              >
+                <XIcon className="h-4 w-4" />
+                <span className="sr-only md:not-sr-only md:whitespace-nowrap">
+                  Cancel
+                </span>
+              </Button>
+              <Button
+                type="submit"
+                disabled={!file || uploadImage.isPending}
+                className="h-10 w-10 shrink-0 px-0 md:w-32 md:px-4"
+              >
+                {uploadImage.isPending ? (
+                  <Loader2Icon className="h-4 w-4 animate-spin" />
+                ) : (
+                  <UploadIcon className="h-4 w-4" />
+                )}
+                <span className="sr-only md:not-sr-only md:whitespace-nowrap">
+                  Upload
+                </span>
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

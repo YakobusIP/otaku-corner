@@ -20,7 +20,7 @@ import { MangaDetail } from "@/types/manga.type";
 import { detailKeys } from "@/lib/query-keys";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon, PencilIcon } from "lucide-react";
+import { Loader2Icon, PencilIcon, SaveIcon } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
@@ -118,9 +118,12 @@ export default function EditChapterVolumesModal({
             type="submit"
             onClick={updateMangaStats}
             disabled={updateMangaStatsMutation.isPending}
+            className="gap-2"
           >
-            {updateMangaStatsMutation.isPending && (
-              <Loader2Icon className="w-4 h-4 animate-spin mr-2" />
+            {updateMangaStatsMutation.isPending ? (
+              <Loader2Icon className="h-4 w-4 animate-spin" />
+            ) : (
+              <SaveIcon className="h-4 w-4" />
             )}
             Save changes
           </Button>

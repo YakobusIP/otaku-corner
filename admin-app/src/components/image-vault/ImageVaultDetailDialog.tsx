@@ -58,7 +58,7 @@ import {
 } from "@/lib/image-vault-preview";
 
 import { useForm } from "@tanstack/react-form";
-import { SaveIcon, Trash2Icon, XIcon } from "lucide-react";
+import { Loader2Icon, PlusIcon, SaveIcon, Trash2Icon, XIcon } from "lucide-react";
 
 type Props = {
   imageId: string | null;
@@ -602,7 +602,9 @@ export default function ImageVaultDetailDialog({
                         type="button"
                         size="sm"
                         onClick={() => setFollowUpOpen(true)}
+                        className="gap-2"
                       >
+                        <PlusIcon className="h-4 w-4" />
                         Add follow-up
                       </Button>
                     </div>
@@ -679,7 +681,11 @@ export default function ImageVaultDetailDialog({
                   disabled={deleteImage.isPending || updateImage.isPending}
                   className="h-10 w-10 shrink-0 px-0 md:w-auto md:px-4"
                 >
-                  <Trash2Icon className="h-4 w-4" />
+                  {deleteImage.isPending ? (
+                    <Loader2Icon className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2Icon className="h-4 w-4" />
+                  )}
                   <span className="sr-only md:not-sr-only md:whitespace-nowrap">
                     Delete
                   </span>
@@ -689,9 +695,13 @@ export default function ImageVaultDetailDialog({
                   disabled={updateImage.isPending}
                   className="h-10 w-10 shrink-0 px-0 md:w-auto md:px-4"
                 >
-                  <SaveIcon className="h-4 w-4" />
+                  {updateImage.isPending ? (
+                    <Loader2Icon className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <SaveIcon className="h-4 w-4" />
+                  )}
                   <span className="sr-only md:not-sr-only md:whitespace-nowrap">
-                    {updateImage.isPending ? "Saving..." : "Save changes"}
+                    Save changes
                   </span>
                 </Button>
               </DialogFooter>
