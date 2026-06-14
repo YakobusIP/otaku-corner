@@ -36,7 +36,8 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   Loader2Icon,
-  Trash2Icon
+  Trash2Icon,
+  XIcon
 } from "lucide-react";
 
 interface Identifiable {
@@ -144,19 +145,28 @@ export default function DataTable<TData extends Identifiable, TValue>({
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel className="gap-2">
+                    <XIcon className="h-4 w-4" />
+                    Cancel
+                  </AlertDialogCancel>
                   <AlertDialogAction
-                    className={buttonVariants({ variant: "destructive" })}
+                    className={cn(
+                      buttonVariants({ variant: "destructive" }),
+                      "gap-2"
+                    )}
                     disabled={isLoadingDeleteData}
                     onClick={() => void deleteData()}
                   >
                     {isLoadingDeleteData ? (
                       <Fragment>
-                        <Loader2Icon className="mr-2 inline h-4 w-4 animate-spin" />
-                        Deleting...
+                        <Loader2Icon className="h-4 w-4 animate-spin" />
+                        Delete
                       </Fragment>
                     ) : (
-                      "Delete"
+                      <Fragment>
+                        <Trash2Icon className="h-4 w-4" />
+                        Delete
+                      </Fragment>
                     )}
                   </AlertDialogAction>
                 </AlertDialogFooter>

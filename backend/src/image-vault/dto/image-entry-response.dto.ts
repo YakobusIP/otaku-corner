@@ -2,7 +2,10 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 import { PaginatedResponseDto } from "@/common/dto";
 
-import { ImageOriginTypeDto } from "@/image-vault/dto/image-vault-enums";
+import {
+  ImageOriginTypeDto,
+  ImageVaultSafetyLevelDto
+} from "@/image-vault/dto/image-vault-enums";
 
 export class ImageVaultModelSummaryDto {
   @ApiProperty({ format: "uuid" })
@@ -58,8 +61,8 @@ export class ImageLineageSummaryDto {
   @ApiProperty()
   previewUrl: string;
 
-  @ApiProperty()
-  isExplicit: boolean;
+  @ApiProperty({ enum: ImageVaultSafetyLevelDto })
+  safetyLevel: ImageVaultSafetyLevelDto;
 
   @ApiProperty()
   createdAt: Date;
@@ -87,11 +90,11 @@ export class ImageEntryResponseDto {
   @ApiPropertyOptional()
   originalPrompt?: string | null;
 
-  @ApiProperty()
-  isExplicit: boolean;
+  @ApiProperty({ enum: ImageVaultSafetyLevelDto })
+  safetyLevel: ImageVaultSafetyLevelDto;
 
   @ApiPropertyOptional()
-  explicitReason?: string | null;
+  safetyReason?: string | null;
 
   @ApiPropertyOptional()
   notes?: string | null;

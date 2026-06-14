@@ -18,7 +18,10 @@ import type {
   ImageLineageSummaryDto,
   PaginatedImageEntriesResponseDto
 } from "@/image-vault/dto/image-entry-response.dto";
-import { ImageOriginTypeDto } from "@/image-vault/dto/image-vault-enums";
+import {
+  ImageOriginTypeDto,
+  ImageVaultSafetyLevelDto
+} from "@/image-vault/dto/image-vault-enums";
 import type { UpdateImageEntryDto } from "@/image-vault/dto/update-image-entry.dto";
 import { ImageVaultCategoryService } from "@/image-vault/image-vault-category.service";
 import { ImageVaultModelService } from "@/image-vault/image-vault-model.service";
@@ -33,6 +36,7 @@ import {
   type ImageVaultEntryCategory,
   type ImageVaultGenerationModel,
   ImageVaultOriginType,
+  ImageVaultSafetyLevel,
   Prisma
 } from "@prisma/client";
 
@@ -81,7 +85,13 @@ export class ImageVaultService {
       sourceUrl: dto.sourceUrl,
       originalPrompt: dto.originalPrompt
     });
-    this.validateExplicitFields(dto.isExplicit ?? false, dto.explicitReason);
+    const safetyLevel =
+      (dto.safetyLevel as ImageVaultSafetyLevel | undefined) ??
+      ImageVaultSafetyLevel.SAFE;
+    const safetyReason = this.normalizeSafetyReason(
+      safetyLevel,
+      dto.safetyReason
+    );
     this.validateOriginalPrompt(dto.prompt, dto.originalPrompt);
 
     if (dto.parentId && dto.sourceAssetId) {
@@ -134,9 +144,8 @@ export class ImageVaultService {
         modelId: dto.modelId ?? null,
         prompt: dto.prompt ?? null,
         originalPrompt: dto.originalPrompt ?? null,
-        isExplicit: dto.isExplicit ?? false,
-        explicitReason:
-          dto.isExplicit === true ? (dto.explicitReason ?? null) : null,
+        safetyLevel,
+        safetyReason,
         notes: dto.notes ?? null,
         ...(categoryIds.length > 0
           ? {
@@ -219,8 +228,8 @@ export class ImageVaultService {
         modelId: true,
         prompt: true,
         sourceUrl: true,
-        isExplicit: true,
-        explicitReason: true,
+        safetyLevel: true,
+        safetyReason: true,
         originalPrompt: true
       }
     });
@@ -250,12 +259,16 @@ export class ImageVaultService {
     const prompt = dto.prompt !== undefined ? dto.prompt : existing.prompt;
     const sourceUrl =
       dto.sourceUrl !== undefined ? dto.sourceUrl : existing.sourceUrl;
-    const isExplicit =
-      dto.isExplicit !== undefined ? dto.isExplicit : existing.isExplicit;
-    const explicitReason =
-      dto.explicitReason !== undefined
-        ? dto.explicitReason
-        : existing.explicitReason;
+    const safetyLevel =
+      dto.safetyLevel !== undefined
+        ? (dto.safetyLevel as ImageVaultSafetyLevel)
+        : existing.safetyLevel;
+    const safetyReasonInput =
+      dto.safetyReason !== undefined ? dto.safetyReason : existing.safetyReason;
+    const safetyReason = this.normalizeSafetyReason(
+      safetyLevel,
+      safetyReasonInput
+    );
     const originalPrompt =
       dto.originalPrompt !== undefined
         ? dto.originalPrompt
@@ -267,7 +280,6 @@ export class ImageVaultService {
       sourceUrl,
       originalPrompt
     });
-    this.validateExplicitFields(isExplicit, explicitReason ?? undefined);
     this.validateOriginalPrompt(
       prompt ?? undefined,
       originalPrompt ?? undefined
@@ -290,8 +302,11 @@ export class ImageVaultService {
         modelId: dto.modelId,
         prompt: dto.prompt,
         originalPrompt: dto.originalPrompt,
-        isExplicit: dto.isExplicit,
-        explicitReason: isExplicit ? (explicitReason ?? null) : null,
+        safetyLevel: dto.safetyLevel as ImageVaultSafetyLevel | undefined,
+        safetyReason:
+          dto.safetyLevel !== undefined || dto.safetyReason !== undefined
+            ? safetyReason
+            : undefined,
         notes: dto.notes,
         ...(categoryIds !== undefined
           ? {
@@ -450,8 +465,8 @@ export class ImageVaultService {
         }
       };
     }
-    if (query.isExplicit !== undefined) {
-      where.isExplicit = query.isExplicit;
+    if (query.safetyLevel) {
+      where.safetyLevel = query.safetyLevel as ImageVaultSafetyLevel;
     }
     if (query.search?.trim()) {
       const term = query.search.trim();
@@ -506,15 +521,22 @@ export class ImageVaultService {
     }
   }
 
-  private validateExplicitFields(
-    isExplicit: boolean,
-    explicitReason?: string | null
-  ): void {
-    if (!isExplicit && explicitReason?.trim()) {
-      throw new BadRequestException(
-        "explicitReason is only allowed when isExplicit is true"
-      );
+  private normalizeSafetyReason(
+    safetyLevel: ImageVaultSafetyLevel,
+    safetyReason?: string | null
+  ): string | null {
+    const trimmed = safetyReason?.trim() ?? "";
+
+    if (safetyLevel === ImageVaultSafetyLevel.EXPLICIT) {
+      if (!trimmed) {
+        throw new BadRequestException(
+          "safetyReason is required when safetyLevel is EXPLICIT"
+        );
+      }
+      return trimmed;
     }
+
+    return trimmed || null;
   }
 
   private validateOriginalPrompt(
@@ -704,8 +726,8 @@ export class ImageVaultService {
       sourceUrl: entry.sourceUrl,
       prompt: entry.prompt,
       originalPrompt: entry.originalPrompt,
-      isExplicit: entry.isExplicit,
-      explicitReason: entry.explicitReason,
+      safetyLevel: entry.safetyLevel as ImageVaultSafetyLevelDto,
+      safetyReason: entry.safetyReason,
       notes: entry.notes,
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
@@ -779,7 +801,7 @@ export class ImageVaultService {
       prompt: image.prompt,
       originalPrompt: image.originalPrompt,
       previewUrl,
-      isExplicit: image.isExplicit,
+      safetyLevel: image.safetyLevel as ImageVaultSafetyLevelDto,
       createdAt: image.createdAt
     };
   }

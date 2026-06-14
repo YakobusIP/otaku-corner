@@ -190,10 +190,10 @@ export default function MediaListSection({ listQuery, scrollRoot }: Props) {
         imageSrc="/loading.webp"
         imageAlt={statusCopy.loadingImageAlt}
         title={
-          <>
+          <Fragment>
             {statusCopy.loadingTitle}
             <span className="inline-block w-8 text-left">{loadingDots}</span>
-          </>
+          </Fragment>
         }
         description="Pulling the data from another dimension..."
         hint="Just a moment"

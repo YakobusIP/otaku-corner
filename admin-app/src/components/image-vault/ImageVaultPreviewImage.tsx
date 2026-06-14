@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { downloadImageVaultAsset } from "@/lib/image-vault-preview";
 import { cn } from "@/lib/utils";
 
-import { DownloadIcon } from "lucide-react";
+import { DownloadIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
@@ -14,13 +14,15 @@ type Props = {
   downloadUrl: string;
   alt?: string;
   className?: string;
+  containerClassName?: string;
 };
 
 export default function ImageVaultPreviewImage({
   src,
   downloadUrl,
   alt = "",
-  className
+  className,
+  containerClassName
 }: Props) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -32,7 +34,9 @@ export default function ImageVaultPreviewImage({
     try {
       await downloadImageVaultAsset(downloadUrl);
     } catch {
-      toast.error("Could not download image. Try opening the preview instead.");
+      toast.error("Could not download image", {
+        description: "Try opening the preview and saving the image from there."
+      });
     } finally {
       setIsDownloading(false);
     }
@@ -40,12 +44,12 @@ export default function ImageVaultPreviewImage({
 
   return (
     <Fragment>
-      <div className="relative">
+      <div className={cn("relative", containerClassName)}>
         <Button
           type="button"
           variant="outline"
           onClick={() => setLightboxOpen(true)}
-          className="h-auto w-full overflow-hidden rounded-md border-border/60 bg-muted/20 p-0 text-left"
+          className="h-full w-full overflow-hidden rounded-md border-border/60 bg-muted/20 p-0 text-left"
           aria-label="Open larger preview"
         >
           <img
@@ -66,7 +70,11 @@ export default function ImageVaultPreviewImage({
           disabled={isDownloading}
           aria-label="Download image"
         >
-          <DownloadIcon className="h-4 w-4" />
+          {isDownloading ? (
+            <Loader2Icon className="h-4 w-4 animate-spin" />
+          ) : (
+            <DownloadIcon className="h-4 w-4" />
+          )}
         </Button>
       </div>
 
@@ -85,8 +93,13 @@ export default function ImageVaultPreviewImage({
               size="sm"
               onClick={handleDownload}
               disabled={isDownloading}
+              className="gap-2"
             >
-              <DownloadIcon className="h-4 w-4" />
+              {isDownloading ? (
+                <Loader2Icon className="h-4 w-4 animate-spin" />
+              ) : (
+                <DownloadIcon className="h-4 w-4" />
+              )}
               Download
             </Button>
           </div>

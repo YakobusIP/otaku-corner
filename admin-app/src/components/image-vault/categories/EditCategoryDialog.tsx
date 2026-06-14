@@ -18,7 +18,7 @@ import type { ImageVaultCategory } from "@/types/image-vault.type";
 
 import { cn } from "@/lib/utils";
 
-import { Loader2Icon, PencilIcon } from "lucide-react";
+import { Loader2Icon, PencilIcon, SaveIcon, XIcon } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -80,7 +80,8 @@ export default function EditCategoryDialog({
             <PencilIcon className="h-4 w-4" />
           </Button>
         ) : (
-          <Button variant="outline" size="sm" className="float-right">
+          <Button variant="outline" size="sm" className="float-right gap-2">
+            <PencilIcon className="h-4 w-4" />
             Edit
           </Button>
         )}
@@ -109,15 +110,28 @@ export default function EditCategoryDialog({
             />
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isLoadingEdit}
+            className="gap-2"
+          >
+            <XIcon className="h-4 w-4" />
+            Cancel
+          </Button>
           <Button
             type="button"
             onClick={handleSave}
             disabled={isLoadingEdit || !name.trim() || !slug.trim()}
+            className="gap-2"
           >
             {isLoadingEdit ? (
               <Loader2Icon className="h-4 w-4 animate-spin" />
-            ) : null}
+            ) : (
+              <SaveIcon className="h-4 w-4" />
+            )}
             Save
           </Button>
         </DialogFooter>

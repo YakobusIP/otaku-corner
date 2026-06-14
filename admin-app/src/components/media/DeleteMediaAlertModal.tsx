@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
+import { Loader2Icon, Trash2Icon, XIcon } from "lucide-react";
+
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -41,14 +43,23 @@ const DeleteMediaAlertModal = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel className="gap-2">
+            <XIcon className="h-4 w-4" />
+            Cancel
+          </AlertDialogCancel>
           <Button
             type="button"
             variant="destructive"
             onClick={onConfirm}
             disabled={isDeleting}
+            className="gap-2"
           >
-            {isDeleting ? "Deleting..." : "Delete"}
+            {isDeleting ? (
+              <Loader2Icon className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2Icon className="h-4 w-4" />
+            )}
+            Delete
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

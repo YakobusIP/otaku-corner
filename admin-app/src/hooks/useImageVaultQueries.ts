@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  skipToken,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { imageVaultService } from "@/services/image-vault.service";
@@ -9,20 +14,21 @@ import type {
 } from "@/types/image-vault.type";
 
 import { handleAxiosError } from "@/lib/axios";
+import type { ImageVaultUploadStatus } from "@/lib/image-vault-upload-status";
 import { imageVaultKeys } from "@/lib/query-keys";
 
 export const useImageVaultDetail = (id: string | null) =>
   useQuery({
-    queryKey: imageVaultKeys.detail(id ?? ""),
-    enabled: Boolean(id),
-    queryFn: async () => {
-      if (!id) throw new Error("Missing image id");
-      const result = await imageVaultService.getImage(id);
-      if (!result.success) {
-        throw result.error;
-      }
-      return result.data;
-    }
+    queryKey: id ? imageVaultKeys.detail(id) : imageVaultKeys.details(),
+    queryFn: id
+      ? async () => {
+          const result = await imageVaultService.getImage(id);
+          if (!result.success) {
+            throw result.error;
+          }
+          return result.data;
+        }
+      : skipToken
   });
 
 export const useImageVaultModels = (enabled = true) =>
@@ -63,14 +69,14 @@ export const useImageVaultMutations = () => {
       file: File;
       sourceFile?: File | null;
       metadata: Omit<CreateImageEntryPayload, "assetId" | "sourceAssetId">;
-      onProgress?: (percent: number) => void;
+      onStatus?: (status: ImageVaultUploadStatus) => void;
     }) => {
       const result = await imageVaultService.uploadAndCreateImage(
         input.file,
         input.metadata,
         {
           sourceFile: input.sourceFile,
-          onProgress: input.onProgress
+          onStatus: input.onStatus
         }
       );
       if (!result.success) {
@@ -80,7 +86,12 @@ export const useImageVaultMutations = () => {
     },
     onSuccess: async () => {
       await invalidateLists();
-      toast.success("Image added to vault");
+      await queryClient.invalidateQueries({
+        queryKey: imageVaultKeys.details()
+      });
+      toast.success("Image added to vault", {
+        description: "The image is now available in your private vault."
+      });
     },
     onError: (error: unknown) => {
       toast.error("Upload failed", {
@@ -103,10 +114,14 @@ export const useImageVaultMutations = () => {
       }
       return result.data;
     },
-    onSuccess: async (data) => {
+    onSuccess: async () => {
       await invalidateLists();
-      queryClient.setQueryData(imageVaultKeys.detail(data.id), data);
-      toast.success("Image updated");
+      await queryClient.invalidateQueries({
+        queryKey: imageVaultKeys.details()
+      });
+      toast.success("Image updated", {
+        description: "Your changes have been saved."
+      });
     },
     onError: (error: unknown) => {
       toast.error("Update failed", {
@@ -124,7 +139,9 @@ export const useImageVaultMutations = () => {
     },
     onSuccess: async () => {
       await invalidateLists();
-      toast.success("Image deleted");
+      toast.success("Image deleted", {
+        description: "The image has been permanently removed from the vault."
+      });
     },
     onError: (error: unknown) => {
       toast.error("Delete failed", {
@@ -147,7 +164,9 @@ export const useImageVaultMutations = () => {
       await queryClient.invalidateQueries({
         queryKey: imageVaultKeys.models()
       });
-      toast.success("Model created");
+      toast.success("Model created", {
+        description: "The new model is ready to use for AI uploads."
+      });
     },
     onError: (error: unknown) => {
       toast.error("Could not create model", {
@@ -173,7 +192,9 @@ export const useImageVaultMutations = () => {
         queryKey: imageVaultKeys.models()
       });
       await invalidateLists();
-      toast.success("Model updated");
+      toast.success("Model updated", {
+        description: "Model details have been saved."
+      });
     },
     onError: (error: unknown) => {
       toast.error("Could not update model", {
@@ -196,7 +217,13 @@ export const useImageVaultMutations = () => {
       toast.success(
         deletedIds.length === 1
           ? "Model deleted"
-          : `${deletedIds.length} models deleted`
+          : `${deletedIds.length} models deleted`,
+        {
+          description:
+            deletedIds.length === 1
+              ? "The model has been permanently removed."
+              : "The selected models have been permanently removed."
+        }
       );
     },
     onError: (error: unknown) => {
@@ -216,7 +243,9 @@ export const useImageVaultMutations = () => {
       await queryClient.invalidateQueries({
         queryKey: imageVaultKeys.categories()
       });
-      toast.success("Category created");
+      toast.success("Category created", {
+        description: "The new category is ready to assign to images."
+      });
     },
     onError: (error: unknown) => {
       toast.error("Could not create category", {
@@ -242,7 +271,9 @@ export const useImageVaultMutations = () => {
         queryKey: imageVaultKeys.categories()
       });
       await invalidateLists();
-      toast.success("Category updated");
+      toast.success("Category updated", {
+        description: "Category details have been saved."
+      });
     },
     onError: (error: unknown) => {
       toast.error("Could not update category", {
@@ -265,7 +296,13 @@ export const useImageVaultMutations = () => {
       toast.success(
         deletedIds.length === 1
           ? "Category deleted"
-          : `${deletedIds.length} categories deleted`
+          : `${deletedIds.length} categories deleted`,
+        {
+          description:
+            deletedIds.length === 1
+              ? "The category has been permanently removed."
+              : "The selected categories have been permanently removed."
+        }
       );
     },
     onError: (error: unknown) => {

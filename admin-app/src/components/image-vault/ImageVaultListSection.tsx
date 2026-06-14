@@ -25,7 +25,6 @@ const IMAGE_VAULT_GRID_CLASS =
 type Props = {
   listQuery: UseImageVaultListPageResult;
   scrollRoot: HTMLDivElement | null;
-  hideExplicitImages: boolean;
   onSelectImage: (image: ImageVaultEntry) => void;
   onUploadClick: () => void;
 };
@@ -33,7 +32,6 @@ type Props = {
 export default function ImageVaultListSection({
   listQuery,
   scrollRoot,
-  hideExplicitImages,
   onSelectImage,
   onUploadClick
 }: Props) {
@@ -77,10 +75,10 @@ export default function ImageVaultListSection({
         imageSrc="/loading.webp"
         imageAlt="Loading images"
         title={
-          <>
+          <Fragment>
             Loading images
             <span className="inline-block w-8 text-left">{loadingDots}</span>
-          </>
+          </Fragment>
         }
         description="Pulling entries from the vault..."
         hint="Just a moment"
@@ -114,10 +112,10 @@ export default function ImageVaultListSection({
         imageSrc="/no-result.webp"
         imageAlt="No images found"
         title={
-          <>
+          <Fragment>
             No images found
             {state.search ? ` for "${state.search}"` : null}
-          </>
+          </Fragment>
         }
         description="Nothing in the vault matches your current filters."
         hint="Try a different search or upload a new image."
@@ -146,8 +144,8 @@ export default function ImageVaultListSection({
               <img
                 src={resolveImageVaultPreviewUrl(
                   image.previewUrl,
-                  image.isExplicit,
-                  hideExplicitImages
+                  image.safetyLevel,
+                  state.sensitiveImageVisibility
                 )}
                 alt=""
                 loading="lazy"
@@ -157,8 +155,9 @@ export default function ImageVaultListSection({
             <div className="flex flex-col gap-2 p-3">
               <ImageVaultCardBadges
                 originType={image.originType}
-                isExplicit={image.isExplicit}
+                safetyLevel={image.safetyLevel}
                 categories={image.categories}
+                isFollowUp={image.parentId != null}
               />
               <p className="line-clamp-2 h-10 overflow-hidden whitespace-normal text-xs leading-5 text-muted-foreground">
                 {image.originType === "AI"

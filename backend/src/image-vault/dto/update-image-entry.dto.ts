@@ -1,20 +1,20 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 
-import { ImageOriginTypeDto } from "@/image-vault/dto/image-vault-enums";
+import {
+  ImageOriginTypeDto,
+  ImageVaultSafetyLevelDto
+} from "@/image-vault/dto/image-vault-enums";
 import { IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY } from "@/image-vault/image-vault.constants";
 
-import { Type } from "class-transformer";
 import {
   ArrayMaxSize,
   IsArray,
-  IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
   IsUUID,
   IsUrl,
-  MaxLength,
-  ValidateIf
+  MaxLength
 } from "class-validator";
 
 export class UpdateImageEntryDto {
@@ -55,18 +55,16 @@ export class UpdateImageEntryDto {
   @MaxLength(10000)
   originalPrompt?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ enum: ImageVaultSafetyLevelDto })
   @IsOptional()
-  @Type(() => Boolean)
-  @IsBoolean()
-  isExplicit?: boolean;
+  @IsEnum(ImageVaultSafetyLevelDto)
+  safetyLevel?: ImageVaultSafetyLevelDto;
 
   @ApiPropertyOptional()
-  @ValidateIf((o: UpdateImageEntryDto) => o.isExplicit === true)
   @IsOptional()
   @IsString()
   @MaxLength(2000)
-  explicitReason?: string | null;
+  safetyReason?: string | null;
 
   @ApiPropertyOptional({ type: [String], format: "uuid" })
   @IsOptional()
