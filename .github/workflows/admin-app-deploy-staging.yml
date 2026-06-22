@@ -14,4 +14,4 @@ jobs:
     secrets: inherit
     with:
       environment: staging
-      deploy_path: /srv/staging/admin
+      deploy_path: /srv/otaku-corner/staging/admin

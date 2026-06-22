@@ -6,11 +6,10 @@ import { useJikanSelection } from "@/hooks/useJikanSelection";
 
 import type { AnimeCreateRequest } from "@/types/anime.type";
 
+import { animeJikanClient } from "@/lib/jikan-clients";
 import { animeToCreateRequest } from "@/lib/media-dialog-helpers";
 
-import { Anime, AnimeClient } from "@tutkli/jikan-ts";
-
-const animeClient = new AnimeClient();
+import { Anime } from "@tutkli/jikan-ts";
 
 export type UseAddAnimeDialogArgs = {
   openDialog: boolean;
@@ -30,7 +29,7 @@ export function useAddAnimeDialog({
     config: {
       searchKeyPrefix: "jikan-anime-search",
       searchFn: async (query, page) => {
-        const response = await animeClient.getAnimeSearch({
+        const response = await animeJikanClient.getAnimeSearch({
           q: query,
           limit: 10,
           page

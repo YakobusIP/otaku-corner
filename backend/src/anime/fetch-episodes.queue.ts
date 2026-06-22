@@ -5,7 +5,6 @@ import {
   logQueueJobEnqueueFailed,
   logQueueJobEnqueued
 } from "@/common/bull/queue-infrastructure-logging";
-import { loggedAxiosRequest } from "@/common/logging/http-client-logging";
 import {
   type RequestLogContextStore,
   getRequestLogContext
@@ -13,6 +12,8 @@ import {
 import { StructuredLogger } from "@/common/logging/structured-logger.service";
 
 import { PrismaService } from "@/prisma/prisma.service";
+
+import { JikanProxyService } from "@/jikan/jikan-proxy.service";
 
 import { Prisma } from "@prisma/client";
 import type Bull from "bull";
@@ -54,7 +55,8 @@ export class FetchEpisodesQueueService
   constructor(
     private readonly bullQueue: BullQueueService,
     private readonly prisma: PrismaService,
-    private readonly logger: StructuredLogger
+    private readonly logger: StructuredLogger,
+    private readonly jikanProxy: JikanProxyService
   ) {}
 
   onModuleInit(): void {
@@ -166,26 +168,22 @@ export class FetchEpisodesQueueService
     });
 
     try {
-      const response = await loggedAxiosRequest<JikanResponse>(
-        this.logger,
+      const payload = await this.jikanProxy.forwardGet(
+        `/anime/${job.data.id}/episodes`,
+        {},
         {
-          provider: "jikan",
-          method: "GET",
-          endpoint: "jikan.anime.episodes",
           correlation_id,
           request_id,
+          endpoint: "jikan.anime.episodes",
           queue_name: queueMetaBase.queue_name,
           job_id: queueMetaBase.job_id,
           job_name: queueMetaBase.job_name
-        },
-        {
-          method: "GET",
-          url: `https://api.jikan.moe/v4/anime/${job.data.id}/episodes`
         }
       );
+      const response = payload as JikanResponse;
 
       const episodesData: Prisma.AnimeEpisodeCreateManyInput[] =
-        response.data.data.map((episode) => ({
+        response.data.map((episode) => ({
           aired: episode.aired
             ? new Date(episode.aired).toLocaleDateString("en-US", {
                 day: "numeric",

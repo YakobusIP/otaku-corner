@@ -6,11 +6,10 @@ import { useJikanSelection } from "@/hooks/useJikanSelection";
 
 import type { LightNovelCreateRequest } from "@/types/light-novel.type";
 
+import { mangaJikanClient } from "@/lib/jikan-clients";
 import { lightNovelToCreateRequest } from "@/lib/media-dialog-helpers";
 
-import { Manga, MangaClient } from "@tutkli/jikan-ts";
-
-const mangaClient = new MangaClient();
+import { Manga } from "@tutkli/jikan-ts";
 
 export type UseAddLightNovelDialogArgs = {
   openDialog: boolean;
@@ -30,7 +29,7 @@ export function useAddLightNovelDialog({
     config: {
       searchKeyPrefix: "jikan-lightnovel-search",
       searchFn: async (query, page) => {
-        const response = await mangaClient.getMangaSearch({
+        const response = await mangaJikanClient.getMangaSearch({
           q: query,
           limit: 10,
           page,

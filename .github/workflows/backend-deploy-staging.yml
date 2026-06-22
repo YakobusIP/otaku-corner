@@ -14,5 +14,5 @@ jobs:
     secrets: inherit
     with:
       environment: staging
-      deploy_path: /srv/staging/backend
+      deploy_path: /srv/otaku-corner/staging/backend
       service_name: otaku-corner-backend-staging.service

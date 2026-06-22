@@ -7,11 +7,12 @@ import { AnimeController } from "@/anime/anime.controller";
 import { AnimeService } from "@/anime/anime.service";
 import { FetchEpisodesQueueService } from "@/anime/fetch-episodes.queue";
 import { GenresModule } from "@/genre/genres.module";
+import { JikanModule } from "@/jikan/jikan.module";
 import { StudiosModule } from "@/studio/studios.module";
 import { ThemesModule } from "@/theme/themes.module";
 
 @Module({
-  imports: [GenresModule, StudiosModule, ThemesModule],
+  imports: [GenresModule, StudiosModule, ThemesModule, JikanModule],
   controllers: [AnimeController],
   providers: [
     AnimeService,
