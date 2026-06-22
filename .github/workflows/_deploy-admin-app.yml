@@ -68,5 +68,6 @@ jobs:
 
             sudo mkdir -p "$DST"
             sudo rsync -rt --delete "$SRC/" "$DST/"
+            sudo chown -R "${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }}" "$DST"
 
             sudo nginx -t && sudo systemctl reload nginx
