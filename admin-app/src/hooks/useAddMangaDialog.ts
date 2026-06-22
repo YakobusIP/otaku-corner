@@ -6,11 +6,10 @@ import { useJikanSelection } from "@/hooks/useJikanSelection";
 
 import type { MangaCreateRequest } from "@/types/manga.type";
 
+import { mangaJikanClient } from "@/lib/jikan-clients";
 import { mangaToCreateRequest } from "@/lib/media-dialog-helpers";
 
-import { Manga, MangaClient } from "@tutkli/jikan-ts";
-
-const mangaClient = new MangaClient();
+import { Manga } from "@tutkli/jikan-ts";
 
 export type UseAddMangaDialogArgs = {
   openDialog: boolean;
@@ -30,7 +29,7 @@ export function useAddMangaDialog({
     config: {
       searchKeyPrefix: "jikan-manga-search",
       searchFn: async (query, page) => {
-        const response = await mangaClient.getMangaSearch({
+        const response = await mangaJikanClient.getMangaSearch({
           q: query,
           limit: 10,
           page,

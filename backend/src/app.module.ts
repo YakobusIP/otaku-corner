@@ -17,6 +17,7 @@ import { AuthorsModule } from "@/author/authors.module";
 import { validateEnv } from "@/config/validate-env";
 import { GenresModule } from "@/genre/genres.module";
 import { ImageVaultModule } from "@/image-vault/image-vault.module";
+import { JikanModule } from "@/jikan/jikan.module";
 import { LightNovelModule } from "@/light-novel/light-novel.module";
 import { MangaModule } from "@/manga/manga.module";
 import { MediaLibraryModule } from "@/media-library/media-library.module";
@@ -46,7 +47,8 @@ import { ThemesModule } from "@/theme/themes.module";
     MediaLibraryModule,
     StatisticModule,
     AssetsModule,
-    ImageVaultModule
+    ImageVaultModule,
+    JikanModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaExceptionFilter]

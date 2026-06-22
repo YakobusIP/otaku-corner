@@ -50,7 +50,7 @@ jobs:
           port:     ${{ secrets.SSH_PORT }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
           source: admin-app/dist/
-          target: /tmp/deploy/${{ inputs.environment }}/admin-app
+          target: /tmp/deploy/otaku-corner/${{ inputs.environment }}/admin-app
           strip_components: 1
 
       - name: Remote admin deploy
@@ -63,7 +63,7 @@ jobs:
           script: |
             set -euo pipefail
 
-            SRC="/tmp/deploy/${{ inputs.environment }}/admin-app/dist"
+            SRC="/tmp/deploy/otaku-corner/${{ inputs.environment }}/admin-app/dist"
             DST="${{ inputs.deploy_path }}"
 
             sudo mkdir -p "$DST"
