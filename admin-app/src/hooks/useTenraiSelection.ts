@@ -20,11 +20,13 @@ import { useInView } from "react-intersection-observer";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 
-export interface JikanMediaItem {
+export const TENRAI_SEARCH_MIN_LENGTH = 3;
+
+export interface TenraiMediaItem {
   mal_id: number;
 }
 
-type JikanSearchPage<TItem extends JikanMediaItem> = {
+type TenraiSearchPage<TItem extends TenraiMediaItem> = {
   results: TItem[];
   pagination?: {
     has_next_page?: boolean;
@@ -32,14 +34,14 @@ type JikanSearchPage<TItem extends JikanMediaItem> = {
   };
 };
 
-export type UseJikanSelectionConfig<TItem extends JikanMediaItem, TCreate> = {
-  /** Unique prefix for the Jikan search query key, e.g. "jikan-anime-search" */
+export type UseTenraiSelectionConfig<TItem extends TenraiMediaItem, TCreate> = {
+  /** Unique prefix for the Tenrai search query key, e.g. "tenrai-anime-search" */
   searchKeyPrefix: string;
-  /** Performs the Jikan search for the given query and page number */
-  searchFn: (query: string, page: number) => Promise<JikanSearchPage<TItem>>;
+  /** Performs the Tenrai search for the given query and page number */
+  searchFn: (query: string, page: number) => Promise<TenraiSearchPage<TItem>>;
   /** Creates entities via the backend service */
   createFn: (data: TCreate[]) => Promise<ServiceResult<number[]>>;
-  /** Converts a Jikan item to a create request payload */
+  /** Converts a Tenrai item to a create request payload */
   toCreateRequest: (item: TItem, slugCounts: Record<string, number>) => TCreate;
   /** Checks if a MAL ID already exists in the library */
   duplicateCheckFn: (
@@ -51,19 +53,19 @@ export type UseJikanSelectionConfig<TItem extends JikanMediaItem, TCreate> = {
   mediaLabel: string;
 };
 
-export type UseJikanSelectionArgs<TItem extends JikanMediaItem, TCreate> = {
+export type UseTenraiSelectionArgs<TItem extends TenraiMediaItem, TCreate> = {
   openDialog: boolean;
   setOpenDialog: Dispatch<SetStateAction<boolean>>;
   resetParent: () => Promise<void>;
-  config: UseJikanSelectionConfig<TItem, TCreate>;
+  config: UseTenraiSelectionConfig<TItem, TCreate>;
 };
 
-export function useJikanSelection<TItem extends JikanMediaItem, TCreate>({
+export function useTenraiSelection<TItem extends TenraiMediaItem, TCreate>({
   openDialog,
   setOpenDialog,
   resetParent,
   config
-}: UseJikanSelectionArgs<TItem, TCreate>) {
+}: UseTenraiSelectionArgs<TItem, TCreate>) {
   const queryClient = useQueryClient();
 
   const [selectedItems, setSelectedItems] = useState<TItem[]>([]);
@@ -80,7 +82,8 @@ export function useJikanSelection<TItem extends JikanMediaItem, TCreate>({
   }, []);
 
   const searchTrimmed = debouncedSearch.trim();
-  const searchEnabled = openDialog && searchTrimmed.length >= 2;
+  const searchEnabled =
+    openDialog && searchTrimmed.length >= TENRAI_SEARCH_MIN_LENGTH;
 
   const searchQueryInfinite = useInfiniteQuery({
     queryKey: [config.searchKeyPrefix, searchTrimmed],
@@ -102,8 +105,8 @@ export function useJikanSelection<TItem extends JikanMediaItem, TCreate>({
           isRateLimited ? "Too many requests" : "Uh oh! Something went wrong",
           {
             description: isRateLimited
-              ? "Jikan is rate-limited. Wait a moment and try again."
-              : `Failed to fetch ${config.mediaLabel} list from Jikan`
+              ? "Tenrai is rate-limited. Wait a moment and try again."
+              : `Failed to fetch ${config.mediaLabel} list from Tenrai`
           }
         );
         throw err;

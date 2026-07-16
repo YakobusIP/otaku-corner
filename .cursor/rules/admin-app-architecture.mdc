@@ -74,8 +74,8 @@ These rules apply to the `admin-app` Vite/React application. The admin app is an
 - The admin app manages three media domains: anime, manga, and light novels.
 - Domain-specific services may remain separate because backend contracts can diverge.
 - Shared workflow mechanics may be generic when the behavior is stable across domains.
-- The generic Jikan selection/add flow is a good pattern:
-  - keep Jikan search/selection/duplicate/check/infinite-scroll mechanics shared
+- The generic Tenrai selection/add flow (`useTenraiSelection`) is a good pattern:
+  - keep Tenrai search/selection/duplicate/check/infinite-scroll mechanics shared
   - keep media-specific service calls, create payload mapping, media labels, and query keys in small domain config wrappers
 - Do not create a generic abstraction when it forces many domain-specific conditionals into one file.
 - If a generic helper starts knowing too much about anime, manga, and light novels separately, move that behavior back into domain-specific code or config.

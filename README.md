@@ -9,7 +9,7 @@ Media includes **anime**, **manga**, and **light novels**
 - **Advanced search**: Search for any media and add required filters.
 - **Media detail pages**: View information like synopsis, rating, personal scores, and my reviews.
 - **Admin panel**: View complete list of all the medias available to the general user.
-- **MAL-based media data**: Uses MAL (through Jikan API) as the source of truth for all media information and details.
+- **MAL-based media data**: Uses MAL (through Tenrai API) as the source of truth for all media information and details.
 - **Entity management**: Full control on entities such as author, genre, studio, and themes.
 - **Fallback routes**: Handle unexpected errors such as accessing unauthorized or not found pages.
 - **Mobile Responsive**: All pages are ready to use in mobile devices

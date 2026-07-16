@@ -90,7 +90,7 @@ jobs:
             ADMIN_APP_URL=${{ vars.ADMIN_APP_URL }}
             CANONICAL_PUBLIC_APP_URL=${{ vars.CANONICAL_PUBLIC_APP_URL }}
             PUBLIC_APP_URL=${{ vars.PUBLIC_APP_URL }}
-            JIKAN_BASE_URL=${{ secrets.JIKAN_BASE_URL }}
+            TENRAI_BASE_URL=${{ secrets.TENRAI_BASE_URL }}
             NODE_ENV=${{ vars.BACKEND_NODE_ENV }}
             PORT=${{ vars.BACKEND_PORT }}
             LOG_SERVICE_NAME=${{ vars.LOG_SERVICE_NAME }}

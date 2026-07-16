@@ -2,11 +2,11 @@ import { Dispatch, SetStateAction } from "react";
 
 import { mangaService } from "@/services/manga.service";
 
-import { useJikanSelection } from "@/hooks/useJikanSelection";
+import { useTenraiSelection } from "@/hooks/useTenraiSelection";
 
 import type { MangaCreateRequest } from "@/types/manga.type";
 
-import { mangaJikanClient } from "@/lib/jikan-clients";
+import { mangaTenraiClient } from "@/lib/tenrai-clients";
 import { mangaToCreateRequest } from "@/lib/media-dialog-helpers";
 
 import { Manga } from "@tutkli/jikan-ts";
@@ -22,14 +22,14 @@ export function useAddMangaDialog({
   setOpenDialog,
   resetParent
 }: UseAddMangaDialogArgs) {
-  return useJikanSelection<Manga, MangaCreateRequest>({
+  return useTenraiSelection<Manga, MangaCreateRequest>({
     openDialog,
     setOpenDialog,
     resetParent,
     config: {
-      searchKeyPrefix: "jikan-manga-search",
+      searchKeyPrefix: "tenrai-manga-search",
       searchFn: async (query, page) => {
-        const response = await mangaJikanClient.getMangaSearch({
+        const response = await mangaTenraiClient.getMangaSearch({
           q: query,
           limit: 10,
           page,

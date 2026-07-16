@@ -4,9 +4,9 @@ import { ConfigService } from "@nestjs/config";
 import { loggedAxiosRequest } from "@/common/logging/http-client-logging";
 import { StructuredLogger } from "@/common/logging/structured-logger.service";
 
-const ALLOWED_JIKAN_PATH = /^\/(anime|manga)(\/|$)/;
+const ALLOWED_TENRAI_PATH = /^\/(anime|manga)(\/|$)/;
 
-type JikanProxyLogContext = {
+type TenraiProxyLogContext = {
   correlation_id?: string;
   request_id?: string | null;
   endpoint?: string;
@@ -16,7 +16,7 @@ type JikanProxyLogContext = {
 };
 
 @Injectable()
-export class JikanProxyService {
+export class TenraiProxyService {
   constructor(
     private readonly config: ConfigService,
     private readonly logger: StructuredLogger
@@ -25,20 +25,20 @@ export class JikanProxyService {
   async forwardGet(
     path: string,
     query: Record<string, unknown> = {},
-    logContext: JikanProxyLogContext = {}
+    logContext: TenraiProxyLogContext = {}
   ): Promise<unknown> {
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-    if (!ALLOWED_JIKAN_PATH.test(normalizedPath)) {
-      throw new BadRequestException("Invalid Jikan proxy path");
+    if (!ALLOWED_TENRAI_PATH.test(normalizedPath)) {
+      throw new BadRequestException("Invalid Tenrai proxy path");
     }
 
-    const baseUrl = this.config.getOrThrow<string>("JIKAN_BASE_URL");
+    const baseUrl = this.config.getOrThrow<string>("TENRAI_BASE_URL");
     const response = await loggedAxiosRequest<unknown>(
       this.logger,
       {
-        provider: "jikan",
+        provider: "tenrai",
         method: "GET",
-        endpoint: logContext.endpoint ?? `jikan.proxy${normalizedPath}`,
+        endpoint: logContext.endpoint ?? `tenrai.proxy${normalizedPath}`,
         correlation_id: logContext.correlation_id,
         request_id: logContext.request_id,
         queue_name: logContext.queue_name,
