@@ -25,6 +25,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Reset backend upload directory
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port:     ${{ secrets.SSH_PORT }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            rm -rf "/tmp/deploy/otaku-corner/${{ inputs.environment }}/backend"
+
       - name: Upload backend via SCP (env-scoped tmp dir)
         uses: appleboy/scp-action@v0.1.7
         with:
