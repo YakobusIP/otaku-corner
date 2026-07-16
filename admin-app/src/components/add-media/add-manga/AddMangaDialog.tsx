@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 import { useAddMangaDialog } from "@/hooks/useAddMangaDialog";
+import { TENRAI_SEARCH_MIN_LENGTH } from "@/hooks/useTenraiSelection";
 
 import {
   displayYearFromPublished,
@@ -142,7 +143,7 @@ export default function AddMangaDialog({
               />
             </div>
             <p className="shrink-0 text-xs text-muted-foreground">
-              Results from Jikan API
+              Results from Tenrai API
             </p>
             <div
               ref={scrollAreaRef}
@@ -153,7 +154,7 @@ export default function AddMangaDialog({
                   <Loader2Icon className="h-4 w-4 animate-spin" />
                   Loading...
                 </div>
-              ) : searchTrimmed.length < 2 ? (
+              ) : searchTrimmed.length < TENRAI_SEARCH_MIN_LENGTH ? (
                 <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-10">
                   <p className="text-center text-sm text-muted-foreground">
                     No result
@@ -245,7 +246,8 @@ export default function AddMangaDialog({
                 </Fragment>
               )}
             </div>
-            {searchTrimmed.length >= 2 && searchTotal !== null ? (
+            {searchTrimmed.length >= TENRAI_SEARCH_MIN_LENGTH &&
+            searchTotal !== null ? (
               <div className="flex shrink-0 items-center gap-1 border-t border-border/30 pt-2 text-xs text-muted-foreground">
                 <InfoIcon className="h-3.5 w-3.5 shrink-0" />
                 <span>

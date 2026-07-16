@@ -57,7 +57,7 @@ The admin app uses TanStack Query as the data-fetching and mutation layer. Servi
 
 ## Infinite queries
 
-- Use `useInfiniteQuery` for the media library list and Jikan search flows.
+- Use `useInfiniteQuery` for the media library list and Tenrai search flows.
 - Use `react-intersection-observer` sentinels for automatic load-more behavior.
 - Do not write custom scroll listeners for ordinary infinite loading.
 - Guard load-more calls with `hasNextPage` and `isFetchingNextPage`.

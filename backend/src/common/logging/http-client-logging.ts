@@ -7,7 +7,7 @@ import axios, {
   type AxiosResponse
 } from "axios";
 
-export type HttpClientProvider = "jikan" | "anilist" | "ranobedb";
+export type HttpClientProvider = "tenrai" | "anilist" | "ranobedb";
 
 export type HttpClientLogContext = {
   provider: HttpClientProvider;
