@@ -60,6 +60,13 @@ export const envSchema = z.object({
   CANONICAL_PUBLIC_APP_URL: z.url().trim(),
   PUBLIC_APP_URL: z.url().trim(),
 
+  TENRAI_BASE_URL: z.preprocess((v) => {
+    if (typeof v !== "string" || v.trim() === "") {
+      return "https://api.tenrai.org/v1";
+    }
+    return v.trim().replace(/\/+$/, "");
+  }, z.url().trim()),
+
   LOG_SERVICE_NAME: z.preprocess((v) => {
     if (typeof v !== "string" || v.trim() === "") {
       return "backend-nest";

@@ -5,7 +5,6 @@ import {
   logQueueJobEnqueueFailed,
   logQueueJobEnqueued
 } from "@/common/bull/queue-infrastructure-logging";
-import { loggedAxiosRequest } from "@/common/logging/http-client-logging";
 import {
   type RequestLogContextStore,
   getRequestLogContext
@@ -13,6 +12,8 @@ import {
 import { StructuredLogger } from "@/common/logging/structured-logger.service";
 
 import { PrismaService } from "@/prisma/prisma.service";
+
+import { TenraiProxyService } from "@/tenrai/tenrai-proxy.service";
 
 import { Prisma } from "@prisma/client";
 import type Bull from "bull";
@@ -24,7 +25,7 @@ type FetchEpisodesJobData = {
   request_id?: string | null;
 };
 
-type JikanEpisode = {
+type TenraiEpisode = {
   mal_id: number;
   url: string;
   title: string;
@@ -37,12 +38,12 @@ type JikanEpisode = {
   forum_url: string;
 };
 
-type JikanResponse = {
+type TenraiResponse = {
   pagination: {
     last_visible_page: number;
     has_next_page: boolean;
   };
-  data: JikanEpisode[];
+  data: TenraiEpisode[];
 };
 
 @Injectable()
@@ -54,7 +55,8 @@ export class FetchEpisodesQueueService
   constructor(
     private readonly bullQueue: BullQueueService,
     private readonly prisma: PrismaService,
-    private readonly logger: StructuredLogger
+    private readonly logger: StructuredLogger,
+    private readonly tenraiProxy: TenraiProxyService
   ) {}
 
   onModuleInit(): void {
@@ -113,7 +115,7 @@ export class FetchEpisodesQueueService
           meta: {
             anime_id: animeId,
             anime_type: type,
-            provider: "jikan"
+            provider: "tenrai"
           }
         });
       })
@@ -127,7 +129,7 @@ export class FetchEpisodesQueueService
           meta: {
             anime_id: animeId,
             anime_type: type,
-            provider: "jikan"
+            provider: "tenrai"
           }
         });
       });
@@ -151,7 +153,7 @@ export class FetchEpisodesQueueService
       max_attempts: maxAttempts,
       duration_ms: null as number | null,
       anime_id: job.data.id,
-      provider: "jikan" as const
+      provider: "tenrai" as const
     };
 
     this.logger.logQueue({
@@ -166,26 +168,31 @@ export class FetchEpisodesQueueService
     });
 
     try {
-      const response = await loggedAxiosRequest<JikanResponse>(
-        this.logger,
-        {
-          provider: "jikan",
-          method: "GET",
-          endpoint: "jikan.anime.episodes",
-          correlation_id,
-          request_id,
-          queue_name: queueMetaBase.queue_name,
-          job_id: queueMetaBase.job_id,
-          job_name: queueMetaBase.job_name
-        },
-        {
-          method: "GET",
-          url: `https://api.jikan.moe/v4/anime/${job.data.id}/episodes`
-        }
-      );
+      const allEpisodes: TenraiEpisode[] = [];
+      let page = 1;
+      let hasNextPage = true;
+
+      while (hasNextPage) {
+        const payload = await this.tenraiProxy.forwardGet(
+          `/anime/${job.data.id}/episodes`,
+          { page },
+          {
+            correlation_id,
+            request_id,
+            endpoint: "tenrai.anime.episodes",
+            queue_name: queueMetaBase.queue_name,
+            job_id: queueMetaBase.job_id,
+            job_name: queueMetaBase.job_name
+          }
+        );
+        const response = payload as TenraiResponse;
+        allEpisodes.push(...response.data);
+        hasNextPage = response.pagination.has_next_page;
+        page += 1;
+      }
 
       const episodesData: Prisma.AnimeEpisodeCreateManyInput[] =
-        response.data.data.map((episode) => ({
+        allEpisodes.map((episode) => ({
           aired: episode.aired
             ? new Date(episode.aired).toLocaleDateString("en-US", {
                 day: "numeric",

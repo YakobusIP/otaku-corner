@@ -2,15 +2,14 @@ import { Dispatch, SetStateAction } from "react";
 
 import { lightNovelService } from "@/services/light-novel.service";
 
-import { useJikanSelection } from "@/hooks/useJikanSelection";
+import { useTenraiSelection } from "@/hooks/useTenraiSelection";
 
 import type { LightNovelCreateRequest } from "@/types/light-novel.type";
 
+import { mangaTenraiClient } from "@/lib/tenrai-clients";
 import { lightNovelToCreateRequest } from "@/lib/media-dialog-helpers";
 
-import { Manga, MangaClient } from "@tutkli/jikan-ts";
-
-const mangaClient = new MangaClient();
+import { Manga } from "@tutkli/jikan-ts";
 
 export type UseAddLightNovelDialogArgs = {
   openDialog: boolean;
@@ -23,14 +22,14 @@ export function useAddLightNovelDialog({
   setOpenDialog,
   resetParent
 }: UseAddLightNovelDialogArgs) {
-  return useJikanSelection<Manga, LightNovelCreateRequest>({
+  return useTenraiSelection<Manga, LightNovelCreateRequest>({
     openDialog,
     setOpenDialog,
     resetParent,
     config: {
-      searchKeyPrefix: "jikan-lightnovel-search",
+      searchKeyPrefix: "tenrai-lightnovel-search",
       searchFn: async (query, page) => {
-        const response = await mangaClient.getMangaSearch({
+        const response = await mangaTenraiClient.getMangaSearch({
           q: query,
           limit: 10,
           page,

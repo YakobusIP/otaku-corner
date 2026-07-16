@@ -14,5 +14,5 @@ jobs:
     secrets: inherit
     with:
       environment: staging
-      deploy_path: /srv/staging/public
+      deploy_path: /srv/otaku-corner/staging/public
       service_name: otaku-corner-public-staging.service

@@ -23,6 +23,7 @@ import { MediaLibraryModule } from "@/media-library/media-library.module";
 import { StatisticModule } from "@/statistic/statistic.module";
 import { StorageModule } from "@/storage/storage.module";
 import { StudiosModule } from "@/studio/studios.module";
+import { TenraiModule } from "@/tenrai/tenrai.module";
 import { ThemesModule } from "@/theme/themes.module";
 
 @Module({
@@ -46,7 +47,8 @@ import { ThemesModule } from "@/theme/themes.module";
     MediaLibraryModule,
     StatisticModule,
     AssetsModule,
-    ImageVaultModule
+    ImageVaultModule,
+    TenraiModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaExceptionFilter]

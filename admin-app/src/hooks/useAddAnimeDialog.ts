@@ -2,15 +2,14 @@ import { Dispatch, SetStateAction } from "react";
 
 import { animeService } from "@/services/anime.service";
 
-import { useJikanSelection } from "@/hooks/useJikanSelection";
+import { useTenraiSelection } from "@/hooks/useTenraiSelection";
 
 import type { AnimeCreateRequest } from "@/types/anime.type";
 
+import { animeTenraiClient } from "@/lib/tenrai-clients";
 import { animeToCreateRequest } from "@/lib/media-dialog-helpers";
 
-import { Anime, AnimeClient } from "@tutkli/jikan-ts";
-
-const animeClient = new AnimeClient();
+import { Anime } from "@tutkli/jikan-ts";
 
 export type UseAddAnimeDialogArgs = {
   openDialog: boolean;
@@ -23,14 +22,14 @@ export function useAddAnimeDialog({
   setOpenDialog,
   resetParent
 }: UseAddAnimeDialogArgs) {
-  return useJikanSelection<Anime, AnimeCreateRequest>({
+  return useTenraiSelection<Anime, AnimeCreateRequest>({
     openDialog,
     setOpenDialog,
     resetParent,
     config: {
-      searchKeyPrefix: "jikan-anime-search",
+      searchKeyPrefix: "tenrai-anime-search",
       searchFn: async (query, page) => {
-        const response = await animeClient.getAnimeSearch({
+        const response = await animeTenraiClient.getAnimeSearch({
           q: query,
           limit: 10,
           page

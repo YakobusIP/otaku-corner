@@ -29,7 +29,7 @@ export const displayYearAnime = (anime: Anime) => {
   return "—";
 };
 
-/** Jikan {@link Manga} search results (manga + light novel dialogs). */
+/** Tenrai {@link Manga} search results (manga + light novel dialogs). */
 export const displayYearFromPublished = (m: Manga) => {
   if (m.published?.from) {
     const y = new Date(m.published.from).getFullYear();

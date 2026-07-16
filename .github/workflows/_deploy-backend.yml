@@ -25,6 +25,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Reset backend upload directory
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port:     ${{ secrets.SSH_PORT }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            rm -rf "/tmp/deploy/otaku-corner/${{ inputs.environment }}/backend"
+
       - name: Upload backend via SCP (env-scoped tmp dir)
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -33,7 +43,7 @@ jobs:
           port:     ${{ secrets.SSH_PORT }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
           source: "backend/src/,backend/package.json,backend/pnpm-lock.yaml,backend/pnpm-workspace.yaml,backend/.pnpmfile.cjs,backend/prisma/,backend/tsconfig.json,backend/tsconfig.build.json,backend/nest-cli.json"
-          target: /tmp/deploy/${{ inputs.environment }}/backend
+          target: /tmp/deploy/otaku-corner/${{ inputs.environment }}/backend
           strip_components: 1
 
       - name: Remote backend deploy & restart
@@ -46,13 +56,14 @@ jobs:
           script: |
             set -euo pipefail
 
-            SRC="/tmp/deploy/${{ inputs.environment }}/backend"
+            SRC="/tmp/deploy/otaku-corner/${{ inputs.environment }}/backend"
             DST="${{ inputs.deploy_path }}"
 
             sudo systemctl stop "${{ inputs.service_name }}" || true
 
             sudo mkdir -p "$DST"
             sudo rsync -rt --delete "$SRC/" "$DST/"
+            sudo chown -R "${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }}" "$DST"
 
             cd "$DST"
 
@@ -89,6 +100,7 @@ jobs:
             ADMIN_APP_URL=${{ vars.ADMIN_APP_URL }}
             CANONICAL_PUBLIC_APP_URL=${{ vars.CANONICAL_PUBLIC_APP_URL }}
             PUBLIC_APP_URL=${{ vars.PUBLIC_APP_URL }}
+            TENRAI_BASE_URL=${{ secrets.TENRAI_BASE_URL }}
             NODE_ENV=${{ vars.BACKEND_NODE_ENV }}
             PORT=${{ vars.BACKEND_PORT }}
             LOG_SERVICE_NAME=${{ vars.LOG_SERVICE_NAME }}

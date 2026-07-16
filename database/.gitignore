@@ -1,6 +1,0 @@
-Include
-Lib
-Scripts
-pyvenv.cfg
-.ruff_cache
-*.sql

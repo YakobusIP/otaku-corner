@@ -14,5 +14,5 @@ jobs:
     secrets: inherit
     with:
       environment: production
-      deploy_path: /srv/production/backend
+      deploy_path: /srv/otaku-corner/production/backend
       service_name: otaku-corner-backend-production.service

@@ -54,7 +54,7 @@ jobs:
           port:     ${{ secrets.SSH_PORT }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
           source: "public-app/.next/,public-app/public/,public-app/package.json,public-app/pnpm-lock.yaml,public-app/.pnpmfile.cjs,public-app/pnpm-workspace.yaml,public-app/next.config.ts"
-          target: /tmp/deploy/${{ inputs.environment }}/public-app
+          target: /tmp/deploy/otaku-corner/${{ inputs.environment }}/public-app
           strip_components: 1
 
       - name: Remote public deploy
@@ -67,7 +67,7 @@ jobs:
           script: |
             set -euo pipefail
 
-            SRC="/tmp/deploy/${{ inputs.environment }}/public-app"
+            SRC="/tmp/deploy/otaku-corner/${{ inputs.environment }}/public-app"
             DST="${{ inputs.deploy_path }}"
 
             sudo systemctl stop "${{ inputs.service_name }}" || true
