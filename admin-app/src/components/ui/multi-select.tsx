@@ -310,6 +310,28 @@ export interface MultiSelectRef {
   focus: () => void;
 }
 
+const sortSelectedFirst = (
+  opts: MultiSelectOption[],
+  selectedValues: string[]
+): MultiSelectOption[] => {
+  if (selectedValues.length === 0) return opts;
+  const selectedSet = new Set(selectedValues);
+  const selected: MultiSelectOption[] = [];
+  const unselected: MultiSelectOption[] = [];
+  for (const option of opts) {
+    if (selectedSet.has(option.value)) {
+      selected.push(option);
+    } else {
+      unselected.push(option);
+    }
+  }
+  selected.sort(
+    (a, b) =>
+      selectedValues.indexOf(a.value) - selectedValues.indexOf(b.value)
+  );
+  return [...selected, ...unselected];
+};
+
 export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
   (
     {
@@ -590,40 +612,68 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
     );
 
     const filteredOptions = React.useMemo(() => {
-      if (!searchable || !searchValue) return options;
+      if (!searchable || !searchValue) {
+        if (options.length === 0) return options;
+        if (isGroupedOptions(options)) {
+          return options.map((group) => ({
+            ...group,
+            options: sortSelectedFirst(group.options, selectedValues)
+          }));
+        }
+        return sortSelectedFirst(options, selectedValues);
+      }
+
       if (options.length === 0) return [];
       if (isGroupedOptions(options)) {
         return options
           .map((group) => ({
             ...group,
-            options: group.options.filter(
-              (option) =>
-                option.label
-                  .toLowerCase()
-                  .includes(searchValue.toLowerCase()) ||
-                option.value.toLowerCase().includes(searchValue.toLowerCase())
+            options: sortSelectedFirst(
+              group.options.filter(
+                (option) =>
+                  option.label
+                    .toLowerCase()
+                    .includes(searchValue.toLowerCase()) ||
+                  option.value.toLowerCase().includes(searchValue.toLowerCase())
+              ),
+              selectedValues
             )
           }))
           .filter((group) => group.options.length > 0);
       }
-      return options.filter(
-        (option) =>
-          option.label.toLowerCase().includes(searchValue.toLowerCase()) ||
-          option.value.toLowerCase().includes(searchValue.toLowerCase())
+      return sortSelectedFirst(
+        options.filter(
+          (option) =>
+            option.label.toLowerCase().includes(searchValue.toLowerCase()) ||
+            option.value.toLowerCase().includes(searchValue.toLowerCase())
+        ),
+        selectedValues
       );
-    }, [options, searchValue, searchable, isGroupedOptions]);
+    }, [
+      options,
+      searchValue,
+      searchable,
+      isGroupedOptions,
+      selectedValues
+    ]);
+
+    const hasVisibleOptions = React.useMemo(() => {
+      if (isGroupedOptions(filteredOptions)) {
+        return filteredOptions.some((group) => group.options.length > 0);
+      }
+      return filteredOptions.length > 0;
+    }, [filteredOptions, isGroupedOptions]);
 
     const handleInputKeyDown = (
       event: React.KeyboardEvent<HTMLInputElement>
     ) => {
-      if (event.key === "Enter") {
-        setIsPopoverOpen(true);
-      } else if (event.key === "Backspace" && !event.currentTarget.value) {
-        const newSelectedValues = [...selectedValues];
-        newSelectedValues.pop();
-        setSelectedValues(newSelectedValues);
-        onValueChange(newSelectedValues);
+      if (event.key !== "Enter") return;
+      if (searchValue && !hasVisibleOptions) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
       }
+      setIsPopoverOpen(true);
     };
 
     const toggleOption = (optionValue: string) => {
@@ -1201,7 +1251,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                 <CommandSeparator />
                 <CommandGroup>
                   <div className="flex items-center justify-between">
-                    {selectedValues.length > 0 && (
+                    {selectedValues.length > 0 && !searchValue && (
                       <Fragment>
                         <CommandItem
                           onSelect={handleClear}

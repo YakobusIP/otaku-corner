@@ -9,23 +9,24 @@ import { PrismaService } from "@/prisma/prisma.service";
 
 import { AssetsService } from "@/assets/assets.service";
 import type { CreateImageEntryDto } from "@/image-vault/dto/create-image-entry.dto";
-import {
-  IMAGE_VAULT_DEFAULT_PAGE_LIMIT,
-  type ImageEntryListQueryDto
-} from "@/image-vault/dto/image-entry-list-query.dto";
 import type {
   ImageEntryResponseDto,
   ImageLineageSummaryDto,
   PaginatedImageEntriesResponseDto
 } from "@/image-vault/dto/image-entry-response.dto";
+import type { ImageEntrySearchDto } from "@/image-vault/dto/image-entry-search.dto";
 import {
   ImageOriginTypeDto,
   ImageVaultSafetyLevelDto
 } from "@/image-vault/dto/image-vault-enums";
 import type { UpdateImageEntryDto } from "@/image-vault/dto/update-image-entry.dto";
 import { ImageVaultCategoryService } from "@/image-vault/image-vault-category.service";
+import { mapFilterGroupsToWhere } from "@/image-vault/image-vault-filter-expression";
 import { ImageVaultModelService } from "@/image-vault/image-vault-model.service";
-import { IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY } from "@/image-vault/image-vault.constants";
+import {
+  IMAGE_VAULT_DEFAULT_PAGE_LIMIT,
+  IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY
+} from "@/image-vault/image-vault.constants";
 import { isPrivateVaultAssetUrl } from "@/storage/asset-storage-scope";
 import { R2FileStorageService } from "@/storage/r2-file-storage.service";
 
@@ -163,13 +164,21 @@ export class ImageVaultService {
     return this.mapEntry(entry);
   }
 
-  async findAllImages(
-    query: ImageEntryListQueryDto
+  async searchImages(
+    dto: ImageEntrySearchDto
   ): Promise<PaginatedImageEntriesResponseDto> {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? IMAGE_VAULT_DEFAULT_PAGE_LIMIT;
-    const where = this.buildListWhere(query);
+    const page = dto.page ?? 1;
+    const limit = dto.limit ?? IMAGE_VAULT_DEFAULT_PAGE_LIMIT;
+    const where = mapFilterGroupsToWhere(dto.groups);
 
+    return this.paginateImages(where, page, limit);
+  }
+
+  private async paginateImages(
+    where: Prisma.ImageVaultEntryWhereInput,
+    page: number,
+    limit: number
+  ): Promise<PaginatedImageEntriesResponseDto> {
     const [rows, total] = await Promise.all([
       this.prisma.imageVaultEntry.findMany({
         where,
@@ -445,40 +454,6 @@ export class ImageVaultService {
         }
       }
     } as const;
-  }
-
-  private buildListWhere(
-    query: ImageEntryListQueryDto
-  ): Prisma.ImageVaultEntryWhereInput {
-    const where: Prisma.ImageVaultEntryWhereInput = {};
-
-    if (query.originType) {
-      where.originType = query.originType as ImageVaultOriginType;
-    }
-    if (query.modelId) {
-      where.modelId = query.modelId;
-    }
-    if (query.categoryId) {
-      where.categories = {
-        some: {
-          imageVaultCategoryId: query.categoryId
-        }
-      };
-    }
-    if (query.safetyLevel) {
-      where.safetyLevel = query.safetyLevel as ImageVaultSafetyLevel;
-    }
-    if (query.search?.trim()) {
-      const term = query.search.trim();
-      where.OR = [
-        { prompt: { contains: term, mode: "insensitive" } },
-        { originalPrompt: { contains: term, mode: "insensitive" } },
-        { sourceUrl: { contains: term, mode: "insensitive" } },
-        { notes: { contains: term, mode: "insensitive" } }
-      ];
-    }
-
-    return where;
   }
 
   private validateOriginFields(

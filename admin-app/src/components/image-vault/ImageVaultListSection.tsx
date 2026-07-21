@@ -14,6 +14,7 @@ import { useLoadingDots } from "@/hooks/useLoadingDots";
 
 import type { ImageVaultEntry } from "@/types/image-vault.type";
 
+import { hasActiveFilterGroups } from "@/lib/image-vault-filter-expression";
 import { resolveImageVaultPreviewUrl } from "@/lib/image-vault-preview";
 
 import { UploadIcon } from "lucide-react";
@@ -114,11 +115,13 @@ export default function ImageVaultListSection({
         title={
           <Fragment>
             No images found
-            {state.search ? ` for "${state.search}"` : null}
+            {hasActiveFilterGroups(state.groups)
+              ? " for the current filters"
+              : null}
           </Fragment>
         }
         description="Nothing in the vault matches your current filters."
-        hint="Try a different search or upload a new image."
+        hint="Try adjusting filters or upload a new image."
         footer={
           <Button type="button" onClick={onUploadClick}>
             <UploadIcon />

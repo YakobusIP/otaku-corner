@@ -8,65 +8,35 @@ import {
   useState
 } from "react";
 
-import type {
-  ImageOriginType,
-  ImageVaultSafetyLevel,
-  SensitiveImageVisibility
-} from "@/types/image-vault.type";
-import {
-  parseOriginFilter,
-  parseSafetyFilter,
-  parseSensitiveImageVisibility
-} from "@/types/image-vault.type";
+import type { ImageVaultFilterGroup } from "@/lib/image-vault-filter-expression";
+import type { SensitiveImageVisibility } from "@/types/image-vault.type";
+import { parseSensitiveImageVisibility } from "@/types/image-vault.type";
 
 import { useSearchParams } from "react-router-dom";
 
 export type ImageVaultFiltersState = {
-  search: string;
-  originType: ImageOriginType | "all";
-  modelId: string;
-  categoryId: string;
-  safetyFilter: ImageVaultSafetyLevel | "all";
+  groups: ImageVaultFilterGroup[];
   sensitiveImageVisibility: SensitiveImageVisibility;
 };
 
 const defaultState: ImageVaultFiltersState = {
-  search: "",
-  originType: "all",
-  modelId: "",
-  categoryId: "",
-  safetyFilter: "all",
+  groups: [],
   sensitiveImageVisibility: "MASK_EXPLICIT"
 };
-
-const parseVisibilityFilter = (
-  value: string | null
-): SensitiveImageVisibility =>
-  parseSensitiveImageVisibility(value ?? "") ??
-  defaultState.sensitiveImageVisibility;
 
 type ImageVaultFiltersContextValue = {
   state: ImageVaultFiltersState;
   setState: (updater: Partial<ImageVaultFiltersState>) => void;
+  setGroups: (
+    updater:
+      | ImageVaultFilterGroup[]
+      | ((prev: ImageVaultFilterGroup[]) => ImageVaultFilterGroup[])
+  ) => void;
 };
 
 const ImageVaultFiltersContext = createContext<
   ImageVaultFiltersContextValue | undefined
 >(undefined);
-
-const readStateFromSearchParams = (
-  searchParams: URLSearchParams
-): Pick<
-  ImageVaultFiltersState,
-  "search" | "originType" | "safetyFilter" | "sensitiveImageVisibility"
-> => ({
-  search: searchParams.get("q") ?? defaultState.search,
-  originType: parseOriginFilter(searchParams.get("origin")),
-  safetyFilter: parseSafetyFilter(searchParams.get("safety")),
-  sensitiveImageVisibility: parseVisibilityFilter(
-    searchParams.get("visibility")
-  )
-});
 
 export const ImageVaultFiltersProvider = ({
   children
@@ -76,38 +46,42 @@ export const ImageVaultFiltersProvider = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const [state, setInternalState] = useState<ImageVaultFiltersState>(() => ({
     ...defaultState,
-    ...readStateFromSearchParams(searchParams)
+    sensitiveImageVisibility:
+      parseSensitiveImageVisibility(searchParams.get("visibility") ?? "") ??
+      defaultState.sensitiveImageVisibility
   }));
 
   const setState = useCallback((updater: Partial<ImageVaultFiltersState>) => {
     setInternalState((prev) => ({ ...prev, ...updater }));
   }, []);
 
+  const setGroups = useCallback(
+    (
+      updater:
+        | ImageVaultFilterGroup[]
+        | ((prev: ImageVaultFilterGroup[]) => ImageVaultFilterGroup[])
+    ) => {
+      setInternalState((prev) => ({
+        ...prev,
+        groups: typeof updater === "function" ? updater(prev.groups) : updater
+      }));
+    },
+    []
+  );
+
   useEffect(() => {
     const params = new URLSearchParams();
-
-    if (state.search) {
-      params.set("q", state.search);
-    }
-    params.set("origin", state.originType);
-    params.set("safety", state.safetyFilter);
     params.set("visibility", state.sensitiveImageVisibility);
-
     setSearchParams(params, { replace: true });
-  }, [
-    setSearchParams,
-    state.originType,
-    state.safetyFilter,
-    state.search,
-    state.sensitiveImageVisibility
-  ]);
+  }, [setSearchParams, state.sensitiveImageVisibility]);
 
   const value = useMemo(
     () => ({
       state,
-      setState
+      setState,
+      setGroups
     }),
-    [setState, state]
+    [setGroups, setState, state]
   );
 
   return (

@@ -7,8 +7,7 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
-  Post,
-  Query
+  Post
 } from "@nestjs/common";
 import {
   ApiBody,
@@ -26,8 +25,8 @@ import {
   CreateImageEntryDto,
   CreateImageModelDto,
   ImageCategoryResponseDto,
-  ImageEntryListQueryDto,
   ImageEntryResponseDto,
+  ImageEntrySearchDto,
   ImageModelResponseDto,
   PaginatedImageEntriesResponseDto,
   UpdateImageCategoryDto,
@@ -50,13 +49,17 @@ export class ImageVaultController {
     private readonly imageVaultCategoryService: ImageVaultCategoryService
   ) {}
 
-  @Get("images")
-  @ApiOperation({ summary: "List image vault entries" })
+  @Post("images/search")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Search image vault entries with grouped AND/OR filter expressions"
+  })
+  @ApiBody({ type: ImageEntrySearchDto })
   @ApiOkResponse({ type: PaginatedImageEntriesResponseDto })
-  async listImages(
-    @Query() query: ImageEntryListQueryDto
+  async searchImages(
+    @Body() dto: ImageEntrySearchDto
   ): Promise<PaginatedImageEntriesResponseDto> {
-    return this.imageVaultService.findAllImages(query);
+    return this.imageVaultService.searchImages(dto);
   }
 
   @Post("images")

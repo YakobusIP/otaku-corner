@@ -6,37 +6,32 @@ import { useImageVaultFilters } from "@/components/context/ImageVaultFiltersCont
 
 import type { PaginatedListPage } from "@/types/general.type";
 import type {
+  ImageVaultEntry,
   ImageVaultInfiniteListFilters,
   ImageVaultListFilters
 } from "@/types/image-vault.type";
-import type { ImageVaultEntry } from "@/types/image-vault.type";
 
+import { sanitizeFilterGroupsForRequest } from "@/lib/image-vault-filter-expression";
 import { imageVaultKeys } from "@/lib/query-keys";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { useDebounce } from "use-debounce";
 
 const PAGE_SIZE = 10;
+const FILTER_DEBOUNCE_MS = 300;
 
 export const useImageVaultListPage = () => {
   const { state } = useImageVaultFilters();
 
+  const [debouncedGroups] = useDebounce(state.groups, FILTER_DEBOUNCE_MS);
+
   const listFilters = useMemo((): ImageVaultInfiniteListFilters => {
+    const groups = sanitizeFilterGroupsForRequest(debouncedGroups);
     return {
       limit: PAGE_SIZE,
-      search: state.search || undefined,
-      originType: state.originType === "all" ? undefined : state.originType,
-      modelId: state.modelId || undefined,
-      categoryId: state.categoryId || undefined,
-      safetyLevel:
-        state.safetyFilter === "all" ? undefined : state.safetyFilter
+      groups: groups.length > 0 ? groups : undefined
     };
-  }, [
-    state.search,
-    state.originType,
-    state.modelId,
-    state.categoryId,
-    state.safetyFilter
-  ]);
+  }, [debouncedGroups]);
 
   return useInfiniteQuery({
     queryKey: imageVaultKeys.infiniteList(listFilters),
