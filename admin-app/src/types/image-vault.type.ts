@@ -1,4 +1,4 @@
-import type { ImageVaultFilterGroupPayload } from "@/lib/image-vault-filter-expression";
+import type { ImageVaultFilterGroupPayload } from "@/features/image-vault/lib/image-vault-filter-expression";
 
 export type ImageOriginType = "AI" | "HUMAN";
 

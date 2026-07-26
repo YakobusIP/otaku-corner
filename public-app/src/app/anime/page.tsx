@@ -1,14 +1,14 @@
-import { animeListConfig } from "@/components/anime/AnimeListConfig";
+import { animeListConfig } from "@/features/media-list/domains/anime/AnimeListConfig";
 import GeneralFooter from "@/components/GeneralFooter";
 import HeroWallpaper from "@/components/layout/HeroWallpaper";
-import MediaListHeader from "@/components/media-list/MediaListHeader";
-import MediaListProvider from "@/components/media-list/MediaListProvider";
-import MediaListSection from "@/components/media-list/MediaListSection";
+import MediaListHeader from "@/features/media-list/components/MediaListHeader";
+import MediaListProvider from "@/features/media-list/components/MediaListProvider";
+import MediaListSection from "@/features/media-list/components/MediaListSection";
 
-import { animeListQueryConfig } from "@/lib/media-list/anime-list-query";
-import { animeListServerConfig } from "@/lib/media-list/anime-list-server";
-import { animeListEntityLookups } from "@/lib/media-list/media-list-entity-lookups";
-import { prefetchMediaListPage } from "@/lib/media-list/prefetch-media-list-page";
+import { animeListQueryConfig } from "@/features/media-list/lib/anime-list-query";
+import { animeListServerConfig } from "@/features/media-list/lib/anime-list-server";
+import { animeListEntityLookups } from "@/features/media-list/lib/media-list-entity-lookups";
+import { prefetchMediaListPage } from "@/features/media-list/lib/prefetch-media-list-page";
 
 import {
   HydrationBoundary,

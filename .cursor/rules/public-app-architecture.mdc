@@ -32,11 +32,12 @@ These rules apply to the `public-app` Next.js application. The public app is the
 ## Top-level directory responsibilities
 
 - `public-app/src/app`: Next.js App Router routes, route metadata, dynamic route wrappers, sitemap routes, loading/error/not-found files, and root providers/layout.
-- `public-app/src/components`: React components, including feature components, shared UI primitives, and route-facing view composition.
-- `public-app/src/hooks`: Client hooks that coordinate component state, TanStack Query hooks, media list state, browser-only behavior, and UI orchestration.
-- `public-app/src/lib`: Non-component TypeScript helpers, query infrastructure, route helpers, media helpers, sitemap XML builders, constants, and pure utilities.
-- `public-app/src/services`: API service wrappers around the backend endpoints.
-- `public-app/src/types`: Shared TypeScript shapes used by more than one module.
+- `public-app/src/features`: workflow-scoped feature modules (`home`, `media-list`, `media-detail`). Each feature owns its `components/`, `hooks/`, feature-specific `lib/`, and domain config slices under `domains/` when needed.
+- `public-app/src/components`: reusable UI only — shadcn-style primitives (`ui/`), motion, charts, layout shell (`HeroWallpaper`), and app shell pages (`GeneralFooter`, `ErrorPage`, `LoadingPage`, `NotFoundPage`).
+- `public-app/src/hooks`: generic client hooks only (viewport, loading dots, query error toast, grid columns). Feature hooks live under `src/features/*/hooks`.
+- `public-app/src/lib`: shared non-component TypeScript helpers — `api/`, `shared/`, cross-feature `media/`, and route-infra `sitemap/`. Feature-specific helpers live under `src/features/*/lib`.
+- `public-app/src/services`: API service wrappers around the backend endpoints (stay top-level).
+- `public-app/src/types`: Shared TypeScript shapes used by more than one module (stay top-level).
 
 ## App router page conventions
 
@@ -46,7 +47,7 @@ These rules apply to the `public-app` Next.js application. The public app is the
   - Create a fresh `QueryClient`.
   - Prefetch with `prefetchMediaListPage`.
   - Render `HydrationBoundary`, `MediaListProvider`, `HeroWallpaper`, `MediaListHeader`, `MediaListSection`, and `GeneralFooter`.
-- Detail pages should use `createMediaDetailPage` from `src/components/media-detail/createMediaDetailPage.tsx`.
+- Detail pages should use `createMediaDetailPage` from `src/features/media-detail/components/createMediaDetailPage.tsx`.
   - Do not reintroduce repeated route boilerplate for anime, manga, and light novel detail pages.
   - Keep media-specific wording and component selection in the small route config object.
 - Sitemap item routes should use `createMediaSitemapHandler`.

@@ -3,15 +3,15 @@ import { useEffect, useState } from "react";
 import {
   ImageVaultFiltersProvider,
   useImageVaultFilters
-} from "@/components/context/ImageVaultFiltersContext";
-import ImageVaultDetailDialog from "@/components/image-vault/ImageVaultDetailDialog";
-import ImageVaultFilters from "@/components/image-vault/ImageVaultFilters";
-import ImageVaultListSection from "@/components/image-vault/ImageVaultListSection";
-import ImageVaultManageDropdown from "@/components/image-vault/ImageVaultManageDropdown";
-import ImageVaultUploadDialog from "@/components/image-vault/ImageVaultUploadDialog";
+} from "@/features/image-vault/components/ImageVaultFiltersContext";
+import ImageVaultDetailDialog from "@/features/image-vault/components/ImageVaultDetailDialog";
+import ImageVaultFilters from "@/features/image-vault/components/ImageVaultFilters";
+import ImageVaultListSection from "@/features/image-vault/components/ImageVaultListSection";
+import ImageVaultManageDropdown from "@/features/image-vault/components/ImageVaultManageDropdown";
+import ImageVaultUploadDialog from "@/features/image-vault/components/ImageVaultUploadDialog";
 import AdminLayout from "@/components/layout/AdminLayout";
 
-import { useImageVaultListPage } from "@/hooks/useImageVaultListPage";
+import { useImageVaultListPage } from "@/features/image-vault/hooks/useImageVaultListPage";
 
 function ImageVaultContent() {
   const { state } = useImageVaultFilters();

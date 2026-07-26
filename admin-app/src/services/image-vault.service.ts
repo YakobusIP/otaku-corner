@@ -15,7 +15,7 @@ import type {
 } from "@/types/general.type";
 
 import interceptedAxios from "@/lib/axios";
-import type { ImageVaultUploadStatus } from "@/lib/image-vault-upload-status";
+import type { ImageVaultUploadStatus } from "@/features/image-vault/lib/image-vault-upload-status";
 import { err, ok } from "@/lib/service-result";
 import { mapPaginatedBody } from "@/lib/utils";
 
