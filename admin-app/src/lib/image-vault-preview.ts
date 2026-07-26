@@ -1,4 +1,5 @@
 import type {
+  ImageOriginType,
   ImageVaultSafetyLevel,
   SensitiveImageVisibility
 } from "@/types/image-vault.type";
@@ -10,6 +11,17 @@ import {
 import interceptedAxios, { ensureValidAccessToken } from "@/lib/axios";
 
 export const EXPLICIT_IMAGE_PLACEHOLDER = "/explicit-image.webp";
+
+export function formatImageVaultEntryCaption(entry: {
+  originType: ImageOriginType;
+  prompt?: string | null;
+  sourceUrl?: string | null;
+}): string {
+  if (entry.originType === "AI") {
+    return entry.prompt || "No prompt";
+  }
+  return entry.sourceUrl || "Uploaded human image";
+}
 
 export function imageVaultImageDownloadPath(entryId: string): string {
   return `/api/image-vault/images/${entryId}/download-url`;

@@ -38,18 +38,31 @@ const ImageVaultFiltersContext = createContext<
   ImageVaultFiltersContextValue | undefined
 >(undefined);
 
-export const ImageVaultFiltersProvider = ({
-  children
-}: {
+type ImageVaultFiltersProviderProps = {
   children: ReactNode;
-}) => {
+  persistVisibilityToUrl?: boolean;
+  initialSensitiveImageVisibility?: SensitiveImageVisibility;
+};
+
+export const ImageVaultFiltersProvider = ({
+  children,
+  persistVisibilityToUrl = true,
+  initialSensitiveImageVisibility
+}: ImageVaultFiltersProviderProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [state, setInternalState] = useState<ImageVaultFiltersState>(() => ({
-    ...defaultState,
-    sensitiveImageVisibility:
-      parseSensitiveImageVisibility(searchParams.get("visibility") ?? "") ??
-      defaultState.sensitiveImageVisibility
-  }));
+  const [state, setInternalState] = useState<ImageVaultFiltersState>(() => {
+    const visibilityFromUrl = persistVisibilityToUrl
+      ? parseSensitiveImageVisibility(searchParams.get("visibility") ?? "")
+      : undefined;
+
+    return {
+      groups: defaultState.groups,
+      sensitiveImageVisibility:
+        initialSensitiveImageVisibility ??
+        visibilityFromUrl ??
+        defaultState.sensitiveImageVisibility
+    };
+  });
 
   const setState = useCallback((updater: Partial<ImageVaultFiltersState>) => {
     setInternalState((prev) => ({ ...prev, ...updater }));
@@ -70,10 +83,15 @@ export const ImageVaultFiltersProvider = ({
   );
 
   useEffect(() => {
+    if (!persistVisibilityToUrl) return;
     const params = new URLSearchParams();
     params.set("visibility", state.sensitiveImageVisibility);
     setSearchParams(params, { replace: true });
-  }, [setSearchParams, state.sensitiveImageVisibility]);
+  }, [
+    persistVisibilityToUrl,
+    setSearchParams,
+    state.sensitiveImageVisibility
+  ]);
 
   const value = useMemo(
     () => ({

@@ -45,6 +45,7 @@ function ImageVaultContent() {
       <ImageVaultUploadDialog
         open={emptyUploadOpen}
         onOpenChange={setEmptyUploadOpen}
+        sensitiveImageVisibility={state.sensitiveImageVisibility}
       />
       <ImageVaultDetailDialog
         imageId={selectedId}

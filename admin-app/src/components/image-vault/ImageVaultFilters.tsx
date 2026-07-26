@@ -46,6 +46,7 @@ type ClauseEditorProps = {
   clause: ImageVaultFilterClause;
   modelOptions: Array<{ label: string; value: string }>;
   categoryOptions: Array<{ label: string; value: string }>;
+  portalContainer?: HTMLElement | null;
   onChange: (clause: ImageVaultFilterClause) => void;
   onRemove: () => void;
 };
@@ -54,6 +55,7 @@ function FilterClauseEditor({
   clause,
   modelOptions,
   categoryOptions,
+  portalContainer = null,
   onChange,
   onRemove
 }: ClauseEditorProps) {
@@ -97,6 +99,7 @@ function FilterClauseEditor({
           hideSelectAll
           autoSize={!isMobile}
           singleLine
+          popoverPortalContainer={portalContainer}
           className="h-9 min-h-9 w-full border-border/60 md:h-8 md:min-h-8 md:w-auto md:min-w-36 md:border-0 md:bg-transparent md:shadow-none md:hover:bg-transparent"
         />
       );
@@ -114,6 +117,7 @@ function FilterClauseEditor({
           hideSelectAll
           autoSize={!isMobile}
           singleLine
+          popoverPortalContainer={portalContainer}
           className="h-9 min-h-9 w-full border-border/60 md:h-8 md:min-h-8 md:w-auto md:min-w-28 md:border-0 md:bg-transparent md:shadow-none md:hover:bg-transparent"
         />
       );
@@ -139,7 +143,7 @@ function FilterClauseEditor({
         <SelectTrigger className="order-1 col-start-1 row-start-1 h-9 w-full border-border/60 md:col-auto md:row-auto md:h-7 md:w-auto md:min-w-0 md:gap-1 md:border-0 md:bg-transparent md:px-1.5 md:text-xs md:font-medium md:text-muted-foreground md:shadow-none md:hover:text-foreground md:focus:ring-0">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent portalContainer={portalContainer} className="z-[60]">
           {IMAGE_VAULT_FILTER_FIELD_OPTIONS.map((option) => (
             <SelectItem key={option.field} value={option.field}>
               {option.label}
@@ -154,7 +158,7 @@ function FilterClauseEditor({
         <SelectTrigger className="order-2 col-span-2 row-start-2 h-9 w-full border-border/60 md:col-auto md:row-auto md:h-7 md:w-auto md:min-w-0 md:gap-1 md:border-0 md:bg-transparent md:px-1.5 md:shadow-none md:focus:ring-0">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent portalContainer={portalContainer} className="z-[60]">
           {config.operators.map((op) => (
             <SelectItem key={op} value={op}>
               {getFilterOpLabel(clause.field, op)}
@@ -184,13 +188,15 @@ type FieldPickerProps = {
   triggerLabel: string;
   variant?: "outline" | "ghost";
   className?: string;
+  portalContainer?: HTMLElement | null;
 };
 
 function FieldPicker({
   onPick,
   triggerLabel,
   variant = "outline",
-  className
+  className,
+  portalContainer = null
 }: FieldPickerProps) {
   const [open, setOpen] = useState(false);
 
@@ -207,7 +213,11 @@ function FieldPicker({
           {triggerLabel}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-48 p-1">
+      <PopoverContent
+        align="start"
+        className="z-[60] w-48 p-1"
+        portalContainer={portalContainer}
+      >
         <div className="flex flex-col">
           {IMAGE_VAULT_FILTER_FIELD_OPTIONS.map((option) => (
             <Button
@@ -230,7 +240,13 @@ function FieldPicker({
   );
 }
 
-export default function ImageVaultFilters() {
+type ImageVaultFiltersProps = {
+  portalContainer?: HTMLElement | null;
+};
+
+export default function ImageVaultFilters({
+  portalContainer = null
+}: ImageVaultFiltersProps) {
   const { state, setState, setGroups } = useImageVaultFilters();
   const { data: models = [] } = useImageVaultModels(true);
   const { data: categories = [] } = useImageVaultCategories(true);
@@ -318,7 +334,7 @@ export default function ImageVaultFilters() {
         <SelectTrigger className="h-9 w-full shrink-0 md:h-8 md:w-auto md:min-w-36">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent portalContainer={portalContainer} className="z-[60]">
           {SENSITIVE_IMAGE_VISIBILITY_OPTIONS.map((option) => (
             <SelectItem key={option} value={option}>
               {SENSITIVE_IMAGE_VISIBILITY_LABELS[option]}
@@ -336,6 +352,7 @@ export default function ImageVaultFilters() {
         <FieldPicker
           onPick={addAndGroup}
           triggerLabel="Add filter"
+          portalContainer={portalContainer}
           className="h-9 w-full justify-center gap-1 md:h-8 md:w-auto md:justify-start md:px-2"
         />
       ) : (
@@ -352,6 +369,7 @@ export default function ImageVaultFilters() {
                   group={group}
                   modelOptions={modelOptions}
                   categoryOptions={categoryOptions}
+                  portalContainer={portalContainer}
                   onUpdateClause={(clauseId, next) =>
                     updateClause(group.id, clauseId, next)
                   }
@@ -367,6 +385,7 @@ export default function ImageVaultFilters() {
             <FieldPicker
               onPick={addAndGroup}
               triggerLabel="AND"
+              portalContainer={portalContainer}
               className="h-9 flex-1 justify-center gap-1 md:h-8 md:flex-none md:justify-start md:px-2"
             />
             <Button
@@ -389,6 +408,7 @@ type FilterGroupBubbleProps = {
   group: ImageVaultFilterGroup;
   modelOptions: Array<{ label: string; value: string }>;
   categoryOptions: Array<{ label: string; value: string }>;
+  portalContainer?: HTMLElement | null;
   onUpdateClause: (clauseId: string, next: ImageVaultFilterClause) => void;
   onRemoveClause: (clauseId: string) => void;
   onAddOr: (field: ImageVaultFilterField) => void;
@@ -398,6 +418,7 @@ function FilterGroupBubble({
   group,
   modelOptions,
   categoryOptions,
+  portalContainer = null,
   onUpdateClause,
   onRemoveClause,
   onAddOr
@@ -418,6 +439,7 @@ function FilterGroupBubble({
             clause={clause}
             modelOptions={modelOptions}
             categoryOptions={categoryOptions}
+            portalContainer={portalContainer}
             onChange={(next) => onUpdateClause(clause.id, next)}
             onRemove={() => onRemoveClause(clause.id)}
           />
@@ -427,6 +449,7 @@ function FilterGroupBubble({
         onPick={onAddOr}
         triggerLabel="OR"
         variant="ghost"
+        portalContainer={portalContainer}
         className="h-9 w-full justify-center gap-1 md:h-8 md:w-auto md:justify-start md:px-2"
       />
       <span className="hidden shrink-0 text-muted-foreground md:inline">

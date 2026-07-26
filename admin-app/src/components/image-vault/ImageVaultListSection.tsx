@@ -15,7 +15,10 @@ import { useLoadingDots } from "@/hooks/useLoadingDots";
 import type { ImageVaultEntry } from "@/types/image-vault.type";
 
 import { hasActiveFilterGroups } from "@/lib/image-vault-filter-expression";
-import { resolveImageVaultPreviewUrl } from "@/lib/image-vault-preview";
+import {
+  formatImageVaultEntryCaption,
+  resolveImageVaultPreviewUrl
+} from "@/lib/image-vault-preview";
 
 import { UploadIcon } from "lucide-react";
 import { useInView } from "react-intersection-observer";
@@ -163,9 +166,7 @@ export default function ImageVaultListSection({
                 isFollowUp={image.parentId != null}
               />
               <p className="line-clamp-2 h-10 overflow-hidden whitespace-normal text-xs leading-5 text-muted-foreground">
-                {image.originType === "AI"
-                  ? image.prompt || "No prompt"
-                  : image.sourceUrl || "Uploaded human image"}
+                {formatImageVaultEntryCaption(image)}
               </p>
             </div>
           </Button>

@@ -17,10 +17,18 @@ import { imageVaultKeys } from "@/lib/query-keys";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 10;
 const FILTER_DEBOUNCE_MS = 300;
 
-export const useImageVaultListPage = () => {
+type UseImageVaultListPageOptions = {
+  enabled?: boolean;
+  pageSize?: number;
+};
+
+export const useImageVaultListPage = ({
+  enabled = true,
+  pageSize = DEFAULT_PAGE_SIZE
+}: UseImageVaultListPageOptions = {}) => {
   const { state } = useImageVaultFilters();
 
   const [debouncedGroups] = useDebounce(state.groups, FILTER_DEBOUNCE_MS);
@@ -28,20 +36,20 @@ export const useImageVaultListPage = () => {
   const listFilters = useMemo((): ImageVaultInfiniteListFilters => {
     const groups = sanitizeFilterGroupsForRequest(debouncedGroups);
     return {
-      limit: PAGE_SIZE,
+      limit: pageSize,
       groups: groups.length > 0 ? groups : undefined
     };
-  }, [debouncedGroups]);
+  }, [debouncedGroups, pageSize]);
 
   return useInfiniteQuery({
     queryKey: imageVaultKeys.infiniteList(listFilters),
+    enabled,
     queryFn: async ({
       pageParam
     }): Promise<PaginatedListPage<ImageVaultEntry>> => {
-      const page = pageParam;
       const requestFilters: ImageVaultListFilters = {
         ...listFilters,
-        page
+        page: pageParam
       };
       const result = await imageVaultService.listImages(requestFilters);
       if (!result.success) {

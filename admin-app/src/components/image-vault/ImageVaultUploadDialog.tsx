@@ -3,13 +3,16 @@ import {
   Fragment,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState
 } from "react";
 
+import ImageVaultCopySourceDialog from "@/components/image-vault/ImageVaultCopySourceDialog";
 import ImageVaultSafetyFields from "@/components/image-vault/ImageVaultSafetyFields";
 import {
   type ImageVaultUploadParentDefaults,
+  createImageVaultDetailFormValues,
   createImageVaultUploadDefaultValues,
   imageVaultUploadFormSchema
 } from "@/components/image-vault/image-vault-upload-form.schema";
@@ -48,19 +51,32 @@ import {
 
 import {
   type ImageOriginType,
+  type ImageVaultEntry,
   type SensitiveImageVisibility,
   normalizeImageVaultSafetyReasonForSubmit,
   parseImageOriginType
 } from "@/types/image-vault.type";
 
-import { resolveImageVaultPreviewUrl } from "@/lib/image-vault-preview";
+import {
+  formatImageVaultEntryCaption,
+  resolveImageVaultPreviewUrl
+} from "@/lib/image-vault-preview";
+import { cn } from "@/lib/utils";
 import {
   IMAGE_VAULT_UPLOAD_PHASE_LABELS,
   type ImageVaultUploadStatus
 } from "@/lib/image-vault-upload-status";
 
 import { useForm } from "@tanstack/react-form";
-import { Loader2Icon, UploadIcon, XIcon } from "lucide-react";
+import {
+  CopyIcon,
+  FileImageIcon,
+  Loader2Icon,
+  UploadIcon,
+  XIcon
+} from "lucide-react";
+
+type UploadCreationStep = "choose-mode" | "form";
 
 type ParentImage = ImageVaultUploadParentDefaults & {
   id: string;
@@ -103,6 +119,13 @@ export default function ImageVaultUploadDialog({
   const [fileError, setFileError] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] =
     useState<ImageVaultUploadStatus | null>(null);
+  const [creationStep, setCreationStep] = useState<UploadCreationStep>(() =>
+    isFollowUp ? "form" : "choose-mode"
+  );
+  const [copySourceEntry, setCopySourceEntry] = useState<ImageVaultEntry | null>(
+    null
+  );
+  const [copyPickerOpen, setCopyPickerOpen] = useState(false);
   const [dialogContentElement, setDialogContentElement] =
     useState<HTMLDivElement | null>(null);
 
@@ -168,12 +191,63 @@ export default function ImageVaultUploadDialog({
     setSourceFile(null);
     setFileError(null);
     setUploadStatus(null);
-  }, [form, parentDefaults]);
+    setCreationStep(isFollowUp ? "form" : "choose-mode");
+    setCopySourceEntry(null);
+    setCopyPickerOpen(false);
+  }, [form, isFollowUp, parentDefaults]);
+
+  const applyCopySource = useCallback((entry: ImageVaultEntry) => {
+    setCopySourceEntry(entry);
+    setCreationStep("form");
+    setCopyPickerOpen(false);
+  }, []);
+
+  const startBrandNewEntry = useCallback(() => {
+    setCopySourceEntry(null);
+    form.reset(createImageVaultUploadDefaultValues());
+    setCreationStep("form");
+  }, [form]);
 
   useEffect(() => {
     if (!open) return;
     resetDialogState();
   }, [open, resetDialogState]);
+
+  const modelOptions = useMemo(() => {
+    const activeModels = models.filter((model) => model.isActive);
+    const copiedModel = copySourceEntry?.model;
+    if (
+      copiedModel &&
+      !activeModels.some((model) => model.id === copiedModel.id)
+    ) {
+      return [copiedModel, ...activeModels];
+    }
+    return activeModels;
+  }, [copySourceEntry?.model, models]);
+
+  // Reset after the form mounts (choose-mode hides fields).
+  useLayoutEffect(() => {
+    if (!open || creationStep !== "form" || !copySourceEntry) return;
+
+    const copiedValues = createImageVaultDetailFormValues(copySourceEntry);
+    form.reset(copiedValues);
+    form.setFieldValue("modelId", copiedValues.modelId);
+  }, [copySourceEntry, creationStep, form, open]);
+
+  // Re-apply modelId once options include a possibly inactive copied model.
+  useLayoutEffect(() => {
+    if (!open || creationStep !== "form" || !copySourceEntry?.model?.id) {
+      return;
+    }
+    if (modelOptions.length === 0) return;
+    form.setFieldValue("modelId", copySourceEntry.model.id);
+  }, [
+    copySourceEntry?.model?.id,
+    creationStep,
+    form,
+    modelOptions.length,
+    open
+  ]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const next = event.target.files?.[0] ?? null;
@@ -203,39 +277,115 @@ export default function ImageVaultUploadDialog({
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) resetDialogState();
-        onOpenChange(next);
-      }}
-    >
-      <DialogContent
-        ref={setDialogContentElement}
-        className="flex max-h-[90vh] flex-col sm:max-w-lg xl:h-[90vh] xl:max-w-5xl"
+    <Fragment>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) resetDialogState();
+          onOpenChange(next);
+        }}
       >
-        <DialogHeader>
-          <DialogTitle>
-            {isFollowUp ? "Add Follow-up" : "Upload Image"}
-          </DialogTitle>
-          <DialogDescription>
-            {isFollowUp
-              ? "Upload a follow-up image linked to the parent entry."
-              : "Add an image to the private vault."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <form
-          id={FORM_ID}
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void form.handleSubmit();
-          }}
+        <DialogContent
+          ref={setDialogContentElement}
+          className={cn(
+            "flex max-h-[90vh] flex-col sm:max-w-lg",
+            isFollowUp || creationStep === "form"
+              ? "xl:h-[90vh] xl:max-w-5xl"
+              : null
+          )}
         >
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden pr-1 xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.9fr)] xl:gap-6 xl:space-y-0 xl:overflow-hidden xl:pr-0">
-            <div className="space-y-4 xl:min-h-0 xl:overflow-hidden xl:pb-3">
-              {isFollowUp && parentImage ? (
+          <DialogHeader>
+            <DialogTitle>
+              {isFollowUp ? "Add Follow-up" : "Upload Image"}
+            </DialogTitle>
+            <DialogDescription>
+              {isFollowUp
+                ? "Upload a follow-up image linked to the parent entry."
+                : creationStep === "choose-mode"
+                  ? "Choose how to start this new vault entry."
+                  : copySourceEntry
+                    ? "Upload a new image with metadata copied from an existing entry."
+                    : "Add an image to the private vault."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!isFollowUp && creationStep === "choose-mode" ? (
+            <div className="space-y-2 py-1">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-auto w-full justify-start gap-3 whitespace-normal px-3 py-3 text-left"
+                onClick={startBrandNewEntry}
+              >
+                <FileImageIcon className="h-5 w-5 shrink-0 text-primary" />
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <p className="font-medium">Brand new</p>
+                  <p className="text-sm text-muted-foreground">
+                    Start with empty fields and fill everything in manually.
+                  </p>
+                </div>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-auto w-full justify-start gap-3 whitespace-normal px-3 py-3 text-left"
+                onClick={() => setCopyPickerOpen(true)}
+              >
+                <CopyIcon className="h-5 w-5 shrink-0 text-primary" />
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <p className="font-medium">Copy fields from another image</p>
+                  <p className="text-sm text-muted-foreground">
+                    Reuse metadata from an existing entry without creating a
+                    follow-up.
+                  </p>
+                </div>
+              </Button>
+            </div>
+          ) : (
+            <form
+              id={FORM_ID}
+              className="flex min-h-0 flex-1 flex-col"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void form.handleSubmit();
+              }}
+            >
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden pr-1 xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.9fr)] xl:gap-6 xl:space-y-0 xl:overflow-hidden xl:pr-0">
+                <div className="space-y-4 xl:min-h-0 xl:overflow-y-auto xl:overflow-x-hidden xl:pb-3">
+                  {copySourceEntry ? (
+                    <div className="space-y-2 rounded-md border border-border/60 p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Copied fields from
+                        </p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => setCopyPickerOpen(true)}
+                        >
+                          Change
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={resolveImageVaultPreviewUrl(
+                            copySourceEntry.previewUrl,
+                            copySourceEntry.safetyLevel,
+                            sensitiveImageVisibility
+                          )}
+                          alt=""
+                          className="h-12 w-12 rounded-md border border-border/60 object-cover"
+                        />
+                        <p className="line-clamp-2 text-xs text-muted-foreground">
+                          {formatImageVaultEntryCaption(copySourceEntry)}
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {isFollowUp && parentImage ? (
                 <div className="space-y-2 rounded-md border border-border/60 p-3">
                   <p className="text-xs font-medium text-muted-foreground">
                     Parent image
@@ -352,13 +502,25 @@ export default function ImageVaultUploadDialog({
                             const isInvalid =
                               field.state.meta.isTouched &&
                               !field.state.meta.isValid;
+                            const selectedModelId =
+                              field.state.value ||
+                              copySourceEntry?.model?.id ||
+                              "";
+                            const hasSelectedModelOption = modelOptions.some(
+                              (model) => model.id === selectedModelId
+                            );
                             return (
                               <Field data-invalid={isInvalid}>
                                 <FieldLabel htmlFor="vault-model">
                                   Model
                                 </FieldLabel>
                                 <Select
-                                  value={field.state.value}
+                                  key={`vault-model-${copySourceEntry?.id ?? "new"}-${hasSelectedModelOption ? selectedModelId : "pending"}`}
+                                  value={
+                                    hasSelectedModelOption
+                                      ? selectedModelId
+                                      : undefined
+                                  }
                                   onValueChange={field.handleChange}
                                 >
                                   <SelectTrigger
@@ -368,16 +530,14 @@ export default function ImageVaultUploadDialog({
                                     <SelectValue placeholder="Select model" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {models
-                                      .filter((model) => model.isActive)
-                                      .map((model) => (
-                                        <SelectItem
-                                          key={model.id}
-                                          value={model.id}
-                                        >
-                                          {model.name} ({model.provider})
-                                        </SelectItem>
-                                      ))}
+                                    {modelOptions.map((model) => (
+                                      <SelectItem
+                                        key={model.id}
+                                        value={model.id}
+                                      >
+                                        {model.name} ({model.provider})
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
                                 {isInvalid ? (
@@ -433,7 +593,7 @@ export default function ImageVaultUploadDialog({
                       <Field data-invalid={isInvalid}>
                         <FieldLabel>Categories</FieldLabel>
                         <MultiSelect
-                          key={`${parentImage?.id ?? "root"}-${open ? "open" : "closed"}`}
+                          key={`${parentImage?.id ?? copySourceEntry?.id ?? "root"}-${open ? "open" : "closed"}`}
                           options={categories.map((category) => ({
                             label: category.name,
                             value: category.id
@@ -636,8 +796,19 @@ export default function ImageVaultUploadDialog({
               </Button>
             </div>
           </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {!isFollowUp ? (
+        <ImageVaultCopySourceDialog
+          open={copyPickerOpen}
+          onOpenChange={setCopyPickerOpen}
+          onSelect={applyCopySource}
+          sensitiveImageVisibility={sensitiveImageVisibility}
+        />
+      ) : null}
+    </Fragment>
   );
 }
