@@ -15,6 +15,7 @@ const AdminLightNovelDetail = lazy(
   () => import("@/pages/AdminLightNovelDetail")
 );
 const ImageVault = lazy(() => import("@/pages/ImageVault"));
+const Settings = lazy(() => import("@/pages/Settings"));
 
 function PageLoader() {
   return null;
@@ -53,6 +54,14 @@ export const router: Router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <ImageVault />
+          </Suspense>
+        )
+      },
+      {
+        path: "settings",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Settings />
           </Suspense>
         )
       },

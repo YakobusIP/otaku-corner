@@ -6,6 +6,7 @@ import {
   buildDetailReviewSaveStatusDisplay,
   useDetailReviewAutosave
 } from "@/features/media-detail/shared/hooks/useDetailReviewAutosave";
+import { useReviewPersonalScoreWeights } from "@/features/settings/hooks/useSettingsQueries";
 
 import type {
   LightNovelDetail,
@@ -14,10 +15,7 @@ import type {
 
 import { PROGRESS_STATUS } from "@/lib/enums";
 import { detailKeys } from "@/lib/query-keys";
-import {
-  computeRoundedWeightedPersonalScore,
-  LIGHT_NOVEL_REVIEW_PERSONAL_SCORE_WEIGHTS
-} from "@/features/media-detail/shared/lib/review-personal-score";
+import { computeRoundedWeightedPersonalScore } from "@/features/media-detail/shared/lib/review-personal-score";
 import { extractImageIds, extractUploadedImageMap } from "@/lib/utils";
 
 type Params = {
@@ -30,6 +28,8 @@ export const useLightNovelReviewSection = ({
   resetParent
 }: Params) => {
   const reviewObject = lightNovelDetail.review;
+  const { weights: scoreWeights } =
+    useReviewPersonalScoreWeights("lightNovel");
 
   const [reviewText, setReviewText] = useState(
     reviewObject.reviewText ?? undefined
@@ -112,14 +112,15 @@ export const useLightNovelReviewSection = ({
           charDevelopmentRating,
           originalityRating
         },
-        LIGHT_NOVEL_REVIEW_PERSONAL_SCORE_WEIGHTS
+        scoreWeights
       ),
     [
       storylineRating,
       worldBuildingRating,
       writingStyleRating,
       charDevelopmentRating,
-      originalityRating
+      originalityRating,
+      scoreWeights
     ]
   );
 

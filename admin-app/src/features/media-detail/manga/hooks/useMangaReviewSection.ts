@@ -6,19 +6,18 @@ import {
   buildDetailReviewSaveStatusDisplay,
   useDetailReviewAutosave
 } from "@/features/media-detail/shared/hooks/useDetailReviewAutosave";
+import { useReviewPersonalScoreWeights } from "@/features/settings/hooks/useSettingsQueries";
 
 import type { MangaDetail, MangaReviewRequest } from "@/types/manga.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
 import { detailKeys } from "@/lib/query-keys";
-import {
-  computeRoundedWeightedPersonalScore,
-  MANGA_REVIEW_PERSONAL_SCORE_WEIGHTS
-} from "@/features/media-detail/shared/lib/review-personal-score";
+import { computeRoundedWeightedPersonalScore } from "@/features/media-detail/shared/lib/review-personal-score";
 import { createUTCDate, extractImageIds, extractUploadedImageMap } from "@/lib/utils";
 
 export const useMangaReviewSection = (mangaDetail: MangaDetail) => {
   const reviewObject = mangaDetail.review;
+  const { weights: scoreWeights } = useReviewPersonalScoreWeights("manga");
 
   const [reviewText, setReviewText] = useState(
     reviewObject.reviewText ?? undefined
@@ -110,14 +109,15 @@ export const useMangaReviewSection = (mangaDetail: MangaDetail) => {
           worldBuildingRating,
           originalityRating
         },
-        MANGA_REVIEW_PERSONAL_SCORE_WEIGHTS
+        scoreWeights
       ),
     [
       storylineRating,
       artStyleRating,
       charDevelopmentRating,
       worldBuildingRating,
-      originalityRating
+      originalityRating,
+      scoreWeights
     ]
   );
 

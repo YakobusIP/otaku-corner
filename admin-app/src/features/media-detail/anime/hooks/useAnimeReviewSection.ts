@@ -6,19 +6,18 @@ import {
   buildDetailReviewSaveStatusDisplay,
   useDetailReviewAutosave
 } from "@/features/media-detail/shared/hooks/useDetailReviewAutosave";
+import { useReviewPersonalScoreWeights } from "@/features/settings/hooks/useSettingsQueries";
 
 import type { AnimeDetail, AnimeReviewRequest } from "@/types/anime.type";
 
 import { PROGRESS_STATUS } from "@/lib/enums";
 import { detailKeys } from "@/lib/query-keys";
-import {
-  ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS,
-  computeRoundedWeightedPersonalScore
-} from "@/features/media-detail/shared/lib/review-personal-score";
+import { computeRoundedWeightedPersonalScore } from "@/features/media-detail/shared/lib/review-personal-score";
 import { createUTCDate, extractImageIds, extractUploadedImageMap } from "@/lib/utils";
 
 export const useAnimeReviewSection = (animeDetail: AnimeDetail) => {
   const reviewObject = animeDetail.review;
+  const { weights: scoreWeights } = useReviewPersonalScoreWeights("anime");
 
   const [reviewText, setReviewText] = useState(
     reviewObject.reviewText ?? undefined
@@ -110,14 +109,15 @@ export const useAnimeReviewSection = (animeDetail: AnimeDetail) => {
           soundTrackRating,
           charDevelopmentRating
         },
-        ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS
+        scoreWeights
       ),
     [
       storylineRating,
       qualityRating,
       voiceActingRating,
       soundTrackRating,
-      charDevelopmentRating
+      charDevelopmentRating,
+      scoreWeights
     ]
   );
 

@@ -5,10 +5,7 @@ import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
-import {
-  MANGA_REVIEW_PERSONAL_SCORE_WEIGHTS,
-  computeRoundedWeightedPersonalScore
-} from "@/common/review-personal-score";
+import { computeRoundedWeightedPersonalScore } from "@/common/review-personal-score";
 import {
   buildRelationIdLookupMap,
   requireRelationIdFromMap
@@ -29,6 +26,7 @@ import {
   UpdateMangaReviewDto
 } from "@/manga/dto";
 import { FetchMangaDataQueueService } from "@/manga/fetch-manga-data.queue";
+import { SettingsService } from "@/settings/settings.service";
 import { ThemesService } from "@/theme/themes.service";
 
 import { Prisma, ProgressStatus } from "@prisma/client";
@@ -114,7 +112,8 @@ export class MangaService extends BaseCrudService<
     private readonly authorsService: AuthorsService,
     private readonly genresService: GenresService,
     private readonly themesService: ThemesService,
-    private readonly fetchMangaDataQueue: FetchMangaDataQueueService
+    private readonly fetchMangaDataQueue: FetchMangaDataQueueService,
+    private readonly settingsService: SettingsService
   ) {
     super(prisma, queryBuilder);
   }
@@ -373,10 +372,9 @@ export class MangaService extends BaseCrudService<
 
     const updateData: Record<string, unknown> = { ...data };
 
-    const personalScore = computeRoundedWeightedPersonalScore(
-      ratings,
-      MANGA_REVIEW_PERSONAL_SCORE_WEIGHTS
-    );
+    const weights =
+      await this.settingsService.getReviewPersonalScoreWeights("manga");
+    const personalScore = computeRoundedWeightedPersonalScore(ratings, weights);
     if (personalScore !== null) {
       updateData.personalScore = personalScore;
     }

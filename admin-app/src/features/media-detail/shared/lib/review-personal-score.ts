@@ -1,27 +1,3 @@
-export const ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS = {
-  storylineRating: 0.3,
-  qualityRating: 0.25,
-  voiceActingRating: 0.2,
-  soundTrackRating: 0.15,
-  charDevelopmentRating: 0.1
-} as const;
-
-export const MANGA_REVIEW_PERSONAL_SCORE_WEIGHTS = {
-  storylineRating: 0.3,
-  artStyleRating: 0.25,
-  charDevelopmentRating: 0.2,
-  worldBuildingRating: 0.15,
-  originalityRating: 0.1
-} as const;
-
-export const LIGHT_NOVEL_REVIEW_PERSONAL_SCORE_WEIGHTS = {
-  storylineRating: 0.3,
-  worldBuildingRating: 0.25,
-  writingStyleRating: 0.2,
-  charDevelopmentRating: 0.15,
-  originalityRating: 0.1
-} as const;
-
 const TWO_DECIMAL_FACTOR = 100;
 
 const roundPersonalScoreTwoDecimals = (score: number): number =>
