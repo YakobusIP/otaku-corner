@@ -64,7 +64,7 @@ export default function EntityTabManagement<T extends { id: number }>({
   return (
     <TabsContent
       value={tabValue}
-      className="mt-0 flex min-h-0 w-full min-w-0 flex-1 flex-col outline-none data-[state=inactive]:hidden"
+      className="mt-0 w-full min-w-0 outline-none data-[state=inactive]:hidden"
     >
       <DataTable
         columns={getColumns(

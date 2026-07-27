@@ -7,14 +7,12 @@ import {
 } from "react";
 import { Suspense } from "react";
 
-import MediaEntityManagementModal from "@/features/entity-management/components/MediaEntityManagementModal";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
@@ -50,7 +48,6 @@ export default function AddMediaDropdown() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeDialog, setActiveDialog] = useState<DialogType | null>(null);
-  const [entityModalOpen, setEntityModalOpen] = useState(false);
 
   const openDialogFromMenu = function openDialogForMenu(dialog: DialogType) {
     return function handleMenuSelect(e: Event) {
@@ -58,12 +55,6 @@ export default function AddMediaDropdown() {
       setMenuOpen(false);
       setActiveDialog(dialog);
     };
-  };
-
-  const openEntityModal = (e: Event) => {
-    e.preventDefault();
-    setMenuOpen(false);
-    setEntityModalOpen(true);
   };
 
   const makeDialogSetter = function makeDialogSetterFor(dialog: DialogType) {
@@ -119,16 +110,6 @@ export default function AddMediaDropdown() {
             <FileTextIcon className="h-4 w-4" />
             Add Light Novel
           </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
-          <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-            Management
-          </DropdownMenuLabel>
-          <DropdownMenuItem className="gap-2" onSelect={openEntityModal}>
-            <SettingsIcon className="h-4 w-4" />
-            Entity Management
-          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -159,12 +140,6 @@ export default function AddMediaDropdown() {
           />
         </Suspense>
       ) : null}
-
-      <MediaEntityManagementModal
-        open={entityModalOpen}
-        onOpenChange={setEntityModalOpen}
-        resetMediaQueries={resetLists}
-      />
     </Fragment>
   );
 }
