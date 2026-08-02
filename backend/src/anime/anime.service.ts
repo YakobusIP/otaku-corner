@@ -5,10 +5,7 @@ import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
-import {
-  ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS,
-  computeRoundedWeightedPersonalScore
-} from "@/common/review-personal-score";
+import { computeRoundedWeightedPersonalScore } from "@/common/review-personal-score";
 import {
   buildRelationIdLookupMap,
   requireRelationIdFromMap
@@ -28,6 +25,7 @@ import {
 } from "@/anime/dto";
 import { FetchEpisodesQueueService } from "@/anime/fetch-episodes.queue";
 import { GenresService } from "@/genre/genres.service";
+import { SettingsService } from "@/settings/settings.service";
 import { StudiosService } from "@/studio/studios.service";
 import { ThemesService } from "@/theme/themes.service";
 
@@ -131,7 +129,8 @@ export class AnimeService extends BaseCrudService<
     private readonly genresService: GenresService,
     private readonly studiosService: StudiosService,
     private readonly themesService: ThemesService,
-    private readonly fetchEpisodesQueue: FetchEpisodesQueueService
+    private readonly fetchEpisodesQueue: FetchEpisodesQueueService,
+    private readonly settingsService: SettingsService
   ) {
     super(prisma, queryBuilder);
   }
@@ -374,10 +373,9 @@ export class AnimeService extends BaseCrudService<
 
     const updateData: Record<string, unknown> = { ...data };
 
-    const personalScore = computeRoundedWeightedPersonalScore(
-      ratings,
-      ANIME_REVIEW_PERSONAL_SCORE_WEIGHTS
-    );
+    const weights =
+      await this.settingsService.getReviewPersonalScoreWeights("anime");
+    const personalScore = computeRoundedWeightedPersonalScore(ratings, weights);
     if (personalScore !== null) {
       updateData.personalScore = personalScore;
     }

@@ -1,19 +1,19 @@
 ---
 description: Public app lib organization, allowed TSX placement, imports, utilities, and shared modules
-globs: public-app/src/lib/**/*.{ts,tsx},public-app/src/components/media-detail/createMediaDetailPage.tsx,public-app/src/**/*.{ts,tsx}
+globs: public-app/src/lib/**/*.{ts,tsx},public-app/src/features/**/*.{ts,tsx},public-app/src/**/*.{ts,tsx}
 alwaysApply: true
 ---
 
 # Public app lib organization
 
-The `public-app/src/lib` directory is deliberately organized by responsibility. Keep this structure intact. The goal is to make it obvious whether code is API infrastructure, media-list logic, media-detail helpers, sitemap code, cross-media metadata, or low-level shared utilities.
+Shared infrastructure lives under `public-app/src/lib`. Feature-specific helpers live under `public-app/src/features/*/lib`. Keep that split intact so API/shared/sitemap code stays separate from media-list and media-detail helpers.
 
 ## No TSX files inside `src/lib`
 
 - Do not create `.tsx` files under `public-app/src/lib`.
 - `src/lib` is for non-JSX TypeScript only.
-- If a helper returns JSX, renders `HydrationBoundary`, imports React component types for JSX output, or otherwise requires `.tsx`, place it under an appropriate `src/components` folder.
-- The existing detail route factory intentionally lives at `src/components/media-detail/createMediaDetailPage.tsx` because it returns JSX and should not live in `src/lib`.
+- If a helper returns JSX, renders `HydrationBoundary`, imports React component types for JSX output, or otherwise requires `.tsx`, place it under an appropriate `src/components` or `src/features/*/components` folder.
+- The detail route factory intentionally lives at `src/features/media-detail/components/createMediaDetailPage.tsx` because it returns JSX and should not live in `src/lib`.
 - Do not "clean up" this placement by moving `createMediaDetailPage.tsx` into `src/lib`.
 
 ## Current `src/lib` subdirectory responsibilities
@@ -21,22 +21,12 @@ The `public-app/src/lib` directory is deliberately organized by responsibility. 
 - `src/lib/api`
   - API transport infrastructure and query-client setup.
   - Examples: `axios.ts`, `query-client.ts`.
-  - Do not put media-list query keys here. Query keys that are only for media lists belong in `src/lib/media-list`.
+  - Do not put media-list query keys here. Query keys that are only for media lists belong in `src/features/media-list/lib`.
 
 - `src/lib/media`
-  - Cross-media metadata and helpers that apply to anime, manga, and light novels beyond the list page.
+  - Cross-media metadata and helpers that apply to anime, manga, and light novels beyond a single feature.
   - Examples: `public-media-type.ts`.
   - Use this for route path segments, public navigation labels, chart labels, review badge labels, and detail href construction.
-
-- `src/lib/media-list`
-  - Media list query configs, server list configs, list filter helpers, list query keys, entity lookups, infinite-query helpers, and list prefetch helpers.
-  - Examples: `anime-list-query.ts`, `manga-list-server.ts`, `public-list-infinite-queries.ts`, `query-keys.ts`.
-  - Code in this folder may depend on services, TanStack Query types, list context types, and shared enums.
-
-- `src/lib/media-detail`
-  - Pure media detail helpers and data formatting helpers that do not render JSX.
-  - Examples: `media-detail-helpers.ts`, `media-images.ts`.
-  - Score criteria builders, poster image selection, score percent helpers, and entity label formatters belong here.
 
 - `src/lib/shared`
   - Low-level utilities and constants that are not specific to one feature area.
@@ -48,32 +38,47 @@ The `public-app/src/lib` directory is deliberately organized by responsibility. 
   - Examples: `media-sitemap-route.ts`, `sitemap-xml.ts`.
   - Keep XML string building and sitemap route response generation here instead of repeating it in route files.
 
+## Feature-local lib responsibilities
+
+- `src/features/media-list/lib`
+  - Media list query configs, server list configs, list filter helpers, list query keys, entity lookups, infinite-query helpers, and list prefetch helpers.
+  - Examples: `anime-list-query.ts`, `manga-list-server.ts`, `public-list-infinite-queries.ts`, `query-keys.ts`.
+
+- `src/features/media-detail/lib`
+  - Pure media detail helpers and data formatting helpers that do not render JSX.
+  - Examples: `media-detail-helpers.ts`, `media-images.ts`.
+
+- `src/features/home/lib`
+  - Home-only helpers such as insight slide config.
+
 ## Import path conventions
 
 - Use `@/` absolute imports for public app source imports.
 - Import from the narrowest correct folder.
-- Do not import from deleted root-level lib paths such as:
+- Do not import from deleted paths such as:
   - `@/lib/axios`
   - `@/lib/query-keys`
   - `@/lib/public-media-type`
   - `@/lib/media-detail-helpers`
   - `@/lib/utils`
+  - `@/lib/media-list/*`
+  - `@/lib/media-detail/*`
 - Use the organized paths instead:
   - `@/lib/api/axios`
   - `@/lib/api/query-client`
   - `@/lib/media/public-media-type`
-  - `@/lib/media-list/query-keys`
-  - `@/lib/media-detail/media-detail-helpers`
+  - `@/features/media-list/lib/query-keys`
+  - `@/features/media-detail/lib/media-detail-helpers`
   - `@/lib/shared/utils`
 
 ## Adding new helpers
 
-- Before adding a helper, search for an existing one in the appropriate `src/lib` subdirectory.
+- Before adding a helper, search for an existing one in the appropriate `src/lib` or `src/features/*/lib` subdirectory.
 - Keep helper modules cohesive. Do not create large catch-all files unless they already exist for that exact responsibility.
-- Prefer small, named exports over default exports in `src/lib`.
-- Keep helper functions pure where practical, especially in `media-detail`, `media`, `shared`, and `sitemap`.
-- Do not put React hooks in `src/lib`. Hooks belong in `src/hooks`.
-- Do not put UI components in `src/lib`. Components belong in `src/components`.
+- Prefer small, named exports over default exports in `src/lib` and feature `lib/` folders.
+- Keep helper functions pure where practical, especially in media-detail, media, shared, and sitemap helpers.
+- Do not put React hooks in `src/lib` or feature `lib/` folders. Generic hooks belong in `src/hooks`; feature hooks belong in `src/features/*/hooks`.
+- Do not put UI components in `src/lib`. Reusable components belong in `src/components`; feature components belong in `src/features/*/components`.
 - Do not put API endpoint services in `src/lib`. Service wrappers belong in `src/services`.
 
 ## Shared constants and enums
@@ -85,8 +90,7 @@ The `public-app/src/lib` directory is deliberately organized by responsibility. 
 
 ## Query key placement
 
-- Query keys that are specific to public media lists belong in `src/lib/media-list/query-keys.ts`.
+- Query keys that are specific to public media lists belong in `src/features/media-list/lib/query-keys.ts`.
 - Query-client construction belongs in `src/lib/api/query-client.ts`.
 - Do not mix these concerns.
 - If a future feature introduces non-media-list query keys, create a feature-specific query key module rather than expanding media-list query keys into a general dumping ground.
-

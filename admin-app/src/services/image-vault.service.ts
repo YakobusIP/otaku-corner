@@ -15,7 +15,7 @@ import type {
 } from "@/types/general.type";
 
 import interceptedAxios from "@/lib/axios";
-import type { ImageVaultUploadStatus } from "@/lib/image-vault-upload-status";
+import type { ImageVaultUploadStatus } from "@/features/image-vault/lib/image-vault-upload-status";
 import { err, ok } from "@/lib/service-result";
 import { mapPaginatedBody } from "@/lib/utils";
 
@@ -113,18 +113,12 @@ const createImageVaultService = () => {
     filters: ImageVaultListFilters
   ): Promise<ServiceResult<PaginatedListPage<ImageVaultEntry>>> => {
     try {
-      const response = await interceptedAxios.get<
+      const response = await interceptedAxios.post<
         PaginatedBody<ImageVaultEntry>
-      >(`${BASE_URL}/images`, {
-        params: {
-          page: filters.page,
-          limit: filters.limit,
-          search: filters.search || undefined,
-          originType: filters.originType,
-          modelId: filters.modelId,
-          categoryId: filters.categoryId,
-          safetyLevel: filters.safetyLevel
-        }
+      >(`${BASE_URL}/images/search`, {
+        page: filters.page,
+        limit: filters.limit,
+        groups: filters.groups
       });
       return ok(mapPaginatedBody(response.data));
     } catch (error: unknown) {

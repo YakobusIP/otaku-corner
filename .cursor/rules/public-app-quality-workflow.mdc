@@ -93,7 +93,7 @@ Rule content...
 - Do not revert user changes unless explicitly asked.
 - Be careful with large import-path migrations. Check for stale imports after moving files.
 - Prefer `rg` for stale import scans.
-- After moving files under `src/lib`, scan for deleted root-level imports such as `@/lib/utils`, `@/lib/axios`, and `@/lib/query-keys`.
+- After moving files under `src/lib` or `src/features`, scan for deleted imports such as `@/lib/utils`, `@/lib/axios`, `@/lib/query-keys`, `@/lib/media-list/*`, and `@/lib/media-detail/*`.
 - Keep `.cursorignore` protective of secrets. `.env` should stay ignored.
 
 ## Environment variables

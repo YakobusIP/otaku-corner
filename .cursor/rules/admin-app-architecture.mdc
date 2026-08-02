@@ -27,12 +27,14 @@ These rules apply to the `admin-app` Vite/React application. The admin app is an
 
 - `admin-app/src/main.tsx`: React root, providers, router mounting, toaster, global dark-mode setup, and dev-only tooling.
 - `admin-app/src/routes`: React Router definitions and route-level behavior.
-- `admin-app/src/pages`: route-level pages and route composition.
-- `admin-app/src/components`: UI composition, feature components, shadcn-style primitives, layout, dialogs, tables, dashboard sections, media rows, review sections, and route-facing views.
-- `admin-app/src/hooks`: stateful workflows, TanStack Query hooks, mutations, autosave, add-media orchestration, media list state, responsive hooks, and upload behavior.
-- `admin-app/src/services`: HTTP service wrappers around backend endpoints.
-- `admin-app/src/lib`: non-component helpers, constants, query client, query keys, route param parsing, enum helpers, score utilities, and service-result helpers.
-- `admin-app/src/types`: API/domain shapes shared across more than one module.
+- `admin-app/src/pages`: route-level pages and route composition (thin shells; import from features).
+- `admin-app/src/features`: workflow-scoped feature modules (`image-vault`, `dashboard`, `media-library`, `add-media`, `entity-management`, `media-detail`, `auth`). Each feature owns its `components/`, `hooks/`, and feature-specific `lib/` when needed.
+- `admin-app/src/components`: reusable UI only — shadcn-style primitives (`ui/`), layout shell, data-table, list-status, and other cross-feature shared components.
+- `admin-app/src/hooks`: generic hooks only (viewport, loading dots, and similar utilities). Feature workflow hooks live under `src/features/*/hooks`.
+- `admin-app/src/services`: HTTP service wrappers around backend endpoints (stay top-level).
+- `admin-app/src/lib`: shared infrastructure helpers — axios, query client, query keys, route param parsing, enums, constants, utils, service-result. Feature-specific helpers live under `src/features/*/lib`.
+- `admin-app/src/types`: API/domain shapes shared across more than one module (stay top-level).
+- `admin-app/src/auth`: auth session, guard, and related auth infrastructure (separate from `features/auth` login hook).
 - `admin-app/public`: static assets used by the admin app.
 
 ## Routing
@@ -74,8 +76,8 @@ These rules apply to the `admin-app` Vite/React application. The admin app is an
 - The admin app manages three media domains: anime, manga, and light novels.
 - Domain-specific services may remain separate because backend contracts can diverge.
 - Shared workflow mechanics may be generic when the behavior is stable across domains.
-- The generic Tenrai selection/add flow (`useTenraiSelection`) is a good pattern:
-  - keep Tenrai search/selection/duplicate/check/infinite-scroll mechanics shared
+- The generic Tenrai selection/add flow (`src/features/add-media/hooks/useTenraiSelection`) is a good pattern:
+  - keep Tenrai search/selection/duplicate/check/infinite-scroll mechanics shared under `features/add-media`
   - keep media-specific service calls, create payload mapping, media labels, and query keys in small domain config wrappers
 - Do not create a generic abstraction when it forces many domain-specific conditionals into one file.
 - If a generic helper starts knowing too much about anime, manga, and light novels separately, move that behavior back into domain-specific code or config.

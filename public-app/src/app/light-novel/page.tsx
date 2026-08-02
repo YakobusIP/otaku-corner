@@ -1,14 +1,14 @@
 import GeneralFooter from "@/components/GeneralFooter";
 import HeroWallpaper from "@/components/layout/HeroWallpaper";
-import { lightNovelListConfig } from "@/components/light-novel/LightNovelListConfig";
-import MediaListHeader from "@/components/media-list/MediaListHeader";
-import MediaListProvider from "@/components/media-list/MediaListProvider";
-import MediaListSection from "@/components/media-list/MediaListSection";
+import { lightNovelListConfig } from "@/features/media-list/domains/light-novel/LightNovelListConfig";
+import MediaListHeader from "@/features/media-list/components/MediaListHeader";
+import MediaListProvider from "@/features/media-list/components/MediaListProvider";
+import MediaListSection from "@/features/media-list/components/MediaListSection";
 
-import { lightNovelListQueryConfig } from "@/lib/media-list/light-novel-list-query";
-import { lightNovelListServerConfig } from "@/lib/media-list/light-novel-list-server";
-import { printedMediaListEntityLookups } from "@/lib/media-list/media-list-entity-lookups";
-import { prefetchMediaListPage } from "@/lib/media-list/prefetch-media-list-page";
+import { lightNovelListQueryConfig } from "@/features/media-list/lib/light-novel-list-query";
+import { lightNovelListServerConfig } from "@/features/media-list/lib/light-novel-list-server";
+import { printedMediaListEntityLookups } from "@/features/media-list/lib/media-list-entity-lookups";
+import { prefetchMediaListPage } from "@/features/media-list/lib/prefetch-media-list-page";
 
 import {
   HydrationBoundary,

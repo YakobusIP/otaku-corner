@@ -20,6 +20,7 @@ import { ImageVaultModule } from "@/image-vault/image-vault.module";
 import { LightNovelModule } from "@/light-novel/light-novel.module";
 import { MangaModule } from "@/manga/manga.module";
 import { MediaLibraryModule } from "@/media-library/media-library.module";
+import { SettingsModule } from "@/settings/settings.module";
 import { StatisticModule } from "@/statistic/statistic.module";
 import { StorageModule } from "@/storage/storage.module";
 import { StudiosModule } from "@/studio/studios.module";
@@ -48,7 +49,8 @@ import { ThemesModule } from "@/theme/themes.module";
     StatisticModule,
     AssetsModule,
     ImageVaultModule,
-    TenraiModule
+    TenraiModule,
+    SettingsModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaExceptionFilter]

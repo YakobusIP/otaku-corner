@@ -14,7 +14,7 @@ import {
   InputOTPSlot
 } from "@/components/ui/input-otp";
 
-import { useLogin } from "@/hooks/useLogin";
+import { useLogin } from "@/features/auth/hooks/useLogin";
 
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Loader2Icon } from "lucide-react";

@@ -1,3 +1,5 @@
+import type { ImageVaultFilterGroupPayload } from "@/features/image-vault/lib/image-vault-filter-expression";
+
 export type ImageOriginType = "AI" | "HUMAN";
 
 export type ImageVaultSafetyLevel = "SAFE" | "NSFW" | "EXPLICIT";
@@ -54,24 +56,6 @@ export const parseImageOriginType = (
   value: string
 ): ImageOriginType | null =>
   value === "AI" || value === "HUMAN" ? value : null;
-
-export const parseOriginFilter = (
-  value: string | null
-): ImageOriginType | "all" => {
-  if (!value || value === "all") {
-    return "all";
-  }
-  return parseImageOriginType(value) ?? "all";
-};
-
-export const parseSafetyFilter = (
-  value: string | null
-): ImageVaultSafetyLevel | "all" => {
-  if (!value || value === "all") {
-    return "all";
-  }
-  return parseImageVaultSafetyLevel(value) ?? "all";
-};
 
 export const isExplicitSafetyLevel = (
   safetyLevel: ImageVaultSafetyLevel
@@ -169,11 +153,7 @@ export type ImageVaultEntry = {
 export type ImageVaultListFilters = {
   page: number;
   limit: number;
-  search?: string;
-  originType?: ImageOriginType;
-  modelId?: string;
-  categoryId?: string;
-  safetyLevel?: ImageVaultSafetyLevel;
+  groups?: ImageVaultFilterGroupPayload[];
 };
 
 export type ImageVaultInfiniteListFilters = Omit<

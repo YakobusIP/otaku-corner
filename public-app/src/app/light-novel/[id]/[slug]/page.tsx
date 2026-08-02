@@ -1,7 +1,7 @@
 import { lightNovelService } from "@/services/lightnovel.service";
 
-import LightNovelDetail from "@/components/light-novel/LightNovelDetailConfig";
-import { createMediaDetailPage } from "@/components/media-detail/createMediaDetailPage";
+import LightNovelDetail from "@/features/media-detail/domains/light-novel/LightNovelDetailConfig";
+import { createMediaDetailPage } from "@/features/media-detail/components/createMediaDetailPage";
 
 const { generateMetadata, Page } = createMediaDetailPage({
   mediaType: "lightNovel",

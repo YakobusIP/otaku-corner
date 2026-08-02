@@ -5,10 +5,7 @@ import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
-import {
-  LIGHT_NOVEL_REVIEW_PERSONAL_SCORE_WEIGHTS,
-  computeRoundedWeightedPersonalScore
-} from "@/common/review-personal-score";
+import { computeRoundedWeightedPersonalScore } from "@/common/review-personal-score";
 import {
   buildRelationIdLookupMap,
   requireRelationIdFromMap
@@ -30,6 +27,7 @@ import {
   UpdateVolumeProgressItemDto
 } from "@/light-novel/dto";
 import { FetchLightNovelRanobeDbQueueService } from "@/light-novel/fetch-light-novel-ranobedb.queue";
+import { SettingsService } from "@/settings/settings.service";
 import { ThemesService } from "@/theme/themes.service";
 
 import { Prisma, ProgressStatus } from "@prisma/client";
@@ -79,7 +77,8 @@ export class LightNovelService extends BaseCrudService<
     private readonly authorsService: AuthorsService,
     private readonly genresService: GenresService,
     private readonly themesService: ThemesService,
-    private readonly fetchLightNovelRanobeDbQueue: FetchLightNovelRanobeDbQueueService
+    private readonly fetchLightNovelRanobeDbQueue: FetchLightNovelRanobeDbQueueService,
+    private readonly settingsService: SettingsService
   ) {
     super(prisma, queryBuilder);
   }
@@ -435,10 +434,9 @@ export class LightNovelService extends BaseCrudService<
         data.originalityRating ?? lightNovel.review?.originalityRating
     };
 
-    const personalScore = computeRoundedWeightedPersonalScore(
-      ratings,
-      LIGHT_NOVEL_REVIEW_PERSONAL_SCORE_WEIGHTS
-    );
+    const weights =
+      await this.settingsService.getReviewPersonalScoreWeights("lightNovel");
+    const personalScore = computeRoundedWeightedPersonalScore(ratings, weights);
 
     const updateData: Record<string, unknown> = { ...data };
     if (personalScore !== null) {
