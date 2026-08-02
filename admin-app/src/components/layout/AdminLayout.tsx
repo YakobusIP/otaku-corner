@@ -23,7 +23,9 @@ import {
   BookOpenIcon,
   ExternalLinkIcon,
   ImagesIcon,
-  PanelLeftIcon
+  PanelLeftIcon,
+  SettingsIcon,
+  TagsIcon
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -68,6 +70,16 @@ const NAV_ITEMS: NavItem[] = [
     to: "/image-vault",
     label: "Image Vault",
     icon: <ImagesIcon />
+  },
+  {
+    to: "/entity-management",
+    label: "Entity Management",
+    icon: <TagsIcon />
+  },
+  {
+    to: "/settings",
+    label: "Settings",
+    icon: <SettingsIcon />
   }
 ];
 

@@ -1,7 +1,7 @@
 import { animeService } from "@/services/anime.service";
 
-import AnimeDetail from "@/components/anime/AnimeDetailConfig";
-import { createMediaDetailPage } from "@/components/media-detail/createMediaDetailPage";
+import AnimeDetail from "@/features/media-detail/domains/anime/AnimeDetailConfig";
+import { createMediaDetailPage } from "@/features/media-detail/components/createMediaDetailPage";
 
 const { generateMetadata, Page } = createMediaDetailPage({
   mediaType: "anime",

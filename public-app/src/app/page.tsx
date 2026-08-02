@@ -5,10 +5,10 @@ import {
 } from "@/services/statistic.service";
 
 import GeneralFooter from "@/components/GeneralFooter";
-import HomeHeroWithNav from "@/components/home/HomeHeroWithNav";
-import HomeInsightsCarousel from "@/components/home/HomeInsightsCarousel";
-import HomeQuoteSection from "@/components/home/HomeQuoteSection";
-import HomeYearProgressSection from "@/components/home/HomeYearProgressSection";
+import HomeHeroWithNav from "@/features/home/components/HomeHeroWithNav";
+import HomeInsightsCarousel from "@/features/home/components/HomeInsightsCarousel";
+import HomeQuoteSection from "@/features/home/components/HomeQuoteSection";
+import HomeYearProgressSection from "@/features/home/components/HomeYearProgressSection";
 
 import { HERO_WALLPAPER_IMAGE_SIZES } from "@/lib/shared/hero-wallpaper-image";
 

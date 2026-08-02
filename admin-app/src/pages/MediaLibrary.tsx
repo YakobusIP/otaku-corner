@@ -1,12 +1,12 @@
 import { useState } from "react";
 
-import { MediaFiltersProvider } from "@/components/context/MediaFiltersContext";
+import { MediaFiltersProvider } from "@/features/media-library/components/MediaFiltersContext";
 import AdminLayout from "@/components/layout/AdminLayout";
-import AddMediaDropdown from "@/components/media/AddMediaDropdown";
-import MediaHeader from "@/components/media/MediaHeader";
-import MediaListSection from "@/components/media/MediaListSection";
+import AddMediaDropdown from "@/features/media-library/components/AddMediaDropdown";
+import MediaHeader from "@/features/media-library/components/MediaHeader";
+import MediaListSection from "@/features/media-library/components/MediaListSection";
 
-import { useMediaLibraryList } from "@/hooks/useMediaLibraryList";
+import { useMediaLibraryList } from "@/features/media-library/hooks/useMediaLibraryList";
 
 function MediaLibraryContent() {
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);

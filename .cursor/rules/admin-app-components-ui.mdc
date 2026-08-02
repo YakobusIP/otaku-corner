@@ -120,7 +120,7 @@ export default function MediaListHeader(props: MediaListHeaderProps) {
   - recent activity
   - top rated sections
 - Recharts should remain isolated behind the lazy-loaded dashboard route unless the chart architecture changes.
-- Dashboard query hooks should live in `src/hooks/useDashboardQueries.ts`.
+- Dashboard query hooks should live in `src/features/dashboard/hooks/useDashboardQueries.ts`.
 - Keep dashboard loading/error states clear and compact.
 
 ## Accessibility and behavior

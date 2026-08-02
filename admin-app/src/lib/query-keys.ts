@@ -72,3 +72,9 @@ export const statisticKeys = {
   mediaConsumption: (view: STATISTICS_VIEW, yearOrAllYears: string) =>
     [...statisticKeys.all, "media-consumption", view, yearOrAllYears] as const
 };
+
+export const settingKeys = {
+  all: ["settings"] as const,
+  lists: () => [...settingKeys.all, "list"] as const,
+  detail: (key: string) => [...settingKeys.all, "detail", key] as const
+};

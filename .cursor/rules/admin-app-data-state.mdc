@@ -102,8 +102,8 @@ The admin app uses TanStack Query as the data-fetching and mutation layer. Servi
 
 ## Autosave and uploads
 
-- Review autosave belongs in `useDetailReviewAutosave`.
-- Keep markdown image upload behavior in `useReviewAssetUpload` and `upload.service`.
+- Review autosave belongs in `src/features/media-detail/shared/hooks/useDetailReviewAutosave`.
+- Keep markdown image upload behavior in `src/features/media-detail/shared/hooks/useReviewAssetUpload` and `upload.service`.
 - Keep upload progress user-visible.
 - When review images are removed, cleanup old uploaded assets after a successful review save.
 - Do not delete old assets before the review save succeeds.

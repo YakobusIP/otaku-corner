@@ -1,15 +1,15 @@
 import { useEffect } from "react";
 
 import AdminLayout from "@/components/layout/AdminLayout";
-import MangaHero from "@/components/manga-detail/MangaHero";
-import MangaInfoSection from "@/components/manga-detail/MangaInfoSection";
-import MangaReviewSection from "@/components/manga-detail/MangaReviewSection";
+import MangaHero from "@/features/media-detail/manga/components/MangaHero";
+import MangaInfoSection from "@/features/media-detail/manga/components/MangaInfoSection";
+import MangaReviewSection from "@/features/media-detail/manga/components/MangaReviewSection";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { useMangaDetail } from "@/hooks/useMangaDetail";
-import { useMediaLibraryBackPath } from "@/hooks/useMediaLibraryBackPath";
+import { useMangaDetail } from "@/features/media-detail/manga/hooks/useMangaDetail";
+import { useMediaLibraryBackPath } from "@/features/media-library/hooks/useMediaLibraryBackPath";
 
 import { parsePositiveIntParam } from "@/lib/parse-route-param";
 

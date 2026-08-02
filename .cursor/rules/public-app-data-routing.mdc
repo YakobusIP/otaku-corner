@@ -47,7 +47,7 @@ The public app uses Next.js App Router, TanStack Query, Axios services, server p
 - Server routes may call services for prefetching, metadata, and sitemap generation, then hydrate client queries through the established TanStack Query pattern.
 - It is acceptable for query option factories to reference services because their purpose is to build TanStack Query configuration.
 - Keep query keys deterministic and stable.
-- Use `publicListKeys` from `@/lib/media-list/query-keys` for public media list queries.
+- Use `publicListKeys` from `@/features/media-list/lib/query-keys` for public media list queries.
 
 ## Server prefetch and hydration
 

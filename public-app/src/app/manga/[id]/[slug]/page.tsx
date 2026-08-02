@@ -1,7 +1,7 @@
 import { mangaService } from "@/services/manga.service";
-import { createMediaDetailPage } from "@/components/media-detail/createMediaDetailPage";
+import { createMediaDetailPage } from "@/features/media-detail/components/createMediaDetailPage";
 
-import MangaDetail from "@/components/manga/MangaDetailConfig";
+import MangaDetail from "@/features/media-detail/domains/manga/MangaDetailConfig";
 
 const { generateMetadata, Page } = createMediaDetailPage({
   mediaType: "manga",

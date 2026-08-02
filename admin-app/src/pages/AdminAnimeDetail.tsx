@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 
-import AnimeEpisodesSection from "@/components/anime-detail/AnimeEpisodesSection";
-import AnimeHero from "@/components/anime-detail/AnimeHero";
-import AnimeInfoSection from "@/components/anime-detail/AnimeInfoSection";
-import AnimeReviewSection from "@/components/anime-detail/AnimeReviewSection";
+import AnimeEpisodesSection from "@/features/media-detail/anime/components/AnimeEpisodesSection";
+import AnimeHero from "@/features/media-detail/anime/components/AnimeHero";
+import AnimeInfoSection from "@/features/media-detail/anime/components/AnimeInfoSection";
+import AnimeReviewSection from "@/features/media-detail/anime/components/AnimeReviewSection";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { useAnimeDetail } from "@/hooks/useAnimeDetail";
-import { useMediaLibraryBackPath } from "@/hooks/useMediaLibraryBackPath";
+import { useAnimeDetail } from "@/features/media-detail/anime/hooks/useAnimeDetail";
+import { useMediaLibraryBackPath } from "@/features/media-library/hooks/useMediaLibraryBackPath";
 
 import { parsePositiveIntParam } from "@/lib/parse-route-param";
 

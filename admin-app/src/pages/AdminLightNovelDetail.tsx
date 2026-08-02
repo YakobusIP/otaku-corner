@@ -1,15 +1,15 @@
 import { useEffect } from "react";
 
 import AdminLayout from "@/components/layout/AdminLayout";
-import LightNovelHero from "@/components/lightnovel-detail/LightNovelHero";
-import LightNovelInfoSection from "@/components/lightnovel-detail/LightNovelInfoSection";
-import LightNovelReviewSection from "@/components/lightnovel-detail/LightNovelReviewSection";
+import LightNovelHero from "@/features/media-detail/light-novel/components/LightNovelHero";
+import LightNovelInfoSection from "@/features/media-detail/light-novel/components/LightNovelInfoSection";
+import LightNovelReviewSection from "@/features/media-detail/light-novel/components/LightNovelReviewSection";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { useLightNovelDetail } from "@/hooks/useLightNovelDetail";
-import { useMediaLibraryBackPath } from "@/hooks/useMediaLibraryBackPath";
+import { useLightNovelDetail } from "@/features/media-detail/light-novel/hooks/useLightNovelDetail";
+import { useMediaLibraryBackPath } from "@/features/media-library/hooks/useMediaLibraryBackPath";
 
 import { parsePositiveIntParam } from "@/lib/parse-route-param";
 

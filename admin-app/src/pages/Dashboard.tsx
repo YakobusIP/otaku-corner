@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 
-import KpiCards from "@/components/dashboard/KpiCards";
-import LibraryHealthCard from "@/components/dashboard/LibraryHealthCard";
-import MediaConsumptionCard from "@/components/dashboard/MediaConsumptionCard";
-import RecentActivity from "@/components/dashboard/RecentActivity";
-import TasteProfileCard from "@/components/dashboard/TasteProfileCard";
-import TopRatedSection from "@/components/dashboard/TopRatedSection";
+import KpiCards from "@/features/dashboard/components/KpiCards";
+import LibraryHealthCard from "@/features/dashboard/components/LibraryHealthCard";
+import MediaConsumptionCard from "@/features/dashboard/components/MediaConsumptionCard";
+import RecentActivity from "@/features/dashboard/components/RecentActivity";
+import TasteProfileCard from "@/features/dashboard/components/TasteProfileCard";
+import TopRatedSection from "@/features/dashboard/components/TopRatedSection";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,7 +19,7 @@ import {
 import {
   type DashboardYearScope,
   useDashboardQueries
-} from "@/hooks/useDashboardQueries";
+} from "@/features/dashboard/hooks/useDashboardQueries";
 
 export default function Dashboard() {
   const currentYear = new Date().getFullYear();
