@@ -46,13 +46,11 @@ export class UpdateImageEntryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @MaxLength(10000)
   prompt?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @MaxLength(10000)
   originalPrompt?: string | null;
 
   @ApiPropertyOptional({ enum: ImageVaultSafetyLevelDto })

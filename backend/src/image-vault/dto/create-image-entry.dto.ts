@@ -62,13 +62,11 @@ export class CreateImageEntryDto {
     (o: CreateImageEntryDto) => o.originType === ImageOriginTypeDto.AI
   )
   @IsString()
-  @MaxLength(10000)
   prompt?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @MaxLength(10000)
   originalPrompt?: string;
 
   @ApiPropertyOptional({

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,8 +9,8 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 import type { EditCategoryPayload } from "@/features/image-vault/hooks/useImageVaultCategoryManagement";
 
@@ -18,6 +18,7 @@ import type { ImageVaultCategory } from "@/types/image-vault.type";
 
 import { cn } from "@/lib/utils";
 
+import { useForm } from "@tanstack/react-form";
 import { Loader2Icon, PencilIcon, SaveIcon, XIcon } from "lucide-react";
 
 type Props = {
@@ -37,25 +38,30 @@ export default function EditCategoryDialog({
   isLoadingEdit,
   triggerVariant = "button"
 }: Props) {
-  const [name, setName] = useState(category.name);
-  const [slug, setSlug] = useState(category.slug);
+  const form = useForm({
+    defaultValues: {
+      name: category.name,
+      slug: category.slug
+    },
+    onSubmit: async ({ value }) => {
+      const trimmedName = value.name.trim();
+      const trimmedSlug = value.slug.trim();
+      if (!trimmedName || !trimmedSlug) return;
+
+      editHandler({
+        id: category.id,
+        name: trimmedName,
+        slug: trimmedSlug.slice(0, 200)
+      });
+    }
+  });
 
   useEffect(() => {
-    setName(category.name);
-    setSlug(category.slug);
-  }, [category]);
-
-  const handleSave = () => {
-    const trimmedName = name.trim();
-    const trimmedSlug = slug.trim();
-    if (!trimmedName || !trimmedSlug) return;
-
-    editHandler({
-      id: category.id,
-      name: trimmedName,
-      slug: trimmedSlug.slice(0, 200)
+    form.reset({
+      name: category.name,
+      slug: category.slug
     });
-  };
+  }, [category, form]);
 
   return (
     <Dialog
@@ -63,8 +69,10 @@ export default function EditCategoryDialog({
       onOpenChange={(next) => {
         onOpenChange(next);
         if (!next) {
-          setName(category.name);
-          setSlug(category.slug);
+          form.reset({
+            name: category.name,
+            slug: category.slug
+          });
         }
       }}
     >
@@ -87,54 +95,88 @@ export default function EditCategoryDialog({
         )}
       </DialogTrigger>
       <DialogContent className={cn("max-w-[400px]", "border-border/60")}>
-        <DialogHeader>
-          <DialogTitle>Edit Category</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor={`edit-category-name-${category.id}`}>Name</Label>
-            <Input
-              id={`edit-category-name-${category.id}`}
-              placeholder="Category name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            void form.handleSubmit();
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            <form.Field name="name">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor={`edit-category-name-${category.id}`}>
+                    Name
+                  </FieldLabel>
+                  <Input
+                    id={`edit-category-name-${category.id}`}
+                    placeholder="Category name"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) =>
+                      field.handleChange(event.target.value)
+                    }
+                    autoFocus
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="slug">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor={`edit-category-slug-${category.id}`}>
+                    Slug
+                  </FieldLabel>
+                  <Input
+                    id={`edit-category-slug-${category.id}`}
+                    placeholder="category-slug"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) =>
+                      field.handleChange(event.target.value)
+                    }
+                  />
+                </Field>
+              )}
+            </form.Field>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor={`edit-category-slug-${category.id}`}>Slug</Label>
-            <Input
-              id={`edit-category-slug-${category.id}`}
-              placeholder="category-slug"
-              value={slug}
-              onChange={(event) => setSlug(event.target.value)}
-            />
-          </div>
-        </div>
-        <DialogFooter className="gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoadingEdit}
-            className="gap-2"
-          >
-            <XIcon className="h-4 w-4" />
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={isLoadingEdit || !name.trim() || !slug.trim()}
-            className="gap-2"
-          >
-            {isLoadingEdit ? (
-              <Loader2Icon className="h-4 w-4 animate-spin" />
-            ) : (
-              <SaveIcon className="h-4 w-4" />
-            )}
-            Save
-          </Button>
-        </DialogFooter>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isLoadingEdit}
+              className="gap-2"
+            >
+              <XIcon className="h-4 w-4" />
+              Cancel
+            </Button>
+            <form.Subscribe
+              selector={(state) => [state.values.name, state.values.slug]}
+            >
+              {([name, slug]) => (
+                <Button
+                  type="submit"
+                  disabled={
+                    isLoadingEdit || !name.trim() || !slug.trim()
+                  }
+                  className="gap-2"
+                >
+                  {isLoadingEdit ? (
+                    <Loader2Icon className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <SaveIcon className="h-4 w-4" />
+                  )}
+                  Save
+                </Button>
+              )}
+            </form.Subscribe>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

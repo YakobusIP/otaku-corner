@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import ImageVaultCopySourceDialog from "@/features/image-vault/components/ImageVaultCopySourceDialog";
+import ImageVaultPromptTextarea from "@/features/image-vault/components/ImageVaultPromptTextarea";
 import ImageVaultSafetyFields from "@/features/image-vault/components/ImageVaultSafetyFields";
 import {
   type ImageVaultUploadParentDefaults,
@@ -53,6 +54,7 @@ import {
   type ImageOriginType,
   type ImageVaultEntry,
   type SensitiveImageVisibility,
+  isExplicitSafetyLevel,
   normalizeImageVaultSafetyReasonForSubmit,
   parseImageOriginType
 } from "@/types/image-vault.type";
@@ -132,6 +134,7 @@ export default function ImageVaultUploadDialog({
   const form = useForm({
     defaultValues: createImageVaultUploadDefaultValues(parentDefaults),
     validators: {
+      onChange: imageVaultUploadFormSchema,
       onSubmit: imageVaultUploadFormSchema
     },
     onSubmit: async ({ value }) => {
@@ -640,26 +643,17 @@ export default function ImageVaultUploadDialog({
                               field.state.meta.isTouched &&
                               !field.state.meta.isValid;
                             return (
-                              <Field data-invalid={isInvalid}>
-                                <FieldLabel htmlFor="vault-prompt">
-                                  {isFollowUp ? "Follow-up prompt" : "Prompt"}
-                                </FieldLabel>
-                                <Textarea
-                                  id="vault-prompt"
-                                  value={field.state.value}
-                                  onBlur={field.handleBlur}
-                                  onChange={(event) =>
-                                    field.handleChange(event.target.value)
-                                  }
-                                  rows={4}
-                                  aria-invalid={isInvalid}
-                                />
-                                {isInvalid ? (
-                                  <FieldError
-                                    errors={field.state.meta.errors}
-                                  />
-                                ) : null}
-                              </Field>
+                              <ImageVaultPromptTextarea
+                                id="vault-prompt"
+                                label={
+                                  isFollowUp ? "Follow-up prompt" : "Prompt"
+                                }
+                                value={field.state.value}
+                                onBlur={field.handleBlur}
+                                onChange={field.handleChange}
+                                isInvalid={isInvalid}
+                                errors={field.state.meta.errors}
+                              />
                             );
                           }}
                         </form.Field>
@@ -669,27 +663,15 @@ export default function ImageVaultUploadDialog({
                               field.state.meta.isTouched &&
                               !field.state.meta.isValid;
                             return (
-                              <Field data-invalid={isInvalid}>
-                                <FieldLabel htmlFor="vault-original-prompt">
-                                  Original prompt (optional)
-                                </FieldLabel>
-                                <Textarea
-                                  id="vault-original-prompt"
-                                  value={field.state.value}
-                                  onBlur={field.handleBlur}
-                                  onChange={(event) =>
-                                    field.handleChange(event.target.value)
-                                  }
-                                  rows={3}
-                                  className="min-h-[60px]"
-                                  aria-invalid={isInvalid}
-                                />
-                                {isInvalid ? (
-                                  <FieldError
-                                    errors={field.state.meta.errors}
-                                  />
-                                ) : null}
-                              </Field>
+                              <ImageVaultPromptTextarea
+                                id="vault-original-prompt"
+                                label="Original prompt (optional)"
+                                value={field.state.value}
+                                onBlur={field.handleBlur}
+                                onChange={field.handleChange}
+                                isInvalid={isInvalid}
+                                errors={field.state.meta.errors}
+                              />
                             );
                           }}
                         </form.Field>
@@ -729,6 +711,7 @@ export default function ImageVaultUploadDialog({
                     <form.Field name="safetyReason">
                       {(reasonField) => {
                         const reasonInvalid =
+                          isExplicitSafetyLevel(levelField.state.value) &&
                           reasonField.state.meta.isTouched &&
                           !reasonField.state.meta.isValid;
                         return (
@@ -806,7 +789,6 @@ export default function ImageVaultUploadDialog({
           open={copyPickerOpen}
           onOpenChange={setCopyPickerOpen}
           onSelect={applyCopySource}
-          sensitiveImageVisibility={sensitiveImageVisibility}
         />
       ) : null}
     </Fragment>

@@ -2,6 +2,7 @@ import { Fragment, useEffect, useLayoutEffect, useState } from "react";
 
 import ImageVaultCardBadges from "@/features/image-vault/components/ImageVaultCardBadges";
 import ImageVaultPreviewImage from "@/features/image-vault/components/ImageVaultPreviewImage";
+import ImageVaultPromptTextarea from "@/features/image-vault/components/ImageVaultPromptTextarea";
 import ImageVaultSafetyFields from "@/features/image-vault/components/ImageVaultSafetyFields";
 import ImageVaultUploadDialog from "@/features/image-vault/components/ImageVaultUploadDialog";
 import {
@@ -47,6 +48,7 @@ import {
   type ImageVaultEntry,
   type ImageVaultSafetyLevel,
   type SensitiveImageVisibility,
+  isExplicitSafetyLevel,
   normalizeImageVaultSafetyReasonForSubmit,
   parseImageOriginType
 } from "@/types/image-vault.type";
@@ -167,6 +169,7 @@ export default function ImageVaultDetailDialog({
   const form = useForm({
     defaultValues: createImageVaultUploadDefaultValues(),
     validators: {
+      onChange: imageVaultUploadFormSchema,
       onSubmit: imageVaultUploadFormSchema
     },
     onSubmit: async ({ value }) => {
@@ -482,26 +485,15 @@ export default function ImageVaultDetailDialog({
                                   field.state.meta.isTouched &&
                                   !field.state.meta.isValid;
                                 return (
-                                  <Field data-invalid={isInvalid}>
-                                    <FieldLabel htmlFor="detail-prompt">
-                                      Prompt
-                                    </FieldLabel>
-                                    <Textarea
-                                      id="detail-prompt"
-                                      value={field.state.value}
-                                      onBlur={field.handleBlur}
-                                      onChange={(event) =>
-                                        field.handleChange(event.target.value)
-                                      }
-                                      rows={4}
-                                      aria-invalid={isInvalid}
-                                    />
-                                    {isInvalid ? (
-                                      <FieldError
-                                        errors={field.state.meta.errors}
-                                      />
-                                    ) : null}
-                                  </Field>
+                                  <ImageVaultPromptTextarea
+                                    id="detail-prompt"
+                                    label="Prompt"
+                                    value={field.state.value}
+                                    onBlur={field.handleBlur}
+                                    onChange={field.handleChange}
+                                    isInvalid={isInvalid}
+                                    errors={field.state.meta.errors}
+                                  />
                                 );
                               }}
                             </form.Field>
@@ -511,27 +503,15 @@ export default function ImageVaultDetailDialog({
                                   field.state.meta.isTouched &&
                                   !field.state.meta.isValid;
                                 return (
-                                  <Field data-invalid={isInvalid}>
-                                    <FieldLabel htmlFor="detail-original-prompt">
-                                      Original prompt
-                                    </FieldLabel>
-                                    <Textarea
-                                      id="detail-original-prompt"
-                                      value={field.state.value}
-                                      onBlur={field.handleBlur}
-                                      onChange={(event) =>
-                                        field.handleChange(event.target.value)
-                                      }
-                                      rows={3}
-                                      className="min-h-[60px]"
-                                      aria-invalid={isInvalid}
-                                    />
-                                    {isInvalid ? (
-                                      <FieldError
-                                        errors={field.state.meta.errors}
-                                      />
-                                    ) : null}
-                                  </Field>
+                                  <ImageVaultPromptTextarea
+                                    id="detail-original-prompt"
+                                    label="Original prompt"
+                                    value={field.state.value}
+                                    onBlur={field.handleBlur}
+                                    onChange={field.handleChange}
+                                    isInvalid={isInvalid}
+                                    errors={field.state.meta.errors}
+                                  />
                                 );
                               }}
                             </form.Field>
@@ -574,6 +554,7 @@ export default function ImageVaultDetailDialog({
                         <form.Field name="safetyReason">
                           {(reasonField) => {
                             const reasonInvalid =
+                              isExplicitSafetyLevel(levelField.state.value) &&
                               reasonField.state.meta.isTouched &&
                               !reasonField.state.meta.isValid;
                             return (
