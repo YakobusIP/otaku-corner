@@ -49,6 +49,12 @@ export const envSchema = z.object({
   R2_PRIVATE_ACCESS_KEY_ID: z.string().trim().min(1),
   R2_PRIVATE_SECRET_ACCESS_KEY: z.string().trim().min(1),
   R2_PRIVATE_BUCKET_NAME: z.string().trim().min(1),
+  CLOUDFLARE_API_TOKEN: z.preprocess((v) => {
+    if (typeof v !== "string" || v.trim() === "") {
+      return undefined;
+    }
+    return v.trim();
+  }, z.string().min(1).optional()),
 
   BULL_REDIS_IP: z.string().trim().min(1),
   BULL_REDIS_PORT: z.preprocess((v) => {
