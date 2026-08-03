@@ -6,6 +6,7 @@ import type {
   ImageVaultEntry,
   ImageVaultListFilters,
   ImageVaultModel,
+  ImageVaultR2Analytics,
   UpdateImageEntryPayload
 } from "@/types/image-vault.type";
 import type {
@@ -392,6 +393,19 @@ const createImageVaultService = () => {
     }
   };
 
+  const getR2Analytics = async (): Promise<
+    ServiceResult<ImageVaultR2Analytics>
+  > => {
+    try {
+      const response = await interceptedAxios.get<ImageVaultR2Analytics>(
+        `${BASE_URL}/r2-analytics`
+      );
+      return ok(response.data);
+    } catch (error: unknown) {
+      return err(error);
+    }
+  };
+
   const createCategory = async (payload: {
     name: string;
     slug: string;
@@ -446,6 +460,7 @@ const createImageVaultService = () => {
     updateModel,
     deleteModels,
     listCategories,
+    getR2Analytics,
     createCategory,
     updateCategory,
     deleteCategories

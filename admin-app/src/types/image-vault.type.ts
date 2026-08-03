@@ -189,3 +189,10 @@ export type UpdateImageEntryPayload = {
   categoryIds?: string[];
   notes?: string | null;
 };
+
+export type ImageVaultR2Analytics = {
+  objectCount: number;
+  classAOperations: number;
+  classBOperations: number;
+  totalPayloadSizeBytes: number;
+};

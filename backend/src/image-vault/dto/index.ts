@@ -6,6 +6,7 @@ export * from "@/image-vault/dto/image-entry-response.dto";
 export * from "@/image-vault/dto/image-entry-search.dto";
 export * from "@/image-vault/dto/image-model-response.dto";
 export * from "@/image-vault/dto/image-vault-enums";
+export * from "@/image-vault/dto/image-vault-r2-analytics-response.dto";
 export * from "@/image-vault/dto/update-image-category.dto";
 export * from "@/image-vault/dto/update-image-entry.dto";
 export * from "@/image-vault/dto/update-image-model.dto";
