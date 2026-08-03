@@ -57,6 +57,22 @@ export const useImageVaultCategories = (enabled = true) =>
     }
   });
 
+const R2_ANALYTICS_STALE_MS = 10 * 60 * 1000; // align with backend R2 analytics cache TTL
+
+export const useImageVaultR2Analytics = (enabled = true) =>
+  useQuery({
+    queryKey: imageVaultKeys.r2Analytics(),
+    enabled,
+    staleTime: R2_ANALYTICS_STALE_MS,
+    queryFn: async () => {
+      const result = await imageVaultService.getR2Analytics();
+      if (!result.success) {
+        throw result.error;
+      }
+      return result.data;
+    }
+  });
+
 export const useImageVaultMutations = () => {
   const queryClient = useQueryClient();
 
@@ -67,15 +83,15 @@ export const useImageVaultMutations = () => {
   const uploadImage = useMutation({
     mutationFn: async (input: {
       file: File;
-      sourceFile?: File | null;
-      metadata: Omit<CreateImageEntryPayload, "assetId" | "sourceAssetId">;
+      sourceFiles?: File[];
+      metadata: Omit<CreateImageEntryPayload, "assetId" | "sourceAssetIds">;
       onStatus?: (status: ImageVaultUploadStatus) => void;
     }) => {
       const result = await imageVaultService.uploadAndCreateImage(
         input.file,
         input.metadata,
         {
-          sourceFile: input.sourceFile,
+          sourceFiles: input.sourceFiles,
           onStatus: input.onStatus
         }
       );
@@ -104,10 +120,16 @@ export const useImageVaultMutations = () => {
     mutationFn: async (input: {
       id: string;
       payload: UpdateImageEntryPayload;
+      additionalSourceFiles?: File[];
+      onStatus?: (status: ImageVaultUploadStatus) => void;
     }) => {
       const result = await imageVaultService.updateImage(
         input.id,
-        input.payload
+        input.payload,
+        {
+          additionalSourceFiles: input.additionalSourceFiles,
+          onStatus: input.onStatus
+        }
       );
       if (!result.success) {
         throw result.error;

@@ -8,6 +8,7 @@ import ImageVaultDetailDialog from "@/features/image-vault/components/ImageVault
 import ImageVaultFilters from "@/features/image-vault/components/ImageVaultFilters";
 import ImageVaultListSection from "@/features/image-vault/components/ImageVaultListSection";
 import ImageVaultManageDropdown from "@/features/image-vault/components/ImageVaultManageDropdown";
+import ImageVaultR2AnalyticsCards from "@/features/image-vault/components/ImageVaultR2AnalyticsCards";
 import ImageVaultUploadDialog from "@/features/image-vault/components/ImageVaultUploadDialog";
 import AdminLayout from "@/components/layout/AdminLayout";
 
@@ -33,6 +34,7 @@ function ImageVaultContent() {
       actions={<ImageVaultManageDropdown />}
     >
       <div className="space-y-4">
+        <ImageVaultR2AnalyticsCards />
         <ImageVaultFilters />
         <ImageVaultListSection
           listQuery={listQuery}

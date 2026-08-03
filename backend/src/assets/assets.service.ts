@@ -354,7 +354,7 @@ export class AssetsService {
         where: { id: assetId },
         include: {
           imageVaultEntry: { select: { id: true } },
-          imageVaultSourceEntries: { select: { id: true } }
+          imageVaultSourceLinks: { select: { imageVaultEntryId: true } }
         }
       });
 
@@ -369,7 +369,7 @@ export class AssetsService {
       }
 
       if (
-        asset.imageVaultSourceEntries &&
+        asset.imageVaultSourceLinks.length > 0 &&
         !options?.allowImageVaultSourceAsset
       ) {
         throw new BadRequestException(

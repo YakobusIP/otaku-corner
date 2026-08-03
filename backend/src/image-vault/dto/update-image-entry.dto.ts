@@ -4,7 +4,10 @@ import {
   ImageOriginTypeDto,
   ImageVaultSafetyLevelDto
 } from "@/image-vault/dto/image-vault-enums";
-import { IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY } from "@/image-vault/image-vault.constants";
+import {
+  IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY,
+  IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY
+} from "@/image-vault/image-vault.constants";
 
 import {
   ArrayMaxSize,
@@ -24,13 +27,16 @@ export class UpdateImageEntryDto {
   originType?: ImageOriginTypeDto;
 
   @ApiPropertyOptional({
+    type: [String],
     format: "uuid",
     description:
-      "Reference/source image for root entries only; pass null to remove"
+      "Replace source images for root entries only; pass [] to remove all. Order is preserved."
   })
   @IsOptional()
-  @IsUUID()
-  sourceAssetId?: string | null;
+  @IsArray()
+  @IsUUID("4", { each: true })
+  @ArrayMaxSize(IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY)
+  sourceAssetIds?: string[];
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -46,13 +52,11 @@ export class UpdateImageEntryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @MaxLength(10000)
   prompt?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @MaxLength(10000)
   originalPrompt?: string | null;
 
   @ApiPropertyOptional({ enum: ImageVaultSafetyLevelDto })

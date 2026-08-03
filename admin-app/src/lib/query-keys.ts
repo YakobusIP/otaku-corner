@@ -54,7 +54,8 @@ export const imageVaultKeys = {
   details: () => [...imageVaultKeys.all, "detail"] as const,
   detail: (id: string) => [...imageVaultKeys.all, "detail", id] as const,
   models: () => [...imageVaultKeys.all, "models"] as const,
-  categories: () => [...imageVaultKeys.all, "categories"] as const
+  categories: () => [...imageVaultKeys.all, "categories"] as const,
+  r2Analytics: () => [...imageVaultKeys.all, "r2Analytics"] as const
 };
 
 export const statisticKeys = {

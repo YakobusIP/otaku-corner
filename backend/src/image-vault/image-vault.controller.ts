@@ -28,6 +28,7 @@ import {
   ImageEntryResponseDto,
   ImageEntrySearchDto,
   ImageModelResponseDto,
+  ImageVaultR2AnalyticsResponseDto,
   PaginatedImageEntriesResponseDto,
   UpdateImageCategoryDto,
   UpdateImageEntryDto,
@@ -36,6 +37,7 @@ import {
 import { ImageVaultCategoryService } from "@/image-vault/image-vault-category.service";
 import { ImageVaultModelService } from "@/image-vault/image-vault-model.service";
 import { ImageVaultService } from "@/image-vault/image-vault.service";
+import { R2AnalyticsService } from "@/storage/r2-analytics.service";
 
 @AuthenticatedApiController({
   tag: "Image Vault",
@@ -46,8 +48,19 @@ export class ImageVaultController {
   constructor(
     private readonly imageVaultService: ImageVaultService,
     private readonly imageVaultModelService: ImageVaultModelService,
-    private readonly imageVaultCategoryService: ImageVaultCategoryService
+    private readonly imageVaultCategoryService: ImageVaultCategoryService,
+    private readonly r2AnalyticsService: R2AnalyticsService
   ) {}
+
+  @Get("r2-analytics")
+  @ApiOperation({
+    summary:
+      "Cloudflare R2 storage analytics (object count, Class A/B ops, average size)"
+  })
+  @ApiOkResponse({ type: ImageVaultR2AnalyticsResponseDto })
+  async getR2Analytics(): Promise<ImageVaultR2AnalyticsResponseDto> {
+    return this.r2AnalyticsService.getStorageAnalytics();
+  }
 
   @Post("images/search")
   @HttpCode(HttpStatus.OK)
@@ -88,9 +101,9 @@ export class ImageVaultController {
     return { downloadUrl };
   }
 
-  @Get("images/:id/source/download-url")
+  @Get("images/:id/source/:assetId/download-url")
   @ApiOperation({
-    summary: "Get presigned download URL for image vault source file"
+    summary: "Get presigned download URL for an image vault source file"
   })
   @ApiOkResponse({
     schema: {
@@ -99,9 +112,14 @@ export class ImageVaultController {
       required: ["downloadUrl"]
     }
   })
-  async getSourceImageDownloadUrl(@Param("id", ParseUUIDPipe) id: string) {
-    const downloadUrl =
-      await this.imageVaultService.getSourceImageDownloadUrl(id);
+  async getSourceImageDownloadUrl(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("assetId", ParseUUIDPipe) assetId: string
+  ) {
+    const downloadUrl = await this.imageVaultService.getSourceImageDownloadUrl(
+      id,
+      assetId
+    );
     return { downloadUrl };
   }
 

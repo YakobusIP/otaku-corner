@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction, useState } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,9 +10,10 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
+import { useForm } from "@tanstack/react-form";
 import { Loader2Icon, PlusIcon, XIcon } from "lucide-react";
 
 type Props = {
@@ -22,25 +23,29 @@ type Props = {
   isLoadingAdd: boolean;
 };
 
+const DEFAULT_VALUES = {
+  name: "",
+  provider: ""
+};
+
 export default function AddModelDialog({
   isOpenDialog,
   setIsOpenDialog,
   addHandler,
   isLoadingAdd
 }: Props) {
-  const [name, setName] = useState("");
-  const [provider, setProvider] = useState("");
+  const form = useForm({
+    defaultValues: DEFAULT_VALUES,
+    onSubmit: async ({ value }) => {
+      const trimmedName = value.name.trim();
+      const trimmedProvider = value.provider.trim();
+      if (!trimmedName || !trimmedProvider) return;
+      addHandler({ name: trimmedName, provider: trimmedProvider });
+    }
+  });
 
   const resetForm = () => {
-    setName("");
-    setProvider("");
-  };
-
-  const handleAdd = () => {
-    const trimmedName = name.trim();
-    const trimmedProvider = provider.trim();
-    if (!trimmedName || !trimmedProvider) return;
-    addHandler({ name: trimmedName, provider: trimmedProvider });
+    form.reset(DEFAULT_VALUES);
   };
 
   return (
@@ -63,59 +68,87 @@ export default function AddModelDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-[400px] border-border/60">
-        <DialogHeader>
-          <DialogTitle>Add Model</DialogTitle>
-          <DialogDescription>
-            Add a new AI image generation model.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor="add-model-name">Name</Label>
-            <Input
-              id="add-model-name"
-              placeholder="Model name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            void form.handleSubmit();
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Add Model</DialogTitle>
+            <DialogDescription>
+              Add a new AI image generation model.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            <form.Field name="name">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor="add-model-name">Name</FieldLabel>
+                  <Input
+                    id="add-model-name"
+                    placeholder="Model name"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) =>
+                      field.handleChange(event.target.value)
+                    }
+                    autoFocus
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="provider">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor="add-model-provider">Provider</FieldLabel>
+                  <Input
+                    id="add-model-provider"
+                    placeholder="Provider"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) =>
+                      field.handleChange(event.target.value)
+                    }
+                  />
+                </Field>
+              )}
+            </form.Field>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="add-model-provider">Provider</Label>
-            <Input
-              id="add-model-provider"
-              placeholder="Provider"
-              value={provider}
-              onChange={(event) => setProvider(event.target.value)}
-            />
-          </div>
-        </div>
-        <DialogFooter className="gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsOpenDialog(false)}
-            disabled={isLoadingAdd}
-            className="gap-2"
-          >
-            <XIcon className="h-4 w-4" />
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleAdd}
-            disabled={
-              isLoadingAdd || !name.trim() || !provider.trim()
-            }
-            className="gap-2"
-          >
-            {isLoadingAdd ? (
-              <Loader2Icon className="h-4 w-4 animate-spin" />
-            ) : (
-              <PlusIcon className="h-4 w-4" />
-            )}
-            Add
-          </Button>
-        </DialogFooter>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpenDialog(false)}
+              disabled={isLoadingAdd}
+              className="gap-2"
+            >
+              <XIcon className="h-4 w-4" />
+              Cancel
+            </Button>
+            <form.Subscribe
+              selector={(state) => [state.values.name, state.values.provider]}
+            >
+              {([name, provider]) => (
+                <Button
+                  type="submit"
+                  disabled={
+                    isLoadingAdd || !name.trim() || !provider.trim()
+                  }
+                  className="gap-2"
+                >
+                  {isLoadingAdd ? (
+                    <Loader2Icon className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <PlusIcon className="h-4 w-4" />
+                  )}
+                  Add
+                </Button>
+              )}
+            </form.Subscribe>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

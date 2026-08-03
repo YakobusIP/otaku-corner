@@ -7,7 +7,11 @@ import axios, {
   type AxiosResponse
 } from "axios";
 
-export type HttpClientProvider = "tenrai" | "anilist" | "ranobedb";
+export type HttpClientProvider =
+  | "tenrai"
+  | "anilist"
+  | "ranobedb"
+  | "cloudflare";
 
 export type HttpClientLogContext = {
   provider: HttpClientProvider;

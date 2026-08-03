@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction, useState } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,11 +10,12 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 import { generateSlug } from "@/lib/utils";
 
+import { useForm } from "@tanstack/react-form";
 import { Loader2Icon, PlusIcon, XIcon } from "lucide-react";
 
 type Props = {
@@ -24,31 +25,35 @@ type Props = {
   isLoadingAdd: boolean;
 };
 
+const DEFAULT_VALUES = {
+  name: "",
+  slug: ""
+};
+
 export default function AddCategoryDialog({
   isOpenDialog,
   setIsOpenDialog,
   addHandler,
   isLoadingAdd
 }: Props) {
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
+  const form = useForm({
+    defaultValues: DEFAULT_VALUES,
+    onSubmit: async ({ value }) => {
+      const trimmedName = value.name.trim();
+      if (!trimmedName) return;
+
+      const resolvedSlug =
+        value.slug.trim() || generateSlug(trimmedName) || "category";
+
+      addHandler({
+        name: trimmedName,
+        slug: resolvedSlug.slice(0, 200)
+      });
+    }
+  });
 
   const resetForm = () => {
-    setName("");
-    setSlug("");
-  };
-
-  const handleAdd = () => {
-    const trimmedName = name.trim();
-    if (!trimmedName) return;
-
-    const resolvedSlug =
-      slug.trim() || generateSlug(trimmedName) || "category";
-
-    addHandler({
-      name: trimmedName,
-      slug: resolvedSlug.slice(0, 200)
-    });
+    form.reset(DEFAULT_VALUES);
   };
 
   return (
@@ -71,57 +76,85 @@ export default function AddCategoryDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-[400px] border-border/60">
-        <DialogHeader>
-          <DialogTitle>Add Category</DialogTitle>
-          <DialogDescription>
-            Add a reusable category for vault images.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor="add-category-name">Name</Label>
-            <Input
-              id="add-category-name"
-              placeholder="Category name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            void form.handleSubmit();
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Add Category</DialogTitle>
+            <DialogDescription>
+              Add a reusable category for vault images.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            <form.Field name="name">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor="add-category-name">Name</FieldLabel>
+                  <Input
+                    id="add-category-name"
+                    placeholder="Category name"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) =>
+                      field.handleChange(event.target.value)
+                    }
+                    autoFocus
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="slug">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor="add-category-slug">
+                    Slug (optional)
+                  </FieldLabel>
+                  <Input
+                    id="add-category-slug"
+                    placeholder="category-slug"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) =>
+                      field.handleChange(event.target.value)
+                    }
+                  />
+                </Field>
+              )}
+            </form.Field>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="add-category-slug">Slug (optional)</Label>
-            <Input
-              id="add-category-slug"
-              placeholder="category-slug"
-              value={slug}
-              onChange={(event) => setSlug(event.target.value)}
-            />
-          </div>
-        </div>
-        <DialogFooter className="gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsOpenDialog(false)}
-            disabled={isLoadingAdd}
-            className="gap-2"
-          >
-            <XIcon className="h-4 w-4" />
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleAdd}
-            disabled={isLoadingAdd || !name.trim()}
-            className="gap-2"
-          >
-            {isLoadingAdd ? (
-              <Loader2Icon className="h-4 w-4 animate-spin" />
-            ) : (
-              <PlusIcon className="h-4 w-4" />
-            )}
-            Add
-          </Button>
-        </DialogFooter>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpenDialog(false)}
+              disabled={isLoadingAdd}
+              className="gap-2"
+            >
+              <XIcon className="h-4 w-4" />
+              Cancel
+            </Button>
+            <form.Subscribe selector={(state) => state.values.name}>
+              {(name) => (
+                <Button
+                  type="submit"
+                  disabled={isLoadingAdd || !name.trim()}
+                  className="gap-2"
+                >
+                  {isLoadingAdd ? (
+                    <Loader2Icon className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <PlusIcon className="h-4 w-4" />
+                  )}
+                  Add
+                </Button>
+              )}
+            </form.Subscribe>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

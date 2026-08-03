@@ -1,9 +1,6 @@
 import { Fragment, useMemo, useState } from "react";
 
-import {
-  ImageVaultFiltersProvider,
-  useImageVaultFilters
-} from "@/features/image-vault/components/ImageVaultFiltersContext";
+import { useImageVaultFilters } from "@/features/image-vault/components/ImageVaultFiltersContext";
 import ImageVaultCardBadges from "@/features/image-vault/components/ImageVaultCardBadges";
 import ImageVaultFilters from "@/features/image-vault/components/ImageVaultFilters";
 import {
@@ -23,10 +20,7 @@ import {
 import { useImageVaultListPage } from "@/features/image-vault/hooks/useImageVaultListPage";
 import { useLoadingDots } from "@/hooks/useLoadingDots";
 
-import type {
-  ImageVaultEntry,
-  SensitiveImageVisibility
-} from "@/types/image-vault.type";
+import type { ImageVaultEntry } from "@/types/image-vault.type";
 
 import { hasActiveFilterGroups } from "@/features/image-vault/lib/image-vault-filter-expression";
 import {
@@ -36,7 +30,6 @@ import {
 
 import { useInView } from "react-intersection-observer";
 
-const COPY_SOURCE_PAGE_SIZE = 20;
 const COPY_SOURCE_GRID_CLASS =
   "grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5";
 
@@ -44,7 +37,6 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelect: (entry: ImageVaultEntry) => void;
-  sensitiveImageVisibility?: SensitiveImageVisibility;
 };
 
 function ImageVaultCopySourceDialogContent({
@@ -55,7 +47,8 @@ function ImageVaultCopySourceDialogContent({
   portalContainer: HTMLElement | null;
 }) {
   const { state } = useImageVaultFilters();
-  const listQuery = useImageVaultListPage({ pageSize: COPY_SOURCE_PAGE_SIZE });
+  // Share the main vault list query key (same filters + page size).
+  const listQuery = useImageVaultListPage();
   const loadingDots = useLoadingDots(listQuery.isLoading);
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
 
@@ -218,8 +211,7 @@ function ImageVaultCopySourceDialogContent({
 export default function ImageVaultCopySourceDialog({
   open,
   onOpenChange,
-  onSelect,
-  sensitiveImageVisibility = "MASK_EXPLICIT"
+  onSelect
 }: Props) {
   const [dialogContentElement, setDialogContentElement] =
     useState<HTMLDivElement | null>(null);
@@ -239,17 +231,12 @@ export default function ImageVaultCopySourceDialog({
         </DialogHeader>
 
         {open ? (
-          <ImageVaultFiltersProvider
-            persistVisibilityToUrl={false}
-            initialSensitiveImageVisibility={sensitiveImageVisibility}
-          >
-            <div className="flex min-h-0 flex-1 flex-col gap-3">
-              <ImageVaultCopySourceDialogContent
-                onSelect={onSelect}
-                portalContainer={dialogContentElement}
-              />
-            </div>
-          </ImageVaultFiltersProvider>
+          <div className="flex min-h-0 flex-1 flex-col gap-3">
+            <ImageVaultCopySourceDialogContent
+              onSelect={onSelect}
+              portalContainer={dialogContentElement}
+            />
+          </div>
         ) : null}
       </DialogContent>
     </Dialog>
