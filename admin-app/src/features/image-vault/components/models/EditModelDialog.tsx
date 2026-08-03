@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,8 +10,8 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 import type { EditModelPayload } from "@/features/image-vault/hooks/useImageVaultModelManagement";
 
@@ -19,6 +19,7 @@ import type { ImageVaultModel } from "@/types/image-vault.type";
 
 import { cn } from "@/lib/utils";
 
+import { useForm } from "@tanstack/react-form";
 import { Loader2Icon, PencilIcon, SaveIcon, XIcon } from "lucide-react";
 
 type Props = {
@@ -38,28 +39,33 @@ export default function EditModelDialog({
   isLoadingEdit,
   triggerVariant = "button"
 }: Props) {
-  const [name, setName] = useState(model.name);
-  const [provider, setProvider] = useState(model.provider);
-  const [isActive, setIsActive] = useState(model.isActive);
+  const form = useForm({
+    defaultValues: {
+      name: model.name,
+      provider: model.provider,
+      isActive: model.isActive
+    },
+    onSubmit: async ({ value }) => {
+      const trimmedName = value.name.trim();
+      const trimmedProvider = value.provider.trim();
+      if (!trimmedName || !trimmedProvider) return;
+
+      editHandler({
+        id: model.id,
+        name: trimmedName,
+        provider: trimmedProvider,
+        isActive: value.isActive
+      });
+    }
+  });
 
   useEffect(() => {
-    setName(model.name);
-    setProvider(model.provider);
-    setIsActive(model.isActive);
-  }, [model]);
-
-  const handleSave = () => {
-    const trimmedName = name.trim();
-    const trimmedProvider = provider.trim();
-    if (!trimmedName || !trimmedProvider) return;
-
-    editHandler({
-      id: model.id,
-      name: trimmedName,
-      provider: trimmedProvider,
-      isActive
+    form.reset({
+      name: model.name,
+      provider: model.provider,
+      isActive: model.isActive
     });
-  };
+  }, [model, form]);
 
   return (
     <Dialog
@@ -67,9 +73,11 @@ export default function EditModelDialog({
       onOpenChange={(next) => {
         onOpenChange(next);
         if (!next) {
-          setName(model.name);
-          setProvider(model.provider);
-          setIsActive(model.isActive);
+          form.reset({
+            name: model.name,
+            provider: model.provider,
+            isActive: model.isActive
+          });
         }
       }}
     >
@@ -92,62 +100,107 @@ export default function EditModelDialog({
         )}
       </DialogTrigger>
       <DialogContent className={cn("max-w-[400px]", "border-border/60")}>
-        <DialogHeader>
-          <DialogTitle>Edit Model</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor={`edit-model-name-${model.id}`}>Name</Label>
-            <Input
-              id={`edit-model-name-${model.id}`}
-              placeholder="Model name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            void form.handleSubmit();
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Edit Model</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            <form.Field name="name">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor={`edit-model-name-${model.id}`}>
+                    Name
+                  </FieldLabel>
+                  <Input
+                    id={`edit-model-name-${model.id}`}
+                    placeholder="Model name"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) =>
+                      field.handleChange(event.target.value)
+                    }
+                    autoFocus
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="provider">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor={`edit-model-provider-${model.id}`}>
+                    Provider
+                  </FieldLabel>
+                  <Input
+                    id={`edit-model-provider-${model.id}`}
+                    placeholder="Provider"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) =>
+                      field.handleChange(event.target.value)
+                    }
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="isActive">
+              {(field) => (
+                <div className="flex items-center gap-2 rounded-md border border-border/60 px-3 py-2">
+                  <Checkbox
+                    id={`edit-model-active-${model.id}`}
+                    checked={field.state.value}
+                    onCheckedChange={(checked) =>
+                      field.handleChange(checked === true)
+                    }
+                  />
+                  <FieldLabel htmlFor={`edit-model-active-${model.id}`}>
+                    Active
+                  </FieldLabel>
+                </div>
+              )}
+            </form.Field>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor={`edit-model-provider-${model.id}`}>Provider</Label>
-            <Input
-              id={`edit-model-provider-${model.id}`}
-              placeholder="Provider"
-              value={provider}
-              onChange={(event) => setProvider(event.target.value)}
-            />
-          </div>
-          <div className="flex items-center gap-2 rounded-md border border-border/60 px-3 py-2">
-            <Checkbox
-              id={`edit-model-active-${model.id}`}
-              checked={isActive}
-              onCheckedChange={(checked) => setIsActive(checked === true)}
-            />
-            <Label htmlFor={`edit-model-active-${model.id}`}>Active</Label>
-          </div>
-        </div>
-        <DialogFooter className="gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoadingEdit}
-            className="gap-2"
-          >
-            <XIcon className="h-4 w-4" />
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={isLoadingEdit || !name.trim() || !provider.trim()}
-            className="gap-2"
-          >
-            {isLoadingEdit ? (
-              <Loader2Icon className="h-4 w-4 animate-spin" />
-            ) : (
-              <SaveIcon className="h-4 w-4" />
-            )}
-            Save
-          </Button>
-        </DialogFooter>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isLoadingEdit}
+              className="gap-2"
+            >
+              <XIcon className="h-4 w-4" />
+              Cancel
+            </Button>
+            <form.Subscribe
+              selector={(state) => [
+                state.values.name,
+                state.values.provider
+              ]}
+            >
+              {([name, provider]) => (
+                <Button
+                  type="submit"
+                  disabled={
+                    isLoadingEdit || !name.trim() || !provider.trim()
+                  }
+                  className="gap-2"
+                >
+                  {isLoadingEdit ? (
+                    <Loader2Icon className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <SaveIcon className="h-4 w-4" />
+                  )}
+                  Save
+                </Button>
+              )}
+            </form.Subscribe>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

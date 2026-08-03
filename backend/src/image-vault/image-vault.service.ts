@@ -12,6 +12,7 @@ import type { CreateImageEntryDto } from "@/image-vault/dto/create-image-entry.d
 import type {
   ImageEntryResponseDto,
   ImageLineageSummaryDto,
+  ImageVaultSourceAssetDto,
   PaginatedImageEntriesResponseDto
 } from "@/image-vault/dto/image-entry-response.dto";
 import type { ImageEntrySearchDto } from "@/image-vault/dto/image-entry-search.dto";
@@ -25,7 +26,8 @@ import { mapFilterGroupsToWhere } from "@/image-vault/image-vault-filter-express
 import { ImageVaultModelService } from "@/image-vault/image-vault-model.service";
 import {
   IMAGE_VAULT_DEFAULT_PAGE_LIMIT,
-  IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY
+  IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY,
+  IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY
 } from "@/image-vault/image-vault.constants";
 import { isPrivateVaultAssetUrl } from "@/storage/asset-storage-scope";
 import { R2FileStorageService } from "@/storage/r2-file-storage.service";
@@ -35,6 +37,7 @@ import {
   AssetStatus,
   type ImageVaultEntry,
   type ImageVaultEntryCategory,
+  type ImageVaultEntrySourceAsset,
   type ImageVaultGenerationModel,
   ImageVaultOriginType,
   ImageVaultSafetyLevel,
@@ -58,9 +61,13 @@ type ImageVaultEntryCategoryWithCategory = ImageVaultEntryCategory & {
   };
 };
 
+type ImageVaultEntrySourceAssetWithAsset = ImageVaultEntrySourceAsset & {
+  asset: Asset;
+};
+
 type ImageVaultEntryWithRelations = ImageVaultEntry & {
   asset: Asset;
-  sourceAsset?: Asset | null;
+  sourceAssets?: ImageVaultEntrySourceAssetWithAsset[];
   model: ImageVaultGenerationModel | null;
   categories: ImageVaultEntryCategoryWithCategory[];
   parent?: (ImageVaultEntry & { asset: Asset }) | null;
@@ -95,9 +102,11 @@ export class ImageVaultService {
     );
     this.validateOriginalPrompt(dto.prompt, dto.originalPrompt);
 
-    if (dto.parentId && dto.sourceAssetId) {
+    const sourceAssetIds = this.normalizeSourceAssetIds(dto.sourceAssetIds);
+
+    if (dto.parentId && sourceAssetIds.length > 0) {
       throw new BadRequestException(
-        "Follow-up images cannot include a source image"
+        "Follow-up images cannot include source images"
       );
     }
 
@@ -128,9 +137,7 @@ export class ImageVaultService {
       );
     }
 
-    if (dto.sourceAssetId) {
-      await this.assertSourceAssetReady(dto.sourceAssetId, dto.assetId);
-    }
+    await this.assertSourceAssetsReady(sourceAssetIds, dto.assetId);
 
     const categoryIds = this.normalizeCategoryIds(dto.categoryIds);
     await this.assertOptionalRelationsExist(dto.modelId, categoryIds);
@@ -139,7 +146,6 @@ export class ImageVaultService {
       data: {
         assetId: dto.assetId,
         parentId: dto.parentId ?? null,
-        sourceAssetId: dto.sourceAssetId ?? null,
         originType: dto.originType as ImageVaultOriginType,
         sourceUrl: dto.sourceUrl ?? null,
         modelId: dto.modelId ?? null,
@@ -153,6 +159,16 @@ export class ImageVaultService {
               categories: {
                 create: categoryIds.map((imageVaultCategoryId) => ({
                   imageVaultCategoryId
+                }))
+              }
+            }
+          : {}),
+        ...(sourceAssetIds.length > 0
+          ? {
+              sourceAssets: {
+                create: sourceAssetIds.map((sourceAssetId, index) => ({
+                  assetId: sourceAssetId,
+                  sortOrder: index
                 }))
               }
             }
@@ -231,7 +247,6 @@ export class ImageVaultService {
       where: { id },
       select: {
         assetId: true,
-        sourceAssetId: true,
         parentId: true,
         originType: true,
         modelId: true,
@@ -239,7 +254,11 @@ export class ImageVaultService {
         sourceUrl: true,
         safetyLevel: true,
         safetyReason: true,
-        originalPrompt: true
+        originalPrompt: true,
+        sourceAssets: {
+          select: { assetId: true },
+          orderBy: { sortOrder: "asc" }
+        }
       }
     });
 
@@ -247,19 +266,22 @@ export class ImageVaultService {
       throw new NotFoundException(`Image entry "${id}" not found`);
     }
 
-    if (dto.sourceAssetId !== undefined) {
+    const nextSourceAssetIds =
+      dto.sourceAssetIds !== undefined
+        ? this.normalizeSourceAssetIds(dto.sourceAssetIds)
+        : undefined;
+
+    if (nextSourceAssetIds !== undefined) {
       if (existing.parentId) {
         throw new BadRequestException(
-          "Source image can only be attached to root image vault entries"
+          "Source images can only be attached to root image vault entries"
         );
       }
-      if (dto.sourceAssetId) {
-        await this.assertSourceAssetReady(
-          dto.sourceAssetId,
-          existing.assetId,
-          id
-        );
-      }
+      await this.assertSourceAssetsReady(
+        nextSourceAssetIds,
+        existing.assetId,
+        id
+      );
     }
 
     const originType = (dto.originType ??
@@ -300,13 +322,14 @@ export class ImageVaultService {
         : undefined;
     await this.assertOptionalRelationsExist(dto.modelId, categoryIds);
 
-    const previousSourceAssetId = existing.sourceAssetId;
+    const previousSourceAssetIds = existing.sourceAssets.map(
+      (link) => link.assetId
+    );
 
     const updated = await this.prisma.imageVaultEntry.update({
       where: { id },
       data: {
         originType: dto.originType as ImageVaultOriginType | undefined,
-        sourceAssetId: dto.sourceAssetId,
         sourceUrl: dto.sourceUrl,
         modelId: dto.modelId,
         prompt: dto.prompt,
@@ -326,17 +349,32 @@ export class ImageVaultService {
                 }))
               }
             }
+          : {}),
+        ...(nextSourceAssetIds !== undefined
+          ? {
+              sourceAssets: {
+                deleteMany: {},
+                create: nextSourceAssetIds.map((assetId, index) => ({
+                  assetId,
+                  sortOrder: index
+                }))
+              }
+            }
           : {})
       },
       include: this.entryInclude()
     });
 
-    if (
-      dto.sourceAssetId !== undefined &&
-      previousSourceAssetId &&
-      previousSourceAssetId !== dto.sourceAssetId
-    ) {
-      await this.assetsService.delete(previousSourceAssetId);
+    if (nextSourceAssetIds !== undefined) {
+      const nextSet = new Set(nextSourceAssetIds);
+      const removedSourceAssetIds = previousSourceAssetIds.filter(
+        (assetId) => !nextSet.has(assetId)
+      );
+      await Promise.all(
+        removedSourceAssetIds.map((assetId) =>
+          this.assetsService.delete(assetId)
+        )
+      );
     }
 
     return this.mapEntry(updated);
@@ -347,7 +385,7 @@ export class ImageVaultService {
       where: { id },
       select: {
         assetId: true,
-        sourceAssetId: true,
+        sourceAssets: { select: { assetId: true } },
         _count: { select: { children: true } }
       }
     });
@@ -362,15 +400,15 @@ export class ImageVaultService {
       );
     }
 
-    const sourceAssetId = entry.sourceAssetId;
+    const sourceAssetIds = entry.sourceAssets.map((link) => link.assetId);
 
     await this.assetsService.delete(entry.assetId, {
       allowImageVaultLinkedAsset: true
     });
 
-    if (sourceAssetId) {
-      await this.assetsService.delete(sourceAssetId);
-    }
+    await Promise.all(
+      sourceAssetIds.map((assetId) => this.assetsService.delete(assetId))
+    );
   }
 
   async getImageDownloadUrl(id: string): Promise<string> {
@@ -397,21 +435,37 @@ export class ImageVaultService {
     });
   }
 
-  async getSourceImageDownloadUrl(id: string): Promise<string> {
+  async getSourceImageDownloadUrl(
+    id: string,
+    assetId: string
+  ): Promise<string> {
     const entry = await this.prisma.imageVaultEntry.findUnique({
       where: { id },
-      include: { sourceAsset: true }
+      include: {
+        sourceAssets: {
+          include: { asset: true },
+          orderBy: { sortOrder: "asc" }
+        }
+      }
     });
 
     if (!entry) {
       throw new NotFoundException(`Image entry "${id}" not found`);
     }
 
+    const directMatch = entry.sourceAssets.find(
+      (link) => link.assetId === assetId
+    );
     const sourceAsset =
-      entry.sourceAsset ?? (await this.resolveRootSourceAsset(id));
+      directMatch?.asset ??
+      (await this.resolveRootSourceAssets(id)).find(
+        (asset) => asset.id === assetId
+      );
 
     if (!sourceAsset) {
-      throw new NotFoundException(`Source image not found for entry "${id}"`);
+      throw new NotFoundException(
+        `Source image "${assetId}" not found for entry "${id}"`
+      );
     }
 
     const filename = this.buildDownloadFilename(
@@ -434,7 +488,10 @@ export class ImageVaultService {
   private entryInclude() {
     return {
       asset: true,
-      sourceAsset: true,
+      sourceAssets: {
+        include: { asset: true },
+        orderBy: { sortOrder: "asc" as const }
+      },
       model: true,
       categories: {
         include: {
@@ -511,6 +568,10 @@ export class ImageVaultService {
       return trimmed;
     }
 
+    if (safetyLevel === ImageVaultSafetyLevel.SAFE) {
+      return null;
+    }
+
     return trimmed || null;
   }
 
@@ -523,28 +584,46 @@ export class ImageVaultService {
     }
   }
 
-  private normalizeCategoryIds(categoryIds?: string[]): string[] {
-    if (!categoryIds?.length) {
+  private normalizeUniqueIds(
+    ids: string[] | undefined,
+    max: number,
+    tooManyMessage: string
+  ): string[] {
+    if (!ids?.length) {
       return [];
     }
 
     const seen = new Set<string>();
     const normalized: string[] = [];
 
-    for (const id of categoryIds) {
+    for (const id of ids) {
       if (!seen.has(id)) {
         seen.add(id);
         normalized.push(id);
       }
     }
 
-    if (normalized.length > IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY) {
-      throw new BadRequestException(
-        `At most ${IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY} categories per image`
-      );
+    if (normalized.length > max) {
+      throw new BadRequestException(tooManyMessage);
     }
 
     return normalized;
+  }
+
+  private normalizeCategoryIds(categoryIds?: string[]): string[] {
+    return this.normalizeUniqueIds(
+      categoryIds,
+      IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY,
+      `At most ${IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY} categories per image`
+    );
+  }
+
+  private normalizeSourceAssetIds(sourceAssetIds?: string[]): string[] {
+    return this.normalizeUniqueIds(
+      sourceAssetIds,
+      IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY,
+      `At most ${IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY} source images per entry`
+    );
   }
 
   private async assertParentExists(parentId?: string): Promise<void> {
@@ -562,52 +641,62 @@ export class ImageVaultService {
     }
   }
 
-  private async assertSourceAssetReady(
-    sourceAssetId: string,
+  private async assertSourceAssetsReady(
+    sourceAssetIds: string[],
     catalogAssetId: string,
     entryId?: string
   ): Promise<void> {
-    if (sourceAssetId === catalogAssetId) {
-      throw new BadRequestException(
-        "Source image must differ from the catalog image"
-      );
+    if (sourceAssetIds.length === 0) {
+      return;
     }
 
-    const asset = await this.prisma.asset.findUnique({
-      where: { id: sourceAssetId },
+    for (const sourceAssetId of sourceAssetIds) {
+      if (sourceAssetId === catalogAssetId) {
+        throw new BadRequestException(
+          "Source image must differ from the catalog image"
+        );
+      }
+    }
+
+    const assets = await this.prisma.asset.findMany({
+      where: { id: { in: sourceAssetIds } },
       include: {
         imageVaultEntry: { select: { id: true } },
-        imageVaultSourceEntries: { select: { id: true } }
+        imageVaultSourceLinks: { select: { imageVaultEntryId: true } }
       }
     });
+    const byId = new Map(assets.map((asset) => [asset.id, asset]));
 
-    if (!asset) {
-      throw new NotFoundException(`Asset "${sourceAssetId}" not found`);
-    }
+    for (const sourceAssetId of sourceAssetIds) {
+      const asset = byId.get(sourceAssetId);
+      if (!asset) {
+        throw new NotFoundException(`Asset "${sourceAssetId}" not found`);
+      }
 
-    if (!isPrivateVaultAssetUrl(asset.url)) {
-      throw new BadRequestException(
-        "Source asset is not an Image Vault private upload"
-      );
-    }
+      if (!isPrivateVaultAssetUrl(asset.url)) {
+        throw new BadRequestException(
+          "Source asset is not an Image Vault private upload"
+        );
+      }
 
-    if (asset.status !== AssetStatus.READY) {
-      throw new BadRequestException(
-        "Source asset upload is not complete; call POST /assets/:assetId/complete first"
-      );
-    }
+      if (asset.status !== AssetStatus.READY) {
+        throw new BadRequestException(
+          "Source asset upload is not complete; call POST /assets/:assetId/complete first"
+        );
+      }
 
-    if (asset.imageVaultEntry) {
-      throw new ConflictException(
-        "Source asset is already linked to a catalog image entry"
-      );
-    }
+      if (asset.imageVaultEntry) {
+        throw new ConflictException(
+          "Source asset is already linked to a catalog image entry"
+        );
+      }
 
-    const linkedEntry = asset.imageVaultSourceEntries;
-    if (linkedEntry && linkedEntry.id !== entryId) {
-      throw new ConflictException(
-        "Source asset is already linked to another image entry"
-      );
+      const linkedEntry = asset.imageVaultSourceLinks[0];
+      if (linkedEntry && linkedEntry.imageVaultEntryId !== entryId) {
+        throw new ConflictException(
+          "Source asset is already linked to another image entry"
+        );
+      }
     }
   }
 
@@ -625,7 +714,10 @@ export class ImageVaultService {
     ]);
   }
 
-  private async mapSourceAsset(asset: Asset, entryId: string) {
+  private async mapSourceAsset(
+    asset: Asset,
+    entryId: string
+  ): Promise<ImageVaultSourceAssetDto> {
     const previewUrl = await this.r2.getPrivatePresignedGetUrl({
       key: asset.storageKey,
       meta: {
@@ -643,55 +735,62 @@ export class ImageVaultService {
     };
   }
 
-  private async resolveRootSourceAsset(entryId: string): Promise<Asset | null> {
+  private async resolveRootSourceAssets(entryId: string): Promise<Asset[]> {
     const visited = new Set<string>();
     let currentId: string | null = entryId;
 
     while (currentId) {
       if (visited.has(currentId)) {
-        return null;
+        return [];
       }
       visited.add(currentId);
 
       const row: {
-        sourceAsset: Asset | null;
+        sourceAssets: ImageVaultEntrySourceAssetWithAsset[];
         parentId: string | null;
       } | null = await this.prisma.imageVaultEntry.findUnique({
         where: { id: currentId },
         select: {
-          sourceAsset: true,
+          sourceAssets: {
+            include: { asset: true },
+            orderBy: { sortOrder: "asc" }
+          },
           parentId: true
         }
       });
 
       if (!row) {
-        return null;
+        return [];
       }
 
-      if (row.sourceAsset) {
-        return row.sourceAsset;
+      if (row.sourceAssets.length > 0) {
+        return row.sourceAssets.map((link) => link.asset);
       }
 
       currentId = row.parentId;
     }
 
-    return null;
+    return [];
   }
 
   private async mapEntry(
     entry: ImageVaultEntryWithRelations,
     withLineage = false,
-    includeSourceAsset = true
+    includeSourceAssets = true
   ): Promise<ImageEntryResponseDto> {
     const previewUrl = await this.r2.getPrivatePresignedGetUrl({
       key: entry.asset.storageKey,
       meta: { image_entry_id: entry.id, asset_id: entry.assetId }
     });
 
-    const sourceAsset =
-      includeSourceAsset && entry.sourceAsset
-        ? await this.mapSourceAsset(entry.sourceAsset, entry.id)
-        : null;
+    const sourceAssets =
+      includeSourceAssets && entry.sourceAssets
+        ? await Promise.all(
+            entry.sourceAssets.map((link) =>
+              this.mapSourceAsset(link.asset, entry.id)
+            )
+          )
+        : [];
 
     const response: ImageEntryResponseDto = {
       id: entry.id,
@@ -725,16 +824,15 @@ export class ImageVaultService {
         name: link.imageVaultCategory.name,
         slug: link.imageVaultCategory.slug
       })),
-      sourceAsset
+      sourceAssets
     };
 
     if (withLineage) {
-      if (!sourceAsset) {
-        const rootSource = await this.resolveRootSourceAsset(entry.id);
-        if (rootSource) {
-          response.rootSourceAsset = await this.mapSourceAsset(
-            rootSource,
-            entry.id
+      if (sourceAssets.length === 0) {
+        const rootSources = await this.resolveRootSourceAssets(entry.id);
+        if (rootSources.length > 0) {
+          response.rootSourceAssets = await Promise.all(
+            rootSources.map((asset) => this.mapSourceAsset(asset, entry.id))
           );
         }
       }

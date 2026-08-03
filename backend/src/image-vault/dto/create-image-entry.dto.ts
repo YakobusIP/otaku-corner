@@ -4,7 +4,10 @@ import {
   ImageOriginTypeDto,
   ImageVaultSafetyLevelDto
 } from "@/image-vault/dto/image-vault-enums";
-import { IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY } from "@/image-vault/image-vault.constants";
+import {
+  IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY,
+  IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY
+} from "@/image-vault/image-vault.constants";
 
 import {
   ArrayMaxSize,
@@ -21,16 +24,19 @@ import {
 export class CreateImageEntryDto {
   @ApiProperty({ format: "uuid" })
   @IsUUID()
-  assetId: string;
+  assetId!: string;
 
   @ApiPropertyOptional({
+    type: [String],
     format: "uuid",
     description:
-      "Optional reference/source image for root entries only; must be a completed private vault upload"
+      "Optional reference/source images for root entries only; each must be a completed private vault upload. Order is preserved."
   })
   @IsOptional()
-  @IsUUID()
-  sourceAssetId?: string;
+  @IsArray()
+  @IsUUID("4", { each: true })
+  @ArrayMaxSize(IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY)
+  sourceAssetIds?: string[];
 
   @ApiPropertyOptional({
     format: "uuid",
@@ -42,7 +48,7 @@ export class CreateImageEntryDto {
 
   @ApiProperty({ enum: ImageOriginTypeDto })
   @IsEnum(ImageOriginTypeDto)
-  originType: ImageOriginTypeDto;
+  originType!: ImageOriginTypeDto;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -62,13 +68,11 @@ export class CreateImageEntryDto {
     (o: CreateImageEntryDto) => o.originType === ImageOriginTypeDto.AI
   )
   @IsString()
-  @MaxLength(10000)
   prompt?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @MaxLength(10000)
   originalPrompt?: string;
 
   @ApiPropertyOptional({

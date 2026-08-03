@@ -88,9 +88,9 @@ export class ImageVaultController {
     return { downloadUrl };
   }
 
-  @Get("images/:id/source/download-url")
+  @Get("images/:id/source/:assetId/download-url")
   @ApiOperation({
-    summary: "Get presigned download URL for image vault source file"
+    summary: "Get presigned download URL for an image vault source file"
   })
   @ApiOkResponse({
     schema: {
@@ -99,9 +99,14 @@ export class ImageVaultController {
       required: ["downloadUrl"]
     }
   })
-  async getSourceImageDownloadUrl(@Param("id", ParseUUIDPipe) id: string) {
-    const downloadUrl =
-      await this.imageVaultService.getSourceImageDownloadUrl(id);
+  async getSourceImageDownloadUrl(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("assetId", ParseUUIDPipe) assetId: string
+  ) {
+    const downloadUrl = await this.imageVaultService.getSourceImageDownloadUrl(
+      id,
+      assetId
+    );
     return { downloadUrl };
   }
 

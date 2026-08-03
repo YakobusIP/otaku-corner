@@ -27,8 +27,11 @@ export function imageVaultImageDownloadPath(entryId: string): string {
   return `/api/image-vault/images/${entryId}/download-url`;
 }
 
-export function imageVaultSourceDownloadPath(entryId: string): string {
-  return `/api/image-vault/images/${entryId}/source/download-url`;
+export function imageVaultSourceDownloadPath(
+  entryId: string,
+  assetId: string
+): string {
+  return `/api/image-vault/images/${entryId}/source/${assetId}/download-url`;
 }
 
 export async function downloadImageVaultAsset(

@@ -15,7 +15,17 @@ import type {
 } from "@/types/general.type";
 
 import interceptedAxios from "@/lib/axios";
-import type { ImageVaultUploadStatus } from "@/features/image-vault/lib/image-vault-upload-status";
+import type {
+  ImageVaultAssetUploadStatus,
+  ImageVaultUploadStatus
+} from "@/features/image-vault/lib/image-vault-upload-status";
+import {
+  buildAssetStepStatus,
+  buildSaveStepStatus,
+  createImageVaultUploadStatusEmitter,
+  getImageVaultCreateStepCount,
+  getImageVaultUpdateSourceStepCount
+} from "@/features/image-vault/lib/image-vault-upload-status";
 import { err, ok } from "@/lib/service-result";
 import { mapPaginatedBody } from "@/lib/utils";
 
@@ -42,7 +52,7 @@ const createImageVaultService = () => {
   const uploadPrivateVaultAsset = async (
     file: File,
     options?: {
-      onStatus?: (status: ImageVaultUploadStatus) => void;
+      onStatus?: (status: ImageVaultAssetUploadStatus) => void;
     }
   ): Promise<string> => {
     const mimeType = file.type?.trim();
@@ -141,39 +151,83 @@ const createImageVaultService = () => {
 
   const uploadAndCreateImage = async (
     file: File,
-    metadata: Omit<CreateImageEntryPayload, "assetId" | "sourceAssetId">,
+    metadata: Omit<CreateImageEntryPayload, "assetId" | "sourceAssetIds">,
     options?: {
-      sourceFile?: File | null;
+      sourceFiles?: File[];
       onStatus?: (status: ImageVaultUploadStatus) => void;
     }
   ): Promise<ServiceResult<ImageVaultEntry>> => {
     try {
+      const sourceFiles = options?.sourceFiles ?? [];
+      const stepCount = getImageVaultCreateStepCount(sourceFiles.length);
+      const emit = createImageVaultUploadStatusEmitter(options?.onStatus);
+
       const assetId = await uploadPrivateVaultAsset(file, {
-        onStatus: options?.onStatus
+        onStatus: (assetStatus: ImageVaultAssetUploadStatus) => {
+          const isPreparing = assetStatus.phase === "preparing";
+          emit(
+            buildAssetStepStatus({
+              stepIndex: isPreparing ? 0 : 1,
+              stepCount,
+              label: isPreparing
+                ? "Requesting upload URL..."
+                : assetStatus.phase === "finalizing"
+                  ? "Finalizing image upload..."
+                  : "Uploading image...",
+              target: { kind: "primary" },
+              assetStatus
+            })
+          );
+        }
       });
 
-      let sourceAssetId: string | undefined;
-      if (options?.sourceFile) {
-        sourceAssetId = await uploadPrivateVaultAsset(options.sourceFile, {
-          onStatus: (status) => {
-            options.onStatus?.({
-              phase: "uploading-source",
-              percent: status.percent
-            });
+      const sourceAssetIds: string[] = [];
+      for (let index = 0; index < sourceFiles.length; index += 1) {
+        const sourceFile = sourceFiles[index];
+        const stepIndex = 2 + index;
+        const sourceAssetId = await uploadPrivateVaultAsset(sourceFile, {
+          onStatus: (assetStatus) => {
+            emit(
+              buildAssetStepStatus({
+                stepIndex,
+                stepCount,
+                label: `Uploading source ${index + 1} of ${sourceFiles.length}...`,
+                target: { kind: "source", index },
+                assetStatus
+              })
+            );
           }
         });
+        sourceAssetIds.push(sourceAssetId);
       }
 
-      options?.onStatus?.({ phase: "creating" });
+      const saveStepIndex = stepCount - 1;
+      emit(
+        buildSaveStepStatus({
+          stepIndex: saveStepIndex,
+          stepCount,
+          label: "Saving to vault..."
+        })
+      );
 
       const createResponse = await interceptedAxios.post<ImageVaultEntry>(
         `${BASE_URL}/images`,
         {
           assetId,
-          ...(sourceAssetId ? { sourceAssetId } : {}),
+          ...(sourceAssetIds.length > 0 ? { sourceAssetIds } : {}),
           ...metadata
         }
       );
+
+      emit(
+        buildSaveStepStatus({
+          stepIndex: saveStepIndex,
+          stepCount,
+          label: "Saving to vault...",
+          complete: true
+        })
+      );
+
       return ok(createResponse.data);
     } catch (error: unknown) {
       return err(error);
@@ -182,13 +236,79 @@ const createImageVaultService = () => {
 
   const updateImage = async (
     id: string,
-    payload: UpdateImageEntryPayload
+    payload: UpdateImageEntryPayload,
+    options?: {
+      additionalSourceFiles?: File[];
+      onStatus?: (status: ImageVaultUploadStatus) => void;
+    }
   ): Promise<ServiceResult<ImageVaultEntry>> => {
     try {
+      const additionalSourceFiles = options?.additionalSourceFiles ?? [];
+      let sourceAssetIds = payload.sourceAssetIds;
+      const trackProgress =
+        additionalSourceFiles.length > 0 || sourceAssetIds !== undefined;
+      const emit = trackProgress
+        ? createImageVaultUploadStatusEmitter(options?.onStatus)
+        : undefined;
+      const stepCount = getImageVaultUpdateSourceStepCount(
+        additionalSourceFiles.length
+      );
+
+      if (additionalSourceFiles.length > 0) {
+        const uploadedSourceAssetIds: string[] = [];
+        for (let index = 0; index < additionalSourceFiles.length; index += 1) {
+          const sourceFile = additionalSourceFiles[index];
+          const sourceAssetId = await uploadPrivateVaultAsset(sourceFile, {
+            onStatus: (assetStatus) => {
+              emit?.(
+                buildAssetStepStatus({
+                  stepIndex: index,
+                  stepCount,
+                  label: `Uploading source ${index + 1} of ${additionalSourceFiles.length}...`,
+                  target: { kind: "source", index },
+                  assetStatus
+                })
+              );
+            }
+          });
+          uploadedSourceAssetIds.push(sourceAssetId);
+        }
+        sourceAssetIds = [
+          ...(payload.sourceAssetIds ?? []),
+          ...uploadedSourceAssetIds
+        ];
+      }
+
+      const saveStepIndex = stepCount - 1;
+      if (trackProgress) {
+        emit?.(
+          buildSaveStepStatus({
+            stepIndex: saveStepIndex,
+            stepCount,
+            label: "Saving changes..."
+          })
+        );
+      }
+
       const response = await interceptedAxios.patch<ImageVaultEntry>(
         `${BASE_URL}/images/${id}`,
-        payload
+        {
+          ...payload,
+          ...(sourceAssetIds !== undefined ? { sourceAssetIds } : {})
+        }
       );
+
+      if (trackProgress) {
+        emit?.(
+          buildSaveStepStatus({
+            stepIndex: saveStepIndex,
+            stepCount,
+            label: "Saving changes...",
+            complete: true
+          })
+        );
+      }
+
       return ok(response.data);
     } catch (error: unknown) {
       return err(error);
