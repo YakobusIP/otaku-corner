@@ -83,6 +83,7 @@ export const normalizeImageVaultSafetyReasonForSubmit = (
 };
 
 export const IMAGE_VAULT_MAX_CATEGORIES_PER_ENTRY = 20;
+export const IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY = 10;
 
 export type ImageVaultCatalogEditDialogControl = {
   isOpenFor: (entityId: string) => boolean;
@@ -142,8 +143,8 @@ export type ImageVaultEntry = {
   updatedAt: string;
   previewUrl: string;
   asset: ImageVaultAssetSummary;
-  sourceAsset?: ImageVaultSourceAsset | null;
-  rootSourceAsset?: ImageVaultSourceAsset | null;
+  sourceAssets: ImageVaultSourceAsset[];
+  rootSourceAssets?: ImageVaultSourceAsset[];
   model?: ImageVaultModel | null;
   categories: ImageVaultCategory[];
   parent?: ImageLineageSummary | null;
@@ -163,7 +164,7 @@ export type ImageVaultInfiniteListFilters = Omit<
 
 export type CreateImageEntryPayload = {
   assetId: string;
-  sourceAssetId?: string;
+  sourceAssetIds?: string[];
   parentId?: string;
   originType: ImageOriginType;
   sourceUrl?: string;
@@ -177,7 +178,7 @@ export type CreateImageEntryPayload = {
 };
 
 export type UpdateImageEntryPayload = {
-  sourceAssetId?: string | null;
+  sourceAssetIds?: string[];
   originType?: ImageOriginType;
   sourceUrl?: string | null;
   modelId?: string | null;

@@ -1,9 +1,22 @@
-import { Fragment, useEffect, useLayoutEffect, useState } from "react";
+import {
+  type ChangeEvent,
+  Fragment,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState
+} from "react";
 
 import ImageVaultCardBadges from "@/features/image-vault/components/ImageVaultCardBadges";
+import ImageVaultOverallUploadProgress from "@/features/image-vault/components/ImageVaultOverallUploadProgress";
 import ImageVaultPreviewImage from "@/features/image-vault/components/ImageVaultPreviewImage";
 import ImageVaultPromptTextarea from "@/features/image-vault/components/ImageVaultPromptTextarea";
 import ImageVaultSafetyFields from "@/features/image-vault/components/ImageVaultSafetyFields";
+import {
+  ImageVaultEntrySourceAssetsPreview,
+  ImageVaultLocalSourceFilesPreview,
+  resolveEntrySourceAssets
+} from "@/features/image-vault/components/ImageVaultSourceAssetsPreview";
 import ImageVaultUploadDialog from "@/features/image-vault/components/ImageVaultUploadDialog";
 import {
   createImageVaultDetailFormValues,
@@ -47,7 +60,9 @@ import {
   type ImageOriginType,
   type ImageVaultEntry,
   type ImageVaultSafetyLevel,
+  type ImageVaultSourceAsset,
   type SensitiveImageVisibility,
+  IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY,
   isExplicitSafetyLevel,
   normalizeImageVaultSafetyReasonForSubmit,
   parseImageOriginType
@@ -55,9 +70,13 @@ import {
 
 import {
   imageVaultImageDownloadPath,
-  imageVaultSourceDownloadPath,
   resolveImageVaultPreviewUrl
 } from "@/features/image-vault/lib/image-vault-preview";
+import { appendFilesUpToLimit } from "@/features/image-vault/lib/image-vault-source-files";
+import {
+  getSourceOverlay,
+  type ImageVaultUploadStatus
+} from "@/features/image-vault/lib/image-vault-upload-status";
 
 import { useForm } from "@tanstack/react-form";
 import { Loader2Icon, PlusIcon, SaveIcon, Trash2Icon, XIcon } from "lucide-react";
@@ -71,34 +90,131 @@ type Props = {
 
 const FORM_ID = "image-vault-detail-form";
 
-function ImageVaultSourcePreview({
+function ImageVaultEditableSourceSection({
   image,
-  sensitiveImageVisibility
+  sensitiveImageVisibility,
+  keptSourceAssetIds,
+  newSourceFiles,
+  onKeptSourceAssetIdsChange,
+  onNewSourceFilesChange,
+  disabled,
+  uploadStatus
 }: {
   image: ImageVaultEntry;
   sensitiveImageVisibility: SensitiveImageVisibility;
+  keptSourceAssetIds: string[];
+  newSourceFiles: File[];
+  onKeptSourceAssetIdsChange: (ids: string[]) => void;
+  onNewSourceFilesChange: (files: File[]) => void;
+  disabled?: boolean;
+  uploadStatus?: ImageVaultUploadStatus | null;
 }) {
-  const sourceAsset = image.sourceAsset ?? image.rootSourceAsset;
-  if (!sourceAsset) return null;
+  const isFollowUp = image.parentId != null;
+  const { sourceAssets: lineageSources, fromLineage } =
+    resolveEntrySourceAssets(image);
+
+  const keptSourceAssets = useMemo(() => {
+    const byId = new Map(image.sourceAssets.map((asset) => [asset.id, asset]));
+    return keptSourceAssetIds
+      .map((id) => byId.get(id))
+      .filter((asset): asset is ImageVaultSourceAsset => asset != null);
+  }, [image.sourceAssets, keptSourceAssetIds]);
+
+  const totalSourceCount = keptSourceAssetIds.length + newSourceFiles.length;
+  const remainingSlots =
+    IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY - totalSourceCount;
+
+  if (isFollowUp) {
+    if (lineageSources.length === 0) return null;
+    return (
+      <div className="min-h-0 space-y-2 overflow-y-auto xl:min-h-0">
+        <ImageVaultEntrySourceAssetsPreview
+          entryId={image.id}
+          sourceAssets={lineageSources}
+          safetyLevel={image.safetyLevel}
+          sensitiveImageVisibility={sensitiveImageVisibility}
+          fromLineage={fromLineage}
+        />
+      </div>
+    );
+  }
+
+  const handleAddSourceFiles = (event: ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(event.target.files ?? []);
+    if (selected.length === 0 || remainingSlots <= 0) {
+      event.target.value = "";
+      return;
+    }
+    onNewSourceFilesChange(
+      appendFilesUpToLimit(
+        newSourceFiles,
+        selected,
+        IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY
+      )
+    );
+    event.target.value = "";
+  };
 
   return (
-    <div className="space-y-2 rounded-md border border-border/60 p-3 xl:grid xl:min-h-0 xl:grid-rows-[auto_minmax(0,1fr)]">
-      <p className="text-xs font-medium text-muted-foreground">
-        Source image
-        {image.rootSourceAsset && !image.sourceAsset
-          ? " (from lineage root)"
-          : ""}
-      </p>
-      <ImageVaultPreviewImage
-        src={resolveImageVaultPreviewUrl(
-          sourceAsset.previewUrl,
-          image.safetyLevel,
-          sensitiveImageVisibility
-        )}
-        downloadUrl={imageVaultSourceDownloadPath(image.id)}
-        alt="Source image"
-        containerClassName="xl:min-h-0"
-        className="max-h-48 xl:h-full xl:max-h-none"
+    <div className="min-h-0 space-y-3 overflow-y-auto rounded-md border border-border/60 p-3 xl:min-h-0">
+      <div className="space-y-1">
+        <FieldLabel htmlFor="detail-source-file">Source images</FieldLabel>
+        <p className="text-xs text-muted-foreground">
+          Up to {IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY} images.
+          {totalSourceCount > 0 ? ` ${totalSourceCount} selected.` : null}
+        </p>
+      </div>
+
+      {keptSourceAssets.length > 0 ? (
+        <ImageVaultEntrySourceAssetsPreview
+          entryId={image.id}
+          sourceAssets={keptSourceAssets}
+          safetyLevel={image.safetyLevel}
+          sensitiveImageVisibility={sensitiveImageVisibility}
+          title="Current sources"
+          onRemove={
+            disabled
+              ? undefined
+              : (assetId) =>
+                  onKeptSourceAssetIdsChange(
+                    keptSourceAssetIds.filter((id) => id !== assetId)
+                  )
+          }
+          className="border-0 p-0"
+        />
+      ) : null}
+
+      {newSourceFiles.length > 0 ? (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">
+            New sources
+          </p>
+          <ImageVaultLocalSourceFilesPreview
+            files={newSourceFiles}
+            onRemove={
+              disabled
+                ? undefined
+                : (index) =>
+                    onNewSourceFilesChange(
+                      newSourceFiles.filter(
+                        (_, fileIndex) => fileIndex !== index
+                      )
+                    )
+            }
+            getOverlayLabel={(index) =>
+              getSourceOverlay(uploadStatus, index)?.label
+            }
+          />
+        </div>
+      ) : null}
+
+      <Input
+        id="detail-source-file"
+        type="file"
+        accept="image/jpeg,image/png,image/gif,image/webp"
+        multiple
+        onChange={handleAddSourceFiles}
+        disabled={disabled || remainingSlots <= 0}
       />
     </div>
   );
@@ -165,6 +281,10 @@ export default function ImageVaultDetailDialog({
   const [followUpOpen, setFollowUpOpen] = useState(false);
   const [dialogContentElement, setDialogContentElement] =
     useState<HTMLDivElement | null>(null);
+  const [keptSourceAssetIds, setKeptSourceAssetIds] = useState<string[]>([]);
+  const [newSourceFiles, setNewSourceFiles] = useState<File[]>([]);
+  const [uploadStatus, setUploadStatus] =
+    useState<ImageVaultUploadStatus | null>(null);
 
   const form = useForm({
     defaultValues: createImageVaultUploadDefaultValues(),
@@ -173,28 +293,48 @@ export default function ImageVaultDetailDialog({
       onSubmit: imageVaultUploadFormSchema
     },
     onSubmit: async ({ value }) => {
-      if (!viewImageId) return;
+      if (!viewImageId || !image) return;
 
-      await updateImage.mutateAsync({
-        id: viewImageId,
-        payload: {
-          originType: value.originType,
-          modelId:
-            value.originType === "AI"
-              ? value.modelId || image?.model?.id || null
-              : null,
-          prompt: value.originType === "AI" ? value.prompt || null : null,
-          originalPrompt: value.originalPrompt || null,
-          sourceUrl: value.sourceUrl || null,
-          categoryIds: value.categoryIds,
-          notes: value.notes || null,
-          safetyLevel: value.safetyLevel,
-          safetyReason: normalizeImageVaultSafetyReasonForSubmit(
-            value.safetyLevel,
-            value.safetyReason
-          )
-        }
-      });
+      const isRootEntry = image.parentId == null;
+      const originalSourceIds = image.sourceAssets.map((asset) => asset.id);
+      const sourcesChanged =
+        isRootEntry &&
+        (newSourceFiles.length > 0 ||
+          keptSourceAssetIds.length !== originalSourceIds.length ||
+          keptSourceAssetIds.some(
+            (id, index) => id !== originalSourceIds[index]
+          ));
+
+      try {
+        await updateImage.mutateAsync({
+          id: viewImageId,
+          payload: {
+            originType: value.originType,
+            modelId:
+              value.originType === "AI"
+                ? value.modelId || image.model?.id || null
+                : null,
+            prompt: value.originType === "AI" ? value.prompt || null : null,
+            originalPrompt: value.originalPrompt || null,
+            sourceUrl: value.sourceUrl || null,
+            categoryIds: value.categoryIds,
+            notes: value.notes || null,
+            safetyLevel: value.safetyLevel,
+            safetyReason: normalizeImageVaultSafetyReasonForSubmit(
+              value.safetyLevel,
+              value.safetyReason
+            ),
+            ...(sourcesChanged
+              ? { sourceAssetIds: keptSourceAssetIds }
+              : {})
+          },
+          additionalSourceFiles: sourcesChanged ? newSourceFiles : undefined,
+          onStatus: setUploadStatus
+        });
+        setNewSourceFiles([]);
+      } finally {
+        setUploadStatus(null);
+      }
     }
   });
 
@@ -203,6 +343,9 @@ export default function ImageVaultDetailDialog({
     const detailValues = createImageVaultDetailFormValues(image);
     form.reset(detailValues);
     form.setFieldValue("modelId", detailValues.modelId);
+    setKeptSourceAssetIds(image.sourceAssets.map((asset) => asset.id));
+    setNewSourceFiles([]);
+    setUploadStatus(null);
   }, [form, image, open, viewImageId]);
 
   const handleOriginTypeChange = (
@@ -232,6 +375,7 @@ export default function ImageVaultDetailDialog({
     image?.model && !activeModels.some((model) => model.id === image.model?.id)
       ? [image.model, ...activeModels]
       : activeModels;
+  const isSaving = updateImage.isPending;
 
   return (
     <Fragment>
@@ -274,9 +418,15 @@ export default function ImageVaultDetailDialog({
                     containerClassName="xl:min-h-0"
                     className="xl:h-full xl:max-h-none"
                   />
-                  <ImageVaultSourcePreview
+                  <ImageVaultEditableSourceSection
                     image={image}
                     sensitiveImageVisibility={sensitiveImageVisibility}
+                    keptSourceAssetIds={keptSourceAssetIds}
+                    newSourceFiles={newSourceFiles}
+                    onKeptSourceAssetIdsChange={setKeptSourceAssetIds}
+                    onNewSourceFilesChange={setNewSourceFiles}
+                    disabled={isSaving}
+                    uploadStatus={uploadStatus}
                   />
                   <div className="xl:border-t xl:border-border/60 xl:pt-3">
                     <ImageVaultCardBadges
@@ -642,12 +792,16 @@ export default function ImageVaultDetailDialog({
                 </div>
               </div>
 
-              <DialogFooter className="sticky bottom-0 flex-row justify-end gap-2 border-t bg-background pt-4 sm:space-x-0">
+              <DialogFooter className="sticky bottom-0 flex-col gap-3 border-t bg-background pt-4 sm:space-x-0">
+                {uploadStatus ? (
+                  <ImageVaultOverallUploadProgress status={uploadStatus} />
+                ) : null}
+                <div className="flex w-full flex-row justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => onOpenChange(false)}
-                  disabled={updateImage.isPending || deleteImage.isPending}
+                  disabled={isSaving || deleteImage.isPending}
                   className="h-10 w-10 shrink-0 px-0 md:w-auto md:px-4"
                 >
                   <XIcon className="h-4 w-4" />
@@ -659,7 +813,7 @@ export default function ImageVaultDetailDialog({
                   type="button"
                   variant="destructive"
                   onClick={handleDelete}
-                  disabled={deleteImage.isPending || updateImage.isPending}
+                  disabled={deleteImage.isPending || isSaving}
                   className="h-10 w-10 shrink-0 px-0 md:w-auto md:px-4"
                 >
                   {deleteImage.isPending ? (
@@ -673,10 +827,10 @@ export default function ImageVaultDetailDialog({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={updateImage.isPending}
+                  disabled={isSaving}
                   className="h-10 w-10 shrink-0 px-0 md:w-auto md:px-4"
                 >
-                  {updateImage.isPending ? (
+                  {isSaving ? (
                     <Loader2Icon className="h-4 w-4 animate-spin" />
                   ) : (
                     <SaveIcon className="h-4 w-4" />
@@ -685,6 +839,7 @@ export default function ImageVaultDetailDialog({
                     Save changes
                   </span>
                 </Button>
+                </div>
               </DialogFooter>
             </form>
           )}

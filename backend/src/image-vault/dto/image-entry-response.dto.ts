@@ -117,15 +117,15 @@ export class ImageEntryResponseDto {
   @ApiProperty({ type: [ImageVaultCategorySummaryDto] })
   categories: ImageVaultCategorySummaryDto[];
 
-  @ApiPropertyOptional({ type: ImageVaultSourceAssetDto })
-  sourceAsset?: ImageVaultSourceAssetDto | null;
+  @ApiProperty({ type: [ImageVaultSourceAssetDto] })
+  sourceAssets: ImageVaultSourceAssetDto[];
 
   @ApiPropertyOptional({
-    type: ImageVaultSourceAssetDto,
+    type: [ImageVaultSourceAssetDto],
     description:
       "Resolved from the lineage root when this entry is a follow-up child"
   })
-  rootSourceAsset?: ImageVaultSourceAssetDto | null;
+  rootSourceAssets?: ImageVaultSourceAssetDto[];
 
   @ApiPropertyOptional({ type: ImageLineageSummaryDto })
   parent?: ImageLineageSummaryDto | null;

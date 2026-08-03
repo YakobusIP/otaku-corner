@@ -67,15 +67,15 @@ export const useImageVaultMutations = () => {
   const uploadImage = useMutation({
     mutationFn: async (input: {
       file: File;
-      sourceFile?: File | null;
-      metadata: Omit<CreateImageEntryPayload, "assetId" | "sourceAssetId">;
+      sourceFiles?: File[];
+      metadata: Omit<CreateImageEntryPayload, "assetId" | "sourceAssetIds">;
       onStatus?: (status: ImageVaultUploadStatus) => void;
     }) => {
       const result = await imageVaultService.uploadAndCreateImage(
         input.file,
         input.metadata,
         {
-          sourceFile: input.sourceFile,
+          sourceFiles: input.sourceFiles,
           onStatus: input.onStatus
         }
       );
@@ -104,10 +104,16 @@ export const useImageVaultMutations = () => {
     mutationFn: async (input: {
       id: string;
       payload: UpdateImageEntryPayload;
+      additionalSourceFiles?: File[];
+      onStatus?: (status: ImageVaultUploadStatus) => void;
     }) => {
       const result = await imageVaultService.updateImage(
         input.id,
-        input.payload
+        input.payload,
+        {
+          additionalSourceFiles: input.additionalSourceFiles,
+          onStatus: input.onStatus
+        }
       );
       if (!result.success) {
         throw result.error;

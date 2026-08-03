@@ -9,8 +9,11 @@ import {
 } from "react";
 
 import ImageVaultCopySourceDialog from "@/features/image-vault/components/ImageVaultCopySourceDialog";
+import ImageVaultOverallUploadProgress from "@/features/image-vault/components/ImageVaultOverallUploadProgress";
 import ImageVaultPromptTextarea from "@/features/image-vault/components/ImageVaultPromptTextarea";
 import ImageVaultSafetyFields from "@/features/image-vault/components/ImageVaultSafetyFields";
+import { ImageVaultLocalSourceFilesPreview } from "@/features/image-vault/components/ImageVaultSourceAssetsPreview";
+import ImageVaultUploadOverlay from "@/features/image-vault/components/ImageVaultUploadOverlay";
 import {
   type ImageVaultUploadParentDefaults,
   createImageVaultDetailFormValues,
@@ -34,7 +37,6 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multi-select";
-import Progress from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -54,6 +56,7 @@ import {
   type ImageOriginType,
   type ImageVaultEntry,
   type SensitiveImageVisibility,
+  IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY,
   isExplicitSafetyLevel,
   normalizeImageVaultSafetyReasonForSubmit,
   parseImageOriginType
@@ -63,9 +66,11 @@ import {
   formatImageVaultEntryCaption,
   resolveImageVaultPreviewUrl
 } from "@/features/image-vault/lib/image-vault-preview";
+import { appendFilesUpToLimit } from "@/features/image-vault/lib/image-vault-source-files";
 import { cn } from "@/lib/utils";
 import {
-  IMAGE_VAULT_UPLOAD_PHASE_LABELS,
+  getSourceOverlay,
+  isOverlayForPrimary,
   type ImageVaultUploadStatus
 } from "@/features/image-vault/lib/image-vault-upload-status";
 
@@ -117,7 +122,7 @@ export default function ImageVaultUploadDialog({
   const { uploadImage } = useImageVaultMutations();
 
   const [file, setFile] = useState<File | null>(null);
-  const [sourceFile, setSourceFile] = useState<File | null>(null);
+  const [sourceFiles, setSourceFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] =
     useState<ImageVaultUploadStatus | null>(null);
@@ -147,7 +152,7 @@ export default function ImageVaultUploadDialog({
 
       await uploadImage.mutateAsync({
         file,
-        sourceFile: isFollowUp ? null : sourceFile,
+        sourceFiles: isFollowUp ? [] : sourceFiles,
         metadata: {
           parentId: parentImage?.id,
           originType: value.originType,
@@ -176,22 +181,17 @@ export default function ImageVaultUploadDialog({
     () => (file ? URL.createObjectURL(file) : null),
     [file]
   );
-  const sourcePreviewUrl = useMemo(
-    () => (sourceFile ? URL.createObjectURL(sourceFile) : null),
-    [sourceFile]
-  );
 
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
-      if (sourcePreviewUrl) URL.revokeObjectURL(sourcePreviewUrl);
     };
-  }, [previewUrl, sourcePreviewUrl]);
+  }, [previewUrl]);
 
   const resetDialogState = useCallback(() => {
     form.reset(createImageVaultUploadDefaultValues(parentDefaults));
     setFile(null);
-    setSourceFile(null);
+    setSourceFiles([]);
     setFileError(null);
     setUploadStatus(null);
     setCreationStep(isFollowUp ? "form" : "choose-mode");
@@ -261,8 +261,21 @@ export default function ImageVaultUploadDialog({
   };
 
   const handleSourceFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const next = event.target.files?.[0] ?? null;
-    setSourceFile(next);
+    const selected = Array.from(event.target.files ?? []);
+    if (selected.length === 0) return;
+
+    setSourceFiles((prev) =>
+      appendFilesUpToLimit(
+        prev,
+        selected,
+        IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY
+      )
+    );
+    event.target.value = "";
+  };
+
+  const handleRemoveSourceFile = (index: number) => {
+    setSourceFiles((prev) => prev.filter((_, fileIndex) => fileIndex !== index));
   };
 
   const handleOriginTypeChange = (
@@ -421,12 +434,17 @@ export default function ImageVaultUploadDialog({
                 />
                 {fileError ? <FieldError>{fileError}</FieldError> : null}
                 {previewUrl ? (
-                  <div className="overflow-hidden rounded-md border border-border/60 bg-muted/20">
+                  <div className="relative overflow-hidden rounded-md border border-border/60 bg-muted/20">
                     <img
                       src={previewUrl}
                       alt="Selected upload preview"
                       className="max-h-64 w-full object-contain xl:max-h-[38vh]"
                     />
+                    {isOverlayForPrimary(uploadStatus) ? (
+                      <ImageVaultUploadOverlay
+                        label={uploadStatus.overlay.label}
+                      />
+                    ) : null}
                   </div>
                 ) : null}
               </Field>
@@ -434,23 +452,34 @@ export default function ImageVaultUploadDialog({
               {!isFollowUp ? (
                 <Field>
                   <FieldLabel htmlFor="vault-source-file">
-                    Source image (optional)
+                    Source images (optional)
                   </FieldLabel>
                   <Input
                     id="vault-source-file"
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp"
+                    multiple
                     onChange={handleSourceFileChange}
+                    disabled={
+                      sourceFiles.length >=
+                      IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY
+                    }
                   />
-                  {sourcePreviewUrl ? (
-                    <div className="overflow-hidden rounded-md border border-border/60 bg-muted/20">
-                      <img
-                        src={sourcePreviewUrl}
-                        alt="Selected source image preview"
-                        className="max-h-48 w-full object-contain xl:max-h-[24vh]"
-                      />
-                    </div>
-                  ) : null}
+                  <p className="text-xs text-muted-foreground">
+                    Up to {IMAGE_VAULT_MAX_SOURCE_ASSETS_PER_ENTRY} images.
+                    {sourceFiles.length > 0
+                      ? ` ${sourceFiles.length} selected.`
+                      : null}
+                  </p>
+                  <ImageVaultLocalSourceFilesPreview
+                    files={sourceFiles}
+                    onRemove={
+                      uploadImage.isPending ? undefined : handleRemoveSourceFile
+                    }
+                    getOverlayLabel={(index) =>
+                      getSourceOverlay(uploadStatus, index)?.label
+                    }
+                  />
                 </Field>
               ) : null}
             </div>
@@ -734,21 +763,7 @@ export default function ImageVaultUploadDialog({
 
           <DialogFooter className="sticky bottom-0 flex-col gap-3 border-t bg-background pt-4 sm:space-x-0">
             {uploadStatus ? (
-              <div className="w-full space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  {IMAGE_VAULT_UPLOAD_PHASE_LABELS[uploadStatus.phase]}
-                  {uploadStatus.phase === "uploading" ||
-                  uploadStatus.phase === "uploading-source"
-                    ? uploadStatus.percent !== undefined
-                      ? ` ${uploadStatus.percent}%`
-                      : null
-                    : null}
-                </p>
-                {uploadStatus.phase === "uploading" ||
-                uploadStatus.phase === "uploading-source" ? (
-                  <Progress value={uploadStatus.percent ?? 0} />
-                ) : null}
-              </div>
+              <ImageVaultOverallUploadProgress status={uploadStatus} />
             ) : null}
             <div className="flex w-full flex-row justify-end gap-2">
               <Button
