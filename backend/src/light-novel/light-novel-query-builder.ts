@@ -15,6 +15,7 @@ import {
   buildReviewListCommonOrderBy,
   listSkipTake
 } from "@/common/crud/media-review-list-query";
+import { notDeletedMediaWhere } from "@/common/media/not-deleted-media-where";
 
 import { LightNovelQueryDto } from "@/light-novel/dto";
 
@@ -22,6 +23,8 @@ import { LightNovelQueryDto } from "@/light-novel/dto";
 export class LightNovelQueryBuilder implements CrudQueryBuilder {
   buildFindAllQuery(query: LightNovelQueryDto): CrudQueryResult {
     const conditions: Record<string, unknown>[] = [];
+
+    conditions.push(notDeletedMediaWhere);
 
     appendTitleSynonymsSearchConditions(conditions, query.query);
     appendAuthorJoinCondition(conditions, query.author);

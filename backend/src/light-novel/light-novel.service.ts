@@ -1,10 +1,17 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 
+import { AuditLogService } from "@/common/audit/audit-log.service";
 import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
 import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
+import {
+  auditAdminMediaUpdate,
+  auditMediaCreate,
+  softDeleteMedia
+} from "@/common/media/media-lifecycle.helper";
+import { notDeletedMediaWhere } from "@/common/media/not-deleted-media-where";
 import { computeRoundedWeightedPersonalScore } from "@/common/review-personal-score";
 import {
   buildRelationIdLookupMap,
@@ -27,10 +34,12 @@ import {
   UpdateVolumeProgressItemDto
 } from "@/light-novel/dto";
 import { FetchLightNovelRanobeDbQueueService } from "@/light-novel/fetch-light-novel-ranobedb.queue";
+import { MediaCatalogSyncService } from "@/media-sync/media-catalog-sync.service";
+import { MediaSyncOrchestratorService } from "@/media-sync/media-sync-orchestrator.service";
 import { SettingsService } from "@/settings/settings.service";
 import { ThemesService } from "@/theme/themes.service";
 
-import { Prisma, ProgressStatus } from "@prisma/client";
+import { MediaSyncMediaType, Prisma, ProgressStatus } from "@prisma/client";
 
 interface LightNovelListRow {
   id: number;
@@ -78,7 +87,10 @@ export class LightNovelService extends BaseCrudService<
     private readonly genresService: GenresService,
     private readonly themesService: ThemesService,
     private readonly fetchLightNovelRanobeDbQueue: FetchLightNovelRanobeDbQueueService,
-    private readonly settingsService: SettingsService
+    private readonly settingsService: SettingsService,
+    private readonly auditLogService: AuditLogService,
+    private readonly mediaSyncOrchestrator: MediaSyncOrchestratorService,
+    private readonly catalogSyncService: MediaCatalogSyncService
   ) {
     super(prisma, queryBuilder);
   }
@@ -150,8 +162,8 @@ export class LightNovelService extends BaseCrudService<
   }
 
   override async findOne(id: number): Promise<LightNovelDetailResponseDto> {
-    const result = await this.prisma.lightNovel.findUnique({
-      where: { id },
+    const result = await this.prisma.lightNovel.findFirst({
+      where: { id, ...notDeletedMediaWhere },
       include: {
         review: true,
         volumeProgress: { orderBy: { volumeNumber: "asc" } },
@@ -185,54 +197,81 @@ export class LightNovelService extends BaseCrudService<
     id: number,
     dto: UpdateLightNovelDto
   ): Promise<LightNovelListResponseDto> {
-    try {
-      await this.prisma.$transaction(async (tx) => {
-        const existing = await tx.lightNovel.findUnique({
-          where: { id },
-          include: { volumeProgress: true }
-        });
+    const before = await this.prisma.lightNovel.findFirst({
+      where: { id, ...notDeletedMediaWhere }
+    });
+    if (!before) {
+      throw new NotFoundException("Light Novel not found");
+    }
 
-        if (!existing) {
-          throw new NotFoundException("Light Novel not found");
-        }
-
-        if (dto.volumesCount !== undefined && dto.volumesCount !== null) {
-          const currentCount = existing.volumeProgress.length;
-          const newCount = dto.volumesCount;
-
-          if (newCount > currentCount) {
-            const newVolumes = Array.from(
-              { length: newCount - currentCount },
-              (_, i) => ({
-                volumeNumber: currentCount + i + 1,
-                consumedAt: null as Date | null,
-                lightNovelId: id
-              })
-            );
-            await tx.lightNovelVolumes.createMany({ data: newVolumes });
-          } else if (newCount < currentCount) {
-            await tx.lightNovelVolumes.deleteMany({
-              where: {
-                lightNovelId: id,
-                volumeNumber: { gt: newCount }
-              }
-            });
-          }
-        }
-
-        await tx.lightNovel.update({
-          where: { id },
-          data: dto as Prisma.LightNovelUpdateInput
-        });
+    await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.lightNovel.findFirst({
+        where: { id, ...notDeletedMediaWhere },
+        include: { volumeProgress: true }
       });
 
-      return this.mapToListResponse(id);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
+      if (!existing) {
+        throw new NotFoundException("Light Novel not found");
       }
-      throw error;
-    }
+
+      if (dto.volumesCount !== undefined && dto.volumesCount !== null) {
+        const currentCount = existing.volumeProgress.length;
+        const newCount = dto.volumesCount;
+
+        if (newCount > currentCount) {
+          const newVolumes = Array.from(
+            { length: newCount - currentCount },
+            (_, i) => ({
+              volumeNumber: currentCount + i + 1,
+              consumedAt: null as Date | null,
+              lightNovelId: id
+            })
+          );
+          await tx.lightNovelVolumes.createMany({ data: newVolumes });
+        } else if (newCount < currentCount) {
+          await tx.lightNovelVolumes.deleteMany({
+            where: {
+              lightNovelId: id,
+              volumeNumber: { gt: newCount }
+            }
+          });
+        }
+      }
+
+      await tx.lightNovel.update({
+        where: { id },
+        data: dto as Prisma.LightNovelUpdateInput
+      });
+    });
+
+    const updated = await this.mapToListResponse(id);
+    await auditAdminMediaUpdate({
+      auditLogService: this.auditLogService,
+      entityType: "lightNovel",
+      id,
+      before: before as unknown as Record<string, unknown>,
+      after: updated as unknown as Record<string, unknown>
+    });
+
+    await this.catalogSyncService.refreshOpenConflictSnapshotsAfterLocalEdit({
+      mediaType: MediaSyncMediaType.LIGHT_NOVEL,
+      mediaId: id
+    });
+
+    return updated;
+  }
+
+  override async delete(id: number): Promise<void> {
+    await softDeleteMedia(
+      this.prisma,
+      "lightNovel",
+      [id],
+      this.auditLogService
+    );
+  }
+
+  override async deleteMany(ids: number[]): Promise<void> {
+    await softDeleteMedia(this.prisma, "lightNovel", ids, this.auditLogService);
   }
 
   private async mapToListResponse(
@@ -326,7 +365,7 @@ export class LightNovelService extends BaseCrudService<
             ...lightNovelData
           } = item;
 
-          await tx.lightNovel.create({
+          const created = await tx.lightNovel.create({
             data: {
               ...lightNovelData,
               images: lightNovelData.images as Prisma.InputJsonValue,
@@ -368,6 +407,14 @@ export class LightNovelService extends BaseCrudService<
             }
           });
 
+          await auditMediaCreate({
+            auditLogService: this.auditLogService,
+            entityType: "lightNovel",
+            id: created.id,
+            after: created as unknown as Record<string, unknown>,
+            tx
+          });
+
           enqueueAfterChunk.push({
             id: item.id,
             title: item.title,
@@ -392,22 +439,20 @@ export class LightNovelService extends BaseCrudService<
 
   async enqueueExternalMetadataSync(
     id: number,
-    requestLog?: RequestLogContextStore
+    _requestLog?: RequestLogContextStore
   ): Promise<void> {
-    const row = await this.prisma.lightNovel.findUnique({
-      where: { id },
-      select: { id: true, title: true, titleJapanese: true }
+    const row = await this.prisma.lightNovel.findFirst({
+      where: { id, ...notDeletedMediaWhere },
+      select: { id: true }
     });
 
     if (!row) {
       throw new NotFoundException("Light Novel not found");
     }
 
-    this.fetchLightNovelRanobeDbQueue.enqueueAfterCreate(
-      row.id,
-      row.title,
-      row.titleJapanese,
-      requestLog
+    await this.mediaSyncOrchestrator.startSingleMediaRun(
+      MediaSyncMediaType.LIGHT_NOVEL,
+      id
     );
   }
 
@@ -467,20 +512,23 @@ export class LightNovelService extends BaseCrudService<
   }
 
   async checkDuplicate(id: number): Promise<{ exists: boolean }> {
-    const ln = await this.prisma.lightNovel.findUnique({
-      where: { id },
+    const ln = await this.prisma.lightNovel.findFirst({
+      where: { id, ...notDeletedMediaWhere },
       select: { id: true }
     });
     return { exists: !!ln };
   }
 
   async getTotal(): Promise<{ count: number }> {
-    const count = await this.prisma.lightNovel.count();
+    const count = await this.prisma.lightNovel.count({
+      where: notDeletedMediaWhere
+    });
     return { count };
   }
 
   async getSitemapData(page: number, limit: number) {
     const rawData = (await this.prisma.lightNovel.findMany({
+      where: notDeletedMediaWhere,
       skip: (page - 1) * limit,
       take: limit,
       select: {
@@ -504,10 +552,13 @@ export class LightNovelService extends BaseCrudService<
   }
 
   async getStatusCounts(): Promise<LightNovelStatusCountItemDto[]> {
-    const totalCount = await this.prisma.lightNovel.count();
+    const totalCount = await this.prisma.lightNovel.count({
+      where: notDeletedMediaWhere
+    });
 
     const counts = await this.prisma.lightNovelReview.groupBy({
       by: ["progressStatus"],
+      where: { lightNovel: notDeletedMediaWhere },
       _count: { _all: true }
     });
 

@@ -8,11 +8,18 @@ import { FetchMangaDataQueueService } from "@/manga/fetch-manga-data.queue";
 import { MangaQueryBuilder } from "@/manga/manga-query-builder";
 import { MangaController } from "@/manga/manga.controller";
 import { MangaService } from "@/manga/manga.service";
+import { MediaSyncModule } from "@/media-sync/media-sync.module";
 import { SettingsModule } from "@/settings/settings.module";
 import { ThemesModule } from "@/theme/themes.module";
 
 @Module({
-  imports: [AuthorsModule, GenresModule, ThemesModule, SettingsModule],
+  imports: [
+    AuthorsModule,
+    GenresModule,
+    ThemesModule,
+    SettingsModule,
+    MediaSyncModule
+  ],
   controllers: [MangaController],
   providers: [
     MangaService,

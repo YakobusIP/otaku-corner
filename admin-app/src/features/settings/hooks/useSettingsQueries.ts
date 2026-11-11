@@ -65,14 +65,24 @@ export const useSettingsMutations = () => {
         queryClient.invalidateQueries({
           queryKey: settingKeys.detail(data.key)
         }),
-        // Scores will finish updating shortly after the background job runs.
         queryClient.invalidateQueries({ queryKey: mediaKeys.all }),
         queryClient.invalidateQueries({ queryKey: settingKeys.all })
       ]);
-      const queuedCount = data.recalculationQueuedCount ?? 0;
-      toast.success(
-        `Weights saved. Recalculating ${queuedCount} personal scores in the background.`
-      );
+
+      if (data.key.startsWith("review.personal_score_weights.")) {
+        const queuedCount = data.recalculationQueuedCount ?? 0;
+        toast.success(
+          `Weights saved. Recalculating ${queuedCount} personal scores in the background.`
+        );
+        return;
+      }
+
+      if (data.key === "media.catalog_sync") {
+        toast.success("General settings saved");
+        return;
+      }
+
+      toast.success("Setting saved");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to save setting");

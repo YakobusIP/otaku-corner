@@ -16,6 +16,7 @@ const AdminLightNovelDetail = lazy(
 );
 const ImageVault = lazy(() => import("@/pages/ImageVault"));
 const EntityManagement = lazy(() => import("@/pages/EntityManagement"));
+const Notifications = lazy(() => import("@/pages/Notifications"));
 const Settings = lazy(() => import("@/pages/Settings"));
 
 function PageLoader() {
@@ -63,6 +64,14 @@ export const router: Router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <EntityManagement />
+          </Suspense>
+        )
+      },
+      {
+        path: "notifications",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Notifications />
           </Suspense>
         )
       },

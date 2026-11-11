@@ -137,6 +137,23 @@ export class AnimeController extends BaseCrudController<
     return this.service.getStatusCounts();
   }
 
+  @Post(":id/metadata-sync")
+  @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({
+    summary: "Enqueue full catalog metadata sync for this anime"
+  })
+  @ApiParam({ name: "id", description: "Anime ID", type: Number })
+  @ApiResponse({
+    status: 202,
+    description: "Job accepted on the catalog sync queue"
+  })
+  async enqueueMetadataSync(
+    @Param("id", ParseIntPipe) id: number
+  ): Promise<{ queued: true }> {
+    await this.service.enqueueExternalMetadataSync(id);
+    return { queued: true };
+  }
+
   @Get(":id")
   @Public()
   @ApiOperation({ summary: "Get anime detail by ID" })

@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 
@@ -7,6 +7,7 @@ import { AnimeController } from "@/anime/anime.controller";
 import { AnimeService } from "@/anime/anime.service";
 import { FetchEpisodesQueueService } from "@/anime/fetch-episodes.queue";
 import { GenresModule } from "@/genre/genres.module";
+import { MediaSyncModule } from "@/media-sync/media-sync.module";
 import { SettingsModule } from "@/settings/settings.module";
 import { StudiosModule } from "@/studio/studios.module";
 import { TenraiModule } from "@/tenrai/tenrai.module";
@@ -18,7 +19,8 @@ import { ThemesModule } from "@/theme/themes.module";
     StudiosModule,
     ThemesModule,
     TenraiModule,
-    SettingsModule
+    SettingsModule,
+    forwardRef(() => MediaSyncModule)
   ],
   controllers: [AnimeController],
   providers: [
@@ -26,6 +28,6 @@ import { ThemesModule } from "@/theme/themes.module";
     FetchEpisodesQueueService,
     { provide: CrudQueryBuilder, useClass: AnimeQueryBuilder }
   ],
-  exports: [AnimeService]
+  exports: [AnimeService, FetchEpisodesQueueService]
 })
 export class AnimeModule {}

@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 
+import { notDeletedMediaWhere } from "@/common/media/not-deleted-media-where";
+
 import { PrismaService } from "@/prisma/prisma.service";
 
 import { Prisma } from "@prisma/client";
@@ -28,6 +30,7 @@ export class StatisticTopRatedService {
     const [topAnime, topManga, topLightNovel] = await Promise.all([
       this.prisma.anime.findFirst({
         where: {
+          ...notDeletedMediaWhere,
           review: {
             personalScore: { not: null },
             consumedAt: { not: null, gte: start, lte: end }
@@ -44,6 +47,7 @@ export class StatisticTopRatedService {
       }),
       this.prisma.manga.findFirst({
         where: {
+          ...notDeletedMediaWhere,
           review: {
             personalScore: { not: null },
             consumedAt: { not: null, gte: start, lte: end }
@@ -60,6 +64,7 @@ export class StatisticTopRatedService {
       }),
       this.prisma.lightNovel.findFirst({
         where: {
+          ...notDeletedMediaWhere,
           review: { personalScore: { not: null } },
           volumeProgress: {
             some: {
@@ -108,7 +113,10 @@ export class StatisticTopRatedService {
   async getTopRatedAllTime() {
     const [topAnime, topManga, topLightNovel] = await Promise.all([
       this.prisma.anime.findFirst({
-        where: { review: { personalScore: { not: null } } },
+        where: {
+          ...notDeletedMediaWhere,
+          review: { personalScore: { not: null } }
+        },
         orderBy: { review: { personalScore: "desc" } },
         select: {
           id: true,
@@ -119,7 +127,10 @@ export class StatisticTopRatedService {
         }
       }),
       this.prisma.manga.findFirst({
-        where: { review: { personalScore: { not: null } } },
+        where: {
+          ...notDeletedMediaWhere,
+          review: { personalScore: { not: null } }
+        },
         orderBy: { review: { personalScore: "desc" } },
         select: {
           id: true,
@@ -130,7 +141,10 @@ export class StatisticTopRatedService {
         }
       }),
       this.prisma.lightNovel.findFirst({
-        where: { review: { personalScore: { not: null } } },
+        where: {
+          ...notDeletedMediaWhere,
+          review: { personalScore: { not: null } }
+        },
         orderBy: { review: { personalScore: "desc" } },
         select: {
           id: true,

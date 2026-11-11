@@ -1,3 +1,4 @@
+import GeneralSettingsTab from "@/features/settings/components/GeneralSettingsTab";
 import ReviewScoreWeightsSettingsTab from "@/features/settings/components/ReviewScoreWeightsSettingsTab";
 import {
   Tabs,
@@ -7,6 +8,11 @@ import {
 } from "@/components/ui/tabs";
 
 const SETTINGS_TABS = [
+  {
+    id: "general",
+    label: "General",
+    content: GeneralSettingsTab
+  },
   {
     id: "review-score-weights",
     label: "Review Score Weights",

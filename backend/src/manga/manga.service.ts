@@ -1,10 +1,17 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 
+import { AuditLogService } from "@/common/audit/audit-log.service";
 import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
 import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
+import {
+  auditAdminMediaUpdate,
+  auditMediaCreate,
+  softDeleteMedia
+} from "@/common/media/media-lifecycle.helper";
+import { notDeletedMediaWhere } from "@/common/media/not-deleted-media-where";
 import { computeRoundedWeightedPersonalScore } from "@/common/review-personal-score";
 import {
   buildRelationIdLookupMap,
@@ -26,10 +33,12 @@ import {
   UpdateMangaReviewDto
 } from "@/manga/dto";
 import { FetchMangaDataQueueService } from "@/manga/fetch-manga-data.queue";
+import { MediaCatalogSyncService } from "@/media-sync/media-catalog-sync.service";
+import { MediaSyncOrchestratorService } from "@/media-sync/media-sync-orchestrator.service";
 import { SettingsService } from "@/settings/settings.service";
 import { ThemesService } from "@/theme/themes.service";
 
-import { Prisma, ProgressStatus } from "@prisma/client";
+import { MediaSyncMediaType, Prisma, ProgressStatus } from "@prisma/client";
 
 interface MangaWithReview {
   id: number;
@@ -113,7 +122,10 @@ export class MangaService extends BaseCrudService<
     private readonly genresService: GenresService,
     private readonly themesService: ThemesService,
     private readonly fetchMangaDataQueue: FetchMangaDataQueueService,
-    private readonly settingsService: SettingsService
+    private readonly settingsService: SettingsService,
+    private readonly auditLogService: AuditLogService,
+    private readonly mediaSyncOrchestrator: MediaSyncOrchestratorService,
+    private readonly catalogSyncService: MediaCatalogSyncService
   ) {
     super(prisma, queryBuilder);
   }
@@ -186,8 +198,8 @@ export class MangaService extends BaseCrudService<
   }
 
   override async findOne(id: number): Promise<MangaDetailResponseDto> {
-    const manga = (await this.prisma.manga.findUnique({
-      where: { id },
+    const manga = (await this.prisma.manga.findFirst({
+      where: { id, ...notDeletedMediaWhere },
       include: {
         review: {
           select: {
@@ -231,6 +243,43 @@ export class MangaService extends BaseCrudService<
     } as MangaDetailResponseDto;
   }
 
+  override async update(
+    id: number,
+    dto: UpdateMangaDto
+  ): Promise<MangaListResponseDto> {
+    const before = await this.prisma.manga.findFirst({
+      where: { id, ...notDeletedMediaWhere }
+    });
+    if (!before) {
+      throw new NotFoundException("Manga not found");
+    }
+
+    const updated = await super.update(id, dto);
+
+    await auditAdminMediaUpdate({
+      auditLogService: this.auditLogService,
+      entityType: "manga",
+      id,
+      before: before as unknown as Record<string, unknown>,
+      after: updated as unknown as Record<string, unknown>
+    });
+
+    await this.catalogSyncService.refreshOpenConflictSnapshotsAfterLocalEdit({
+      mediaType: MediaSyncMediaType.MANGA,
+      mediaId: id
+    });
+
+    return updated;
+  }
+
+  override async delete(id: number): Promise<void> {
+    await softDeleteMedia(this.prisma, "manga", [id], this.auditLogService);
+  }
+
+  override async deleteMany(ids: number[]): Promise<void> {
+    await softDeleteMedia(this.prisma, "manga", ids, this.auditLogService);
+  }
+
   async createBulk(
     data: CreateMangaItemDto[],
     requestLog?: RequestLogContextStore
@@ -269,7 +318,7 @@ export class MangaService extends BaseCrudService<
             ...mangaData
           } = item;
 
-          await tx.manga.create({
+          const created = await tx.manga.create({
             data: {
               ...mangaData,
               authors: {
@@ -303,6 +352,14 @@ export class MangaService extends BaseCrudService<
             }
           });
 
+          await auditMediaCreate({
+            auditLogService: this.auditLogService,
+            entityType: "manga",
+            id: created.id,
+            after: created as unknown as Record<string, unknown>,
+            tx
+          });
+
           enqueueAfterChunk.push({
             id: item.id,
             title: item.title,
@@ -329,22 +386,20 @@ export class MangaService extends BaseCrudService<
 
   async enqueueExternalMetadataSync(
     id: number,
-    requestLog?: RequestLogContextStore
+    _requestLog?: RequestLogContextStore
   ): Promise<void> {
-    const row = await this.prisma.manga.findUnique({
-      where: { id },
-      select: { id: true, title: true, titleJapanese: true }
+    const row = await this.prisma.manga.findFirst({
+      where: { id, ...notDeletedMediaWhere },
+      select: { id: true }
     });
 
     if (!row) {
       throw new NotFoundException("Manga not found");
     }
 
-    this.fetchMangaDataQueue.enqueueMetadataSync(
-      row.id,
-      row.title,
-      row.titleJapanese,
-      requestLog
+    await this.mediaSyncOrchestrator.startSingleMediaRun(
+      MediaSyncMediaType.MANGA,
+      id
     );
   }
 
@@ -386,20 +441,23 @@ export class MangaService extends BaseCrudService<
   }
 
   async checkDuplicate(id: number): Promise<{ exists: boolean }> {
-    const manga = await this.prisma.manga.findUnique({
-      where: { id },
+    const manga = await this.prisma.manga.findFirst({
+      where: { id, ...notDeletedMediaWhere },
       select: { id: true }
     });
     return { exists: !!manga };
   }
 
   async getTotal(): Promise<{ count: number }> {
-    const count = await this.prisma.manga.count();
+    const count = await this.prisma.manga.count({
+      where: notDeletedMediaWhere
+    });
     return { count };
   }
 
   async getSitemapData(page: number, limit: number) {
     const rawData = (await this.prisma.manga.findMany({
+      where: notDeletedMediaWhere,
       skip: (page - 1) * limit,
       take: limit,
       select: {
@@ -423,10 +481,13 @@ export class MangaService extends BaseCrudService<
   }
 
   async getStatusCounts(): Promise<MangaStatusCountItemDto[]> {
-    const totalCount = await this.prisma.manga.count();
+    const totalCount = await this.prisma.manga.count({
+      where: notDeletedMediaWhere
+    });
 
     const counts = await this.prisma.mangaReview.groupBy({
       by: ["progressStatus"],
+      where: { manga: notDeletedMediaWhere },
       _count: { _all: true }
     });
 

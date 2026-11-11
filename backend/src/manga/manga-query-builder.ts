@@ -15,6 +15,7 @@ import {
   buildReviewListCommonOrderBy,
   listSkipTake
 } from "@/common/crud/media-review-list-query";
+import { notDeletedMediaWhere } from "@/common/media/not-deleted-media-where";
 
 import { MangaQueryDto } from "@/manga/dto";
 
@@ -22,6 +23,8 @@ import { MangaQueryDto } from "@/manga/dto";
 export class MangaQueryBuilder implements CrudQueryBuilder {
   buildFindAllQuery(query: MangaQueryDto): CrudQueryResult {
     const conditions: Record<string, unknown>[] = [];
+
+    conditions.push(notDeletedMediaWhere);
 
     appendTitleSynonymsSearchConditions(conditions, query.query);
     appendAuthorJoinCondition(conditions, query.author);

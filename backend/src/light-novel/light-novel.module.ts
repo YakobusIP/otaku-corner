@@ -8,11 +8,18 @@ import { FetchLightNovelRanobeDbQueueService } from "@/light-novel/fetch-light-n
 import { LightNovelQueryBuilder } from "@/light-novel/light-novel-query-builder";
 import { LightNovelController } from "@/light-novel/light-novel.controller";
 import { LightNovelService } from "@/light-novel/light-novel.service";
+import { MediaSyncModule } from "@/media-sync/media-sync.module";
 import { SettingsModule } from "@/settings/settings.module";
 import { ThemesModule } from "@/theme/themes.module";
 
 @Module({
-  imports: [AuthorsModule, GenresModule, ThemesModule, SettingsModule],
+  imports: [
+    AuthorsModule,
+    GenresModule,
+    ThemesModule,
+    SettingsModule,
+    MediaSyncModule
+  ],
   controllers: [LightNovelController],
   providers: [
     LightNovelService,

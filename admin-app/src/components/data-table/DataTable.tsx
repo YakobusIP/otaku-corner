@@ -1,4 +1,4 @@
-import { Dispatch, Fragment, ReactNode, SetStateAction } from "react";
+import { Dispatch, Fragment, ReactNode, SetStateAction, useCallback, useRef } from "react";
 
 import {
   AlertDialog,
@@ -39,6 +39,7 @@ import {
   Trash2Icon,
   XIcon
 } from "lucide-react";
+import { useInView } from "react-intersection-observer";
 
 interface Identifiable {
   id: number | string;
@@ -58,6 +59,11 @@ interface DataTableProps<TData extends Identifiable, TValue> {
   setPage: Dispatch<SetStateAction<number>>;
   metadata?: MetadataResponse;
   hideBulkDelete?: boolean;
+  paginationMode?: "pages" | "infinite";
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  fetchNextPage?: () => void;
+  onRowClick?: (row: TData) => void;
 }
 
 export default function DataTable<TData extends Identifiable, TValue>({
@@ -73,8 +79,35 @@ export default function DataTable<TData extends Identifiable, TValue>({
   page,
   setPage,
   metadata,
-  hideBulkDelete = false
+  hideBulkDelete = false,
+  paginationMode = "pages",
+  hasNextPage = false,
+  isFetchingNextPage = false,
+  fetchNextPage,
+  onRowClick
 }: DataTableProps<TData, TValue>) {
+  const fetchNextPageRef = useRef(fetchNextPage);
+  fetchNextPageRef.current = fetchNextPage;
+
+  const fetchNextIfNeeded = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) {
+      return;
+    }
+    fetchNextPageRef.current?.();
+  }, [hasNextPage, isFetchingNextPage]);
+
+  const { ref: infiniteSentinelRef } = useInView({
+    skip: paginationMode !== "infinite" || !hasNextPage,
+    threshold: 0,
+    initialInView: false,
+    onChange: (visible) => {
+      if (!visible) {
+        return;
+      }
+      fetchNextIfNeeded();
+    }
+  });
+
   const table = useReactTable({
     data,
     columns,
@@ -225,8 +258,10 @@ export default function DataTable<TData extends Identifiable, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                   className={cn(
                     idx % 2 === 1 && "bg-muted/20 hover:bg-muted/25",
-                    "border-border/30"
+                    "border-border/30",
+                    onRowClick && "cursor-pointer"
                   )}
+                  onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -254,10 +289,23 @@ export default function DataTable<TData extends Identifiable, TValue>({
                 </TableCell>
               </TableRow>
             )}
+            {paginationMode === "infinite" && hasNextPage ? (
+              <TableRow ref={infiniteSentinelRef}>
+                <TableCell colSpan={columns.length} className="h-12 text-center">
+                  {isFetchingNextPage ? (
+                    <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2Icon className="h-4 w-4 animate-spin" />
+                      Loading more...
+                    </div>
+                  ) : null}
+                </TableCell>
+              </TableRow>
+            ) : null}
           </TableBody>
         </Table>
       </div>
 
+      {paginationMode === "pages" ? (
       <div className="flex shrink-0 flex-col gap-2 pt-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
         <div className="text-center text-sm text-muted-foreground sm:flex-1 sm:text-left">
           <span>
@@ -314,6 +362,11 @@ export default function DataTable<TData extends Identifiable, TValue>({
           </Button>
         </div>
       </div>
+      ) : (
+        <div className="shrink-0 pt-3 text-center text-sm text-muted-foreground sm:text-left">
+          {totalItems > 0 ? `${totalItems} loaded` : "No results"}
+        </div>
+      )}
     </div>
   );
 }

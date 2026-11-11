@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 
+import { notDeletedMediaWhere } from "@/common/media/not-deleted-media-where";
+
 import { PrismaService } from "@/prisma/prisma.service";
 
 import { Prisma } from "@prisma/client";
@@ -27,9 +29,15 @@ export class StatisticDashboardService {
 
   private async totalMediaAt(cutoff: Date): Promise<number> {
     const [anime, manga, lightNovel] = await Promise.all([
-      this.prisma.anime.count({ where: { createdAt: { lte: cutoff } } }),
-      this.prisma.manga.count({ where: { createdAt: { lte: cutoff } } }),
-      this.prisma.lightNovel.count({ where: { createdAt: { lte: cutoff } } })
+      this.prisma.anime.count({
+        where: { createdAt: { lte: cutoff }, ...notDeletedMediaWhere }
+      }),
+      this.prisma.manga.count({
+        where: { createdAt: { lte: cutoff }, ...notDeletedMediaWhere }
+      }),
+      this.prisma.lightNovel.count({
+        where: { createdAt: { lte: cutoff }, ...notDeletedMediaWhere }
+      })
     ]);
     return anime + manga + lightNovel;
   }
@@ -38,6 +46,7 @@ export class StatisticDashboardService {
     const [animeC, mangaC, lnC] = await Promise.all([
       this.prisma.$queryRaw<[{ c: bigint }]>(Prisma.sql`
         SELECT COUNT(*)::bigint AS c FROM "AnimeReview" r
+        INNER JOIN "Anime" a ON a.id = r."animeId" AND a."deletedAt" IS NULL
         WHERE (
           (r."progressStatus" = 'ON_PROGRESS' AND r."updatedAt" <= ${cutoff})
           OR (r."progressStatus" = 'COMPLETED' AND r."updatedAt" > ${cutoff})
@@ -45,6 +54,7 @@ export class StatisticDashboardService {
       `),
       this.prisma.$queryRaw<[{ c: bigint }]>(Prisma.sql`
         SELECT COUNT(*)::bigint AS c FROM "MangaReview" r
+        INNER JOIN "Manga" m ON m.id = r."mangaId" AND m."deletedAt" IS NULL
         WHERE (
           (r."progressStatus" = 'ON_PROGRESS' AND r."updatedAt" <= ${cutoff})
           OR (r."progressStatus" = 'COMPLETED' AND r."updatedAt" > ${cutoff})
@@ -52,6 +62,7 @@ export class StatisticDashboardService {
       `),
       this.prisma.$queryRaw<[{ c: bigint }]>(Prisma.sql`
         SELECT COUNT(*)::bigint AS c FROM "LightNovelReview" r
+        INNER JOIN "LightNovel" ln ON ln.id = r."lightNovelId" AND ln."deletedAt" IS NULL
         WHERE (
           (r."progressStatus" = 'ON_PROGRESS' AND r."updatedAt" <= ${cutoff})
           OR (r."progressStatus" = 'COMPLETED' AND r."updatedAt" > ${cutoff})

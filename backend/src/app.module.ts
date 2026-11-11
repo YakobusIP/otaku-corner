@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 
+import { AuditLogModule } from "@/common/audit/audit-log.module";
 import { BullQueueModule } from "@/common/bull/bull-queue.module";
 import { PrismaExceptionFilter } from "@/common/filters/prisma-exception.filter";
 import { LoggingModule } from "@/common/logging/logging.module";
@@ -20,6 +21,7 @@ import { ImageVaultModule } from "@/image-vault/image-vault.module";
 import { LightNovelModule } from "@/light-novel/light-novel.module";
 import { MangaModule } from "@/manga/manga.module";
 import { MediaLibraryModule } from "@/media-library/media-library.module";
+import { MediaSyncModule } from "@/media-sync/media-sync.module";
 import { SettingsModule } from "@/settings/settings.module";
 import { StatisticModule } from "@/statistic/statistic.module";
 import { StorageModule } from "@/storage/storage.module";
@@ -35,6 +37,7 @@ import { ThemesModule } from "@/theme/themes.module";
     }),
     StorageModule,
     LoggingModule,
+    AuditLogModule,
     BullQueueModule,
     PrismaModule,
     AuthModule,
@@ -50,7 +53,8 @@ import { ThemesModule } from "@/theme/themes.module";
     AssetsModule,
     ImageVaultModule,
     TenraiModule,
-    SettingsModule
+    SettingsModule,
+    MediaSyncModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaExceptionFilter]

@@ -43,7 +43,8 @@ WITH combined AS (
   FROM "Anime" a
   LEFT JOIN "AnimeReview" ar ON ar."animeId" = a.id
   WHERE
-    ($1::text IS NULL OR ar."progressStatus"::text = $1)
+    a."deletedAt" IS NULL
+    AND ($1::text IS NULL OR ar."progressStatus"::text = $1)
     AND ($2::double precision IS NULL OR a.score >= $2)
     AND ($3::double precision IS NULL OR a.score <= $3)
     AND ($4::double precision IS NULL OR ar."personalScore" >= $4)
@@ -144,7 +145,8 @@ WITH combined AS (
   FROM "Manga" m
   LEFT JOIN "MangaReview" mr ON mr."mangaId" = m.id
   WHERE
-    ($1::text IS NULL OR mr."progressStatus"::text = $1)
+    m."deletedAt" IS NULL
+    AND ($1::text IS NULL OR mr."progressStatus"::text = $1)
     AND ($2::double precision IS NULL OR m.score >= $2)
     AND ($3::double precision IS NULL OR m.score <= $3)
     AND ($4::double precision IS NULL OR mr."personalScore" >= $4)
@@ -248,7 +250,8 @@ WITH combined AS (
   FROM "LightNovel" ln
   LEFT JOIN "LightNovelReview" lnr ON lnr."lightNovelId" = ln.id
   WHERE
-    ($1::text IS NULL OR lnr."progressStatus"::text = $1)
+    ln."deletedAt" IS NULL
+    AND ($1::text IS NULL OR lnr."progressStatus"::text = $1)
     AND ($2::double precision IS NULL OR ln.score >= $2)
     AND ($3::double precision IS NULL OR ln.score <= $3)
     AND ($4::double precision IS NULL OR lnr."personalScore" >= $4)

@@ -79,3 +79,25 @@ export const settingKeys = {
   lists: () => [...settingKeys.all, "list"] as const,
   detail: (key: string) => [...settingKeys.all, "detail", key] as const
 };
+
+export const auditLogKeys = {
+  all: ["auditLogs"] as const,
+  infinite: (filters: Record<string, string | undefined>) =>
+    [...auditLogKeys.all, "infinite", filters] as const
+};
+
+export const mediaSyncKeys = {
+  all: ["mediaSync"] as const,
+  runs: () => [...mediaSyncKeys.all, "runs"] as const,
+  runList: (page: number, limit: number) =>
+    [...mediaSyncKeys.runs(), page, limit] as const,
+  runDetail: (
+    id: string,
+    page: number,
+    limit: number,
+    outcome?: string
+  ) => [...mediaSyncKeys.all, "detail", id, page, limit, outcome ?? ""] as const,
+  openConflicts: () => [...mediaSyncKeys.all, "openConflicts"] as const,
+  openConflictList: (page: number, limit: number) =>
+    [...mediaSyncKeys.openConflicts(), page, limit] as const
+};

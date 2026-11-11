@@ -1,5 +1,7 @@
 import { Injectable } from "@nestjs/common";
 
+import { notDeletedMediaWhere } from "@/common/media/not-deleted-media-where";
+
 import { PrismaService } from "@/prisma/prisma.service";
 
 import { Prisma } from "@prisma/client";
@@ -30,17 +32,17 @@ export class StatisticOverviewService {
         where: { progressStatus: { in: ["COMPLETED", "DROPPED"] } }
       }),
       this.prisma.anime.aggregate({
-        where: { score: { not: null } },
+        where: { score: { not: null }, ...notDeletedMediaWhere },
         _sum: { score: true },
         _count: { id: true }
       }),
       this.prisma.manga.aggregate({
-        where: { score: { not: null } },
+        where: { score: { not: null }, ...notDeletedMediaWhere },
         _sum: { score: true },
         _count: { id: true }
       }),
       this.prisma.lightNovel.aggregate({
-        where: { score: { not: null } },
+        where: { score: { not: null }, ...notDeletedMediaWhere },
         _sum: { score: true },
         _count: { id: true }
       }),
@@ -115,10 +117,12 @@ export class StatisticOverviewService {
     ] = await Promise.all([
       this.prisma.anime.count({
         where: {
+          ...notDeletedMediaWhere,
           review: { consumedAt: { gte: startDate, lte: endDate } }
         }
       }),
       this.prisma.anime.findMany({
+        where: notDeletedMediaWhere,
         select: {
           id: true,
           slug: true,
@@ -134,10 +138,12 @@ export class StatisticOverviewService {
       }),
       this.prisma.manga.count({
         where: {
+          ...notDeletedMediaWhere,
           review: { consumedAt: { gte: startDate, lte: endDate } }
         }
       }),
       this.prisma.manga.findMany({
+        where: notDeletedMediaWhere,
         select: {
           id: true,
           slug: true,
@@ -152,9 +158,13 @@ export class StatisticOverviewService {
         take: 1
       }),
       this.prisma.lightNovelVolumes.count({
-        where: { consumedAt: { gte: startDate, lte: endDate } }
+        where: {
+          consumedAt: { gte: startDate, lte: endDate },
+          lightNovel: notDeletedMediaWhere
+        }
       }),
       this.prisma.lightNovel.findMany({
+        where: notDeletedMediaWhere,
         select: {
           id: true,
           slug: true,

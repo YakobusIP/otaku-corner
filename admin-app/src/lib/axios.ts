@@ -237,11 +237,23 @@ export const handleAxiosError = (error: unknown) => {
     const data = error.response.data as
       | ApiResponseError
       | { message?: string | string[] };
-    if (typeof (data as ApiResponseError).error === "string")
-      return (data as ApiResponseError).error;
-    const msg = (data as { message?: string | string[] }).message;
-    if (typeof msg === "string") return msg;
-    if (Array.isArray(msg) && msg.length) return msg[0];
+    const message = (data as { message?: string | string[] }).message;
+    const genericError = (data as ApiResponseError).error;
+    if (typeof message === "string" && message.length > 0) {
+      if (
+        typeof genericError === "string" &&
+        /^(Bad Request|Conflict|Forbidden|Not Found|Unauthorized|Unprocessable Entity)$/i.test(
+          genericError
+        )
+      ) {
+        return message;
+      }
+      if (!genericError) {
+        return message;
+      }
+    }
+    if (typeof genericError === "string") return genericError;
+    if (Array.isArray(message) && message.length) return message[0];
   }
   return "There was a problem with your request.";
 };

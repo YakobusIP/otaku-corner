@@ -14,7 +14,7 @@ import { useMediaLibraryBackPath } from "@/features/media-library/hooks/useMedia
 
 import { parsePositiveIntParam } from "@/lib/parse-route-param";
 
-import { AlertTriangleIcon, ArrowLeftIcon, Loader2Icon } from "lucide-react";
+import { AlertTriangleIcon, ArrowLeftIcon, Loader2Icon, RefreshCwIcon } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -27,7 +27,8 @@ export default function AdminAnimeDetail() {
     data: animeDetail,
     isLoading,
     isError,
-    error
+    error,
+    syncMetadataMutation
   } = useAnimeDetail(parsedId ?? undefined);
 
   useEffect(() => {
@@ -99,14 +100,30 @@ export default function AdminAnimeDetail() {
       hideHeader
     >
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger className="@tablet:hidden" />
-          <Link to={libraryBackPath}>
-            <Button variant="ghost" size="sm" className="gap-2">
-              <ArrowLeftIcon className="h-4 w-4" />
-              <span>Back to library</span>
-            </Button>
-          </Link>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="@tablet:hidden" />
+            <Link to={libraryBackPath}>
+              <Button variant="ghost" size="sm" className="gap-2">
+                <ArrowLeftIcon className="h-4 w-4" />
+                <span>Back to library</span>
+              </Button>
+            </Link>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            disabled={syncMetadataMutation.isPending}
+            onClick={() => syncMetadataMutation.mutate()}
+          >
+            <RefreshCwIcon
+              className={`h-4 w-4 ${syncMetadataMutation.isPending ? "animate-spin" : ""}`}
+            />
+            <span className="hidden sm:inline">Sync details</span>
+            <span className="sm:hidden">Sync</span>
+          </Button>
         </div>
         <AnimeHero animeDetail={animeDetail} />
         <AnimeInfoSection animeDetail={animeDetail} />

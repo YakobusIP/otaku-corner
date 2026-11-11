@@ -15,6 +15,7 @@ import {
   buildReviewListCommonOrderBy,
   listSkipTake
 } from "@/common/crud/media-review-list-query";
+import { notDeletedMediaWhere } from "@/common/media/not-deleted-media-where";
 
 import { AnimeQueryDto } from "@/anime/dto";
 
@@ -22,6 +23,8 @@ import { AnimeQueryDto } from "@/anime/dto";
 export class AnimeQueryBuilder implements CrudQueryBuilder {
   buildFindAllQuery(query: AnimeQueryDto): CrudQueryResult {
     const conditions: Record<string, unknown>[] = [];
+
+    conditions.push(notDeletedMediaWhere);
 
     appendTitleSynonymsSearchConditions(conditions, query.query);
     appendGenreJoinCondition(conditions, query.genre);

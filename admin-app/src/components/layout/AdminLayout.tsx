@@ -20,6 +20,7 @@ import {
 
 import {
   BarChart3Icon,
+  BellIcon,
   BookOpenIcon,
   ExternalLinkIcon,
   ImagesIcon,
@@ -75,6 +76,11 @@ const NAV_ITEMS: NavItem[] = [
     to: "/entity-management",
     label: "Entity Management",
     icon: <TagsIcon />
+  },
+  {
+    to: "/notifications",
+    label: "Notification Center",
+    icon: <BellIcon />
   },
   {
     to: "/settings",

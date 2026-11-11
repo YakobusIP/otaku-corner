@@ -44,9 +44,56 @@ enum ImageVaultSafetyLevel {
   EXPLICIT
 }
 
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum AuditSource {
+  ADMIN
+  SYNC
+  CREATE
+  SYSTEM
+}
+
+enum MediaSyncRunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum MediaSyncRunType {
+  SCHEDULED
+  MANUAL
+}
+
+enum MediaSyncMediaType {
+  ANIME
+  MANGA
+  LIGHT_NOVEL
+}
+
+enum MediaSyncItemOutcome {
+  UPDATED
+  UNCHANGED
+  CONFLICT
+  FAILED
+  RESOLVED_ACCEPTED
+  RESOLVED_KEPT
+  RESOLVED_DISMISSED
+}
+
+enum MediaSyncJobPublicationStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+}
+
 model Anime {
-  id            Int      @id
-  slug          String   @unique
+  id            Int       @id
+  slug          String    @unique
   type          String
   status        String
   rating        String
@@ -64,14 +111,17 @@ model Anime {
   synopsis      String
   trailer       String?
   malUrl        String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   genres   AnimeGenres[]
   studios  AnimeStudios[]
   themes   AnimeThemes[]
   episodes AnimeEpisode[]
   review   AnimeReview?
+
+  @@index([deletedAt])
 }
 
 model AnimeEpisode {
@@ -107,8 +157,8 @@ model AnimeReview {
 }
 
 model Manga {
-  id            Int      @id
-  slug          String   @unique
+  id            Int       @id
+  slug          String    @unique
   status        String
   title         String
   titleJapanese String
@@ -120,13 +170,16 @@ model Manga {
   images        Json
   synopsis      String
   malUrl        String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   authors MangaAuthors[]
   genres  MangaGenres[]
   themes  MangaThemes[]
   review  MangaReview?
+
+  @@index([deletedAt])
 }
 
 model MangaReview {
@@ -150,8 +203,8 @@ model MangaReview {
 }
 
 model LightNovel {
-  id            Int      @id
-  slug          String   @unique
+  id            Int       @id
+  slug          String    @unique
   status        String
   title         String
   titleJapanese String
@@ -162,14 +215,17 @@ model LightNovel {
   images        Json
   synopsis      String
   malUrl        String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   authors        LightNovelAuthors[]
   genres         LightNovelGenres[]
   themes         LightNovelThemes[]
   volumeProgress LightNovelVolumes[]
   review         LightNovelReview?
+
+  @@index([deletedAt])
 }
 
 model LightNovelReview {
@@ -447,6 +503,112 @@ model AppSetting {
   value     Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  createdAt   DateTime    @default(now())
+  action      AuditAction
+  source      AuditSource
+  entityType  String
+  entityId    String
+  actorUserId Int?
+  syncRunId   String?
+  before      Json?
+  after       Json?
+
+  syncRun MediaSyncRun? @relation(fields: [syncRunId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([entityType, entityId, createdAt(sort: Desc)])
+  @@index([syncRunId])
+}
+
+model MediaSyncRun {
+  id              String             @id @default(cuid())
+  type            MediaSyncRunType
+  status          MediaSyncRunStatus @default(PENDING)
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  /// Number of queue jobs enqueued for this run; used for durable completion.
+  expectedJobCount Int?
+  touchedCount    Int                @default(0)
+  updatedCount    Int                @default(0)
+  unchangedCount  Int                @default(0)
+  conflictedCount Int                @default(0)
+  failedCount     Int                @default(0)
+  errorMessage    String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  items         MediaSyncItem[]
+  publications  MediaSyncJobPublication[]
+  auditLogs     AuditLog[]
+
+  @@index([createdAt(sort: Desc)])
+  @@index([status])
+}
+
+/// Partial unique index MediaSyncItem_one_open_conflict_per_media_key
+/// (mediaType, mediaId) WHERE outcome = 'CONFLICT' lives in migration SQL only;
+/// Prisma cannot model partial indexes — do not drop via schema-first diffs.
+model MediaSyncItem {
+  id               String               @id @default(cuid())
+  syncRunId        String
+  mediaType        MediaSyncMediaType
+  mediaId          Int
+  mediaTitle       String?
+  outcome          MediaSyncItemOutcome
+  errorMessage     String?
+  conflicts        Json?
+  pendingUpstream  Json?
+  baselineCatalog  Json?
+  resolvedAt       DateTime?
+  resolvedByUserId Int?
+  fieldResolutions Json?
+  version          Int                  @default(1)
+  createdAt        DateTime             @default(now())
+
+  syncRun MediaSyncRun @relation(fields: [syncRunId], references: [id], onDelete: Cascade)
+
+  @@unique([syncRunId, mediaType, mediaId])
+  @@index([syncRunId, outcome])
+  @@index([syncRunId, createdAt(sort: Desc)])
+  @@index([mediaType, mediaId, outcome])
+}
+
+model MediaSyncJobPublication {
+  id            String                        @id @default(cuid())
+  syncRunId     String
+  mediaType     MediaSyncMediaType
+  mediaId       Int
+  bullJobId     String                        @unique
+  correlationId String
+  status        MediaSyncJobPublicationStatus @default(PENDING)
+  attemptCount  Int                           @default(0)
+  lastError     String?
+  publishedAt   DateTime?
+  failedAt      DateTime?
+  createdAt     DateTime                      @default(now())
+  updatedAt     DateTime                      @updatedAt
+
+  syncRun MediaSyncRun @relation(fields: [syncRunId], references: [id], onDelete: Cascade)
+
+  @@unique([syncRunId, mediaType, mediaId])
+  @@index([status, updatedAt])
+  @@index([syncRunId, status])
+}
+
+model MediaCatalogSyncState {
+  mediaType       MediaSyncMediaType
+  mediaId         Int
+  baselineCatalog Json
+  baselineSource  String?
+  lastSyncedAt    DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@id([mediaType, mediaId])
 }
 
 model ReviewAsset {

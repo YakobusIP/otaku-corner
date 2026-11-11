@@ -1,10 +1,22 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  forwardRef
+} from "@nestjs/common";
 
+import { AuditLogService } from "@/common/audit/audit-log.service";
 import { PROGRESS_STATUSES } from "@/common/constants/progress-statuses";
 import { BaseCrudService } from "@/common/crud/base-crud.service";
 import { CrudQueryBuilder } from "@/common/crud/crud-query-builder.interface";
 import { CrudDelegate } from "@/common/crud/types/crud-delegate.type";
 import type { RequestLogContextStore } from "@/common/logging/request-log-context";
+import {
+  auditAdminMediaUpdate,
+  auditMediaCreate,
+  softDeleteMedia
+} from "@/common/media/media-lifecycle.helper";
+import { notDeletedMediaWhere } from "@/common/media/not-deleted-media-where";
 import { computeRoundedWeightedPersonalScore } from "@/common/review-personal-score";
 import {
   buildRelationIdLookupMap,
@@ -25,11 +37,13 @@ import {
 } from "@/anime/dto";
 import { FetchEpisodesQueueService } from "@/anime/fetch-episodes.queue";
 import { GenresService } from "@/genre/genres.service";
+import { MediaCatalogSyncService } from "@/media-sync/media-catalog-sync.service";
+import { MediaSyncOrchestratorService } from "@/media-sync/media-sync-orchestrator.service";
 import { SettingsService } from "@/settings/settings.service";
 import { StudiosService } from "@/studio/studios.service";
 import { ThemesService } from "@/theme/themes.service";
 
-import { Prisma, ProgressStatus } from "@prisma/client";
+import { MediaSyncMediaType, Prisma, ProgressStatus } from "@prisma/client";
 
 interface AnimeWithReviewAndCount {
   id: number;
@@ -130,7 +144,12 @@ export class AnimeService extends BaseCrudService<
     private readonly studiosService: StudiosService,
     private readonly themesService: ThemesService,
     private readonly fetchEpisodesQueue: FetchEpisodesQueueService,
-    private readonly settingsService: SettingsService
+    private readonly settingsService: SettingsService,
+    private readonly auditLogService: AuditLogService,
+    @Inject(forwardRef(() => MediaSyncOrchestratorService))
+    private readonly mediaSyncOrchestrator: MediaSyncOrchestratorService,
+    @Inject(forwardRef(() => MediaCatalogSyncService))
+    private readonly catalogSyncService: MediaCatalogSyncService
   ) {
     super(prisma, queryBuilder);
   }
@@ -209,8 +228,8 @@ export class AnimeService extends BaseCrudService<
   }
 
   override async findOne(id: number): Promise<AnimeDetailResponseDto> {
-    const anime = (await this.prisma.anime.findUnique({
-      where: { id },
+    const anime = (await this.prisma.anime.findFirst({
+      where: { id, ...notDeletedMediaWhere },
       include: {
         review: {
           select: {
@@ -266,6 +285,58 @@ export class AnimeService extends BaseCrudService<
     } as AnimeDetailResponseDto;
   }
 
+  override async update(
+    id: number,
+    dto: UpdateAnimeDto
+  ): Promise<AnimeListResponseDto> {
+    const before = await this.prisma.anime.findFirst({
+      where: { id, ...notDeletedMediaWhere }
+    });
+    if (!before) {
+      throw new NotFoundException("Anime not found");
+    }
+
+    const updated = await super.update(id, dto);
+
+    await auditAdminMediaUpdate({
+      auditLogService: this.auditLogService,
+      entityType: "anime",
+      id,
+      before: before as unknown as Record<string, unknown>,
+      after: updated as unknown as Record<string, unknown>
+    });
+
+    await this.catalogSyncService.refreshOpenConflictSnapshotsAfterLocalEdit({
+      mediaType: MediaSyncMediaType.ANIME,
+      mediaId: id
+    });
+
+    return updated;
+  }
+
+  override async delete(id: number): Promise<void> {
+    await softDeleteMedia(this.prisma, "anime", [id], this.auditLogService);
+  }
+
+  override async deleteMany(ids: number[]): Promise<void> {
+    await softDeleteMedia(this.prisma, "anime", ids, this.auditLogService);
+  }
+
+  async enqueueExternalMetadataSync(id: number): Promise<void> {
+    const row = await this.prisma.anime.findFirst({
+      where: { id, ...notDeletedMediaWhere },
+      select: { id: true }
+    });
+    if (!row) {
+      throw new NotFoundException("Anime not found");
+    }
+
+    await this.mediaSyncOrchestrator.startSingleMediaRun(
+      MediaSyncMediaType.ANIME,
+      id
+    );
+  }
+
   async createBulk(
     data: CreateAnimeItemDto[],
     requestLog?: RequestLogContextStore
@@ -299,7 +370,7 @@ export class AnimeService extends BaseCrudService<
             ...animeData
           } = item;
 
-          await tx.anime.create({
+          const created = await tx.anime.create({
             data: {
               ...animeData,
               genres: {
@@ -331,6 +402,14 @@ export class AnimeService extends BaseCrudService<
                 create: {}
               }
             }
+          });
+
+          await auditMediaCreate({
+            auditLogService: this.auditLogService,
+            entityType: "anime",
+            id: created.id,
+            after: created as unknown as Record<string, unknown>,
+            tx
           });
 
           enqueueAfterChunk.push({ id: item.id, type: item.type });
@@ -387,20 +466,23 @@ export class AnimeService extends BaseCrudService<
   }
 
   async checkDuplicate(id: number): Promise<{ exists: boolean }> {
-    const anime = await this.prisma.anime.findUnique({
-      where: { id },
+    const anime = await this.prisma.anime.findFirst({
+      where: { id, ...notDeletedMediaWhere },
       select: { id: true }
     });
     return { exists: !!anime };
   }
 
   async getTotal(): Promise<{ count: number }> {
-    const count = await this.prisma.anime.count();
+    const count = await this.prisma.anime.count({
+      where: notDeletedMediaWhere
+    });
     return { count };
   }
 
   async getSitemapData(page: number, limit: number) {
     const rawData = (await this.prisma.anime.findMany({
+      where: notDeletedMediaWhere,
       skip: (page - 1) * limit,
       take: limit,
       select: {
@@ -424,10 +506,13 @@ export class AnimeService extends BaseCrudService<
   }
 
   async getStatusCounts(): Promise<AnimeStatusCountItemDto[]> {
-    const totalCount = await this.prisma.anime.count();
+    const totalCount = await this.prisma.anime.count({
+      where: notDeletedMediaWhere
+    });
 
     const counts = await this.prisma.animeReview.groupBy({
       by: ["progressStatus"],
+      where: { anime: notDeletedMediaWhere },
       _count: { _all: true }
     });
 

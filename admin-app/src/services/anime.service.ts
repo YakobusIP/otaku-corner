@@ -141,6 +141,19 @@ const createAnimeService = () => {
     }
   };
 
+  const enqueueMetadataSync = async (
+    id: number
+  ): Promise<ServiceResult<{ queued: true }>> => {
+    try {
+      const response = await interceptedAxios.post<{ queued: true }>(
+        `${BASE_ANIME_URL}/${id}/metadata-sync`
+      );
+      return ok(response.data);
+    } catch (error) {
+      return err(error);
+    }
+  };
+
   return {
     list,
     get,
@@ -149,7 +162,8 @@ const createAnimeService = () => {
     create,
     updateReview,
     updateProgressStatus,
-    remove
+    remove,
+    enqueueMetadataSync
   };
 };
 

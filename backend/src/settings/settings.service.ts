@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
-  NotFoundException
+  NotFoundException,
+  forwardRef
 } from "@nestjs/common";
 
 import {
@@ -13,7 +15,12 @@ import { parseNumericScoreWeights } from "@/common/review-personal-score-weights
 
 import { PrismaService } from "@/prisma/prisma.service";
 
+import { MediaCatalogSyncSchedulerService } from "@/media-sync/media-catalog-sync-scheduler.service";
 import { AppSettingResponseDto } from "@/settings/dto";
+import {
+  MEDIA_CATALOG_SYNC_SETTING_KEY,
+  parseMediaCatalogSyncSetting
+} from "@/settings/media-catalog-sync-setting";
 import { RecalculatePersonalScoresQueueService } from "@/settings/recalculate-personal-scores.queue";
 import {
   REVIEW_PERSONAL_SCORE_WEIGHTS_SETTING_KEYS,
@@ -32,7 +39,9 @@ export class SettingsService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly recalculatePersonalScoresQueue: RecalculatePersonalScoresQueueService
+    private readonly recalculatePersonalScoresQueue: RecalculatePersonalScoresQueueService,
+    @Inject(forwardRef(() => MediaCatalogSyncSchedulerService))
+    private readonly mediaCatalogSyncScheduler: MediaCatalogSyncSchedulerService
   ) {}
 
   async findAll(): Promise<AppSettingResponseDto[]> {
@@ -87,6 +96,10 @@ export class SettingsService {
         mediaType,
         normalizedValue as Record<string, number>
       );
+    }
+
+    if (key === MEDIA_CATALOG_SYNC_SETTING_KEY) {
+      await this.mediaCatalogSyncScheduler.rescheduleFromDatabase();
     }
 
     return this.toResponseDto(setting, recalculationQueuedCount);
@@ -145,6 +158,18 @@ export class SettingsService {
         value,
         this.getExpectedWeightKeys(mediaType)
       );
+    }
+
+    if (key === MEDIA_CATALOG_SYNC_SETTING_KEY) {
+      try {
+        return parseMediaCatalogSyncSetting(value);
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Invalid catalog sync setting";
+        throw new BadRequestException(message);
+      }
     }
 
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
