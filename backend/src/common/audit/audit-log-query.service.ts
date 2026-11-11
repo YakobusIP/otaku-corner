@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 
-import { PrismaService } from "@/prisma/prisma.service";
+import { AuditLogListResponseDto, AuditLogQueryDto } from "@/common/audit/dto";
 
-import { AuditLogListResponseDto, AuditLogQueryDto } from "@/audit-log/dto";
+import { PrismaService } from "@/prisma/prisma.service";
 
 import { AuditLog, Prisma } from "@prisma/client";
 

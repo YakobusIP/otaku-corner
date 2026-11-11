@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { ScheduleModule } from "@nestjs/schedule";
 
 import { AuditLogModule } from "@/common/audit/audit-log.module";
 import { BullQueueModule } from "@/common/bull/bull-queue.module";
@@ -35,6 +36,7 @@ import { ThemesModule } from "@/theme/themes.module";
       isGlobal: true,
       validate: validateEnv
     }),
+    ScheduleModule.forRoot(),
     StorageModule,
     LoggingModule,
     AuditLogModule,

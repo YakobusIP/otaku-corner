@@ -1,5 +1,4 @@
 import { Module, forwardRef } from "@nestjs/common";
-import { ScheduleModule } from "@nestjs/schedule";
 
 import { AnimeModule } from "@/anime/anime.module";
 import { ExternalMetadataEnrichmentService } from "@/media-sync/external-metadata-enrichment.service";
@@ -12,16 +11,10 @@ import { MediaSyncOrchestratorService } from "@/media-sync/media-sync-orchestrat
 import { MediaSyncQueryService } from "@/media-sync/media-sync-query.service";
 import { MediaSyncResolveService } from "@/media-sync/media-sync-resolve.service";
 import { MediaSyncController } from "@/media-sync/media-sync.controller";
-import { SettingsModule } from "@/settings/settings.module";
 import { TenraiModule } from "@/tenrai/tenrai.module";
 
 @Module({
-  imports: [
-    ScheduleModule.forRoot(),
-    forwardRef(() => AnimeModule),
-    forwardRef(() => SettingsModule),
-    TenraiModule
-  ],
+  imports: [forwardRef(() => AnimeModule), TenraiModule],
   controllers: [MediaSyncController, MediaSyncItemController],
   providers: [
     ExternalMetadataEnrichmentService,
