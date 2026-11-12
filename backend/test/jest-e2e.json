@@ -1,9 +1,24 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
+  "rootDir": "..",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
+  "maxWorkers": 1,
+  "testTimeout": 60000,
+  "setupFiles": ["<rootDir>/test/set-test-env.ts"],
+  "globalSetup": "<rootDir>/test/global-setup.ts",
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1"
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(?:\\.pnpm/uuid@|uuid/))"
+  ],
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": "<rootDir>/tsconfig.json"
+      }
+    ]
   }
 }

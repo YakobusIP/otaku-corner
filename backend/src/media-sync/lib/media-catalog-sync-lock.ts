@@ -13,5 +13,10 @@ export const acquireMediaCatalogSyncLock = async (
   mediaId: number
 ): Promise<void> => {
   const typeCode = MEDIA_TYPE_LOCK_CODES[mediaType];
-  await tx.$executeRaw`SELECT pg_advisory_xact_lock(${typeCode}, ${mediaId})`;
+  await tx.$executeRaw`
+    SELECT pg_advisory_xact_lock(
+      CAST(${typeCode} AS integer),
+      CAST(${mediaId} AS integer)
+    )
+  `;
 };

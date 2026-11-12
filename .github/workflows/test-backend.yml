@@ -1,0 +1,67 @@
+name: Test backend
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/test-backend.yml"
+  push:
+    branches: [main, staging, production]
+    paths:
+      - "backend/**"
+      - ".github/workflows/test-backend.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: otaku
+          POSTGRES_PASSWORD: otaku
+          POSTGRES_DB: otaku_corner_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U otaku -d otaku_corner_e2e"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pnpm install --frozen-lockfile
+
+      - name: Unit tests
+        working-directory: backend
+        run: pnpm test
+
+      - name: End-to-end tests
+        working-directory: backend
+        run: pnpm test:e2e
+        env:
+          E2E_DATABASE_URL: postgresql://otaku:otaku@127.0.0.1:5432/otaku_corner_e2e
+          E2E_REDIS_PORT: "6379"

@@ -1,27 +1,31 @@
-import { INestApplication } from "@nestjs/common";
-import { Test, TestingModule } from "@nestjs/testing";
+import type { INestApplication } from "@nestjs/common";
 
 import request from "supertest";
-import { App } from "supertest/types";
 
-import { AppModule } from "./../src/app.module";
+import { createTestApp, login } from "./create-test-app";
+import { disconnectTestPrisma, resetDatabase } from "./reset-database";
 
-describe("AppController (e2e)", () => {
-  let app: INestApplication<App>;
+describe("API boot (e2e)", () => {
+  let app: INestApplication;
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule]
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+  beforeAll(async () => {
+    await resetDatabase();
+    app = await createTestApp();
   });
 
-  it("/ (GET)", () => {
-    return request(app.getHttpServer())
-      .get("/")
-      .expect(200)
-      .expect("Hello World!");
+  afterAll(async () => {
+    await app.close();
+    await disconnectTestPrisma();
+  });
+
+  it("logs in with the seeded pins and rejects a missing token", async () => {
+    const accessToken = await login(app);
+
+    await request(app.getHttpServer())
+      .get("/api/auth/me")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(200);
+
+    await request(app.getHttpServer()).get("/api/auth/me").expect(401);
   });
 });
