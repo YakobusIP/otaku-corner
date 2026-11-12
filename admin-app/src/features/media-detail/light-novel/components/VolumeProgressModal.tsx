@@ -92,7 +92,9 @@ export default function VolumeProgressModal({
   };
 
   const updateLightNovelVolumeProgress = () => {
-    updateVolumeProgressMutation.mutate(volumeProgress);
+    updateVolumeProgressMutation.mutate(
+      volumeProgress.map(({ id, consumedAt }) => ({ id, consumedAt }))
+    );
   };
 
   return (
