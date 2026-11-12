@@ -1,0 +1,147 @@
+name: Test Playwright
+
+on:
+  pull_request:
+    paths:
+      - "e2e/**"
+      - "public-app/**"
+      - "admin-app/**"
+      - "backend/**"
+      - ".github/workflows/test-playwright.yml"
+  push:
+    branches: [main, staging, production]
+    paths:
+      - "e2e/**"
+      - "public-app/**"
+      - "admin-app/**"
+      - "backend/**"
+      - ".github/workflows/test-playwright.yml"
+
+jobs:
+  public:
+    # ubuntu-latest is 26.04. Playwright 1.56.1 cannot install Chromium deps there.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: otaku
+          POSTGRES_PASSWORD: otaku
+          POSTGRES_DB: otaku_corner_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U otaku -d otaku_corner_e2e"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            backend/pnpm-lock.yaml
+            public-app/pnpm-lock.yaml
+            e2e/public/pnpm-lock.yaml
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pnpm install --frozen-lockfile
+
+      - name: Install public app dependencies
+        working-directory: public-app
+        run: pnpm install --frozen-lockfile
+
+      - name: Install public Playwright dependencies
+        working-directory: e2e/public
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        working-directory: e2e/public
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Public Playwright
+        working-directory: e2e/public
+        run: pnpm test:e2e
+
+  admin:
+    # ubuntu-latest is 26.04. Playwright 1.56.1 cannot install Chromium deps there.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: otaku
+          POSTGRES_PASSWORD: otaku
+          POSTGRES_DB: otaku_corner_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U otaku -d otaku_corner_e2e"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            backend/pnpm-lock.yaml
+            admin-app/pnpm-lock.yaml
+            e2e/admin/pnpm-lock.yaml
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pnpm install --frozen-lockfile
+
+      - name: Install admin app dependencies
+        working-directory: admin-app
+        run: pnpm install --frozen-lockfile
+
+      - name: Install admin Playwright dependencies
+        working-directory: e2e/admin
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        working-directory: e2e/admin
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Admin Playwright
+        working-directory: e2e/admin
+        run: pnpm test:e2e
