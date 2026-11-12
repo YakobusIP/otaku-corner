@@ -9,12 +9,12 @@ const backendDir = path.join(repoRoot, "backend");
 
 const main = async () => {
   applyBackendEnv();
+  await resetE2eDatabase();
   execFileSync("pnpm", ["exec", "prisma", "generate", "--sql"], {
     cwd: backendDir,
     env: process.env,
     stdio: "inherit"
   });
-  await resetE2eDatabase();
 
   const child = spawn("pnpm", ["exec", "nest", "start"], {
     cwd: path.join(repoRoot, "backend"),

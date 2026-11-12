@@ -14,13 +14,6 @@ const RESET_LOCK_KEY = 924001;
 const resetE2eDatabase = async () => {
   applyBackendEnv();
   const backendDir = path.join(repoRoot, "backend");
-
-  execFileSync("pnpm", ["exec", "prisma", "migrate", "deploy"], {
-    cwd: backendDir,
-    env: process.env,
-    stdio: "inherit"
-  });
-
   const { PrismaClient } = requireFromBackend("@prisma/client");
   const bcrypt = requireFromBackend("bcrypt");
   const prisma = new PrismaClient();
@@ -29,6 +22,12 @@ const resetE2eDatabase = async () => {
     await prisma.$executeRawUnsafe(
       `SELECT pg_advisory_lock(${RESET_LOCK_KEY})`
     );
+
+    execFileSync("pnpm", ["exec", "prisma", "migrate", "deploy"], {
+      cwd: backendDir,
+      env: process.env,
+      stdio: "inherit"
+    });
 
     await prisma.$executeRawUnsafe(`
       DO $$
