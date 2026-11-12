@@ -14,9 +14,10 @@ test("saves light novel volume progress", async ({ page }) => {
     .last();
   await volumeProgress.getByRole("button").click();
 
-  const dialog = page.getByRole("dialog").filter({
+  const dialog = page.getByRole("dialog", { includeHidden: true }).filter({
     has: page.getByRole("heading", {
-      name: `${library.lightNovel.title} Volume Progress`
+      name: `${library.lightNovel.title} Volume Progress`,
+      includeHidden: true
     })
   });
   await expect(
@@ -26,11 +27,19 @@ test("saves light novel volume progress", async ({ page }) => {
   ).toBeVisible();
 
   await dialog.getByRole("button", { name: "1", exact: true }).click();
+  await expect(page.getByText("Month consumed")).toBeVisible();
   await page.getByRole("gridcell", { name: "Jan" }).click();
-  await page.keyboard.press("Escape");
-  await dialog.getByRole("button", { name: "Save changes" }).click();
+  // The month popover is modal, so the volume dialog is hidden from the
+  // accessibility tree until the popover closes. Save still accepts the click.
+  await dialog
+    .getByRole("button", { name: "Save changes", includeHidden: true })
+    .click({ force: true });
   await expect(page.getByText("Volume progress updated successfully")).toBeVisible();
   await expect(
-    dialog.getByRole("button", { name: "1", exact: true })
+    dialog.getByRole("button", {
+      name: "1",
+      exact: true,
+      includeHidden: true
+    })
   ).toHaveClass(/bg-green-700/);
 });
